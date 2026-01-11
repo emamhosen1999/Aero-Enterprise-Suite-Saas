@@ -51,10 +51,10 @@ class ContractExpiring extends BaseHrmEvent
     {
         return array_merge(parent::getNotificationContext(), [
             'employee_id' => $this->employee->id,
-            'employee_name' => $this->employee->full_name,
+            'employee_name' => $this->employee->name,
             'days_remaining' => $this->daysRemaining,
             'department_id' => $this->employee->department_id,
-            'manager_employee_id' => $this->employee->manager_employee_id,
+            'manager_id' => $this->employee->manager_id,
         ]);
     }
 }

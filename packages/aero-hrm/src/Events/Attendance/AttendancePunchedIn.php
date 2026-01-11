@@ -17,6 +17,8 @@ use Aero\HRM\Models\Attendance;
  * - Late arrival detection (if applicable)
  * - Location validation
  * - Manager notification (if configured)
+ *
+ * NOTE: Attendance model uses user_id. Employee resolution happens via EmployeeServiceContract.
  */
 class AttendancePunchedIn extends BaseHrmEvent
 {
@@ -24,9 +26,11 @@ class AttendancePunchedIn extends BaseHrmEvent
         public readonly Attendance $attendance,
         public readonly bool $isLate = false,
         public readonly array $location = [],
+        ?int $actorEmployeeId = null,
         array $metadata = []
     ) {
-        parent::__construct($attendance->employee_id, $metadata);
+        // Actor is resolved from user_id via EmployeeServiceContract in listener
+        parent::__construct($actorEmployeeId, $metadata);
     }
 
     public function getSubModuleCode(): string
@@ -46,7 +50,7 @@ class AttendancePunchedIn extends BaseHrmEvent
 
     public function getEntityId(): int
     {
-        return $this->attendance->id;
+        return (int) $this->attendance->id;
     }
 
     public function getEntityType(): string
@@ -54,14 +58,20 @@ class AttendancePunchedIn extends BaseHrmEvent
         return 'attendance';
     }
 
+    /**
+     * Get the user ID from the attendance record.
+     */
+    public function getUserId(): ?int
+    {
+        return $this->attendance->user_id;
+    }
+
     public function getNotificationContext(): array
     {
         return array_merge(parent::getNotificationContext(), [
-            'employee_id' => $this->attendance->employee_id,
-            'department_id' => $this->attendance->employee?->department_id,
-            'manager_employee_id' => $this->attendance->employee?->manager_employee_id,
+            'user_id' => $this->attendance->user_id,
             'is_late' => $this->isLate,
-            'check_in' => $this->attendance->check_in?->toIso8601String(),
+            'punch_in' => $this->attendance->punchin?->toIso8601String(),
             'location' => $this->location,
         ]);
     }

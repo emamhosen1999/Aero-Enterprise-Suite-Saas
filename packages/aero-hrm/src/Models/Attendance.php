@@ -9,6 +9,33 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
+/**
+ * Attendance Model
+ *
+ * @property int $id
+ * @property int $user_id
+ * @property int|null $attendance_type_id
+ * @property \Carbon\Carbon $date
+ * @property \Carbon\Carbon|null $punchin
+ * @property \Carbon\Carbon|null $punchout
+ * @property string|null $punchin_location
+ * @property string|null $punchout_location
+ * @property string|null $punchin_ip
+ * @property string|null $punchout_ip
+ * @property float|null $work_hours
+ * @property float|null $overtime_hours
+ * @property bool $is_late
+ * @property bool $is_early_leave
+ * @property string|null $status
+ * @property bool $is_manual
+ * @property string|null $adjustment_reason
+ * @property int|null $adjusted_by
+ * @property string|null $notes
+ * @property \Carbon\Carbon|null $created_at
+ * @property \Carbon\Carbon|null $updated_at
+ *
+ * @property-read User $user
+ */
 class Attendance extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia;

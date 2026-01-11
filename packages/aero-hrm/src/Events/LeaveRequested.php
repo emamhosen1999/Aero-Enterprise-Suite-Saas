@@ -18,7 +18,8 @@ class LeaveRequested extends BaseHrmEvent
     public function __construct(
         public Leave $leave
     ) {
-        parent::__construct($leave->employee_id);
+        // Leave uses user_id, not employee_id
+        parent::__construct(null);
     }
 
     public function getSubModuleCode(): string
@@ -31,14 +32,14 @@ class LeaveRequested extends BaseHrmEvent
         return 'requests';
     }
 
-    public function getActionCode(): ?string
+    public function getActionCode(): string
     {
         return 'request';
     }
 
-    public function getEntityId(): int|string
+    public function getEntityId(): int
     {
-        return $this->leave->id;
+        return (int) $this->leave->id;
     }
 
     public function getEntityType(): string

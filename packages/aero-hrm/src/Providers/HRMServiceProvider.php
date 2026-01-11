@@ -68,6 +68,18 @@ class HRMServiceProvider extends AbstractModuleProvider
             return new HrmNotificationChannelResolver;
         });
 
+        // Register EmployeeService - implements Core's EmployeeServiceContract
+        // This enables cross-package employee data access without direct model coupling
+        $this->app->singleton(\Aero\HRM\Services\EmployeeService::class, function ($app) {
+            return new \Aero\HRM\Services\EmployeeService;
+        });
+
+        // Also bind to the Core contract interface
+        $this->app->singleton(
+            \Aero\Core\Contracts\EmployeeServiceContract::class,
+            \Aero\HRM\Services\EmployeeService::class
+        );
+
         // Register main HRM service
         $this->app->singleton('hrm', function ($app) {
             return new \Aero\HRM\Services\HRMetricsAggregatorService;

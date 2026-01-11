@@ -11,6 +11,8 @@ use Aero\HRM\Models\Attendance;
  *
  * Dispatched when attendance is logged.
  * Consider using Attendance\AttendancePunchedIn or AttendancePunchedOut for specific actions.
+ *
+ * NOTE: Attendance model uses user_id. Employee resolution happens via EmployeeServiceContract.
  */
 class AttendanceLogged extends BaseHrmEvent
 {
@@ -19,7 +21,7 @@ class AttendanceLogged extends BaseHrmEvent
         ?int $actorEmployeeId = null,
         array $metadata = []
     ) {
-        parent::__construct($actorEmployeeId ?? $attendance->employee_id, $metadata);
+        parent::__construct($actorEmployeeId, $metadata);
     }
 
     public function getSubModuleCode(): string
@@ -39,7 +41,7 @@ class AttendanceLogged extends BaseHrmEvent
 
     public function getEntityId(): int
     {
-        return $this->attendance->id;
+        return (int) $this->attendance->id;
     }
 
     public function getEntityType(): string
@@ -47,12 +49,18 @@ class AttendanceLogged extends BaseHrmEvent
         return 'attendance';
     }
 
+    /**
+     * Get the user ID from the attendance record.
+     */
+    public function getUserId(): ?int
+    {
+        return $this->attendance->user_id;
+    }
+
     public function getNotificationContext(): array
     {
         return array_merge(parent::getNotificationContext(), [
-            'employee_id' => $this->attendance->employee_id,
-            'department_id' => $this->attendance->employee?->department_id,
-            'manager_employee_id' => $this->attendance->employee?->manager_employee_id,
+            'user_id' => $this->attendance->user_id,
         ]);
     }
 }

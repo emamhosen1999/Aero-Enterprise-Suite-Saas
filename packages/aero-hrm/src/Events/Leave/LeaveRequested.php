@@ -23,8 +23,8 @@ class LeaveRequested extends BaseHrmEvent
         ?int $actorEmployeeId = null,
         array $metadata = []
     ) {
-        // Store employee_id as actor, Core layer resolves to user_id via contract
-        parent::__construct($actorEmployeeId ?? $leave->employee_id, $metadata);
+        // Actor is passed explicitly; Leave model stores user_id not employee_id
+        parent::__construct($actorEmployeeId, $metadata);
     }
 
     public function getSubModuleCode(): string
@@ -54,28 +54,26 @@ class LeaveRequested extends BaseHrmEvent
 
     public function getNotificationContext(): array
     {
-        $employee = $this->leave->employee;
-
+        // Note: leave->employee() returns User not Employee model
+        // Core layer uses EmployeeServiceContract to resolve employee from user_id
         return array_merge(parent::getNotificationContext(), [
             'leave_id' => $this->leave->id,
-            'employee_id' => $this->leave->employee_id,
-            'manager_employee_id' => $employee?->manager_id,
-            'department_id' => $employee?->department_id,
+            'user_id' => $this->leave->user_id,
             'leave_type' => $this->leave->leaveSetting?->leave_type ?? $this->leave->leave_type,
-            'from_date' => $this->leave->from_date?->toDateString(),
-            'to_date' => $this->leave->to_date?->toDateString(),
-            'days' => $this->leave->no_of_days ?? $this->leave->days,
+            'from_date' => $this->leave->from_date,
+            'to_date' => $this->leave->to_date,
+            'days' => $this->leave->no_of_days,
         ]);
     }
 
     public function getAuditMetadata(): array
     {
         return array_merge(parent::getAuditMetadata(), [
-            'employee_id' => $this->leave->employee_id,
+            'user_id' => $this->leave->user_id,
             'leave_type' => $this->leave->leaveSetting?->leave_type ?? $this->leave->leave_type,
-            'from_date' => $this->leave->from_date?->toDateString(),
-            'to_date' => $this->leave->to_date?->toDateString(),
-            'days' => $this->leave->no_of_days ?? $this->leave->days,
+            'from_date' => $this->leave->from_date,
+            'to_date' => $this->leave->to_date,
+            'days' => $this->leave->no_of_days,
             'reason' => $this->leave->reason,
         ]);
     }

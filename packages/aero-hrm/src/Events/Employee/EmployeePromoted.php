@@ -58,14 +58,14 @@ class EmployeePromoted extends BaseHrmEvent
         return 'profile';
     }
 
-    public function getActionCode(): ?string
+    public function getActionCode(): string
     {
         return 'promote';
     }
 
-    public function getEntityId(): int|string
+    public function getEntityId(): int
     {
-        return $this->employee->id;
+        return (int) $this->employee->id;
     }
 
     public function getEntityType(): string

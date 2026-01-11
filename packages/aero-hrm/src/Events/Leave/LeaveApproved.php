@@ -50,13 +50,12 @@ class LeaveApproved extends BaseHrmEvent
 
     public function getNotificationContext(): array
     {
-        $employee = $this->leave->employee;
-
+        // Note: leave->employee() returns User not Employee model
+        // Core layer uses EmployeeServiceContract to resolve employee from user_id
         return array_merge(parent::getNotificationContext(), [
             'leave_id' => $this->leave->id,
-            'employee_id' => $this->leave->employee_id,
+            'user_id' => $this->leave->user_id,
             'approver_employee_id' => $this->getActorEmployeeId(),
-            'department_id' => $employee?->department_id,
         ]);
     }
 }

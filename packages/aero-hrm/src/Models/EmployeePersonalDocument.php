@@ -13,6 +13,33 @@ use Illuminate\Support\Facades\Storage;
  *
  * Stores personal documents for employees (passports, contracts, IDs, etc.)
  * Has a 1:Many relationship with User model.
+ *
+ * @property int $id
+ * @property int $user_id
+ * @property string $name
+ * @property string|null $document_type
+ * @property string|null $document_number
+ * @property string|null $file_path
+ * @property string|null $file_name
+ * @property string|null $mime_type
+ * @property int|null $file_size_kb
+ * @property \Carbon\Carbon|null $issue_date
+ * @property \Carbon\Carbon|null $expiry_date
+ * @property string|null $issued_by
+ * @property string|null $issued_country
+ * @property string|null $status
+ * @property string|null $rejection_reason
+ * @property int|null $verified_by
+ * @property \Carbon\Carbon|null $verified_at
+ * @property string|null $notes
+ * @property bool $is_confidential
+ * @property \Carbon\Carbon|null $created_at
+ * @property \Carbon\Carbon|null $updated_at
+ * @property \Carbon\Carbon|null $deleted_at
+ *
+ * @property-read User $user
+ * @property-read bool $is_expiring_soon
+ * @property-read bool $is_expired
  */
 class EmployeePersonalDocument extends Model
 {

@@ -53,7 +53,7 @@ class LeaveRejected extends BaseHrmEvent
     {
         return array_merge(parent::getNotificationContext(), [
             'leave_id' => $this->leave->id,
-            'employee_id' => $this->leave->employee_id,
+            'user_id' => $this->leave->user_id,
             'rejector_employee_id' => $this->getActorEmployeeId(),
             'rejection_reason' => $this->rejectionReason,
         ]);

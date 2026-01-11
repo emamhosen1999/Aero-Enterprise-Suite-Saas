@@ -40,7 +40,7 @@ class DocumentExpiring extends BaseHrmEvent
 
     public function getEntityId(): int
     {
-        return $this->document->id;
+        return (int) $this->document->id;
     }
 
     public function getEntityType(): string
@@ -51,9 +51,9 @@ class DocumentExpiring extends BaseHrmEvent
     public function getNotificationContext(): array
     {
         return array_merge(parent::getNotificationContext(), [
-            'document_id' => $this->document->id,
-            'document_type' => $this->document->document_type,
-            'employee_id' => $this->document->employee_id,
+            'document_id' => (int) $this->document->id,
+            'document_type' => $this->document->document_type ?? 'unknown',
+            'user_id' => $this->document->user_id,
             'days_until_expiry' => $this->daysUntilExpiry,
             'expiry_date' => $this->document->expiry_date?->toDateString(),
         ]);

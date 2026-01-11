@@ -17,6 +17,8 @@ use Aero\HRM\Models\Attendance;
  * - Manager notification
  * - HR notification (if chronic lateness)
  * - Attendance policy application
+ *
+ * NOTE: Attendance model uses user_id. Employee resolution happens via EmployeeServiceContract.
  */
 class LateArrivalDetected extends BaseHrmEvent
 {
@@ -25,9 +27,10 @@ class LateArrivalDetected extends BaseHrmEvent
         public readonly int $lateMinutes,
         public readonly \DateTimeInterface $scheduledTime,
         public readonly \DateTimeInterface $actualTime,
+        ?int $actorEmployeeId = null,
         array $metadata = []
     ) {
-        parent::__construct($attendance->employee_id, $metadata);
+        parent::__construct($actorEmployeeId, $metadata);
     }
 
     public function getSubModuleCode(): string
@@ -47,7 +50,7 @@ class LateArrivalDetected extends BaseHrmEvent
 
     public function getEntityId(): int
     {
-        return $this->attendance->id;
+        return (int) $this->attendance->id;
     }
 
     public function getEntityType(): string
@@ -55,12 +58,18 @@ class LateArrivalDetected extends BaseHrmEvent
         return 'attendance';
     }
 
+    /**
+     * Get the user ID from the attendance record.
+     */
+    public function getUserId(): ?int
+    {
+        return $this->attendance->user_id;
+    }
+
     public function getNotificationContext(): array
     {
         return array_merge(parent::getNotificationContext(), [
-            'employee_id' => $this->attendance->employee_id,
-            'department_id' => $this->attendance->employee?->department_id,
-            'manager_employee_id' => $this->attendance->employee?->manager_employee_id,
+            'user_id' => $this->attendance->user_id,
             'late_minutes' => $this->lateMinutes,
             'scheduled_time' => $this->scheduledTime->format('H:i'),
             'actual_time' => $this->actualTime->format('H:i'),

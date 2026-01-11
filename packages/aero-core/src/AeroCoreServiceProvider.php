@@ -145,6 +145,9 @@ class AeroCoreServiceProvider extends ServiceProvider
             // This can be overridden by aero-platform for SaaS mode
             $this->app->singleton(TenantScopeInterface::class, StandaloneTenantScope::class);
 
+            // Register cross-package contracts for modular architecture
+            $this->registerCrossPackageContracts();
+
             // Register RuntimeLoader as singleton (lazy-loaded)
             $this->app->singleton(RuntimeLoader::class, function ($app) {
                 try {
@@ -906,5 +909,69 @@ class AeroCoreServiceProvider extends ServiceProvider
     protected function installed(): bool
     {
         return file_exists(storage_path('app/aeos.installed'));
+    }
+
+    /**
+     * Register cross-package contracts for modular architecture.
+     *
+     * These contracts enable communication between packages without direct dependencies:
+     * - EmployeeServiceContract: HRM domain → Core (employee data access)
+     * - NotificationRoutingContract: HRMAC-based notification recipient resolution
+     */
+    protected function registerCrossPackageContracts(): void
+    {
+        // EmployeeServiceContract - bound by aero-hrm when loaded
+        // Core provides a null-safe default that returns empty results
+        $this->app->singleton(
+            \Aero\Core\Contracts\EmployeeServiceContract::class,
+            function ($app) {
+                // Check if HRM package has registered its implementation
+                if ($app->bound(\Aero\HRM\Services\EmployeeService::class)) {
+                    return $app->make(\Aero\HRM\Services\EmployeeService::class);
+                }
+
+                // Return a null-safe stub if HRM is not installed
+                return new class implements \Aero\Core\Contracts\EmployeeServiceContract {
+                    public function getById(int $employeeId): ?object { return null; }
+                    public function getByUserId(int $userId): ?object { return null; }
+                    public function getUserId(int $employeeId): ?int { return null; }
+                    public function getEmployeeId(int $userId): ?int { return null; }
+                    public function getManagerEmployeeId(int $employeeId): ?int { return null; }
+                    public function getDepartmentId(int $employeeId): ?int { return null; }
+                    public function getDepartmentEmployeeIds(int $departmentId): array { return []; }
+                    public function getDirectReportEmployeeIds(int $managerEmployeeId): array { return []; }
+                    public function getReportingChainEmployeeIds(int $employeeId): array { return []; }
+                    public function batchResolveUserIds(array $employeeIds): array { return []; }
+                };
+            }
+        );
+
+        // NotificationRoutingContract - HRMAC-based notification routing
+        $this->app->singleton(
+            \Aero\Core\Contracts\NotificationRoutingContract::class,
+            function ($app) {
+                // Only instantiate if HRMAC and installed
+                if (! file_exists(storage_path('app/aeos.installed'))) {
+                    return new class implements \Aero\Core\Contracts\NotificationRoutingContract {
+                        public function getRecipients(string $moduleCode, string $subModuleCode, ?string $componentCode = null, ?string $actionCode = null, array $context = []): \Illuminate\Support\Collection { return collect(); }
+                        public function getRecipientsByScope(string $moduleCode, string $subModuleCode, string $scope, array $context): \Illuminate\Support\Collection { return collect(); }
+                        public function shouldNotify(object $notifiable, string $moduleCode, string $subModuleCode, ?string $actionCode = null): bool { return false; }
+                    };
+                }
+
+                try {
+                    return new \Aero\Core\Services\HrmacNotificationRoutingService(
+                        $app->make(\Aero\HRMAC\Contracts\RoleModuleAccessInterface::class),
+                        $app->make(\Aero\Core\Contracts\EmployeeServiceContract::class)
+                    );
+                } catch (\Throwable $e) {
+                    return new class implements \Aero\Core\Contracts\NotificationRoutingContract {
+                        public function getRecipients(string $moduleCode, string $subModuleCode, ?string $componentCode = null, ?string $actionCode = null, array $context = []): \Illuminate\Support\Collection { return collect(); }
+                        public function getRecipientsByScope(string $moduleCode, string $subModuleCode, string $scope, array $context): \Illuminate\Support\Collection { return collect(); }
+                        public function shouldNotify(object $notifiable, string $moduleCode, string $subModuleCode, ?string $actionCode = null): bool { return false; }
+                    };
+                }
+            }
+        );
     }
 }

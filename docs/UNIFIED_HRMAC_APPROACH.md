@@ -315,6 +315,113 @@ The action scope is stored in `role_module_access.access_scope` and returned in 
 
 ---
 
+## Event Architecture
+
+### BaseHrmEvent
+
+All HRM domain events extend `BaseHrmEvent` which implements `DomainEventContract`:
+
+```php
+namespace Aero\HRM\Events;
+
+abstract class BaseHrmEvent implements DomainEventContract
+{
+    use Dispatchable, InteractsWithSockets, SerializesModels;
+    
+    public function __construct(
+        protected ?int $actorEmployeeId = null  // Employee ID, NOT user_id
+    ) {}
+    
+    // Required implementations:
+    abstract public function getSubModuleCode(): string;
+    abstract public function getEntityId(): int|string;
+    abstract public function getEntityType(): string;
+    
+    // Module is always 'hrm' for HRM events
+    public function getModuleCode(): string { return 'hrm'; }
+}
+```
+
+### Event Subscriber Pattern
+
+The `HrmEventSubscriber` handles all HRM events with HRMAC-based routing:
+
+```php
+class HrmEventSubscriber implements ShouldQueue
+{
+    public function __construct(
+        protected ?NotificationRoutingContract $notificationRouter,
+        protected ?EmployeeServiceContract $employeeService
+    ) {}
+    
+    // Subscribes to all HRM events
+    public function subscribe(Dispatcher $events): array
+    {
+        return [
+            LeaveRequested::class => 'handleLeaveRequested',
+            LeaveApproved::class => 'handleLeaveApproved',
+            // ... all other HRM events
+        ];
+    }
+    
+    protected function routeNotifications(BaseHrmEvent $event): void
+    {
+        // Recipients resolved via HRMAC - no hardcoded roles!
+        $recipients = $this->notificationRouter->getRecipients(
+            $event->getModuleCode(),       // 'hrm'
+            $event->getSubModuleCode(),    // 'leaves'
+            $event->getComponentCode(),    // 'leave-requests'
+            $event->getActionCode(),       // 'approve'
+            $event->getNotificationContext()
+        );
+        
+        // Send notifications to resolved recipients
+        Notification::send($recipients, new LeaveApprovedNotification($event));
+    }
+}
+```
+
+### Cross-Package Communication Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        HRM Package (Domain)                          │
+├─────────────────────────────────────────────────────────────────────┤
+│  LeaveController                                                     │
+│    └── LeaveApproved::dispatch($leave, $approverEmployeeId)         │
+│                           │                                          │
+│  HrmEventSubscriber      ▼                                          │
+│    └── handleLeaveApproved($event)                                  │
+│          └── Uses DomainEventContract methods                       │
+│                           │                                          │
+└───────────────────────────┼─────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                      Core Package (Infrastructure)                   │
+├─────────────────────────────────────────────────────────────────────┤
+│  NotificationRoutingContract                                         │
+│    └── getRecipients(module, submodule, component, action, context) │
+│                           │                                          │
+│  HrmacNotificationRoutingService                                     │
+│    └── Uses RoleModuleAccessInterface to find recipients            │
+│    └── Maps employee_id → user_id via EmployeeServiceContract       │
+│                           │                                          │
+└───────────────────────────┼─────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                     HRMAC Package (Access Control)                   │
+├─────────────────────────────────────────────────────────────────────┤
+│  RoleModuleAccessService                                             │
+│    └── getUsersWithActionAccess('hrm', 'leaves', 'requests', 'view')│
+│                                                                      │
+│  Returns: Collection of Users with access to this action            │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
 ## File Locations
 
 | File | Purpose |
@@ -326,7 +433,11 @@ The action scope is stored in `role_module_access.access_scope` and returned in 
 | `aero-platform/src/Http/Middleware/HandleInertiaRequests.php` | SaaS mode data sharing |
 | `aero-core/src/Contracts/EmployeeServiceContract.php` | Cross-package employee access |
 | `aero-core/src/Contracts/NotificationRoutingContract.php` | HRMAC-aware notification routing |
+| `aero-core/src/Contracts/DomainEventContract.php` | Standard event interface |
 | `aero-core/src/Services/HrmacNotificationRoutingService.php` | Notification routing implementation |
+| `aero-hrm/src/Events/BaseHrmEvent.php` | Base class for all HRM events |
+| `aero-hrm/src/Listeners/HrmEventSubscriber.php` | HRMAC-aware event subscriber |
+| `aero-hrm/src/Services/EmployeeService.php` | EmployeeServiceContract implementation |
 | `aero-ui/resources/js/utils/moduleAccessUtils.js` | Frontend access utilities |
 | `aero-ui/resources/js/Hooks/useHRMAC.js` | React HRMAC hook |
 | `aero-ui/resources/js/Hooks/useSaaSAccess.js` | SaaS + RBAC combined hook |

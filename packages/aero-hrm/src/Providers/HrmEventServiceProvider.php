@@ -55,6 +55,7 @@ use Aero\HRM\Listeners\SendDocumentExpiryNotifications;
 use Aero\HRM\Listeners\SendPayslipNotificationsNew;
 use Aero\HRM\Listeners\SendProbationEndingNotifications;
 use Aero\HRM\Listeners\SendWorkAnniversaryNotifications;
+use Aero\HRM\Listeners\HrmEventSubscriber;
 use Aero\HRM\Listeners\Training\SendTrainingInvitation;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
@@ -63,9 +64,22 @@ use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvi
  *
  * Explicitly registers all HRM events and their listeners.
  * This provides better discoverability and control over event handling.
+ *
+ * Architecture:
+ * - Individual listeners handle specific business logic (balance updates, etc.)
+ * - HrmEventSubscriber handles cross-cutting concerns (audit logging, HRMAC-based routing)
  */
 class HrmEventServiceProvider extends ServiceProvider
 {
+    /**
+     * The subscriber classes to register.
+     *
+     * @var array<int, class-string>
+     */
+    protected $subscribe = [
+        HrmEventSubscriber::class,
+    ];
+
     /**
      * The event to listener mappings for the HRM module.
      *
