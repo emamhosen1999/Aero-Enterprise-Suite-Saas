@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\HRM\Events\Training;
 
+use Aero\HRM\Events\BaseHrmEvent;
 use Aero\HRM\Models\Training;
-use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
 /**
  * TrainingScheduled Event
@@ -20,15 +18,61 @@ use Illuminate\Queue\SerializesModels;
  * - Reminder notifications
  * - Training materials distribution
  */
-class TrainingScheduled
+class TrainingScheduled extends BaseHrmEvent
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
-
     /**
      * Create a new event instance.
+     *
+     * @param  Training  $training
+     * @param  array<int>  $enrolledEmployeeIds  Array of employee IDs enrolled
+     * @param  int|null  $actorEmployeeId  Employee ID who scheduled the training
      */
     public function __construct(
         public Training $training,
-        public array $enrolledEmployeeIds = []
-    ) {}
+        public array $enrolledEmployeeIds = [],
+        ?int $actorEmployeeId = null
+    ) {
+        parent::__construct($actorEmployeeId);
+    }
+
+    public function getSubModuleCode(): string
+    {
+        return 'training';
+    }
+
+    public function getComponentCode(): ?string
+    {
+        return 'sessions';
+    }
+
+    public function getActionCode(): ?string
+    {
+        return 'schedule';
+    }
+
+    public function getEntityId(): int|string
+    {
+        return $this->training->id;
+    }
+
+    public function getEntityType(): string
+    {
+        return 'training';
+    }
+
+    public function getNotificationContext(): array
+    {
+        return array_merge(parent::getNotificationContext(), [
+            'training_title' => $this->training->title ?? null,
+            'training_type' => $this->training->training_type ?? null,
+            'scheduled_at' => $this->training->scheduled_at?->format('Y-m-d H:i:s'),
+            'enrolled_employee_ids' => $this->enrolledEmployeeIds,
+            'enrolled_count' => count($this->enrolledEmployeeIds),
+        ]);
+    }
+
+    public function shouldNotify(): bool
+    {
+        return !empty($this->enrolledEmployeeIds);
+    }
 }

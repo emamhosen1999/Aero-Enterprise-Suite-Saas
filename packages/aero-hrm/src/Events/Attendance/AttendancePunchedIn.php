@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\HRM\Events\Attendance;
 
+use Aero\HRM\Events\BaseHrmEvent;
 use Aero\HRM\Models\Attendance;
-use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
 /**
  * AttendancePunchedIn Event
@@ -20,20 +18,51 @@ use Illuminate\Queue\SerializesModels;
  * - Location validation
  * - Manager notification (if configured)
  */
-class AttendancePunchedIn
+class AttendancePunchedIn extends BaseHrmEvent
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
-
-    /**
-     * Create a new event instance.
-     *
-     * @param  \Aero\HRM\Models\Attendance  $attendance
-     * @param  bool  $isLate  Whether the punch-in is late
-     * @param  array  $location  Location data (lat, lng, address)
-     */
     public function __construct(
-        public Attendance $attendance,
-        public bool $isLate = false,
-        public array $location = []
-    ) {}
+        public readonly Attendance $attendance,
+        public readonly bool $isLate = false,
+        public readonly array $location = [],
+        array $metadata = []
+    ) {
+        parent::__construct($attendance->employee_id, $metadata);
+    }
+
+    public function getSubModuleCode(): string
+    {
+        return 'attendance';
+    }
+
+    public function getComponentCode(): ?string
+    {
+        return 'punch-clock';
+    }
+
+    public function getActionCode(): string
+    {
+        return 'punch-in';
+    }
+
+    public function getEntityId(): int
+    {
+        return $this->attendance->id;
+    }
+
+    public function getEntityType(): string
+    {
+        return 'attendance';
+    }
+
+    public function getNotificationContext(): array
+    {
+        return array_merge(parent::getNotificationContext(), [
+            'employee_id' => $this->attendance->employee_id,
+            'department_id' => $this->attendance->employee?->department_id,
+            'manager_employee_id' => $this->attendance->employee?->manager_employee_id,
+            'is_late' => $this->isLate,
+            'check_in' => $this->attendance->check_in?->toIso8601String(),
+            'location' => $this->location,
+        ]);
+    }
 }

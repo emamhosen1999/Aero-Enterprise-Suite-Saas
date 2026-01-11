@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\HRM\Events\Offboarding;
 
+use Aero\HRM\Events\BaseHrmEvent;
 use Aero\HRM\Models\Offboarding;
-use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
 /**
  * OffboardingStarted Event
@@ -22,20 +20,59 @@ use Illuminate\Queue\SerializesModels;
  * - System access review
  * - Exit interview scheduling
  */
-class OffboardingStarted
+class OffboardingStarted extends BaseHrmEvent
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
-
     /**
      * Create a new event instance.
      *
-     * @param  \Aero\HRM\Models\Offboarding  $offboarding
+     * @param  Offboarding  $offboarding
      * @param  string  $reason  'resignation' or 'termination'
-     * @param  int|null  $createdBy  User ID who initiated offboarding
+     * @param  int|null  $actorEmployeeId  Employee ID who initiated offboarding
      */
     public function __construct(
         public Offboarding $offboarding,
         public string $reason,
-        public ?int $createdBy = null
-    ) {}
+        ?int $actorEmployeeId = null
+    ) {
+        parent::__construct($actorEmployeeId);
+    }
+
+    public function getSubModuleCode(): string
+    {
+        return 'offboarding';
+    }
+
+    public function getComponentCode(): ?string
+    {
+        return 'tasks';
+    }
+
+    public function getActionCode(): ?string
+    {
+        return 'start';
+    }
+
+    public function getEntityId(): int|string
+    {
+        return $this->offboarding->id;
+    }
+
+    public function getEntityType(): string
+    {
+        return 'offboarding';
+    }
+
+    public function getNotificationContext(): array
+    {
+        return array_merge(parent::getNotificationContext(), [
+            'employee_id' => $this->offboarding->employee_id,
+            'reason' => $this->reason,
+            'last_working_date' => $this->offboarding->last_working_date?->toDateString(),
+        ]);
+    }
+
+    public function shouldNotify(): bool
+    {
+        return true;
+    }
 }

@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\HRM\Events\Onboarding;
 
+use Aero\HRM\Events\BaseHrmEvent;
 use Aero\HRM\Models\Onboarding;
-use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
 /**
  * OnboardingStarted Event
@@ -21,18 +19,57 @@ use Illuminate\Queue\SerializesModels;
  * - Task assignment notifications
  * - System access provisioning
  */
-class OnboardingStarted
+class OnboardingStarted extends BaseHrmEvent
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
-
     /**
      * Create a new event instance.
      *
-     * @param  \Aero\HRM\Models\Onboarding  $onboarding
-     * @param  int|null  $createdBy  User ID who initiated onboarding
+     * @param  Onboarding  $onboarding
+     * @param  int|null  $actorEmployeeId  Employee ID who initiated onboarding
      */
     public function __construct(
         public Onboarding $onboarding,
-        public ?int $createdBy = null
-    ) {}
+        ?int $actorEmployeeId = null
+    ) {
+        parent::__construct($actorEmployeeId);
+    }
+
+    public function getSubModuleCode(): string
+    {
+        return 'onboarding';
+    }
+
+    public function getComponentCode(): ?string
+    {
+        return 'tasks';
+    }
+
+    public function getActionCode(): ?string
+    {
+        return 'start';
+    }
+
+    public function getEntityId(): int|string
+    {
+        return $this->onboarding->id;
+    }
+
+    public function getEntityType(): string
+    {
+        return 'onboarding';
+    }
+
+    public function getNotificationContext(): array
+    {
+        return array_merge(parent::getNotificationContext(), [
+            'employee_id' => $this->onboarding->employee_id,
+            'start_date' => $this->onboarding->start_date?->toDateString(),
+            'expected_completion' => $this->onboarding->expected_completion_date?->toDateString(),
+        ]);
+    }
+
+    public function shouldNotify(): bool
+    {
+        return true;
+    }
 }

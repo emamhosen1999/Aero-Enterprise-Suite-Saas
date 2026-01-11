@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\HRM\Events\Recruitment;
 
+use Aero\HRM\Events\BaseHrmEvent;
 use Aero\HRM\Models\JobApplication;
-use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
 /**
  * ApplicationReceived Event
@@ -20,14 +18,56 @@ use Illuminate\Queue\SerializesModels;
  * - Hiring manager notification
  * - Application tracking update
  */
-class ApplicationReceived
+class ApplicationReceived extends BaseHrmEvent
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
-
     /**
      * Create a new event instance.
+     *
+     * @param  JobApplication  $application
      */
     public function __construct(
         public JobApplication $application
-    ) {}
+    ) {
+        parent::__construct(null);
+    }
+
+    public function getSubModuleCode(): string
+    {
+        return 'recruitment';
+    }
+
+    public function getComponentCode(): ?string
+    {
+        return 'applications';
+    }
+
+    public function getActionCode(): ?string
+    {
+        return 'receive';
+    }
+
+    public function getEntityId(): int|string
+    {
+        return $this->application->id;
+    }
+
+    public function getEntityType(): string
+    {
+        return 'job_application';
+    }
+
+    public function getNotificationContext(): array
+    {
+        return array_merge(parent::getNotificationContext(), [
+            'candidate_name' => $this->application->candidate_name ?? null,
+            'candidate_email' => $this->application->candidate_email ?? null,
+            'job_posting_id' => $this->application->job_posting_id ?? null,
+            'applied_at' => $this->application->created_at?->format('Y-m-d H:i:s'),
+        ]);
+    }
+
+    public function shouldNotify(): bool
+    {
+        return true;
+    }
 }

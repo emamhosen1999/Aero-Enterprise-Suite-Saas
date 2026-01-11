@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\HRM\Events\Recruitment;
 
+use Aero\HRM\Events\BaseHrmEvent;
 use Aero\HRM\Models\JobOffer;
-use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
 /**
  * OfferExtended Event
@@ -20,14 +18,59 @@ use Illuminate\Queue\SerializesModels;
  * - HR notification
  * - Offer acceptance tracking
  */
-class OfferExtended
+class OfferExtended extends BaseHrmEvent
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
-
     /**
      * Create a new event instance.
+     *
+     * @param  JobOffer  $offer
+     * @param  int|null  $actorEmployeeId  Employee ID (HR) who extended the offer
      */
     public function __construct(
-        public JobOffer $offer
-    ) {}
+        public JobOffer $offer,
+        ?int $actorEmployeeId = null
+    ) {
+        parent::__construct($actorEmployeeId);
+    }
+
+    public function getSubModuleCode(): string
+    {
+        return 'recruitment';
+    }
+
+    public function getComponentCode(): ?string
+    {
+        return 'offers';
+    }
+
+    public function getActionCode(): ?string
+    {
+        return 'extend';
+    }
+
+    public function getEntityId(): int|string
+    {
+        return $this->offer->id;
+    }
+
+    public function getEntityType(): string
+    {
+        return 'job_offer';
+    }
+
+    public function getNotificationContext(): array
+    {
+        return array_merge(parent::getNotificationContext(), [
+            'application_id' => $this->offer->job_application_id ?? null,
+            'candidate_name' => $this->offer->candidate_name ?? null,
+            'position' => $this->offer->position ?? null,
+            'offer_amount' => $this->offer->offer_amount ?? null,
+            'valid_until' => $this->offer->valid_until?->toDateString(),
+        ]);
+    }
+
+    public function shouldNotify(): bool
+    {
+        return true;
+    }
 }

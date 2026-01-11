@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\HRM\Events\Attendance;
 
+use Aero\HRM\Events\BaseHrmEvent;
 use Aero\HRM\Models\Attendance;
-use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
 /**
  * AttendancePunchedOut Event
@@ -20,24 +18,55 @@ use Illuminate\Queue\SerializesModels;
  * - Overtime detection
  * - Manager notification (if configured)
  */
-class AttendancePunchedOut
+class AttendancePunchedOut extends BaseHrmEvent
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
-
-    /**
-     * Create a new event instance.
-     *
-     * @param  \Aero\HRM\Models\Attendance  $attendance
-     * @param  bool  $isEarly  Whether the punch-out is early
-     * @param  bool  $hasOvertime  Whether overtime was worked
-     * @param  int|null  $totalMinutes  Total minutes worked
-     * @param  array  $location  Location data (lat, lng, address)
-     */
     public function __construct(
-        public Attendance $attendance,
-        public bool $isEarly = false,
-        public bool $hasOvertime = false,
-        public ?int $totalMinutes = null,
-        public array $location = []
-    ) {}
+        public readonly Attendance $attendance,
+        public readonly bool $isEarly = false,
+        public readonly bool $hasOvertime = false,
+        public readonly ?int $totalMinutes = null,
+        public readonly array $location = [],
+        array $metadata = []
+    ) {
+        parent::__construct($attendance->employee_id, $metadata);
+    }
+
+    public function getSubModuleCode(): string
+    {
+        return 'attendance';
+    }
+
+    public function getComponentCode(): ?string
+    {
+        return 'punch-clock';
+    }
+
+    public function getActionCode(): string
+    {
+        return 'punch-out';
+    }
+
+    public function getEntityId(): int
+    {
+        return $this->attendance->id;
+    }
+
+    public function getEntityType(): string
+    {
+        return 'attendance';
+    }
+
+    public function getNotificationContext(): array
+    {
+        return array_merge(parent::getNotificationContext(), [
+            'employee_id' => $this->attendance->employee_id,
+            'department_id' => $this->attendance->employee?->department_id,
+            'manager_employee_id' => $this->attendance->employee?->manager_employee_id,
+            'is_early' => $this->isEarly,
+            'has_overtime' => $this->hasOvertime,
+            'total_minutes' => $this->totalMinutes,
+            'check_out' => $this->attendance->check_out?->toIso8601String(),
+            'location' => $this->location,
+        ]);
+    }
 }

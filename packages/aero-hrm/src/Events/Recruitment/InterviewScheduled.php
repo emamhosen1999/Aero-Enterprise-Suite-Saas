@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\HRM\Events\Recruitment;
 
+use Aero\HRM\Events\BaseHrmEvent;
 use Aero\HRM\Models\JobInterview;
-use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
 /**
  * InterviewScheduled Event
@@ -20,14 +18,58 @@ use Illuminate\Queue\SerializesModels;
  * - Reminder notifications
  * - Interview preparation materials
  */
-class InterviewScheduled
+class InterviewScheduled extends BaseHrmEvent
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
-
     /**
      * Create a new event instance.
+     *
+     * @param  JobInterview  $interview
+     * @param  int|null  $actorEmployeeId  Employee ID (HR/recruiter) who scheduled the interview
      */
     public function __construct(
-        public JobInterview $interview
-    ) {}
+        public JobInterview $interview,
+        ?int $actorEmployeeId = null
+    ) {
+        parent::__construct($actorEmployeeId);
+    }
+
+    public function getSubModuleCode(): string
+    {
+        return 'recruitment';
+    }
+
+    public function getComponentCode(): ?string
+    {
+        return 'interviews';
+    }
+
+    public function getActionCode(): ?string
+    {
+        return 'schedule';
+    }
+
+    public function getEntityId(): int|string
+    {
+        return $this->interview->id;
+    }
+
+    public function getEntityType(): string
+    {
+        return 'job_interview';
+    }
+
+    public function getNotificationContext(): array
+    {
+        return array_merge(parent::getNotificationContext(), [
+            'application_id' => $this->interview->job_application_id ?? null,
+            'scheduled_at' => $this->interview->scheduled_at?->format('Y-m-d H:i:s'),
+            'interview_type' => $this->interview->interview_type ?? null,
+            'interviewer_employee_ids' => $this->interview->interviewer_employee_ids ?? [],
+        ]);
+    }
+
+    public function shouldNotify(): bool
+    {
+        return true;
+    }
 }
