@@ -1,18 +1,31 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aero\Project\Http\Controllers;
 
-use Illuminate\Routing\Controller;
-use App\Models\Tenant\ProjectManagement\Project;
-use App\Models\ProjectIssue;
-use Aero\Core\Models\User;
+use Aero\Project\Contracts\UserResolverContract;
+use Aero\Project\Models\Project;
+use Aero\Project\Models\ProjectIssue;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Inertia\Response;
 
+/**
+ * IssueController
+ *
+ * Handles CRUD operations for project issues.
+ * Uses service contracts for user resolution (package isolation).
+ */
 class IssueController extends Controller
 {
-    public function globalIndex()
+    public function __construct(
+        protected UserResolverContract $userResolver
+    ) {}
+
+    public function globalIndex(): Response
     {
         $issues = ProjectIssue::with(['project', 'assignedUser', 'reportedBy'])
             ->orderBy('created_at', 'desc')
@@ -23,7 +36,7 @@ class IssueController extends Controller
         ]);
     }
 
-    public function index(Project $project)
+    public function index(Project $project): Response
     {
         $issues = $project->issues()
             ->with(['assignedUser', 'reportedBy'])
@@ -36,11 +49,11 @@ class IssueController extends Controller
         ]);
     }
 
-    public function create(Project $project)
+    public function create(Project $project): Response
     {
         return Inertia::render('Project/Issues/Create', [
             'project' => $project,
-            'users' => User::select('id', 'name')->get(),
+            'users' => $this->userResolver->getAllActiveUsers(['id', 'name']),
             'tasks' => $project->tasks()->select('id', 'name')->get(),
         ]);
     }
@@ -76,12 +89,12 @@ class IssueController extends Controller
         ]);
     }
 
-    public function edit(Project $project, ProjectIssue $issue)
+    public function edit(Project $project, ProjectIssue $issue): Response
     {
         return Inertia::render('Project/Issues/Edit', [
             'project' => $project,
             'issue' => $issue,
-            'users' => User::select('id', 'name')->get(),
+            'users' => $this->userResolver->getAllActiveUsers(['id', 'name']),
             'tasks' => $project->tasks()->select('id', 'name')->get(),
         ]);
     }

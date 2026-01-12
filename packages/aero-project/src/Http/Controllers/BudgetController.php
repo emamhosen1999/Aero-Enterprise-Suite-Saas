@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aero\Project\Http\Controllers;
 
-use Illuminate\Routing\Controller;
-use App\Models\Tenant\ProjectManagement\Project;
-use App\Models\ProjectBudget;
-use App\Models\ProjectBudgetExpense;
+use Aero\Project\Models\Project;
+use Aero\Project\Models\ProjectBudget;
+use Aero\Project\Models\ProjectBudgetExpense;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 

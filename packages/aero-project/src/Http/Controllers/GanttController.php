@@ -1,14 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aero\Project\Http\Controllers;
 
-use Illuminate\Routing\Controller;
-use App\Models\Tenant\ProjectManagement\Project;
-use App\Models\ProjectMilestone;
-use App\Models\Tenant\ProjectManagement\ProjectTask;
-use App\Models\ProjectTaskDependency;
+use Aero\Project\Models\Project;
+use Aero\Project\Models\ProjectMilestone;
+use Aero\Project\Models\ProjectTask;
+use Aero\Project\Models\ProjectTaskDependency;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 
 class GanttController extends Controller

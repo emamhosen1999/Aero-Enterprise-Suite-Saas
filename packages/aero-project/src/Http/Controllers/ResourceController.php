@@ -1,16 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aero\Project\Http\Controllers;
 
-use Illuminate\Routing\Controller;
-use App\Models\Tenant\ProjectManagement\Project;
-use App\Models\ProjectResource;
-use Aero\Core\Models\User;
+use Aero\Project\Contracts\UserResolverContract;
+use Aero\Project\Models\Project;
+use Aero\Project\Models\ProjectResource;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 
 class ResourceController extends Controller
 {
+    public function __construct(
+        protected UserResolverContract $userResolver
+    ) {}
+
     /**
      * Display project resources
      */
@@ -20,12 +26,14 @@ class ResourceController extends Controller
             ->where('project_id', $project->id)
             ->get();
 
+        // Get available users (not already assigned to project)
+        $assignedUserIds = $resources->pluck('user_id')->toArray();
+        $availableUsers = $this->userResolver->getUsersExcluding($assignedUserIds, ['id', 'name', 'email']);
+
         return Inertia::render('Project/Resources/Index', [
             'project' => $project,
             'resources' => $resources,
-            'availableUsers' => User::whereNotIn('id', $resources->pluck('user_id'))
-                ->select('id', 'name', 'email')
-                ->get(),
+            'availableUsers' => $availableUsers,
             'stats' => $this->getResourceStats($project),
         ]);
     }

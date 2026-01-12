@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aero\Project\Http\Controllers;
 
-use Illuminate\Routing\Controller;
-use App\Models\Tenant\ProjectManagement\Project;
-use App\Models\ProjectMilestone;
+use Aero\Project\Models\Project;
+use Aero\Project\Models\ProjectMilestone;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 
 class MilestoneController extends Controller

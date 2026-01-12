@@ -1,33 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aero\Project\Http\Controllers;
 
-use Illuminate\Routing\Controller;
-use Aero\Core\Models\User;
+use Aero\Project\Contracts\UserResolverContract;
 use Aero\Project\Services\Task\TaskCrudService;
 use Aero\Project\Services\Task\TaskImportService;
 use Aero\Project\Services\Task\TaskNotificationService;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class TaskController extends Controller
 {
-    private TaskCrudService $crudService;
-
-    private TaskImportService $importService;
-
-    private TaskNotificationService $notificationService;
-
     public function __construct(
-        TaskCrudService $crudService,
-        TaskImportService $importService,
-        TaskNotificationService $notificationService
-    ) {
-        $this->crudService = $crudService;
-        $this->importService = $importService;
-        $this->notificationService = $notificationService;
-    }
+        protected TaskCrudService $crudService,
+        protected TaskImportService $importService,
+        protected TaskNotificationService $notificationService,
+        protected UserResolverContract $userResolver
+    ) {}
 
     /**
      * Display a listing of the tasks.

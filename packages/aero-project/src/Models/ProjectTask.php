@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class ProjectTask extends Model
 {
@@ -90,19 +91,44 @@ class ProjectTask extends Model
     }
 
     /**
-     * Get the comments for the task.
+     * Get the comments for the task (polymorphic).
      */
-    public function comments(): HasMany
+    public function comments(): MorphMany
     {
-        return $this->hasMany(ProjectTaskComment::class, 'task_id');
+        return $this->morphMany(ProjectComment::class, 'commentable');
     }
 
     /**
-     * Get the attachments for the task.
+     * Get the attachments for the task (polymorphic).
      */
-    public function attachments(): HasMany
+    public function attachments(): MorphMany
     {
-        return $this->hasMany(ProjectTaskAttachment::class, 'task_id');
+        return $this->morphMany(ProjectAttachment::class, 'attachable');
+    }
+
+    /**
+     * Get the watchers for this task.
+     */
+    public function watchers(): MorphMany
+    {
+        return $this->morphMany(ProjectWatcher::class, 'watchable');
+    }
+
+    /**
+     * Get the sprint this task belongs to.
+     */
+    public function sprint(): BelongsTo
+    {
+        return $this->belongsTo(ProjectSprint::class);
+    }
+
+    /**
+     * Get the labels for this task.
+     */
+    public function labels(): BelongsToMany
+    {
+        return $this->belongsToMany(ProjectLabel::class, 'project_task_labels', 'task_id', 'label_id')
+            ->withTimestamps();
     }
 
     /**

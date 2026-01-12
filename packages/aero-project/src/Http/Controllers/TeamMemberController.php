@@ -1,26 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aero\Project\Http\Controllers;
 
 use Aero\Core\Models\TenantInvitation;
-use Illuminate\Routing\Controller;
 use Aero\Core\Models\User;
+use Aero\HRMAC\Models\Role;
+use Aero\Project\Contracts\EmployeeResolverContract;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
-use Aero\HRMAC\Models\Role;
 
 /**
  * TeamMemberController
  *
  * Handles team invitation acceptance flow for new users joining a tenant.
+ * Uses service contracts for employee management (package isolation).
  */
 class TeamMemberController extends Controller
 {
+    public function __construct(
+        protected ?EmployeeResolverContract $employeeResolver = null
+    ) {}
     /**
      * Show the invitation acceptance form.
      */
@@ -102,13 +109,11 @@ class TeamMemberController extends Controller
             }
 
             // Create Employee record if department/designation provided in invitation
-            if (! empty($invitation->metadata['department_id']) || ! empty($invitation->metadata['designation_id'])) {
-                \App\Models\HRM\Employee::create([
-                    'user_id' => $user->id,
-                    'employee_code' => \App\Models\HRM\Employee::generateEmployeeCode(),
+            if ($this->employeeResolver && (! empty($invitation->metadata['department_id']) || ! empty($invitation->metadata['designation_id']))) {
+                $this->employeeResolver->createEmployee($user->id, [
                     'department_id' => $invitation->metadata['department_id'] ?? null,
                     'designation_id' => $invitation->metadata['designation_id'] ?? null,
-                    'date_of_joining' => now(),
+                    'date_of_joining' => now()->toDateString(),
                     'status' => 'active',
                     'employment_type' => 'full_time',
                 ]);

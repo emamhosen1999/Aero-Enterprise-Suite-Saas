@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class ProjectMilestone extends Model
 {
@@ -52,6 +53,30 @@ class ProjectMilestone extends Model
     public function tasks(): HasMany
     {
         return $this->hasMany(ProjectTask::class, 'milestone_id');
+    }
+
+    /**
+     * Get the comments for this milestone.
+     */
+    public function comments(): MorphMany
+    {
+        return $this->morphMany(ProjectComment::class, 'commentable');
+    }
+
+    /**
+     * Get the attachments for this milestone.
+     */
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(ProjectAttachment::class, 'attachable');
+    }
+
+    /**
+     * Get the watchers for this milestone.
+     */
+    public function watchers(): MorphMany
+    {
+        return $this->morphMany(ProjectWatcher::class, 'watchable');
     }
 
     /**

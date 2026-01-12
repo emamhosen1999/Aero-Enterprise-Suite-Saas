@@ -4,6 +4,8 @@ namespace Aero\Project\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 
@@ -287,6 +289,78 @@ class Project extends Model
     public function typeMetadata()
     {
         return $this->hasMany(ProjectTypeMetadata::class);
+    }
+
+    /**
+     * Get sprints for this project.
+     */
+    public function sprints(): HasMany
+    {
+        return $this->hasMany(ProjectSprint::class);
+    }
+
+    /**
+     * Get risks for this project.
+     */
+    public function risks(): HasMany
+    {
+        return $this->hasMany(ProjectRisk::class)->where('type', 'risk');
+    }
+
+    /**
+     * Get all risks and issues for this project.
+     */
+    public function risksAndIssues(): HasMany
+    {
+        return $this->hasMany(ProjectRisk::class);
+    }
+
+    /**
+     * Get labels for this project.
+     */
+    public function labels(): HasMany
+    {
+        return $this->hasMany(ProjectLabel::class);
+    }
+
+    /**
+     * Get comments for this project.
+     */
+    public function comments(): MorphMany
+    {
+        return $this->morphMany(ProjectComment::class, 'commentable');
+    }
+
+    /**
+     * Get attachments for this project.
+     */
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(ProjectAttachment::class, 'attachable');
+    }
+
+    /**
+     * Get watchers for this project.
+     */
+    public function watchers(): MorphMany
+    {
+        return $this->morphMany(ProjectWatcher::class, 'watchable');
+    }
+
+    /**
+     * Get activity log for this project.
+     */
+    public function activityLogs(): HasMany
+    {
+        return $this->hasMany(ProjectActivityLog::class);
+    }
+
+    /**
+     * Get the active sprint.
+     */
+    public function activeSprint()
+    {
+        return $this->hasOne(ProjectSprint::class)->where('status', 'active');
     }
 
     // ================================================================

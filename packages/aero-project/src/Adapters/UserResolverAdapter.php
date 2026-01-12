@@ -69,20 +69,58 @@ class UserResolverAdapter implements UserResolverContract
     /**
      * Get all active users (for dropdowns).
      */
-    public function getAllActiveUsers(): Collection
+    public function getAllActiveUsers(?array $columns = null): Collection
     {
+        $selectColumns = $columns ?? ['id', 'name', 'email'];
+
         return DB::table($this->table)
             ->where(function ($query) {
                 $query->where('status', 'active')
                     ->orWhereNull('status');
             })
             ->orderBy('name')
-            ->get(['id', 'name', 'email'])
-            ->map(fn ($user) => [
-                'id' => (int) $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-            ]);
+            ->get($selectColumns)
+            ->map(function ($user) use ($selectColumns) {
+                $result = ['id' => (int) $user->id];
+                foreach ($selectColumns as $col) {
+                    if ($col !== 'id') {
+                        $result[$col] = $user->{$col} ?? null;
+                    }
+                }
+
+                return $result;
+            });
+    }
+
+    /**
+     * Get users excluding specific IDs.
+     */
+    public function getUsersExcluding(array $excludeIds, ?array $columns = null): Collection
+    {
+        $selectColumns = $columns ?? ['id', 'name', 'email'];
+
+        $query = DB::table($this->table)
+            ->where(function ($q) {
+                $q->where('status', 'active')
+                    ->orWhereNull('status');
+            })
+            ->orderBy('name');
+
+        if (! empty($excludeIds)) {
+            $query->whereNotIn('id', $excludeIds);
+        }
+
+        return $query->get($selectColumns)
+            ->map(function ($user) use ($selectColumns) {
+                $result = ['id' => (int) $user->id];
+                foreach ($selectColumns as $col) {
+                    if ($col !== 'id') {
+                        $result[$col] = $user->{$col} ?? null;
+                    }
+                }
+
+                return $result;
+            });
     }
 
     /**

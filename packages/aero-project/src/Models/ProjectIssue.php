@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
@@ -76,6 +77,30 @@ class ProjectIssue extends Model implements HasMedia
     {
         return $this->belongsToMany(ProjectTask::class, 'project_task_issues', 'issue_id', 'task_id')
             ->withTimestamps();
+    }
+
+    /**
+     * Get comments for this issue.
+     */
+    public function comments(): MorphMany
+    {
+        return $this->morphMany(ProjectComment::class, 'commentable');
+    }
+
+    /**
+     * Get attachments for this issue (polymorphic).
+     */
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(ProjectAttachment::class, 'attachable');
+    }
+
+    /**
+     * Get watchers for this issue.
+     */
+    public function watchers(): MorphMany
+    {
+        return $this->morphMany(ProjectWatcher::class, 'watchable');
     }
 
     /**

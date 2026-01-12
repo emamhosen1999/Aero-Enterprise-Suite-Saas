@@ -1,18 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aero\Project\Http\Controllers;
 
-use Illuminate\Routing\Controller;
-use App\Models\Tenant\ProjectManagement\Project;
-use App\Models\ProjectTimeEntry;
-use Aero\Core\Models\User;
+use Aero\Project\Contracts\UserResolverContract;
+use Aero\Project\Models\Project;
+use Aero\Project\Models\ProjectTimeEntry;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class TimeTrackingController extends Controller
 {
+    public function __construct(
+        protected UserResolverContract $userResolver
+    ) {}
+
     public function index(Request $request)
     {
         $query = ProjectTimeEntry::with(['project', 'task', 'user', 'approvedBy'])

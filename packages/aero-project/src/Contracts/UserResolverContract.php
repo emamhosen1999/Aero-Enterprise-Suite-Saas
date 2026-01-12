@@ -36,9 +36,19 @@ interface UserResolverContract
     /**
      * Get all active users (for dropdowns).
      *
+     * @param array<string>|null $columns Optional columns to select
      * @return Collection<int, array{id: int, name: string, email: string}>
      */
-    public function getAllActiveUsers(): Collection;
+    public function getAllActiveUsers(?array $columns = null): Collection;
+
+    /**
+     * Get users excluding specific IDs.
+     *
+     * @param array<int> $excludeIds
+     * @param array<string>|null $columns Optional columns to select
+     * @return Collection
+     */
+    public function getUsersExcluding(array $excludeIds, ?array $columns = null): Collection;
 
     /**
      * Search users by name or email.

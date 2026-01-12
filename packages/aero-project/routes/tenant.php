@@ -12,6 +12,12 @@ use Aero\Project\Http\Controllers\BudgetController;
 use Aero\Project\Http\Controllers\IssueController;
 use Aero\Project\Http\Controllers\GanttController;
 use Aero\Project\Http\Controllers\TeamMemberController;
+use Aero\Project\Http\Controllers\ProjectRiskController;
+use Aero\Project\Http\Controllers\ProjectSprintController;
+use Aero\Project\Http\Controllers\ProjectLabelController;
+use Aero\Project\Http\Controllers\ProjectAttachmentController;
+use Aero\Project\Http\Controllers\ProjectActivityController;
+use Aero\Project\Http\Controllers\ProjectWatcherController;
 
 /*
 |--------------------------------------------------------------------------
@@ -260,4 +266,127 @@ Route::prefix('boq-measurements')->name('boq-measurements.')->middleware(['auth'
         ->middleware('project.hrmac:boq-measurements.measurement-list.reject');
     Route::get('/summary-report', [BoqMeasurementController::class, 'summaryReport'])->name('summary-report')
         ->middleware('project.hrmac:boq-measurements.earned-value.view');
+});
+
+// ============================================================================
+// RISKS & ISSUES ROUTES
+// Maps to 'risks' sub-module - Enhanced risk/issue management
+// ============================================================================
+Route::prefix('projects/{project}/risks')->name('risks.')->middleware(['auth', 'module:project,risks', 'project.member'])->group(function () {
+    Route::get('/', [ProjectRiskController::class, 'index'])->name('index')
+        ->middleware('project.hrmac:risks.risk_list.view');
+    Route::get('/create', [ProjectRiskController::class, 'create'])->name('create')
+        ->middleware('project.hrmac:risks.risk_list.create');
+    Route::post('/', [ProjectRiskController::class, 'store'])->name('store')
+        ->middleware('project.hrmac:risks.risk_list.create');
+    Route::get('/{risk}', [ProjectRiskController::class, 'show'])->name('show')
+        ->middleware('project.hrmac:risks.risk_list.view');
+    Route::get('/{risk}/edit', [ProjectRiskController::class, 'edit'])->name('edit')
+        ->middleware('project.hrmac:risks.risk_list.edit');
+    Route::put('/{risk}', [ProjectRiskController::class, 'update'])->name('update')
+        ->middleware('project.hrmac:risks.risk_list.update');
+    Route::delete('/{risk}', [ProjectRiskController::class, 'destroy'])->name('destroy')
+        ->middleware('project.hrmac:risks.risk_list.delete');
+    Route::post('/{risk}/convert-to-issue', [ProjectRiskController::class, 'convertToIssue'])->name('convert-to-issue')
+        ->middleware('project.hrmac:risks.risk_list.update');
+});
+
+// ============================================================================
+// SPRINTS ROUTES (Agile Methodology)
+// Maps to 'sprints' sub-module
+// ============================================================================
+Route::prefix('projects/{project}/sprints')->name('sprints.')->middleware(['auth', 'module:project,sprints', 'project.member'])->group(function () {
+    Route::get('/', [ProjectSprintController::class, 'index'])->name('index')
+        ->middleware('project.hrmac:sprints.sprint_list.view');
+    Route::get('/create', [ProjectSprintController::class, 'create'])->name('create')
+        ->middleware('project.hrmac:sprints.sprint_list.create');
+    Route::post('/', [ProjectSprintController::class, 'store'])->name('store')
+        ->middleware('project.hrmac:sprints.sprint_list.create');
+    Route::get('/{sprint}', [ProjectSprintController::class, 'show'])->name('show')
+        ->middleware('project.hrmac:sprints.sprint_list.view');
+    Route::get('/{sprint}/edit', [ProjectSprintController::class, 'edit'])->name('edit')
+        ->middleware('project.hrmac:sprints.sprint_list.edit');
+    Route::put('/{sprint}', [ProjectSprintController::class, 'update'])->name('update')
+        ->middleware('project.hrmac:sprints.sprint_list.update');
+    Route::delete('/{sprint}', [ProjectSprintController::class, 'destroy'])->name('destroy')
+        ->middleware('project.hrmac:sprints.sprint_list.delete');
+    // Sprint actions
+    Route::post('/{sprint}/start', [ProjectSprintController::class, 'start'])->name('start')
+        ->middleware('project.hrmac:sprints.sprint_list.update');
+    Route::post('/{sprint}/complete', [ProjectSprintController::class, 'complete'])->name('complete')
+        ->middleware('project.hrmac:sprints.sprint_list.update');
+    Route::post('/{sprint}/add-tasks', [ProjectSprintController::class, 'addTasks'])->name('add-tasks')
+        ->middleware('project.hrmac:sprints.sprint_list.update');
+    Route::delete('/{sprint}/tasks/{taskId}', [ProjectSprintController::class, 'removeTask'])->name('remove-task')
+        ->middleware('project.hrmac:sprints.sprint_list.update');
+    Route::get('/{sprint}/burndown', [ProjectSprintController::class, 'burndown'])->name('burndown')
+        ->middleware('project.hrmac:sprints.sprint_list.view');
+});
+
+// ============================================================================
+// LABELS ROUTES
+// Maps to 'labels' sub-module
+// ============================================================================
+Route::prefix('projects/{project}/labels')->name('labels.')->middleware(['auth', 'module:project,labels', 'project.member'])->group(function () {
+    Route::get('/', [ProjectLabelController::class, 'index'])->name('index')
+        ->middleware('project.hrmac:labels.label_list.view');
+    Route::post('/', [ProjectLabelController::class, 'store'])->name('store')
+        ->middleware('project.hrmac:labels.label_list.create');
+    Route::put('/{label}', [ProjectLabelController::class, 'update'])->name('update')
+        ->middleware('project.hrmac:labels.label_list.update');
+    Route::delete('/{label}', [ProjectLabelController::class, 'destroy'])->name('destroy')
+        ->middleware('project.hrmac:labels.label_list.delete');
+    Route::post('/{label}/assign', [ProjectLabelController::class, 'assignToTask'])->name('assign')
+        ->middleware('project.hrmac:labels.label_list.update');
+    Route::post('/{label}/remove', [ProjectLabelController::class, 'removeFromTask'])->name('remove')
+        ->middleware('project.hrmac:labels.label_list.update');
+});
+
+// ============================================================================
+// ATTACHMENTS ROUTES
+// Maps to 'attachments' sub-module
+// ============================================================================
+Route::prefix('projects/{project}/attachments')->name('attachments.')->middleware(['auth', 'module:project,attachments', 'project.member'])->group(function () {
+    Route::get('/', [ProjectAttachmentController::class, 'index'])->name('index')
+        ->middleware('project.hrmac:attachments.attachment_list.view');
+    Route::post('/', [ProjectAttachmentController::class, 'store'])->name('store')
+        ->middleware('project.hrmac:attachments.attachment_list.create');
+    Route::get('/{attachment}', [ProjectAttachmentController::class, 'show'])->name('show')
+        ->middleware('project.hrmac:attachments.attachment_list.view');
+    Route::get('/{attachment}/download', [ProjectAttachmentController::class, 'download'])->name('download')
+        ->middleware('project.hrmac:attachments.attachment_list.view');
+    Route::put('/{attachment}', [ProjectAttachmentController::class, 'update'])->name('update')
+        ->middleware('project.hrmac:attachments.attachment_list.update');
+    Route::delete('/{attachment}', [ProjectAttachmentController::class, 'destroy'])->name('destroy')
+        ->middleware('project.hrmac:attachments.attachment_list.delete');
+    Route::post('/bulk-delete', [ProjectAttachmentController::class, 'bulkDestroy'])->name('bulk-delete')
+        ->middleware('project.hrmac:attachments.attachment_list.delete');
+    Route::get('/storage/usage', [ProjectAttachmentController::class, 'storageUsage'])->name('storage-usage')
+        ->middleware('project.hrmac:attachments.attachment_list.view');
+});
+
+// ============================================================================
+// ACTIVITY LOG ROUTES (Read-only)
+// Maps to 'activity' sub-module
+// ============================================================================
+Route::prefix('projects/{project}/activity')->name('activity.')->middleware(['auth', 'module:project,activity', 'project.member'])->group(function () {
+    Route::get('/', [ProjectActivityController::class, 'index'])->name('index')
+        ->middleware('project.hrmac:activity.activity_list.view');
+    Route::get('/entity', [ProjectActivityController::class, 'forEntity'])->name('for-entity')
+        ->middleware('project.hrmac:activity.activity_list.view');
+    Route::get('/summary', [ProjectActivityController::class, 'summary'])->name('summary')
+        ->middleware('project.hrmac:activity.activity_list.view');
+});
+
+// ============================================================================
+// WATCHERS ROUTES
+// Global watcher endpoints (not project-scoped)
+// ============================================================================
+Route::prefix('watchers')->name('watchers.')->middleware(['auth'])->group(function () {
+    Route::get('/status', [ProjectWatcherController::class, 'status'])->name('status');
+    Route::post('/toggle', [ProjectWatcherController::class, 'toggle'])->name('toggle');
+    Route::post('/watch', [ProjectWatcherController::class, 'watch'])->name('watch');
+    Route::post('/unwatch', [ProjectWatcherController::class, 'unwatch'])->name('unwatch');
+    Route::get('/list', [ProjectWatcherController::class, 'watchers'])->name('list');
+    Route::get('/my-watches/{project}', [ProjectWatcherController::class, 'myWatches'])->name('my-watches');
 });
