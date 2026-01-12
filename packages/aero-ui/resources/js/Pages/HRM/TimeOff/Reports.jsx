@@ -1,1 +1,463 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';\nimport { Head, usePage } from '@inertiajs/react';\nimport { motion } from 'framer-motion';\nimport { \n    Button, \n    Card, \n    CardBody, \n    CardHeader, \n    Input, \n    Select, \n    SelectItem,\n    Tabs,\n    Tab,\n    Progress,\n    Chip\n} from \"@heroui/react\";\nimport { \n    DocumentChartBarIcon,\n    CalendarDaysIcon,\n    UserGroupIcon,\n    ArrowDownTrayIcon,\n    FunnelIcon,\n    MagnifyingGlassIcon\n} from \"@heroicons/react/24/outline\";\nimport App from '@/Layouts/App.jsx';\nimport StatsCards from '@/Components/StatsCards.jsx';\nimport axios from 'axios';\nimport { showToast } from '@/utils/toastUtils.jsx';\nimport { useThemeRadius } from '@/Hooks/useThemeRadius.js';\nimport { useHRMAC } from '@/Hooks/useHRMAC';\n\nconst TimeOffReports = ({ title, reportData: initialData }) => {\n    const { auth } = usePage().props;\n    const themeRadius = useThemeRadius();\n    const { hasAccess } = useHRMAC();\n    \n    // Responsive breakpoints\n    const [isMobile, setIsMobile] = useState(false);\n    const [isTablet, setIsTablet] = useState(false);\n    \n    useEffect(() => {\n        const checkScreenSize = () => {\n            setIsMobile(window.innerWidth < 640);\n            setIsTablet(window.innerWidth < 768);\n        };\n        checkScreenSize();\n        window.addEventListener('resize', checkScreenSize);\n        return () => window.removeEventListener('resize', checkScreenSize);\n    }, []);\n\n    // State management\n    const [loading, setLoading] = useState(false);\n    const [statsLoading, setStatsLoading] = useState(true);\n    const [reportData, setReportData] = useState(initialData || {});\n    const [activeTab, setActiveTab] = useState('overview');\n    const [filters, setFilters] = useState({ \n        dateRange: 'this-year', \n        department: 'all', \n        employee: 'all', \n        leaveType: 'all' \n    });\n    const [stats, setStats] = useState({ \n        totalDays: 0, \n        avgPerEmployee: 0, \n        mostUsedType: '', \n        utilizationRate: 0 \n    });\n    const [exporting, setExporting] = useState(false);\n\n    // Stats data for StatsCards component\n    const statsData = useMemo(() => [\n        { \n            title: \"Total Days Taken\", \n            value: stats.totalDays, \n            icon: <CalendarDaysIcon className=\"w-5 h-5\" />, \n            color: \"text-primary\", \n            iconBg: \"bg-primary/20\" \n        },\n        { \n            title: \"Avg per Employee\", \n            value: Math.round(stats.avgPerEmployee * 10) / 10, \n            icon: <UserGroupIcon className=\"w-5 h-5\" />, \n            color: \"text-success\", \n            iconBg: \"bg-success/20\" \n        },\n        { \n            title: \"Utilization Rate\", \n            value: `${stats.utilizationRate}%`, \n            icon: <DocumentChartBarIcon className=\"w-5 h-5\" />, \n            color: \"text-warning\", \n            iconBg: \"bg-warning/20\" \n        },\n        { \n            title: \"Most Used Type\", \n            value: stats.mostUsedType || 'N/A', \n            icon: <CalendarDaysIcon className=\"w-5 h-5\" />, \n            color: \"text-secondary\", \n            iconBg: \"bg-secondary/20\" \n        }\n    ], [stats]);\n\n    // Permission checks\n    const canViewReports = hasAccess('hrm.time-off.reports');\n    const canExportReports = hasAccess('hrm.time-off.export');\n\n    // Fetch report data\n    const fetchReportData = useCallback(async () => {\n        setLoading(true);\n        try {\n            const response = await axios.get(route('hrm.time-off.reports'), {\n                params: filters\n            });\n            if (response.status === 200) {\n                setReportData(response.data.reportData || {});\n                setStats(response.data.stats || { \n                    totalDays: 0, \n                    avgPerEmployee: 0, \n                    mostUsedType: '', \n                    utilizationRate: 0 \n                });\n            }\n        } catch (error) {\n            showToast.promise(Promise.reject(error), { error: 'Failed to fetch report data' });\n        } finally {\n            setLoading(false);\n            setStatsLoading(false);\n        }\n    }, [filters]);\n\n    useEffect(() => { fetchReportData(); }, [fetchReportData]);\n\n    // Filter handlers\n    const handleFilterChange = useCallback((key, value) => {\n        setFilters(prev => ({ ...prev, [key]: value }));\n    }, []);\n\n    // Export functionality\n    const handleExport = useCallback(async (format = 'excel') => {\n        if (!canExportReports) return;\n        \n        setExporting(true);\n        const promise = new Promise(async (resolve, reject) => {\n            try {\n                const response = await axios.post(route('hrm.time-off.export'), {\n                    format,\n                    filters,\n                    tab: activeTab\n                }, {\n                    responseType: 'blob'\n                });\n                \n                if (response.status === 200) {\n                    // Create download link\n                    const url = window.URL.createObjectURL(new Blob([response.data]));\n                    const link = document.createElement('a');\n                    link.href = url;\n                    link.setAttribute('download', `time-off-report-${activeTab}.${format === 'excel' ? 'xlsx' : 'pdf'}`);\n                    document.body.appendChild(link);\n                    link.click();\n                    link.remove();\n                    window.URL.revokeObjectURL(url);\n                    \n                    resolve(['Report exported successfully']);\n                }\n            } catch (error) {\n                reject(error.response?.data?.errors || ['Failed to export report']);\n            } finally {\n                setExporting(false);\n            }\n        });\n\n        showToast.promise(promise, {\n            loading: 'Exporting report...',\n            success: (data) => data.join(', '),\n            error: (data) => Array.isArray(data) ? data.join(', ') : data,\n        });\n    }, [canExportReports, filters, activeTab]);\n\n    // Chart data processing\n    const processChartData = useCallback((data, type) => {\n        if (!data || !Array.isArray(data)) return [];\n        \n        return data.map(item => ({\n            name: item.label || item.name,\n            value: item.value || item.count,\n            percentage: item.percentage || 0\n        }));\n    }, []);\n\n    return (\n        <>\n            <Head title={title} />\n            \n            {/* Main content wrapper */}\n            <div className=\"flex flex-col w-full h-full p-4\" role=\"main\" aria-label=\"Time Off Reports\">\n                <div className=\"space-y-4\">\n                    <div className=\"w-full\">\n                        {/* Animated Card wrapper */}\n                        <motion.div\n                            initial={{ scale: 0.9, opacity: 0 }}\n                            animate={{ scale: 1, opacity: 1 }}\n                            transition={{ duration: 0.5 }}\n                        >\n                            {/* Main Card with theme styling */}\n                            <Card \n                                className=\"transition-all duration-200\"\n                                style={{\n                                    border: `var(--borderWidth, 2px) solid transparent`,\n                                    borderRadius: `var(--borderRadius, 12px)`,\n                                    fontFamily: `var(--fontFamily, \"Inter\")`,\n                                    transform: `scale(var(--scale, 1))`,\n                                    background: `linear-gradient(135deg, \n                                        var(--theme-content1, #FAFAFA) 20%, \n                                        var(--theme-content2, #F4F4F5) 10%, \n                                        var(--theme-content3, #F1F3F4) 20%)`,\n                                }}\n                            >\n                                {/* Card Header */}\n                                <CardHeader \n                                    className=\"border-b p-0\"\n                                    style={{\n                                        borderColor: `var(--theme-divider, #E4E4E7)`,\n                                        background: `linear-gradient(135deg, \n                                            color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, \n                                            color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,\n                                    }}\n                                >\n                                    <div className={`${!isMobile ? 'p-6' : 'p-4'} w-full`}>\n                                        <div className=\"flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4\">\n                                            {/* Title Section */}\n                                            <div className=\"flex items-center gap-3 lg:gap-4\">\n                                                <div className={`${!isMobile ? 'p-3' : 'p-2'} rounded-xl`}\n                                                    style={{\n                                                        background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,\n                                                        borderRadius: `var(--borderRadius, 12px)`,\n                                                    }}\n                                                >\n                                                    <DocumentChartBarIcon className={`${!isMobile ? 'w-8 h-8' : 'w-6 h-6'}`} \n                                                        style={{ color: 'var(--theme-primary)' }} />\n                                                </div>\n                                                <div>\n                                                    <h4 className={`${!isMobile ? 'text-2xl' : 'text-xl'} font-bold`}>\n                                                        Time Off Reports\n                                                    </h4>\n                                                    <p className={`${!isMobile ? 'text-sm' : 'text-xs'} text-default-500`}>\n                                                        Comprehensive time off analytics and insights\n                                                    </p>\n                                                </div>\n                                            </div>\n                                            \n                                            {/* Export Actions */}\n                                            <div className=\"flex gap-2 flex-wrap\">\n                                                {canExportReports && (\n                                                    <>\n                                                        <Button \n                                                            variant=\"flat\"\n                                                            startContent={<ArrowDownTrayIcon className=\"w-4 h-4\" />}\n                                                            isLoading={exporting}\n                                                            onPress={() => handleExport('excel')}\n                                                            size={isMobile ? \"sm\" : \"md\"}\n                                                        >\n                                                            Export Excel\n                                                        </Button>\n                                                        <Button \n                                                            variant=\"flat\"\n                                                            startContent={<ArrowDownTrayIcon className=\"w-4 h-4\" />}\n                                                            isLoading={exporting}\n                                                            onPress={() => handleExport('pdf')}\n                                                            size={isMobile ? \"sm\" : \"md\"}\n                                                        >\n                                                            Export PDF\n                                                        </Button>\n                                                    </>\n                                                )}\n                                            </div>\n                                        </div>\n                                    </div>\n                                </CardHeader>\n\n                                <CardBody className=\"p-6\">\n                                    {/* Stats Cards */}\n                                    <StatsCards stats={statsData} isLoading={statsLoading} className=\"mb-6\" />\n                                    \n                                    {/* Filter Section */}\n                                    <div className=\"flex flex-col sm:flex-row gap-4 mb-6\">\n                                        <Select\n                                            label=\"Date Range\"\n                                            placeholder=\"Select range\"\n                                            selectedKeys={[filters.dateRange]}\n                                            onSelectionChange={(keys) => handleFilterChange('dateRange', Array.from(keys)[0])}\n                                            size=\"sm\"\n                                            radius={themeRadius}\n                                        >\n                                            <SelectItem key=\"this-month\">This Month</SelectItem>\n                                            <SelectItem key=\"last-month\">Last Month</SelectItem>\n                                            <SelectItem key=\"this-quarter\">This Quarter</SelectItem>\n                                            <SelectItem key=\"this-year\">This Year</SelectItem>\n                                            <SelectItem key=\"last-year\">Last Year</SelectItem>\n                                            <SelectItem key=\"custom\">Custom Range</SelectItem>\n                                        </Select>\n                                        \n                                        <Select\n                                            label=\"Department\"\n                                            placeholder=\"All Departments\"\n                                            selectedKeys={filters.department !== 'all' ? [filters.department] : []}\n                                            onSelectionChange={(keys) => handleFilterChange('department', Array.from(keys)[0] || 'all')}\n                                            size=\"sm\"\n                                            radius={themeRadius}\n                                        >\n                                            <SelectItem key=\"all\">All Departments</SelectItem>\n                                            {/* Dynamic department options would go here */}\n                                        </Select>\n\n                                        <Select\n                                            label=\"Leave Type\"\n                                            placeholder=\"All Types\"\n                                            selectedKeys={filters.leaveType !== 'all' ? [filters.leaveType] : []}\n                                            onSelectionChange={(keys) => handleFilterChange('leaveType', Array.from(keys)[0] || 'all')}\n                                            size=\"sm\"\n                                            radius={themeRadius}\n                                        >\n                                            <SelectItem key=\"all\">All Types</SelectItem>\n                                            <SelectItem key=\"annual\">Annual Leave</SelectItem>\n                                            <SelectItem key=\"sick\">Sick Leave</SelectItem>\n                                            <SelectItem key=\"personal\">Personal Leave</SelectItem>\n                                            <SelectItem key=\"maternity\">Maternity Leave</SelectItem>\n                                        </Select>\n                                    </div>\n\n                                    {/* Tabs for different report views */}\n                                    <Tabs \n                                        selectedKey={activeTab}\n                                        onSelectionChange={setActiveTab}\n                                        className=\"mb-6\"\n                                    >\n                                        <Tab key=\"overview\" title=\"Overview\">\n                                            <div className=\"grid grid-cols-1 md:grid-cols-2 gap-6\">\n                                                {/* Leave Type Distribution */}\n                                                <Card>\n                                                    <CardHeader>\n                                                        <h3 className=\"text-lg font-semibold\">Leave Type Distribution</h3>\n                                                    </CardHeader>\n                                                    <CardBody>\n                                                        <div className=\"space-y-4\">\n                                                            {processChartData(reportData.leaveTypes).map((item, index) => (\n                                                                <div key={index} className=\"flex items-center justify-between\">\n                                                                    <span className=\"text-sm\">{item.name}</span>\n                                                                    <div className=\"flex items-center gap-2\">\n                                                                        <Progress \n                                                                            value={item.percentage} \n                                                                            className=\"w-20\" \n                                                                            size=\"sm\" \n                                                                            color=\"primary\"\n                                                                        />\n                                                                        <span className=\"text-xs text-default-500 min-w-[40px]\">\n                                                                            {item.value}\n                                                                        </span>\n                                                                    </div>\n                                                                </div>\n                                                            ))}\n                                                        </div>\n                                                    </CardBody>\n                                                </Card>\n\n                                                {/* Department Usage */}\n                                                <Card>\n                                                    <CardHeader>\n                                                        <h3 className=\"text-lg font-semibold\">Department Usage</h3>\n                                                    </CardHeader>\n                                                    <CardBody>\n                                                        <div className=\"space-y-4\">\n                                                            {processChartData(reportData.departments).map((item, index) => (\n                                                                <div key={index} className=\"flex items-center justify-between\">\n                                                                    <span className=\"text-sm\">{item.name}</span>\n                                                                    <div className=\"flex items-center gap-2\">\n                                                                        <Progress \n                                                                            value={item.percentage} \n                                                                            className=\"w-20\" \n                                                                            size=\"sm\" \n                                                                            color=\"success\"\n                                                                        />\n                                                                        <Chip size=\"sm\" variant=\"flat\">{item.value}</Chip>\n                                                                    </div>\n                                                                </div>\n                                                            ))}\n                                                        </div>\n                                                    </CardBody>\n                                                </Card>\n\n                                                {/* Monthly Trends */}\n                                                <Card className=\"md:col-span-2\">\n                                                    <CardHeader>\n                                                        <h3 className=\"text-lg font-semibold\">Monthly Trends</h3>\n                                                    </CardHeader>\n                                                    <CardBody>\n                                                        <div className=\"text-center text-default-500 py-8\">\n                                                            Monthly trend chart implementation would go here\n                                                            <br />\n                                                            (Chart.js or similar charting library)\n                                                        </div>\n                                                    </CardBody>\n                                                </Card>\n                                            </div>\n                                        </Tab>\n\n                                        <Tab key=\"detailed\" title=\"Detailed Analysis\">\n                                            <div className=\"space-y-6\">\n                                                <Card>\n                                                    <CardHeader>\n                                                        <h3 className=\"text-lg font-semibold\">Detailed Analytics</h3>\n                                                    </CardHeader>\n                                                    <CardBody>\n                                                        <div className=\"text-center text-default-500 py-8\">\n                                                            Detailed analysis charts and tables would be implemented here.\n                                                            This could include:\n                                                            <ul className=\"mt-4 text-left list-disc list-inside space-y-1\">\n                                                                <li>Employee-wise breakdown</li>\n                                                                <li>Seasonal patterns</li>\n                                                                <li>Approval vs rejection rates</li>\n                                                                <li>Average processing times</li>\n                                                                <li>Peak usage periods</li>\n                                                            </ul>\n                                                        </div>\n                                                    </CardBody>\n                                                </Card>\n                                            </div>\n                                        </Tab>\n\n                                        <Tab key=\"trends\" title=\"Trends & Insights\">\n                                            <div className=\"space-y-6\">\n                                                <Card>\n                                                    <CardHeader>\n                                                        <h3 className=\"text-lg font-semibold\">Trends & Predictive Insights</h3>\n                                                    </CardHeader>\n                                                    <CardBody>\n                                                        <div className=\"text-center text-default-500 py-8\">\n                                                            AI-powered insights and trend analysis would be displayed here.\n                                                            This could include:\n                                                            <ul className=\"mt-4 text-left list-disc list-inside space-y-1\">\n                                                                <li>Predictive leave patterns</li>\n                                                                <li>Staffing impact analysis</li>\n                                                                <li>Seasonal trend predictions</li>\n                                                                <li>Department comparison insights</li>\n                                                                <li>Recommendations for policy adjustments</li>\n                                                            </ul>\n                                                        </div>\n                                                    </CardBody>\n                                                </Card>\n                                            </div>\n                                        </Tab>\n                                    </Tabs>\n                                </CardBody>\n                            </Card>\n                        </motion.div>\n                    </div>\n                </div>\n            </div>\n        </>\n    );\n};\n\nTimeOffReports.layout = (page) => <App children={page} />;\nexport default TimeOffReports;
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Head, usePage } from '@inertiajs/react';
+import { motion } from 'framer-motion';
+import { 
+    Button, 
+    Card, 
+    CardBody, 
+    CardHeader, 
+    Input, 
+    Select, 
+    SelectItem,
+    Tabs,
+    Tab,
+    Progress,
+    Chip
+} from "@heroui/react";
+import { 
+    DocumentChartBarIcon,
+    CalendarDaysIcon,
+    UserGroupIcon,
+    ArrowDownTrayIcon,
+    FunnelIcon,
+    MagnifyingGlassIcon
+} from "@heroicons/react/24/outline";
+import App from '@/Layouts/App.jsx';
+import StatsCards from '@/Components/StatsCards.jsx';
+import axios from 'axios';
+import { showToast } from '@/utils/toastUtils.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
+
+const TimeOffReports = ({ title, reportData: initialData }) => {
+    const { auth } = usePage().props;
+    const themeRadius = useThemeRadius();
+    const { hasAccess } = useHRMAC();
+    
+    // Responsive breakpoints
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
+
+    // State management
+    const [loading, setLoading] = useState(false);
+    const [statsLoading, setStatsLoading] = useState(true);
+    const [reportData, setReportData] = useState(initialData || {});
+    const [activeTab, setActiveTab] = useState('overview');
+    const [filters, setFilters] = useState({ 
+        dateRange: 'this-year', 
+        department: 'all', 
+        employee: 'all', 
+        leaveType: 'all' 
+    });
+    const [stats, setStats] = useState({ 
+        totalDays: 0, 
+        avgPerEmployee: 0, 
+        mostUsedType: '', 
+        utilizationRate: 0 
+    });
+    const [exporting, setExporting] = useState(false);
+
+    // Stats data for StatsCards component
+    const statsData = useMemo(() => [
+        { 
+            title: "Total Days Taken", 
+            value: stats.totalDays, 
+            icon: <CalendarDaysIcon className="w-5 h-5" />, 
+            color: "text-primary", 
+            iconBg: "bg-primary/20" 
+        },
+        { 
+            title: "Avg per Employee", 
+            value: Math.round(stats.avgPerEmployee * 10) / 10, 
+            icon: <UserGroupIcon className="w-5 h-5" />, 
+            color: "text-success", 
+            iconBg: "bg-success/20" 
+        },
+        { 
+            title: "Utilization Rate", 
+            value: `${stats.utilizationRate}%`, 
+            icon: <DocumentChartBarIcon className="w-5 h-5" />, 
+            color: "text-warning", 
+            iconBg: "bg-warning/20" 
+        },
+        { 
+            title: "Most Used Type", 
+            value: stats.mostUsedType || 'N/A', 
+            icon: <CalendarDaysIcon className="w-5 h-5" />, 
+            color: "text-secondary", 
+            iconBg: "bg-secondary/20" 
+        }
+    ], [stats]);
+
+    // Permission checks
+    const canViewReports = hasAccess('hrm.time-off.reports');
+    const canExportReports = hasAccess('hrm.time-off.export');
+
+    // Fetch report data
+    const fetchReportData = useCallback(async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get(route('hrm.time-off.reports'), {
+                params: filters
+            });
+            if (response.status === 200) {
+                setReportData(response.data.reportData || {});
+                setStats(response.data.stats || { 
+                    totalDays: 0, 
+                    avgPerEmployee: 0, 
+                    mostUsedType: '', 
+                    utilizationRate: 0 
+                });
+            }
+        } catch (error) {
+            showToast.promise(Promise.reject(error), { error: 'Failed to fetch report data' });
+        } finally {
+            setLoading(false);
+            setStatsLoading(false);
+        }
+    }, [filters]);
+
+    useEffect(() => { fetchReportData(); }, [fetchReportData]);
+
+    // Filter handlers
+    const handleFilterChange = useCallback((key, value) => {
+        setFilters(prev => ({ ...prev, [key]: value }));
+    }, []);
+
+    // Export functionality
+    const handleExport = useCallback(async (format = 'excel') => {
+        if (!canExportReports) return;
+        
+        setExporting(true);
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post(route('hrm.time-off.export'), {
+                    format,
+                    filters,
+                    tab: activeTab
+                }, {
+                    responseType: 'blob'
+                });
+                
+                if (response.status === 200) {
+                    // Create download link
+                    const url = window.URL.createObjectURL(new Blob([response.data]));
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', `time-off-report-${activeTab}.${format === 'excel' ? 'xlsx' : 'pdf'}`);
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    window.URL.revokeObjectURL(url);
+                    
+                    resolve(['Report exported successfully']);
+                }
+            } catch (error) {
+                reject(error.response?.data?.errors || ['Failed to export report']);
+            } finally {
+                setExporting(false);
+            }
+        });
+
+        showToast.promise(promise, {
+            loading: 'Exporting report...',
+            success: (data) => data.join(', '),
+            error: (data) => Array.isArray(data) ? data.join(', ') : data,
+        });
+    }, [canExportReports, filters, activeTab]);
+
+    // Chart data processing
+    const processChartData = useCallback((data, type) => {
+        if (!data || !Array.isArray(data)) return [];
+        
+        return data.map(item => ({
+            name: item.label || item.name,
+            value: item.value || item.count,
+            percentage: item.percentage || 0
+        }));
+    }, []);
+
+    return (
+        <>
+            <Head title={title} />
+            
+            {/* Main content wrapper */}
+            <div className="flex flex-col w-full h-full p-4" role="main" aria-label="Time Off Reports">
+                <div className="space-y-4">
+                    <div className="w-full">
+                        {/* Animated Card wrapper */}
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.5 }}
+                        >
+                            {/* Main Card with theme styling */}
+                            <Card 
+                                className="transition-all duration-200"
+                                style={{
+                                    border: `var(--borderWidth, 2px) solid transparent`,
+                                    borderRadius: `var(--borderRadius, 12px)`,
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                    transform: `scale(var(--scale, 1))`,
+                                    background: `linear-gradient(135deg, 
+                                        var(--theme-content1, #FAFAFA) 20%, 
+                                        var(--theme-content2, #F4F4F5) 10%, 
+                                        var(--theme-content3, #F1F3F4) 20%)`,
+                                }}
+                            >
+                                {/* Card Header */}
+                                <CardHeader 
+                                    className="border-b p-0"
+                                    style={{
+                                        borderColor: `var(--theme-divider, #E4E4E7)`,
+                                        background: `linear-gradient(135deg, 
+                                            color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
+                                            color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
+                                    }}
+                                >
+                                    <div className={`${!isMobile ? 'p-6' : 'p-4'} w-full`}>
+                                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                            {/* Title Section */}
+                                            <div className="flex items-center gap-3 lg:gap-4">
+                                                <div className={`${!isMobile ? 'p-3' : 'p-2'} rounded-xl`}
+                                                    style={{
+                                                        background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,
+                                                        borderRadius: `var(--borderRadius, 12px)`,
+                                                    }}
+                                                >
+                                                    <DocumentChartBarIcon className={`${!isMobile ? 'w-8 h-8' : 'w-6 h-6'}`} 
+                                                        style={{ color: 'var(--theme-primary)' }} />
+                                                </div>
+                                                <div>
+                                                    <h4 className={`${!isMobile ? 'text-2xl' : 'text-xl'} font-bold`}>
+                                                        Time Off Reports
+                                                    </h4>
+                                                    <p className={`${!isMobile ? 'text-sm' : 'text-xs'} text-default-500`}>
+                                                        Comprehensive time off analytics and insights
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Export Actions */}
+                                            <div className="flex gap-2 flex-wrap">
+                                                {canExportReports && (
+                                                    <>
+                                                        <Button 
+                                                            variant="flat"
+                                                            startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
+                                                            isLoading={exporting}
+                                                            onPress={() => handleExport('excel')}
+                                                            size={isMobile ? "sm" : "md"}
+                                                        >
+                                                            Export Excel
+                                                        </Button>
+                                                        <Button 
+                                                            variant="flat"
+                                                            startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
+                                                            isLoading={exporting}
+                                                            onPress={() => handleExport('pdf')}
+                                                            size={isMobile ? "sm" : "md"}
+                                                        >
+                                                            Export PDF
+                                                        </Button>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardHeader>
+
+                                <CardBody className="p-6">
+                                    {/* Stats Cards */}
+                                    <StatsCards stats={statsData} isLoading={statsLoading} className="mb-6" />
+                                    
+                                    {/* Filter Section */}
+                                    <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                                        <Select
+                                            label="Date Range"
+                                            placeholder="Select range"
+                                            selectedKeys={[filters.dateRange]}
+                                            onSelectionChange={(keys) => handleFilterChange('dateRange', Array.from(keys)[0])}
+                                            size="sm"
+                                            radius={themeRadius}
+                                        >
+                                            <SelectItem key="this-month">This Month</SelectItem>
+                                            <SelectItem key="last-month">Last Month</SelectItem>
+                                            <SelectItem key="this-quarter">This Quarter</SelectItem>
+                                            <SelectItem key="this-year">This Year</SelectItem>
+                                            <SelectItem key="last-year">Last Year</SelectItem>
+                                            <SelectItem key="custom">Custom Range</SelectItem>
+                                        </Select>
+                                        
+                                        <Select
+                                            label="Department"
+                                            placeholder="All Departments"
+                                            selectedKeys={filters.department !== 'all' ? [filters.department] : []}
+                                            onSelectionChange={(keys) => handleFilterChange('department', Array.from(keys)[0] || 'all')}
+                                            size="sm"
+                                            radius={themeRadius}
+                                        >
+                                            <SelectItem key="all">All Departments</SelectItem>
+                                            {/* Dynamic department options would go here */}
+                                        </Select>
+
+                                        <Select
+                                            label="Leave Type"
+                                            placeholder="All Types"
+                                            selectedKeys={filters.leaveType !== 'all' ? [filters.leaveType] : []}
+                                            onSelectionChange={(keys) => handleFilterChange('leaveType', Array.from(keys)[0] || 'all')}
+                                            size="sm"
+                                            radius={themeRadius}
+                                        >
+                                            <SelectItem key="all">All Types</SelectItem>
+                                            <SelectItem key="annual">Annual Leave</SelectItem>
+                                            <SelectItem key="sick">Sick Leave</SelectItem>
+                                            <SelectItem key="personal">Personal Leave</SelectItem>
+                                            <SelectItem key="maternity">Maternity Leave</SelectItem>
+                                        </Select>
+                                    </div>
+
+                                    {/* Tabs for different report views */}
+                                    <Tabs 
+                                        selectedKey={activeTab}
+                                        onSelectionChange={setActiveTab}
+                                        className="mb-6"
+                                    >
+                                        <Tab key="overview" title="Overview">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                {/* Leave Type Distribution */}
+                                                <Card>
+                                                    <CardHeader>
+                                                        <h3 className="text-lg font-semibold">Leave Type Distribution</h3>
+                                                    </CardHeader>
+                                                    <CardBody>
+                                                        <div className="space-y-4">
+                                                            {processChartData(reportData.leaveTypes).map((item, index) => (
+                                                                <div key={index} className="flex items-center justify-between">
+                                                                    <span className="text-sm">{item.name}</span>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <Progress 
+                                                                            value={item.percentage} 
+                                                                            className="w-20" 
+                                                                            size="sm" 
+                                                                            color="primary"
+                                                                        />
+                                                                        <span className="text-xs text-default-500 min-w-[40px]">
+                                                                            {item.value}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </CardBody>
+                                                </Card>
+
+                                                {/* Department Usage */}
+                                                <Card>
+                                                    <CardHeader>
+                                                        <h3 className="text-lg font-semibold">Department Usage</h3>
+                                                    </CardHeader>
+                                                    <CardBody>
+                                                        <div className="space-y-4">
+                                                            {processChartData(reportData.departments).map((item, index) => (
+                                                                <div key={index} className="flex items-center justify-between">
+                                                                    <span className="text-sm">{item.name}</span>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <Progress 
+                                                                            value={item.percentage} 
+                                                                            className="w-20" 
+                                                                            size="sm" 
+                                                                            color="success"
+                                                                        />
+                                                                        <Chip size="sm" variant="flat">{item.value}</Chip>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </CardBody>
+                                                </Card>
+
+                                                {/* Monthly Trends */}
+                                                <Card className="md:col-span-2">
+                                                    <CardHeader>
+                                                        <h3 className="text-lg font-semibold">Monthly Trends</h3>
+                                                    </CardHeader>
+                                                    <CardBody>
+                                                        <div className="text-center text-default-500 py-8">
+                                                            Monthly trend chart implementation would go here
+                                                            <br />
+                                                            (Chart.js or similar charting library)
+                                                        </div>
+                                                    </CardBody>
+                                                </Card>
+                                            </div>
+                                        </Tab>
+
+                                        <Tab key="detailed" title="Detailed Analysis">
+                                            <div className="space-y-6">
+                                                <Card>
+                                                    <CardHeader>
+                                                        <h3 className="text-lg font-semibold">Detailed Analytics</h3>
+                                                    </CardHeader>
+                                                    <CardBody>
+                                                        <div className="text-center text-default-500 py-8">
+                                                            Detailed analysis charts and tables would be implemented here.
+                                                            This could include:
+                                                            <ul className="mt-4 text-left list-disc list-inside space-y-1">
+                                                                <li>Employee-wise breakdown</li>
+                                                                <li>Seasonal patterns</li>
+                                                                <li>Approval vs rejection rates</li>
+                                                                <li>Average processing times</li>
+                                                                <li>Peak usage periods</li>
+                                                            </ul>
+                                                        </div>
+                                                    </CardBody>
+                                                </Card>
+                                            </div>
+                                        </Tab>
+
+                                        <Tab key="trends" title="Trends & Insights">
+                                            <div className="space-y-6">
+                                                <Card>
+                                                    <CardHeader>
+                                                        <h3 className="text-lg font-semibold">Trends & Predictive Insights</h3>
+                                                    </CardHeader>
+                                                    <CardBody>
+                                                        <div className="text-center text-default-500 py-8">
+                                                            AI-powered insights and trend analysis would be displayed here.
+                                                            This could include:
+                                                            <ul className="mt-4 text-left list-disc list-inside space-y-1">
+                                                                <li>Predictive leave patterns</li>
+                                                                <li>Staffing impact analysis</li>
+                                                                <li>Seasonal trend predictions</li>
+                                                                <li>Department comparison insights</li>
+                                                                <li>Recommendations for policy adjustments</li>
+                                                            </ul>
+                                                        </div>
+                                                    </CardBody>
+                                                </Card>
+                                            </div>
+                                        </Tab>
+                                    </Tabs>
+                                </CardBody>
+                            </Card>
+                        </motion.div>
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+};
+
+TimeOffReports.layout = (page) => <App children={page} />;
+export default TimeOffReports;

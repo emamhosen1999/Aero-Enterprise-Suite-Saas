@@ -95,6 +95,16 @@ class CoreModuleProvider extends AbstractModuleProvider
      */
     public function boot(): void
     {
+        // Force URL scheme based on APP_URL configuration
+        // This respects the user's choice - no forced HTTPS if APP_URL is HTTP
+        $appUrl = config('app.url');
+        if ($appUrl) {
+            $scheme = parse_url($appUrl, PHP_URL_SCHEME);
+            if ($scheme) {
+                \Illuminate\Support\Facades\URL::forceScheme($scheme);
+            }
+        }
+
         // In standalone mode, load installation routes if not installed
         if (config('aero.mode') === 'standalone' && !file_exists(storage_path('app/aeos.installed'))) {
             // Load installation routes WITHOUT module prefix

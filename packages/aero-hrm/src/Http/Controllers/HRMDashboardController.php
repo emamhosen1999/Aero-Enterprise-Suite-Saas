@@ -2,6 +2,7 @@
 
 namespace Aero\HRM\Http\Controllers;
 
+use Aero\Core\Services\DashboardWidgetRegistry;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Leave;
@@ -24,6 +25,10 @@ use Inertia\Response;
  */
 class HRMDashboardController extends Controller
 {
+    public function __construct(
+        protected DashboardWidgetRegistry $widgetRegistry
+    ) {}
+
     /**
      * Display the HRM Dashboard.
      */
@@ -68,7 +73,7 @@ class HRMDashboardController extends Controller
         
         // Get attendance stats for today
         $presentToday = Attendance::whereDate('date', $today)
-            ->whereNotNull('clock_in')
+            ->whereNotNull('punchin')
             ->count();
         
         $absentToday = $activeEmployees - $presentToday - $onLeaveToday;
@@ -83,7 +88,7 @@ class HRMDashboardController extends Controller
         $totalPossibleAttendance = $activeEmployees * $workingDays;
         $actualAttendance = Attendance::whereMonth('date', $today->month)
             ->whereYear('date', $today->year)
-            ->whereNotNull('clock_in')
+            ->whereNotNull('punchin')
             ->count();
         $averageAttendance = $totalPossibleAttendance > 0 
             ? round(($actualAttendance / $totalPossibleAttendance) * 100)
@@ -103,7 +108,7 @@ class HRMDashboardController extends Controller
                         ->whereHas('employee', function ($q) use ($dept) {
                             $q->where('department_id', $dept->id);
                         })
-                        ->whereNotNull('clock_in')
+                        ->whereNotNull('punchin')
                         ->count();
                     $attendanceRate = round(($deptAttendance / $deptEmployees) * 100);
                 } else {
@@ -133,6 +138,9 @@ class HRMDashboardController extends Controller
             ->whereYear('joining_date', $today->year)
             ->count();
 
+        // Get dynamic widgets for HRM dashboard
+        $dynamicWidgets = $this->widgetRegistry->getWidgetsForFrontend('hrm');
+
         return Inertia::render('HRM/Dashboard', [
             'title' => 'HRM Dashboard',
             'stats' => [
@@ -152,6 +160,7 @@ class HRMDashboardController extends Controller
             'pendingLeaves' => $pendingLeaveRequests,
             'departmentStats' => $departments,
             'upcomingReviews' => $upcomingReviews,
+            'dynamicWidgets' => $dynamicWidgets,
         ]);
     }
 
@@ -175,7 +184,7 @@ class HRMDashboardController extends Controller
         
         // Attendance stats
         $presentToday = Attendance::whereDate('date', $today)
-            ->whereNotNull('clock_in')
+            ->whereNotNull('punchin')
             ->count();
         $lateToday = Attendance::whereDate('date', $today)
             ->where('is_late', true)
@@ -187,7 +196,7 @@ class HRMDashboardController extends Controller
         $totalPossibleAttendance = $activeEmployees * $workingDays;
         $actualAttendance = Attendance::whereMonth('date', $today->month)
             ->whereYear('date', $today->year)
-            ->whereNotNull('clock_in')
+            ->whereNotNull('punchin')
             ->count();
         $averageAttendance = $totalPossibleAttendance > 0 
             ? round(($actualAttendance / $totalPossibleAttendance) * 100)
@@ -206,7 +215,7 @@ class HRMDashboardController extends Controller
                         ->whereHas('employee', function ($q) use ($dept) {
                             $q->where('department_id', $dept->id);
                         })
-                        ->whereNotNull('clock_in')
+                        ->whereNotNull('punchin')
                         ->count();
                     $attendanceRate = round(($deptAttendance / $deptEmployees) * 100);
                 } else {

@@ -1,349 +1,149 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Head, router } from '@inertiajs/react';
-import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
+import React, { useMemo } from 'react';
+import { Head } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
-import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
-import {
-    Card,
-    CardBody,
-    CardHeader,
-    Button,
-    Chip,
-    Progress,
-} from "@heroui/react";
-import {
-    UsersIcon,
-    TrophyIcon,
-    CurrencyDollarIcon,
-    PhoneIcon,
-    UserPlusIcon,
-    EnvelopeIcon,
-    CalendarIcon,
-    ChartBarIcon,
-} from "@heroicons/react/24/outline";
+import { UsersIcon } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
-import StatsCards from "@/Components/StatsCards.jsx";
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import DynamicWidgetRenderer from '@/Components/DynamicWidgets/DynamicWidgetRenderer';
 
-const CRMDashboard = ({ stats = {}, recentLeads = [], deals = [], activities = [], auth, permissions = [] }) => {
-    const themeRadius = useThemeRadius();
-    const isMobile = useMediaQuery('(max-width: 640px)');
-    const isTablet = useMediaQuery('(max-width: 768px)');
-    const isLargeScreen = useMediaQuery('(min-width: 1280px)');
-    const [selectedPeriod, setSelectedPeriod] = useState('month');
-
-    // HRMAC permissions with Super Administrator bypass
-    const { hasAccess, canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
-    
-    // TODO: Update these paths to match actual HRMAC module hierarchy once defined
-    const canViewCRM = hasAccess('crm.dashboard') || isSuperAdmin();
-    const canManageLeads = canUpdate('crm.leads') || isSuperAdmin();
-    const canManageDeals = canUpdate('crm.deals') || isSuperAdmin();
-
-    const dashboardStats = useMemo(() => [
-        {
-            title: "Total Leads",
-            value: stats?.totalLeads || 0,
-            icon: <UserPlusIcon className="w-6 h-6" />,
-            color: "text-blue-400",
-            iconBg: "bg-blue-500/20",
-            description: "Active leads"
-        },
-        {
-            title: "Active Deals",
-            value: stats?.activeDeals || 0,
-            icon: <TrophyIcon className="w-6 h-6" />,
-            color: "text-yellow-400",
-            iconBg: "bg-yellow-500/20",
-            description: "In pipeline"
-        },
-        {
-            title: "Conversion Rate",
-            value: `${stats?.conversionRate || 0}%`,
-            icon: <ChartBarIcon className="w-6 h-6" />,
-            color: "text-green-400",
-            iconBg: "bg-green-500/20",
-            description: "Lead to customer"
-        },
-        {
-            title: "Revenue Pipeline",
-            value: `$${(stats?.revenuePipeline || 0).toLocaleString()}`,
-            icon: <CurrencyDollarIcon className="w-6 h-6" />,
-            color: "text-purple-400",
-            iconBg: "bg-purple-500/20",
-            description: "Potential revenue"
-        },
-    ], [stats]);
-
-    const getCardStyle = () => ({
-        border: `var(--borderWidth, 2px) solid transparent`,
-        borderRadius: `var(--borderRadius, 12px)`,
-        fontFamily: `var(--fontFamily, "Inter")`,
-        transform: `scale(var(--scale, 1))`,
-        background: `linear-gradient(135deg, 
-            var(--theme-content1, #FAFAFA) 20%, 
-            var(--theme-content2, #F4F4F5) 10%, 
-            var(--theme-content3, #F1F3F4) 20%)`,
-    });
-
-    const getCardHeaderStyle = () => ({
-        borderBottom: `1px solid var(--theme-divider, #E4E4E7)`,
-    });
-
-    const getStageColor = (stage) => {
-        const colors = {
-            'new': 'primary',
-            'contacted': 'warning',
-            'qualified': 'success',
-            'proposal': 'secondary',
-            'negotiation': 'warning',
-            'won': 'success',
-            'lost': 'danger',
+/**
+ * CRM Dashboard - Dynamic Widgets Only
+ * 
+ * This dashboard renders ONLY dynamic widgets registered by packages.
+ * NO hardcoded widgets or container Card wrappers.
+ * All CRM-specific widgets (leads, deals, activities, pipeline) should be
+ * registered via the widget system in the aero-crm package.
+ */
+const CRMDashboard = ({ title = 'CRM Dashboard', dynamicWidgets = [] }) => {
+    // Group widgets by position for layout
+    const widgetsByPosition = useMemo(() => {
+        const positions = {
+            welcome: [],
+            stats_row: [],
+            main_left: [],
+            main_right: [],
+            sidebar: [],
+            full_width: [],
         };
-        return colors[stage?.toLowerCase()] || 'default';
-    };
 
-    const getLeadStatusColor = (status) => {
-        const colors = {
-            'new': 'primary',
-            'contacted': 'warning',
-            'qualified': 'success',
-            'unqualified': 'danger',
-        };
-        return colors[status?.toLowerCase()] || 'default';
-    };
+        dynamicWidgets.forEach(widget => {
+            const position = widget.position || 'full_width';
+            if (positions[position]) {
+                positions[position].push(widget);
+            } else {
+                positions.full_width.push(widget);
+            }
+        });
 
-    const sampleRecentLeads = recentLeads?.length > 0 ? recentLeads : [
-        { id: 1, name: 'Acme Corporation', contact: 'John Smith', email: 'john@acme.com', status: 'new', source: 'Website', value: 50000, createdAt: '2 hours ago' },
-        { id: 2, name: 'Tech Solutions Inc', contact: 'Sarah Johnson', email: 'sarah@techsol.com', status: 'contacted', source: 'Referral', value: 75000, createdAt: '5 hours ago' },
-        { id: 3, name: 'Global Enterprises', contact: 'Mike Davis', email: 'mike@global.com', status: 'qualified', source: 'Cold Call', value: 120000, createdAt: '1 day ago' },
-    ];
+        // Sort widgets by order within each position
+        Object.keys(positions).forEach(key => {
+            positions[key].sort((a, b) => (a.order || 0) - (b.order || 0));
+        });
 
-    const sampleDeals = deals?.length > 0 ? deals : [
-        { id: 1, name: 'Enterprise Software Deal', company: 'Acme Corp', stage: 'proposal', value: 150000, probability: 60, closingDate: '2024-01-15' },
-        { id: 2, name: 'Cloud Migration Project', company: 'Tech Solutions', stage: 'negotiation', value: 95000, probability: 75, closingDate: '2024-01-20' },
-        { id: 3, name: 'Consulting Services', company: 'Global Ent', stage: 'qualified', value: 45000, probability: 40, closingDate: '2024-02-01' },
-    ];
+        return positions;
+    }, [dynamicWidgets]);
 
-    const sampleActivities = activities?.length > 0 ? activities : [
-        { id: 1, type: 'call', description: 'Follow-up call with Acme Corp', contact: 'John Smith', time: '10 mins ago', status: 'completed' },
-        { id: 2, type: 'email', description: 'Sent proposal to Tech Solutions', contact: 'Sarah Johnson', time: '1 hour ago', status: 'completed' },
-        { id: 3, type: 'meeting', description: 'Demo scheduled with Global Ent', contact: 'Mike Davis', time: 'Today 2:00 PM', status: 'scheduled' },
-    ];
+    const hasAnyWidgets = dynamicWidgets.length > 0;
 
     return (
-        <App>
-            <Head title="CRM Dashboard" />
-            
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
-            >
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                    <div>
-                        <h1 className="text-2xl font-bold text-foreground dark:text-white">
-                            CRM Dashboard
-                        </h1>
-                        <p className="text-sm text-default-500 dark:text-gray-400 mt-1">
-                            Customer relationship management overview
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Button
-                            size="sm"
-                            variant={selectedPeriod === 'month' ? 'solid' : 'flat'}
-                            color={selectedPeriod === 'month' ? 'primary' : 'default'}
-                            radius={getThemeRadius()}
-                            onPress={() => setSelectedPeriod('month')}
+        <>
+            <Head title={title} />
+            <div className="flex flex-col w-full h-full p-4" role="main" aria-label="CRM Dashboard">
+                <div className="space-y-4">
+                    {/* Welcome Section Widgets */}
+                    {widgetsByPosition.welcome.length > 0 && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3 }}
                         >
-                            Month
-                        </Button>
-                        <Button
-                            size="sm"
-                            variant={selectedPeriod === 'year' ? 'solid' : 'flat'}
-                            color={selectedPeriod === 'year' ? 'primary' : 'default'}
-                            radius={getThemeRadius()}
-                            onPress={() => setSelectedPeriod('year')}
-                        >
-                            Year
-                        </Button>
-                    </div>
-                </div>
-
-                {/* Stats Cards */}
-                <div className="mb-6">
-                    <StatsCards stats={dashboardStats} />
-                </div>
-
-                {/* Main Content Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    {/* Recent Leads */}
-                    <Card className="transition-all duration-200" style={getCardStyle()}>
-                        <CardHeader style={getCardHeaderStyle()}>
-                            <div className="flex items-center justify-between w-full">
-                                <div className="flex items-center gap-2">
-                                    <UserPlusIcon className="w-5 h-5 text-primary" />
-                                    <h3 className="text-lg font-semibold">Recent Leads</h3>
-                                </div>
-                                {hasPermission('crm.leads.view') && (
-                                    <Button
-                                        size="sm"
-                                        variant="flat"
-                                        color="primary"
-                                        radius={getThemeRadius()}
-                                        onPress={() => safeNavigate('crm.leads.index')}
-                                    >
-                                        View All
-                                    </Button>
-                                )}
-                            </div>
-                        </CardHeader>
-                        <CardBody>
-                            <div className="space-y-4">
-                                {sampleRecentLeads.map((lead) => (
-                                    <div key={lead.id} className="flex items-start gap-3 p-3 rounded-lg bg-default-50 dark:bg-default-100/10">
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center justify-between gap-2 mb-1">
-                                                <h4 className="font-semibold text-sm truncate">{lead.name}</h4>
-                                                <Chip size="sm" color={getLeadStatusColor(lead.status)} variant="flat">
-                                                    {lead.status}
-                                                </Chip>
-                                            </div>
-                                            <p className="text-xs text-default-500 truncate">{lead.contact} • {lead.email}</p>
-                                            <div className="flex items-center justify-between mt-2">
-                                                <span className="text-xs text-default-400">{lead.source}</span>
-                                                <span className="text-xs font-medium text-success">${lead.value.toLocaleString()}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </CardBody>
-                    </Card>
-
-                    {/* Pipeline Deals */}
-                    <Card className="transition-all duration-200" style={getCardStyle()}>
-                        <CardHeader style={getCardHeaderStyle()}>
-                            <div className="flex items-center justify-between w-full">
-                                <div className="flex items-center gap-2">
-                                    <TrophyIcon className="w-5 h-5 text-warning" />
-                                    <h3 className="text-lg font-semibold">Active Deals</h3>
-                                </div>
-                                {hasPermission('crm.deals.view') && (
-                                    <Button
-                                        size="sm"
-                                        variant="flat"
-                                        color="primary"
-                                        radius={getThemeRadius()}
-                                        onPress={() => safeNavigate('crm.deals.index')}
-                                    >
-                                        View Pipeline
-                                    </Button>
-                                )}
-                            </div>
-                        </CardHeader>
-                        <CardBody>
-                            <div className="space-y-4">
-                                {sampleDeals.map((deal) => (
-                                    <div key={deal.id} className="p-3 rounded-lg bg-default-50 dark:bg-default-100/10">
-                                        <div className="flex items-start justify-between gap-2 mb-2">
-                                            <div className="flex-1 min-w-0">
-                                                <h4 className="font-semibold text-sm truncate">{deal.name}</h4>
-                                                <p className="text-xs text-default-500">{deal.company}</p>
-                                            </div>
-                                            <Chip size="sm" color={getStageColor(deal.stage)} variant="flat">
-                                                {deal.stage}
-                                            </Chip>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <div className="flex items-center justify-between text-xs">
-                                                <span className="text-default-500">Value</span>
-                                                <span className="font-medium">${deal.value.toLocaleString()}</span>
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center justify-between text-xs mb-1">
-                                                    <span className="text-default-500">Probability</span>
-                                                    <span className="font-medium">{deal.probability}%</span>
-                                                </div>
-                                                <Progress 
-                                                    value={deal.probability} 
-                                                    size="sm"
-                                                    color={deal.probability >= 70 ? 'success' : deal.probability >= 50 ? 'warning' : 'primary'}
-                                                    className="max-w-full"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </CardBody>
-                    </Card>
-                </div>
-
-                {/* Recent Activities */}
-                <Card className="transition-all duration-200" style={getCardStyle()}>
-                    <CardHeader style={getCardHeaderStyle()}>
-                        <div className="flex items-center justify-between w-full">
-                            <div className="flex items-center gap-2">
-                                <CalendarIcon className="w-5 h-5 text-secondary" />
-                                <h3 className="text-lg font-semibold">Recent Activities</h3>
-                            </div>
-                            {hasPermission('crm.activities.view') && (
-                                <Button
-                                    size="sm"
-                                    variant="flat"
-                                    color="primary"
-                                    radius={getThemeRadius()}
-                                    onPress={() => safeNavigate('crm.activities.index')}
-                                >
-                                    View All
-                                </Button>
-                            )}
-                        </div>
-                    </CardHeader>
-                    <CardBody>
-                        <div className="space-y-3">
-                            {sampleActivities.map((activity) => (
-                                <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg bg-default-50 dark:bg-default-100/10">
-                                    <div className={`p-2 rounded-lg ${
-                                        activity.type === 'call' ? 'bg-blue-500/20' :
-                                        activity.type === 'email' ? 'bg-purple-500/20' :
-                                        'bg-green-500/20'
-                                    }`}>
-                                        {activity.type === 'call' ? (
-                                            <PhoneIcon className="w-4 h-4 text-blue-500" />
-                                        ) : activity.type === 'email' ? (
-                                            <EnvelopeIcon className="w-4 h-4 text-purple-500" />
-                                        ) : (
-                                            <CalendarIcon className="w-4 h-4 text-green-500" />
-                                        )}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium truncate">{activity.description}</p>
-                                        <p className="text-xs text-default-500">{activity.contact}</p>
-                                        <div className="flex items-center justify-between mt-1">
-                                            <span className="text-xs text-default-400">{activity.time}</span>
-                                            <Chip 
-                                                size="sm" 
-                                                color={activity.status === 'completed' ? 'success' : 'warning'} 
-                                                variant="flat"
-                                            >
-                                                {activity.status}
-                                            </Chip>
-                                        </div>
-                                    </div>
-                                </div>
+                            {widgetsByPosition.welcome.map((widget) => (
+                                <DynamicWidgetRenderer key={widget.id} widget={widget} />
                             ))}
-                        </div>
-                    </CardBody>
-                </Card>
-            </motion.div>
-        </App>
+                        </motion.div>
+                    )}
+
+                    {/* Stats Row Widgets */}
+                    {widgetsByPosition.stats_row.length > 0 && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3, delay: 0.1 }}
+                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+                        >
+                            {widgetsByPosition.stats_row.map((widget) => (
+                                <DynamicWidgetRenderer key={widget.id} widget={widget} />
+                            ))}
+                        </motion.div>
+                    )}
+
+                    {/* Main Content Grid */}
+                    {(widgetsByPosition.main_left.length > 0 || 
+                      widgetsByPosition.main_right.length > 0 || 
+                      widgetsByPosition.sidebar.length > 0) && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3, delay: 0.2 }}
+                            className="grid grid-cols-1 lg:grid-cols-3 gap-4"
+                        >
+                            {/* Left Column */}
+                            <div className="lg:col-span-2 space-y-4">
+                                {widgetsByPosition.main_left.map((widget) => (
+                                    <DynamicWidgetRenderer key={widget.id} widget={widget} />
+                                ))}
+                            </div>
+
+                            {/* Right Column / Sidebar */}
+                            <div className="space-y-4">
+                                {widgetsByPosition.main_right.map((widget) => (
+                                    <DynamicWidgetRenderer key={widget.id} widget={widget} />
+                                ))}
+                                {widgetsByPosition.sidebar.map((widget) => (
+                                    <DynamicWidgetRenderer key={widget.id} widget={widget} />
+                                ))}
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* Full Width Widgets */}
+                    {widgetsByPosition.full_width.length > 0 && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3, delay: 0.3 }}
+                            className="space-y-4"
+                        >
+                            {widgetsByPosition.full_width.map((widget) => (
+                                <DynamicWidgetRenderer key={widget.id} widget={widget} />
+                            ))}
+                        </motion.div>
+                    )}
+
+                    {/* Empty State */}
+                    {!hasAnyWidgets && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.3 }}
+                            className="flex flex-col items-center justify-center min-h-[400px] text-center"
+                        >
+                            <div className="p-4 rounded-full bg-primary/10 mb-4">
+                                <UsersIcon className="w-12 h-12 text-primary" />
+                            </div>
+                            <h3 className="text-xl font-semibold text-foreground mb-2">
+                                CRM Dashboard
+                            </h3>
+                            <p className="text-default-500 max-w-md">
+                                CRM widgets will appear here once configured.
+                                Contact your administrator to set up leads, deals, pipeline, and activity widgets.
+                            </p>
+                        </motion.div>
+                    )}
+                </div>
+            </div>
+        </>
     );
 };
 
+CRMDashboard.layout = (page) => <App>{page}</App>;
 export default CRMDashboard;

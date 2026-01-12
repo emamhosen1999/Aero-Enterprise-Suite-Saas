@@ -10,13 +10,12 @@ use Aero\HRM\Models\Attendance;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * Punch Status Widget for Core Dashboard
+ * Punch Status Widget for Employee Dashboard
  *
  * Shows clock in/out button and current status for employees.
  * This is an ACTION widget - user needs to take action.
  *
- * Appears on: Core Dashboard (/dashboard)
- * Does NOT appear on: HRM Dashboard (which has full attendance charts)
+ * Appears on: HRM Employee Dashboard (/hrm/employee/dashboard)
  */
 class PunchStatusWidget extends AbstractDashboardWidget
 {
@@ -25,6 +24,7 @@ class PunchStatusWidget extends AbstractDashboardWidget
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ACTION;
     protected array $requiredPermissions = ['attendance.own.punch', 'attendance.own.view'];
+    protected array $dashboards = ['hrm.employee'];
 
     public function getKey(): string
     {

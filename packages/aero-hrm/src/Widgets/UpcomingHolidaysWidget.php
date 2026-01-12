@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Upcoming Holidays Widget for Core Dashboard
+ * Upcoming Holidays Widget
  *
  * Displays upcoming company holidays:
  * - Holiday name
@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Schema;
  * - Days remaining
  *
  * This is a DISPLAY widget - static information.
+ * Appears on: HRM Employee Dashboard (/hrm/employee/dashboard)
  */
 class UpcomingHolidaysWidget extends AbstractDashboardWidget
 {
@@ -26,6 +27,7 @@ class UpcomingHolidaysWidget extends AbstractDashboardWidget
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::DISPLAY;
     protected array $requiredPermissions = [];
+    protected array $dashboards = ['hrm.employee'];
 
     public function getKey(): string
     {

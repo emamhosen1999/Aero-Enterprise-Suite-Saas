@@ -1,344 +1,165 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Head, router } from '@inertiajs/react';
-import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
+import React, { useMemo } from 'react';
+import { Head, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import {
-    Card,
-    CardBody,
-    CardHeader,
-    Chip,
-    Progress,
-    Button,
-} from "@heroui/react";
-import {
-    RocketLaunchIcon,
-    ClockIcon,
-    CheckCircleIcon,
-    ExclamationTriangleIcon,
-    UserGroupIcon,
-    ChartBarIcon,
-    CalendarIcon,
-    FlagIcon,
-} from "@heroicons/react/24/outline";
+import { SparklesIcon } from "@heroicons/react/24/outline";
+import { Card, CardBody } from "@heroui/react";
 import App from "@/Layouts/App.jsx";
-import StatsCards from "@/Components/StatsCards.jsx";
-import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
-import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import DynamicWidgetRenderer from "@/Components/DynamicWidgets/DynamicWidgetRenderer.jsx";
+import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 
-const ProjectsDashboard = ({ stats = {}, recentProjects = [], upcomingTasks = [], teamPerformance = [], auth }) => {
-    const themeRadius = useThemeRadius();
+/**
+ * Project Dashboard - For Project Management
+ * 
+ * DASHBOARD PATTERN:
+ * - NO container Card wrapper - only dynamic widgets are shown
+ * - All widgets come from packages via dynamicWidgets prop
+ * - Widgets are grouped by position and rendered dynamically
+ * - No hardcoded stats or content - everything is widget-based
+ */
+const ProjectsDashboard = ({ title, dynamicWidgets = [] }) => {
+    const { auth } = usePage().props;
     const isMobile = useMediaQuery('(max-width: 640px)');
-    const isTablet = useMediaQuery('(min-width: 640px) and (max-width: 1024px)');
-    const isLargeScreen = useMediaQuery('(min-width: 1280px)');
-    const [selectedPeriod, setSelectedPeriod] = useState('month');
+    const isTablet = useMediaQuery('(max-width: 768px)');
 
-    // HRMAC permissions with Super Admin bypass
-    const { hasAccess, canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
-    
-    // Helper function for permission checks (uses hasAccess from useHRMAC)
-    const hasPermission = (permission) => hasAccess(permission) || isSuperAdmin();
-    
-    // TODO: Replace with actual module hierarchy paths from config/modules.php
-    const canViewProjects = hasAccess('project.dashboard') || isSuperAdmin();
-    const canManageProjects = canUpdate('project.projects') || isSuperAdmin();
-    const canCreateProject = canCreate('project.projects') || isSuperAdmin();
-    const canManageTasks = canUpdate('project.tasks') || isSuperAdmin();
-    const canViewReports = hasAccess('project.reports') || isSuperAdmin();
-
-    const dashboardStats = useMemo(() => [
-        {
-            title: "Total Projects",
-            value: stats?.totalProjects || 0,
-            icon: <RocketLaunchIcon className="w-6 h-6" />,
-            color: "text-blue-400",
-            iconBg: "bg-blue-500/20",
-            description: `${stats?.activeProjects || 0} active`
-        },
-        {
-            title: "Tasks Due",
-            value: stats?.tasksDue || 0,
-            icon: <ClockIcon className="w-6 h-6" />,
-            color: "text-orange-400",
-            iconBg: "bg-orange-500/20",
-            description: "This week"
-        },
-        {
-            title: "Completed",
-            value: stats?.completedTasks || 0,
-            icon: <CheckCircleIcon className="w-6 h-6" />,
-            color: "text-green-400",
-            iconBg: "bg-green-500/20",
-            description: "This month",
-            trend: 'up'
-        },
-        {
-            title: "Team Members",
-            value: stats?.teamMembers || 0,
-            icon: <UserGroupIcon className="w-6 h-6" />,
-            color: "text-purple-400",
-            iconBg: "bg-purple-500/20",
-            description: `${stats?.activeMembers || 0} active`
-        }
-    ], [stats]);
-
-    const getCardStyle = () => ({
-        border: `var(--borderWidth, 2px) solid transparent`,
-        borderRadius: `var(--borderRadius, 12px)`,
-        fontFamily: `var(--fontFamily, "Inter")`,
-        transform: `scale(var(--scale, 1))`,
-        background: `linear-gradient(135deg, 
-            var(--theme-content1, #FAFAFA) 20%, 
-            var(--theme-content2, #F4F4F5) 10%, 
-            var(--theme-content3, #F1F3F4) 20%)`,
-    });
-
-    const getCardHeaderStyle = () => ({
-        borderBottom: `1px solid var(--theme-divider, #E4E4E7)`,
-    });
-
-    const getStatusColor = (status) => {
-        const colors = {
-            'on-track': 'success',
-            'at-risk': 'warning',
-            'delayed': 'danger',
-            'completed': 'success',
-            'planned': 'default'
+    // Group widgets by position
+    const widgetsByPosition = useMemo(() => {
+        const grouped = {
+            welcome: [],
+            stats_row: [],
+            main_left: [],
+            main_right: [],
+            sidebar: [],
+            full_width: [],
         };
-        return colors[status] || 'default';
-    };
+        
+        (dynamicWidgets || []).forEach(widget => {
+            const pos = widget.position || 'main_left';
+            if (grouped[pos]) {
+                grouped[pos].push(widget);
+            } else {
+                grouped.main_left.push(widget);
+            }
+        });
 
-    const getPriorityColor = (priority) => {
-        const colors = {
-            'high': 'danger',
-            'medium': 'warning',
-            'low': 'success'
-        };
-        return colors[priority] || 'default';
-    };
+        // Sort each group by order
+        Object.keys(grouped).forEach(pos => {
+            grouped[pos].sort((a, b) => (a.order || 0) - (b.order || 0));
+        });
+
+        return grouped;
+    }, [dynamicWidgets]);
+
+    // Check for widgets in different positions
+    const hasWelcomeWidgets = widgetsByPosition.welcome.length > 0;
+    const hasStatsWidgets = widgetsByPosition.stats_row.length > 0;
+    const hasMainContent = widgetsByPosition.main_left.length > 0;
+    const hasFullWidth = widgetsByPosition.full_width.length > 0;
+    
+    // Sidebar widgets (combine sidebar + main_right positions)
+    const sidebarWidgets = [...widgetsByPosition.sidebar, ...widgetsByPosition.main_right]
+        .sort((a, b) => (a.order || 0) - (b.order || 0));
+    const hasSidebar = sidebarWidgets.length > 0;
+    
+    // Check if there are any widgets at all
+    const hasAnyWidgets = dynamicWidgets && dynamicWidgets.length > 0;
 
     return (
-        <App>
-            <Head title="Projects Dashboard" />
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-                className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
-            >
-                {/* Page Header */}
-                <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-                            Projects Dashboard
-                        </h1>
-                        <p className="mt-1 text-sm text-default-500">
-                            Track your projects, tasks, and team performance
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Button
-                            size={isMobile ? "sm" : "md"}
-                            variant={selectedPeriod === 'month' ? "solid" : "flat"}
-                            color={selectedPeriod === 'month' ? "primary" : "default"}
-                            onPress={() => setSelectedPeriod('month')}
-                            radius={themeRadius}
-                        >
-                            Month
-                        </Button>
-                        <Button
-                            size={isMobile ? "sm" : "md"}
-                            variant={selectedPeriod === 'year' ? "solid" : "flat"}
-                            color={selectedPeriod === 'year' ? "primary" : "default"}
-                            onPress={() => setSelectedPeriod('year')}
-                            radius={themeRadius}
-                        >
-                            Year
-                        </Button>
-                    </div>
-                </div>
+        <>
+            <Head title={title || 'Projects Dashboard'} />
 
-                {/* Stats Cards */}
-                <div className="mb-6">
-                    <StatsCards stats={dashboardStats} />
-                </div>
-
-                {/* Main Content Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    {/* Recent Projects */}
-                    <Card style={getCardStyle()}>
-                        <CardHeader style={getCardHeaderStyle()} className="flex justify-between items-center px-6 py-4">
-                            <div className="flex items-center gap-2">
-                                <RocketLaunchIcon className="w-5 h-5 text-blue-500" />
-                                <h3 className="text-lg font-semibold">Recent Projects</h3>
-                            </div>
-                            {hasPermission('projects.view') && (
-                                <Button
-                                    size="sm"
-                                    variant="flat"
-                                    color="primary"
-                                    onPress={() => safeNavigate('projects.index')}
-                                    radius={themeRadius}
-                                >
-                                    View All
-                                </Button>
-                            )}
-                        </CardHeader>
-                        <CardBody className="px-6 py-4">
-                            <div className="space-y-4">
-                                {recentProjects.map((project, index) => (
-                                    <div key={index} className="flex items-center justify-between">
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-foreground truncate">
-                                                {project.name}
-                                            </p>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <Chip
-                                                    size="sm"
-                                                    variant="flat"
-                                                    color={getStatusColor(project.status)}
-                                                >
-                                                    {project.status}
-                                                </Chip>
-                                                <span className="text-xs text-default-500">
-                                                    {project.completion}% complete
-                                                </span>
-                                            </div>
-                                            <Progress
-                                                value={project.completion}
-                                                color={getStatusColor(project.status)}
-                                                size="sm"
-                                                className="mt-2"
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
-                                {recentProjects.length === 0 && (
-                                    <p className="text-sm text-default-400 text-center py-4">
-                                        No recent projects
-                                    </p>
-                                )}
-                            </div>
-                        </CardBody>
-                    </Card>
-
-                    {/* Upcoming Tasks */}
-                    <Card style={getCardStyle()}>
-                        <CardHeader style={getCardHeaderStyle()} className="flex justify-between items-center px-6 py-4">
-                            <div className="flex items-center gap-2">
-                                <CalendarIcon className="w-5 h-5 text-orange-500" />
-                                <h3 className="text-lg font-semibold">Upcoming Tasks</h3>
-                            </div>
-                            {hasPermission('projects.tasks.view') && (
-                                <Button
-                                    size="sm"
-                                    variant="flat"
-                                    color="primary"
-                                    onPress={() => safeNavigate('projects.tasks.index')}
-                                    radius={themeRadius}
-                                >
-                                    View All
-                                </Button>
-                            )}
-                        </CardHeader>
-                        <CardBody className="px-6 py-4">
-                            <div className="space-y-3">
-                                {upcomingTasks.map((task, index) => (
-                                    <div key={index} className="flex items-start gap-3 p-3 rounded-lg hover:bg-default-100 transition-colors">
-                                        <div className="flex-shrink-0">
-                                            <Chip
-                                                size="sm"
-                                                variant="flat"
-                                                color={getPriorityColor(task.priority)}
-                                                startContent={<FlagIcon className="w-3 h-3" />}
-                                            >
-                                                {task.priority}
-                                            </Chip>
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-foreground">
-                                                {task.title}
-                                            </p>
-                                            <p className="text-xs text-default-500 mt-1">
-                                                {task.project} • Due: {task.dueDate}
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))}
-                                {upcomingTasks.length === 0 && (
-                                    <p className="text-sm text-default-400 text-center py-4">
-                                        No upcoming tasks
-                                    </p>
-                                )}
-                            </div>
-                        </CardBody>
-                    </Card>
-                </div>
-
-                {/* Team Performance */}
-                <Card style={getCardStyle()}>
-                    <CardHeader style={getCardHeaderStyle()} className="flex justify-between items-center px-6 py-4">
-                        <div className="flex items-center gap-2">
-                            <ChartBarIcon className="w-5 h-5 text-purple-500" />
-                            <h3 className="text-lg font-semibold">Team Performance</h3>
-                        </div>
-                    </CardHeader>
-                    <CardBody className="px-6 py-4">
+            {/* Dashboard content - NO container Card, only dynamic widgets */}
+            <div className="flex flex-col w-full h-full p-4" role="main" aria-label="Projects Dashboard">
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="space-y-6"
+                >
+                    {/* Welcome Section Widgets */}
+                    {hasWelcomeWidgets && (
                         <div className="space-y-4">
-                            {teamPerformance.map((member, index) => (
-                                <div key={index}>
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-semibold">
-                                                {member.name.split(' ').map(n => n[0]).join('')}
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-medium text-foreground">
-                                                    {member.name}
-                                                </p>
-                                                <p className="text-xs text-default-500">
-                                                    {member.tasksCompleted} tasks completed
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <Chip size="sm" variant="flat" color="success">
-                                            {member.completionRate}%
-                                        </Chip>
-                                    </div>
-                                    <Progress
-                                        value={member.completionRate}
-                                        color="success"
-                                        size="sm"
-                                    />
-                                </div>
+                            {widgetsByPosition.welcome.map((widget) => (
+                                <DynamicWidgetRenderer 
+                                    key={widget.key} 
+                                    widgets={[widget]} 
+                                />
                             ))}
-                            {teamPerformance.length === 0 && (
-                                <p className="text-sm text-default-400 text-center py-4">
-                                    No team performance data available
-                                </p>
+                        </div>
+                    )}
+
+                    {/* Stats Row Widgets */}
+                    {hasStatsWidgets && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {widgetsByPosition.stats_row.map((widget) => (
+                                <DynamicWidgetRenderer 
+                                    key={widget.key} 
+                                    widgets={[widget]} 
+                                />
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Main Content Grid - Left: main widgets, Right: sidebar widgets */}
+                    {(hasMainContent || hasSidebar) && (
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            {/* LEFT COLUMN - Main Content (2/3 width) */}
+                            <div className="lg:col-span-2 space-y-4">
+                                {widgetsByPosition.main_left.map((widget) => (
+                                    <DynamicWidgetRenderer 
+                                        key={widget.key} 
+                                        widgets={[widget]} 
+                                    />
+                                ))}
+                            </div>
+
+                            {/* RIGHT COLUMN - Sidebar (1/3 width) */}
+                            {hasSidebar && (
+                                <div className="space-y-4">
+                                    {sidebarWidgets.map((widget) => (
+                                        <DynamicWidgetRenderer 
+                                            key={widget.key} 
+                                            widgets={[widget]} 
+                                        />
+                                    ))}
+                                </div>
                             )}
                         </div>
-                    </CardBody>
-                </Card>
+                    )}
 
-                {/* View Reports Button */}
-                {hasPermission('projects.reports.view') && (
-                    <div className="mt-6 flex justify-center">
-                        <Button
-                            color="primary"
-                            variant="shadow"
-                            size="lg"
-                            onPress={() => safeNavigate('projects.reports')}
-                            radius={themeRadius}
-                            startContent={<ChartBarIcon className="w-5 h-5" />}
-                        >
-                            View Detailed Reports
-                        </Button>
-                    </div>
-                )}
-            </motion.div>
-        </App>
+                    {/* Full Width Widgets */}
+                    {hasFullWidth && (
+                        <div className="space-y-4">
+                            {widgetsByPosition.full_width.map((widget) => (
+                                <DynamicWidgetRenderer 
+                                    key={widget.key} 
+                                    widgets={[widget]} 
+                                />
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Empty state - only show if NO widgets at all */}
+                    {!hasAnyWidgets && (
+                        <Card className="border border-divider border-dashed bg-default-50/50">
+                            <CardBody className="p-12 text-center">
+                                <SparklesIcon className="w-16 h-16 text-default-300 mx-auto mb-4" />
+                                <h3 className="text-lg font-semibold text-default-600 mb-2">
+                                    Projects Dashboard
+                                </h3>
+                                <p className="text-sm text-default-500 max-w-md mx-auto">
+                                    Project widgets will appear here based on your permissions and enabled modules.
+                                    Configure project modules to see project, task, and team performance widgets.
+                                </p>
+                            </CardBody>
+                        </Card>
+                    )}
+                </motion.div>
+            </div>
+        </>
     );
 };
+
+// Use App layout wrapper
+ProjectsDashboard.layout = (page) => <App>{page}</App>;
 
 export default ProjectsDashboard;

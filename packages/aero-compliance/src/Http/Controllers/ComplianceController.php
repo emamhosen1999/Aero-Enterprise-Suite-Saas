@@ -10,6 +10,7 @@ use Aero\Compliance\Models\ControlledDocument;
 use Aero\Compliance\Models\RegulatoryRequirement;
 use Aero\Compliance\Models\RiskAssessment;
 use Aero\Compliance\Models\RiskMitigationAction;
+use Aero\Core\Services\DashboardWidgetRegistry;
 use Illuminate\Routing\Controller;
 
 
@@ -23,18 +24,26 @@ use Inertia\Inertia;
 
 class ComplianceController extends Controller
 {
+    public function __construct(
+        protected DashboardWidgetRegistry $widgetRegistry
+    ) {}
+
     /**
      * Display the compliance dashboard
      */
     public function index()
     {
         $stats = $this->getComplianceStats();
+        
+        // Get dynamic widgets for Compliance dashboard
+        $dynamicWidgets = $this->widgetRegistry->getWidgetsForFrontend('compliance');
 
         return Inertia::render('Compliance/Dashboard', [
             'stats' => $stats,
             'recentActivities' => $this->getRecentActivities(),
             'upcomingDeadlines' => $this->getUpcomingDeadlines(),
             'criticalIssues' => $this->getCriticalIssues(),
+            'dynamicWidgets' => $dynamicWidgets,
         ]);
     }
 

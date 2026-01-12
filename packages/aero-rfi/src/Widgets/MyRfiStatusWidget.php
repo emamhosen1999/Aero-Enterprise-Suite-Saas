@@ -10,12 +10,12 @@ use Aero\Rfi\Models\Rfi;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * My RFI Status Widget for Core Dashboard
+ * My RFI Status Widget
  *
  * Shows today's RFI tasks for the current user.
  * This is an ACTION widget - user may need to take action.
  *
- * Appears on: Core Dashboard (/dashboard) for field workers/engineers
+ * Appears on: RFI Dashboard (/rfi/dashboard)
  */
 class MyRfiStatusWidget extends AbstractDashboardWidget
 {
@@ -24,6 +24,7 @@ class MyRfiStatusWidget extends AbstractDashboardWidget
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ACTION;
     protected array $requiredPermissions = ['rfi.view'];
+    protected array $dashboards = ['rfi'];
 
     public function getKey(): string
     {

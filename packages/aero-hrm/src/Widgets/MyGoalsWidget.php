@@ -11,6 +11,8 @@ use Aero\Core\Contracts\CoreWidgetCategory;
  * My Goals Widget
  *
  * Displays the user's active goals and OKR progress.
+ * 
+ * Appears on: HRM Employee Dashboard (/hrm/employee/dashboard)
  */
 class MyGoalsWidget extends AbstractDashboardWidget
 {
@@ -19,6 +21,7 @@ class MyGoalsWidget extends AbstractDashboardWidget
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ACTION;
     protected array $requiredPermissions = ['hrm.performance.goals.view'];
+    protected array $dashboards = ['hrm.employee'];
 
     public function getKey(): string
     {

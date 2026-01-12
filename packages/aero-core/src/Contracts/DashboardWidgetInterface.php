@@ -121,4 +121,22 @@ interface DashboardWidgetInterface
      * Empty array means no permission required.
      */
     public function getRequiredPermissions(): array;
+
+    /**
+     * Get the dashboards this widget should appear on.
+     * 
+     * Options:
+     * - 'core' - Core Dashboard (/dashboard)
+     * - 'hrm' - HRM Manager Dashboard (/hrm/dashboard)
+     * - 'hrm.employee' - Employee Self-Service Dashboard (/hrm/employee/dashboard)
+     * - 'project' - Project Dashboard (/project/dashboard)
+     * - 'quality' - Quality Dashboard (/quality/dashboard)
+     * - 'dms' - Document Management Dashboard (/dms/dashboard)
+     * - 'finance' - Finance Dashboard (/finance/dashboard)
+     * - 'rfi' - RFI Dashboard (/rfi/dashboard)
+     * - 'compliance' - Compliance Dashboard (/compliance/dashboard)
+     * 
+     * @return array<string> Dashboard keys where this widget should appear
+     */
+    public function getDashboards(): array;
 }

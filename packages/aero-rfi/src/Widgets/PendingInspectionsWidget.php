@@ -10,12 +10,12 @@ use Aero\Rfi\Models\Rfi;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * Pending Inspections Widget for Core Dashboard
+ * Pending Inspections Widget
  *
  * Shows count of RFIs pending inspection/approval.
  * This is an ALERT widget - needs attention.
  *
- * Appears on: Core Dashboard (/dashboard) for inspectors/managers
+ * Appears on: RFI Dashboard (/rfi/dashboard)
  */
 class PendingInspectionsWidget extends AbstractDashboardWidget
 {
@@ -24,6 +24,7 @@ class PendingInspectionsWidget extends AbstractDashboardWidget
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
     protected array $requiredPermissions = ['rfi.inspect', 'rfi.approve'];
+    protected array $dashboards = ['rfi'];
 
     public function getKey(): string
     {

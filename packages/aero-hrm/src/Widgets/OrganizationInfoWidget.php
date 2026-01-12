@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Organization Info Widget for Core Dashboard
+ * Organization Info Widget
  *
  * Displays organizational structure overview:
  * - Departments count
@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Schema;
  * - Work locations
  *
  * This is a DISPLAY widget - static information.
+ * Appears on: HRM Employee Dashboard (/hrm/employee/dashboard)
  */
 class OrganizationInfoWidget extends AbstractDashboardWidget
 {
@@ -28,6 +29,7 @@ class OrganizationInfoWidget extends AbstractDashboardWidget
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::DISPLAY;
     protected array $requiredPermissions = [];
+    protected array $dashboards = ['hrm.employee'];
 
     public function getKey(): string
     {

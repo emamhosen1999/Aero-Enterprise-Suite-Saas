@@ -11,6 +11,8 @@ use Aero\Core\Contracts\CoreWidgetCategory;
  * Shared With Me Widget
  *
  * Displays documents that have been shared with the current user.
+ * 
+ * Appears on: DMS Dashboard (/dms/dashboard)
  */
 class SharedWithMeWidget extends AbstractDashboardWidget
 {
@@ -18,6 +20,7 @@ class SharedWithMeWidget extends AbstractDashboardWidget
     protected int $order = 30;
     protected int|string $span = 1;
     protected array $requiredPermissions = ['dms.view'];
+    protected array $dashboards = ['dms'];
 
     public function getCategory(): CoreWidgetCategory
     {

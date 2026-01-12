@@ -11,6 +11,8 @@ use Aero\Core\Contracts\CoreWidgetCategory;
  * Pending Approvals Widget
  *
  * Displays documents awaiting approval from the current user.
+ * 
+ * Appears on: DMS Dashboard (/dms/dashboard)
  */
 class PendingApprovalsWidget extends AbstractDashboardWidget
 {
@@ -18,6 +20,7 @@ class PendingApprovalsWidget extends AbstractDashboardWidget
     protected int $order = 10;
     protected int|string $span = 1;
     protected array $requiredPermissions = ['dms.approve'];
+    protected array $dashboards = ['dms'];
 
     public function getCategory(): CoreWidgetCategory
     {

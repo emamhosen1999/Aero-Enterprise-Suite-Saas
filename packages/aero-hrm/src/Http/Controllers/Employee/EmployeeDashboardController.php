@@ -166,8 +166,8 @@ class EmployeeDashboardController extends Controller
             'pendingLeaves' => $pendingLeaves,
             'recentLeaves' => $recentLeaves,
             'todayAttendance' => $todayAttendance ? [
-                'clock_in' => $todayAttendance->clock_in?->format('H:i'),
-                'clock_out' => $todayAttendance->clock_out?->format('H:i'),
+                'clock_in' => $todayAttendance->punchin?->format('H:i'),
+                'clock_out' => $todayAttendance->punchout?->format('H:i'),
                 'status' => $todayAttendance->status,
                 'worked_hours' => $todayAttendance->worked_hours ?? 0,
             ] : null,

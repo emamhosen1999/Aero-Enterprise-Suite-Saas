@@ -23,6 +23,7 @@ use Illuminate\Support\Collection;
  * @property bool $is_protected
  * @property bool $is_active
  * @property string|null $scope
+ * @property string|null $dashboard_route
  */
 class Role extends Model
 {
@@ -36,6 +37,7 @@ class Role extends Model
         'is_protected',
         'is_active',
         'scope',
+        'dashboard_route',
     ];
 
     protected $casts = [

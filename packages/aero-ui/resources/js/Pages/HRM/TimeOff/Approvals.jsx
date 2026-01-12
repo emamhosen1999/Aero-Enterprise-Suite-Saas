@@ -1,1 +1,479 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';\nimport { Head, usePage } from '@inertiajs/react';\nimport { motion } from 'framer-motion';\nimport { \n    Button, \n    Card, \n    CardBody, \n    CardHeader, \n    Input, \n    Select, \n    SelectItem,\n    Table,\n    TableHeader,\n    TableColumn,\n    TableBody,\n    TableRow,\n    TableCell,\n    Chip,\n    Avatar,\n    Tabs,\n    Tab\n} from \"@heroui/react\";\nimport { \n    CheckCircleIcon,\n    XCircleIcon,\n    ClockIcon,\n    UserIcon,\n    MagnifyingGlassIcon\n} from \"@heroicons/react/24/outline\";\nimport App from '@/Layouts/App.jsx';\nimport StatsCards from '@/Components/StatsCards.jsx';\nimport axios from 'axios';\nimport { showToast } from '@/utils/toastUtils.jsx';\nimport { useThemeRadius } from '@/Hooks/useThemeRadius.js';\nimport { useHRMAC } from '@/Hooks/useHRMAC';\n\nconst TimeOffApprovals = ({ title, pendingRequests: initialRequests, employees: initialEmployees }) => {\n    const { auth } = usePage().props;\n    const themeRadius = useThemeRadius();\n    const { canUpdate, canDelete, hasAccess } = useHRMAC();\n    \n    // Responsive breakpoints\n    const [isMobile, setIsMobile] = useState(false);\n    const [isTablet, setIsTablet] = useState(false);\n    \n    useEffect(() => {\n        const checkScreenSize = () => {\n            setIsMobile(window.innerWidth < 640);\n            setIsTablet(window.innerWidth < 768);\n        };\n        checkScreenSize();\n        window.addEventListener('resize', checkScreenSize);\n        return () => window.removeEventListener('resize', checkScreenSize);\n    }, []);\n\n    // State management\n    const [loading, setLoading] = useState(false);\n    const [statsLoading, setStatsLoading] = useState(true);\n    const [requests, setRequests] = useState(initialRequests || []);\n    const [employees, setEmployees] = useState(initialEmployees || []);\n    const [activeTab, setActiveTab] = useState('pending');\n    const [filters, setFilters] = useState({ search: '', employee: 'all', type: 'all', priority: 'all' });\n    const [pagination, setPagination] = useState({ perPage: 30, currentPage: 1, total: 0 });\n    const [stats, setStats] = useState({ pending: 0, urgent: 0, overdue: 0, approved: 0 });\n    const [processingActions, setProcessingActions] = useState(new Set());\n\n    // Stats data for StatsCards component\n    const statsData = useMemo(() => [\n        { \n            title: \"Pending Approval\", \n            value: stats.pending, \n            icon: <ClockIcon className=\"w-5 h-5\" />, \n            color: \"text-warning\", \n            iconBg: \"bg-warning/20\" \n        },\n        { \n            title: \"Urgent\", \n            value: stats.urgent, \n            icon: <ClockIcon className=\"w-5 h-5\" />, \n            color: \"text-danger\", \n            iconBg: \"bg-danger/20\" \n        },\n        { \n            title: \"Overdue\", \n            value: stats.overdue, \n            icon: <XCircleIcon className=\"w-5 h-5\" />, \n            color: \"text-danger\", \n            iconBg: \"bg-danger/20\" \n        },\n        { \n            title: \"Approved Today\", \n            value: stats.approved, \n            icon: <CheckCircleIcon className=\"w-5 h-5\" />, \n            color: \"text-success\", \n            iconBg: \"bg-success/20\" \n        }\n    ], [stats]);\n\n    // Permission checks\n    const canApprove = canUpdate && hasAccess('hrm.time-off.approve');\n    const canReject = canDelete && hasAccess('hrm.time-off.reject');\n\n    // Fetch approval requests\n    const fetchApprovalRequests = useCallback(async () => {\n        setLoading(true);\n        try {\n            const response = await axios.get(route('hrm.time-off.approvals'), {\n                params: { page: pagination.currentPage, perPage: pagination.perPage, ...filters }\n            });\n            if (response.status === 200) {\n                setRequests(response.data.requests || []);\n                setStats(response.data.stats || { pending: 0, urgent: 0, overdue: 0, approved: 0 });\n            }\n        } catch (error) {\n            showToast.promise(Promise.reject(error), { error: 'Failed to fetch approval requests' });\n        } finally {\n            setLoading(false);\n            setStatsLoading(false);\n        }\n    }, [filters, pagination]);\n\n    useEffect(() => { fetchApprovalRequests(); }, [fetchApprovalRequests]);\n\n    // Filter handlers\n    const handleFilterChange = useCallback((key, value) => {\n        setFilters(prev => ({ ...prev, [key]: value }));\n        setPagination(prev => ({ ...prev, currentPage: 1 }));\n    }, []);\n\n    // Handle approval/rejection actions\n    const handleApprovalAction = useCallback(async (requestId, action, reason = '') => {\n        setProcessingActions(prev => new Set(prev.add(requestId)));\n        \n        const promise = new Promise(async (resolve, reject) => {\n            try {\n                const response = await axios.post(route(`hrm.time-off.${action}`, requestId), {\n                    reason: reason\n                });\n                if (response.status === 200) {\n                    // Update the request in the local state\n                    setRequests(prev => prev.map(req => \n                        req.id === requestId \n                            ? { ...req, status: action === 'approve' ? 'approved' : 'rejected' }\n                            : req\n                    ));\n                    resolve([response.data.message || `Request ${action}d successfully`]);\n                }\n            } catch (error) {\n                reject(error.response?.data?.errors || [`Failed to ${action} request`]);\n            } finally {\n                setProcessingActions(prev => {\n                    const newSet = new Set(prev);\n                    newSet.delete(requestId);\n                    return newSet;\n                });\n            }\n        });\n\n        showToast.promise(promise, {\n            loading: `${action === 'approve' ? 'Approving' : 'Rejecting'} request...`,\n            success: (data) => data.join(', '),\n            error: (data) => Array.isArray(data) ? data.join(', ') : data,\n        });\n    }, []);\n\n    // Render status chip\n    const renderStatus = useCallback((status) => {\n        const colorMap = {\n            'pending': 'warning',\n            'approved': 'success',\n            'rejected': 'danger',\n            'cancelled': 'default'\n        };\n        return <Chip color={colorMap[status] || 'default'} size=\"sm\">{status}</Chip>;\n    }, []);\n\n    // Render priority chip\n    const renderPriority = useCallback((priority) => {\n        const colorMap = {\n            'low': 'default',\n            'normal': 'primary',\n            'high': 'warning',\n            'urgent': 'danger'\n        };\n        return <Chip color={colorMap[priority] || 'default'} size=\"sm\" variant=\"flat\">{priority}</Chip>;\n    }, []);\n\n    // Table columns\n    const columns = useMemo(() => [\n        { uid: 'employee', name: 'Employee' },\n        { uid: 'type', name: 'Type' },\n        { uid: 'dates', name: 'Dates' },\n        { uid: 'days', name: 'Days' },\n        { uid: 'priority', name: 'Priority' },\n        { uid: 'submitted', name: 'Submitted' },\n        { uid: 'actions', name: 'Actions' }\n    ], []);\n\n    // Render table cell\n    const renderCell = useCallback((request, columnKey) => {\n        const isProcessing = processingActions.has(request.id);\n        \n        switch (columnKey) {\n            case 'employee':\n                return (\n                    <div className=\"flex items-center gap-3\">\n                        <Avatar src={request.employee?.avatar} name={request.employee?.name} size=\"sm\" />\n                        <div>\n                            <p className=\"font-semibold\">{request.employee?.name}</p>\n                            <p className=\"text-xs text-default-500\">{request.employee?.department?.name}</p>\n                        </div>\n                    </div>\n                );\n            case 'type':\n                return request.leave_type || request.type || '-';\n            case 'dates':\n                return (\n                    <div>\n                        <p className=\"text-sm\">{new Date(request.start_date).toLocaleDateString()}</p>\n                        <p className=\"text-xs text-default-500\">to {new Date(request.end_date).toLocaleDateString()}</p>\n                    </div>\n                );\n            case 'days':\n                return <Chip variant=\"flat\">{request.total_days || request.days || 0}</Chip>;\n            case 'priority':\n                return renderPriority(request.priority || 'normal');\n            case 'submitted':\n                return new Date(request.created_at).toLocaleDateString();\n            case 'actions':\n                return (\n                    <div className=\"flex gap-2\">\n                        {canApprove && request.status === 'pending' && (\n                            <Button \n                                size=\"sm\" \n                                color=\"success\" \n                                variant=\"flat\"\n                                isLoading={isProcessing}\n                                onPress={() => handleApprovalAction(request.id, 'approve')}\n                            >\n                                <CheckCircleIcon className=\"w-4 h-4\" />\n                                Approve\n                            </Button>\n                        )}\n                        {canReject && request.status === 'pending' && (\n                            <Button \n                                size=\"sm\" \n                                color=\"danger\" \n                                variant=\"flat\"\n                                isLoading={isProcessing}\n                                onPress={() => handleApprovalAction(request.id, 'reject')}\n                            >\n                                <XCircleIcon className=\"w-4 h-4\" />\n                                Reject\n                            </Button>\n                        )}\n                    </div>\n                );\n            default:\n                return request[columnKey] || '-';\n        }\n    }, [canApprove, canReject, processingActions, handleApprovalAction, renderPriority]);\n\n    // Filter requests by tab\n    const filteredRequests = useMemo(() => {\n        switch (activeTab) {\n            case 'pending':\n                return requests.filter(r => r.status === 'pending');\n            case 'urgent':\n                return requests.filter(r => r.priority === 'urgent' || r.priority === 'high');\n            case 'overdue':\n                const threeDaysAgo = new Date();\n                threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);\n                return requests.filter(r => \n                    r.status === 'pending' && \n                    new Date(r.created_at) < threeDaysAgo\n                );\n            default:\n                return requests;\n        }\n    }, [requests, activeTab]);\n\n    return (\n        <>\n            <Head title={title} />\n            \n            {/* Main content wrapper */}\n            <div className=\"flex flex-col w-full h-full p-4\" role=\"main\" aria-label=\"Time Off Approvals\">\n                <div className=\"space-y-4\">\n                    <div className=\"w-full\">\n                        {/* Animated Card wrapper */}\n                        <motion.div\n                            initial={{ scale: 0.9, opacity: 0 }}\n                            animate={{ scale: 1, opacity: 1 }}\n                            transition={{ duration: 0.5 }}\n                        >\n                            {/* Main Card with theme styling */}\n                            <Card \n                                className=\"transition-all duration-200\"\n                                style={{\n                                    border: `var(--borderWidth, 2px) solid transparent`,\n                                    borderRadius: `var(--borderRadius, 12px)`,\n                                    fontFamily: `var(--fontFamily, \"Inter\")`,\n                                    transform: `scale(var(--scale, 1))`,\n                                    background: `linear-gradient(135deg, \n                                        var(--theme-content1, #FAFAFA) 20%, \n                                        var(--theme-content2, #F4F4F5) 10%, \n                                        var(--theme-content3, #F1F3F4) 20%)`,\n                                }}\n                            >\n                                {/* Card Header */}\n                                <CardHeader \n                                    className=\"border-b p-0\"\n                                    style={{\n                                        borderColor: `var(--theme-divider, #E4E4E7)`,\n                                        background: `linear-gradient(135deg, \n                                            color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, \n                                            color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,\n                                    }}\n                                >\n                                    <div className={`${!isMobile ? 'p-6' : 'p-4'} w-full`}>\n                                        <div className=\"flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4\">\n                                            {/* Title Section */}\n                                            <div className=\"flex items-center gap-3 lg:gap-4\">\n                                                <div className={`${!isMobile ? 'p-3' : 'p-2'} rounded-xl`}\n                                                    style={{\n                                                        background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,\n                                                        borderRadius: `var(--borderRadius, 12px)`,\n                                                    }}\n                                                >\n                                                    <CheckCircleIcon className={`${!isMobile ? 'w-8 h-8' : 'w-6 h-6'}`} \n                                                        style={{ color: 'var(--theme-primary)' }} />\n                                                </div>\n                                                <div>\n                                                    <h4 className={`${!isMobile ? 'text-2xl' : 'text-xl'} font-bold`}>\n                                                        Time Off Approvals\n                                                    </h4>\n                                                    <p className={`${!isMobile ? 'text-sm' : 'text-xs'} text-default-500`}>\n                                                        Review and approve employee time off requests\n                                                    </p>\n                                                </div>\n                                            </div>\n                                        </div>\n                                    </div>\n                                </CardHeader>\n\n                                <CardBody className=\"p-6\">\n                                    {/* Stats Cards */}\n                                    <StatsCards stats={statsData} isLoading={statsLoading} className=\"mb-6\" />\n                                    \n                                    {/* Filter Section */}\n                                    <div className=\"flex flex-col sm:flex-row gap-4 mb-6\">\n                                        <Input\n                                            label=\"Search\"\n                                            placeholder=\"Search requests...\"\n                                            value={filters.search}\n                                            onChange={(e) => handleFilterChange('search', e.target.value)}\n                                            startContent={<MagnifyingGlassIcon className=\"w-4 h-4\" />}\n                                            variant=\"bordered\"\n                                            size=\"sm\"\n                                            radius={themeRadius}\n                                        />\n                                        \n                                        <Select\n                                            label=\"Employee\"\n                                            placeholder=\"All Employees\"\n                                            selectedKeys={filters.employee !== 'all' ? [filters.employee] : []}\n                                            onSelectionChange={(keys) => handleFilterChange('employee', Array.from(keys)[0] || 'all')}\n                                            size=\"sm\"\n                                            radius={themeRadius}\n                                        >\n                                            <SelectItem key=\"all\">All Employees</SelectItem>\n                                            {employees.map(emp => (\n                                                <SelectItem key={emp.id}>{emp.name}</SelectItem>\n                                            ))}\n                                        </Select>\n\n                                        <Select\n                                            label=\"Priority\"\n                                            placeholder=\"All Priorities\"\n                                            selectedKeys={filters.priority !== 'all' ? [filters.priority] : []}\n                                            onSelectionChange={(keys) => handleFilterChange('priority', Array.from(keys)[0] || 'all')}\n                                            size=\"sm\"\n                                            radius={themeRadius}\n                                        >\n                                            <SelectItem key=\"all\">All Priorities</SelectItem>\n                                            <SelectItem key=\"urgent\">Urgent</SelectItem>\n                                            <SelectItem key=\"high\">High</SelectItem>\n                                            <SelectItem key=\"normal\">Normal</SelectItem>\n                                            <SelectItem key=\"low\">Low</SelectItem>\n                                        </Select>\n                                    </div>\n\n                                    {/* Tabs for different views */}\n                                    <Tabs \n                                        selectedKey={activeTab}\n                                        onSelectionChange={setActiveTab}\n                                        className=\"mb-6\"\n                                    >\n                                        <Tab key=\"pending\" title={`Pending (${stats.pending})`}>\n                                            <Table\n                                                aria-label=\"Pending approvals table\"\n                                                isHeaderSticky\n                                                classNames={{\n                                                    wrapper: \"shadow-none border border-divider rounded-lg\",\n                                                    th: \"bg-default-100 text-default-600 font-semibold\",\n                                                    td: \"py-3\"\n                                                }}\n                                            >\n                                                <TableHeader columns={columns}>\n                                                    {(column) => <TableColumn key={column.uid}>{column.name}</TableColumn>}\n                                                </TableHeader>\n                                                <TableBody items={filteredRequests} emptyContent=\"No pending requests\">\n                                                    {(request) => (\n                                                        <TableRow key={request.id}>\n                                                            {(columnKey) => <TableCell>{renderCell(request, columnKey)}</TableCell>}\n                                                        </TableRow>\n                                                    )}\n                                                </TableBody>\n                                            </Table>\n                                        </Tab>\n\n                                        <Tab key=\"urgent\" title={`Urgent (${stats.urgent})`}>\n                                            <Table\n                                                aria-label=\"Urgent approvals table\"\n                                                isHeaderSticky\n                                                classNames={{\n                                                    wrapper: \"shadow-none border border-divider rounded-lg\",\n                                                    th: \"bg-default-100 text-default-600 font-semibold\",\n                                                    td: \"py-3\"\n                                                }}\n                                            >\n                                                <TableHeader columns={columns}>\n                                                    {(column) => <TableColumn key={column.uid}>{column.name}</TableColumn>}\n                                                </TableHeader>\n                                                <TableBody items={filteredRequests} emptyContent=\"No urgent requests\">\n                                                    {(request) => (\n                                                        <TableRow key={request.id}>\n                                                            {(columnKey) => <TableCell>{renderCell(request, columnKey)}</TableCell>}\n                                                        </TableRow>\n                                                    )}\n                                                </TableBody>\n                                            </Table>\n                                        </Tab>\n\n                                        <Tab key=\"overdue\" title={`Overdue (${stats.overdue})`}>\n                                            <Table\n                                                aria-label=\"Overdue approvals table\"\n                                                isHeaderSticky\n                                                classNames={{\n                                                    wrapper: \"shadow-none border border-divider rounded-lg\",\n                                                    th: \"bg-default-100 text-default-600 font-semibold\",\n                                                    td: \"py-3\"\n                                                }}\n                                            >\n                                                <TableHeader columns={columns}>\n                                                    {(column) => <TableColumn key={column.uid}>{column.name}</TableColumn>}\n                                                </TableHeader>\n                                                <TableBody items={filteredRequests} emptyContent=\"No overdue requests\">\n                                                    {(request) => (\n                                                        <TableRow key={request.id}>\n                                                            {(columnKey) => <TableCell>{renderCell(request, columnKey)}</TableCell>}\n                                                        </TableRow>\n                                                    )}\n                                                </TableBody>\n                                            </Table>\n                                        </Tab>\n                                    </Tabs>\n                                </CardBody>\n                            </Card>\n                        </motion.div>\n                    </div>\n                </div>\n            </div>\n        </>\n    );\n};\n\nTimeOffApprovals.layout = (page) => <App children={page} />;\nexport default TimeOffApprovals;
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Head, usePage } from '@inertiajs/react';
+import { motion } from 'framer-motion';
+import { 
+    Button, 
+    Card, 
+    CardBody, 
+    CardHeader, 
+    Input, 
+    Select, 
+    SelectItem,
+    Table,
+    TableHeader,
+    TableColumn,
+    TableBody,
+    TableRow,
+    TableCell,
+    Chip,
+    Avatar,
+    Tabs,
+    Tab
+} from "@heroui/react";
+import { 
+    CheckCircleIcon,
+    XCircleIcon,
+    ClockIcon,
+    UserIcon,
+    MagnifyingGlassIcon
+} from "@heroicons/react/24/outline";
+import App from '@/Layouts/App.jsx';
+import StatsCards from '@/Components/StatsCards.jsx';
+import axios from 'axios';
+import { showToast } from '@/utils/toastUtils.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
+
+const TimeOffApprovals = ({ title, pendingRequests: initialRequests, employees: initialEmployees }) => {
+    const { auth } = usePage().props;
+    const themeRadius = useThemeRadius();
+    const { canUpdate, canDelete, hasAccess } = useHRMAC();
+    
+    // Responsive breakpoints
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
+
+    // State management
+    const [loading, setLoading] = useState(false);
+    const [statsLoading, setStatsLoading] = useState(true);
+    const [requests, setRequests] = useState(initialRequests || []);
+    const [employees, setEmployees] = useState(initialEmployees || []);
+    const [activeTab, setActiveTab] = useState('pending');
+    const [filters, setFilters] = useState({ search: '', employee: 'all', type: 'all', priority: 'all' });
+    const [pagination, setPagination] = useState({ perPage: 30, currentPage: 1, total: 0 });
+    const [stats, setStats] = useState({ pending: 0, urgent: 0, overdue: 0, approved: 0 });
+    const [processingActions, setProcessingActions] = useState(new Set());
+
+    // Stats data for StatsCards component
+    const statsData = useMemo(() => [
+        { 
+            title: "Pending Approval", 
+            value: stats.pending, 
+            icon: <ClockIcon className="w-5 h-5" />, 
+            color: "text-warning", 
+            iconBg: "bg-warning/20" 
+        },
+        { 
+            title: "Urgent", 
+            value: stats.urgent, 
+            icon: <ClockIcon className="w-5 h-5" />, 
+            color: "text-danger", 
+            iconBg: "bg-danger/20" 
+        },
+        { 
+            title: "Overdue", 
+            value: stats.overdue, 
+            icon: <XCircleIcon className="w-5 h-5" />, 
+            color: "text-danger", 
+            iconBg: "bg-danger/20" 
+        },
+        { 
+            title: "Approved Today", 
+            value: stats.approved, 
+            icon: <CheckCircleIcon className="w-5 h-5" />, 
+            color: "text-success", 
+            iconBg: "bg-success/20" 
+        }
+    ], [stats]);
+
+    // Permission checks
+    const canApprove = canUpdate && hasAccess('hrm.time-off.approve');
+    const canReject = canDelete && hasAccess('hrm.time-off.reject');
+
+    // Fetch approval requests
+    const fetchApprovalRequests = useCallback(async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get(route('hrm.time-off.approvals'), {
+                params: { page: pagination.currentPage, perPage: pagination.perPage, ...filters }
+            });
+            if (response.status === 200) {
+                setRequests(response.data.requests || []);
+                setStats(response.data.stats || { pending: 0, urgent: 0, overdue: 0, approved: 0 });
+            }
+        } catch (error) {
+            showToast.promise(Promise.reject(error), { error: 'Failed to fetch approval requests' });
+        } finally {
+            setLoading(false);
+            setStatsLoading(false);
+        }
+    }, [filters, pagination]);
+
+    useEffect(() => { fetchApprovalRequests(); }, [fetchApprovalRequests]);
+
+    // Filter handlers
+    const handleFilterChange = useCallback((key, value) => {
+        setFilters(prev => ({ ...prev, [key]: value }));
+        setPagination(prev => ({ ...prev, currentPage: 1 }));
+    }, []);
+
+    // Handle approval/rejection actions
+    const handleApprovalAction = useCallback(async (requestId, action, reason = '') => {
+        setProcessingActions(prev => new Set(prev.add(requestId)));
+        
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post(route(`hrm.time-off.${action}`, requestId), {
+                    reason: reason
+                });
+                if (response.status === 200) {
+                    // Update the request in the local state
+                    setRequests(prev => prev.map(req => 
+                        req.id === requestId 
+                            ? { ...req, status: action === 'approve' ? 'approved' : 'rejected' }
+                            : req
+                    ));
+                    resolve([response.data.message || `Request ${action}d successfully`]);
+                }
+            } catch (error) {
+                reject(error.response?.data?.errors || [`Failed to ${action} request`]);
+            } finally {
+                setProcessingActions(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(requestId);
+                    return newSet;
+                });
+            }
+        });
+
+        showToast.promise(promise, {
+            loading: `${action === 'approve' ? 'Approving' : 'Rejecting'} request...`,
+            success: (data) => data.join(', '),
+            error: (data) => Array.isArray(data) ? data.join(', ') : data,
+        });
+    }, []);
+
+    // Render status chip
+    const renderStatus = useCallback((status) => {
+        const colorMap = {
+            'pending': 'warning',
+            'approved': 'success',
+            'rejected': 'danger',
+            'cancelled': 'default'
+        };
+        return <Chip color={colorMap[status] || 'default'} size="sm">{status}</Chip>;
+    }, []);
+
+    // Render priority chip
+    const renderPriority = useCallback((priority) => {
+        const colorMap = {
+            'low': 'default',
+            'normal': 'primary',
+            'high': 'warning',
+            'urgent': 'danger'
+        };
+        return <Chip color={colorMap[priority] || 'default'} size="sm" variant="flat">{priority}</Chip>;
+    }, []);
+
+    // Table columns
+    const columns = useMemo(() => [
+        { uid: 'employee', name: 'Employee' },
+        { uid: 'type', name: 'Type' },
+        { uid: 'dates', name: 'Dates' },
+        { uid: 'days', name: 'Days' },
+        { uid: 'priority', name: 'Priority' },
+        { uid: 'submitted', name: 'Submitted' },
+        { uid: 'actions', name: 'Actions' }
+    ], []);
+
+    // Render table cell
+    const renderCell = useCallback((request, columnKey) => {
+        const isProcessing = processingActions.has(request.id);
+        
+        switch (columnKey) {
+            case 'employee':
+                return (
+                    <div className="flex items-center gap-3">
+                        <Avatar src={request.employee?.avatar} name={request.employee?.name} size="sm" />
+                        <div>
+                            <p className="font-semibold">{request.employee?.name}</p>
+                            <p className="text-xs text-default-500">{request.employee?.department?.name}</p>
+                        </div>
+                    </div>
+                );
+            case 'type':
+                return request.leave_type || request.type || '-';
+            case 'dates':
+                return (
+                    <div>
+                        <p className="text-sm">{new Date(request.start_date).toLocaleDateString()}</p>
+                        <p className="text-xs text-default-500">to {new Date(request.end_date).toLocaleDateString()}</p>
+                    </div>
+                );
+            case 'days':
+                return <Chip variant="flat">{request.total_days || request.days || 0}</Chip>;
+            case 'priority':
+                return renderPriority(request.priority || 'normal');
+            case 'submitted':
+                return new Date(request.created_at).toLocaleDateString();
+            case 'actions':
+                return (
+                    <div className="flex gap-2">
+                        {canApprove && request.status === 'pending' && (
+                            <Button 
+                                size="sm" 
+                                color="success" 
+                                variant="flat"
+                                isLoading={isProcessing}
+                                onPress={() => handleApprovalAction(request.id, 'approve')}
+                            >
+                                <CheckCircleIcon className="w-4 h-4" />
+                                Approve
+                            </Button>
+                        )}
+                        {canReject && request.status === 'pending' && (
+                            <Button 
+                                size="sm" 
+                                color="danger" 
+                                variant="flat"
+                                isLoading={isProcessing}
+                                onPress={() => handleApprovalAction(request.id, 'reject')}
+                            >
+                                <XCircleIcon className="w-4 h-4" />
+                                Reject
+                            </Button>
+                        )}
+                    </div>
+                );
+            default:
+                return request[columnKey] || '-';
+        }
+    }, [canApprove, canReject, processingActions, handleApprovalAction, renderPriority]);
+
+    // Filter requests by tab
+    const filteredRequests = useMemo(() => {
+        switch (activeTab) {
+            case 'pending':
+                return requests.filter(r => r.status === 'pending');
+            case 'urgent':
+                return requests.filter(r => r.priority === 'urgent' || r.priority === 'high');
+            case 'overdue':
+                const threeDaysAgo = new Date();
+                threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+                return requests.filter(r => 
+                    r.status === 'pending' && 
+                    new Date(r.created_at) < threeDaysAgo
+                );
+            default:
+                return requests;
+        }
+    }, [requests, activeTab]);
+
+    return (
+        <>
+            <Head title={title} />
+            
+            {/* Main content wrapper */}
+            <div className="flex flex-col w-full h-full p-4" role="main" aria-label="Time Off Approvals">
+                <div className="space-y-4">
+                    <div className="w-full">
+                        {/* Animated Card wrapper */}
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.5 }}
+                        >
+                            {/* Main Card with theme styling */}
+                            <Card 
+                                className="transition-all duration-200"
+                                style={{
+                                    border: `var(--borderWidth, 2px) solid transparent`,
+                                    borderRadius: `var(--borderRadius, 12px)`,
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                    transform: `scale(var(--scale, 1))`,
+                                    background: `linear-gradient(135deg, 
+                                        var(--theme-content1, #FAFAFA) 20%, 
+                                        var(--theme-content2, #F4F4F5) 10%, 
+                                        var(--theme-content3, #F1F3F4) 20%)`,
+                                }}
+                            >
+                                {/* Card Header */}
+                                <CardHeader 
+                                    className="border-b p-0"
+                                    style={{
+                                        borderColor: `var(--theme-divider, #E4E4E7)`,
+                                        background: `linear-gradient(135deg, 
+                                            color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
+                                            color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
+                                    }}
+                                >
+                                    <div className={`${!isMobile ? 'p-6' : 'p-4'} w-full`}>
+                                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                            {/* Title Section */}
+                                            <div className="flex items-center gap-3 lg:gap-4">
+                                                <div className={`${!isMobile ? 'p-3' : 'p-2'} rounded-xl`}
+                                                    style={{
+                                                        background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,
+                                                        borderRadius: `var(--borderRadius, 12px)`,
+                                                    }}
+                                                >
+                                                    <CheckCircleIcon className={`${!isMobile ? 'w-8 h-8' : 'w-6 h-6'}`} 
+                                                        style={{ color: 'var(--theme-primary)' }} />
+                                                </div>
+                                                <div>
+                                                    <h4 className={`${!isMobile ? 'text-2xl' : 'text-xl'} font-bold`}>
+                                                        Time Off Approvals
+                                                    </h4>
+                                                    <p className={`${!isMobile ? 'text-sm' : 'text-xs'} text-default-500`}>
+                                                        Review and approve employee time off requests
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardHeader>
+
+                                <CardBody className="p-6">
+                                    {/* Stats Cards */}
+                                    <StatsCards stats={statsData} isLoading={statsLoading} className="mb-6" />
+                                    
+                                    {/* Filter Section */}
+                                    <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                                        <Input
+                                            label="Search"
+                                            placeholder="Search requests..."
+                                            value={filters.search}
+                                            onChange={(e) => handleFilterChange('search', e.target.value)}
+                                            startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
+                                            variant="bordered"
+                                            size="sm"
+                                            radius={themeRadius}
+                                        />
+                                        
+                                        <Select
+                                            label="Employee"
+                                            placeholder="All Employees"
+                                            selectedKeys={filters.employee !== 'all' ? [filters.employee] : []}
+                                            onSelectionChange={(keys) => handleFilterChange('employee', Array.from(keys)[0] || 'all')}
+                                            size="sm"
+                                            radius={themeRadius}
+                                        >
+                                            <SelectItem key="all">All Employees</SelectItem>
+                                            {employees.map(emp => (
+                                                <SelectItem key={emp.id}>{emp.name}</SelectItem>
+                                            ))}
+                                        </Select>
+
+                                        <Select
+                                            label="Priority"
+                                            placeholder="All Priorities"
+                                            selectedKeys={filters.priority !== 'all' ? [filters.priority] : []}
+                                            onSelectionChange={(keys) => handleFilterChange('priority', Array.from(keys)[0] || 'all')}
+                                            size="sm"
+                                            radius={themeRadius}
+                                        >
+                                            <SelectItem key="all">All Priorities</SelectItem>
+                                            <SelectItem key="urgent">Urgent</SelectItem>
+                                            <SelectItem key="high">High</SelectItem>
+                                            <SelectItem key="normal">Normal</SelectItem>
+                                            <SelectItem key="low">Low</SelectItem>
+                                        </Select>
+                                    </div>
+
+                                    {/* Tabs for different views */}
+                                    <Tabs 
+                                        selectedKey={activeTab}
+                                        onSelectionChange={setActiveTab}
+                                        className="mb-6"
+                                    >
+                                        <Tab key="pending" title={`Pending (${stats.pending})`}>
+                                            <Table
+                                                aria-label="Pending approvals table"
+                                                isHeaderSticky
+                                                classNames={{
+                                                    wrapper: "shadow-none border border-divider rounded-lg",
+                                                    th: "bg-default-100 text-default-600 font-semibold",
+                                                    td: "py-3"
+                                                }}
+                                            >
+                                                <TableHeader columns={columns}>
+                                                    {(column) => <TableColumn key={column.uid}>{column.name}</TableColumn>}
+                                                </TableHeader>
+                                                <TableBody items={filteredRequests} emptyContent="No pending requests">
+                                                    {(request) => (
+                                                        <TableRow key={request.id}>
+                                                            {(columnKey) => <TableCell>{renderCell(request, columnKey)}</TableCell>}
+                                                        </TableRow>
+                                                    )}
+                                                </TableBody>
+                                            </Table>
+                                        </Tab>
+
+                                        <Tab key="urgent" title={`Urgent (${stats.urgent})`}>
+                                            <Table
+                                                aria-label="Urgent approvals table"
+                                                isHeaderSticky
+                                                classNames={{
+                                                    wrapper: "shadow-none border border-divider rounded-lg",
+                                                    th: "bg-default-100 text-default-600 font-semibold",
+                                                    td: "py-3"
+                                                }}
+                                            >
+                                                <TableHeader columns={columns}>
+                                                    {(column) => <TableColumn key={column.uid}>{column.name}</TableColumn>}
+                                                </TableHeader>
+                                                <TableBody items={filteredRequests} emptyContent="No urgent requests">
+                                                    {(request) => (
+                                                        <TableRow key={request.id}>
+                                                            {(columnKey) => <TableCell>{renderCell(request, columnKey)}</TableCell>}
+                                                        </TableRow>
+                                                    )}
+                                                </TableBody>
+                                            </Table>
+                                        </Tab>
+
+                                        <Tab key="overdue" title={`Overdue (${stats.overdue})`}>
+                                            <Table
+                                                aria-label="Overdue approvals table"
+                                                isHeaderSticky
+                                                classNames={{
+                                                    wrapper: "shadow-none border border-divider rounded-lg",
+                                                    th: "bg-default-100 text-default-600 font-semibold",
+                                                    td: "py-3"
+                                                }}
+                                            >
+                                                <TableHeader columns={columns}>
+                                                    {(column) => <TableColumn key={column.uid}>{column.name}</TableColumn>}
+                                                </TableHeader>
+                                                <TableBody items={filteredRequests} emptyContent="No overdue requests">
+                                                    {(request) => (
+                                                        <TableRow key={request.id}>
+                                                            {(columnKey) => <TableCell>{renderCell(request, columnKey)}</TableCell>}
+                                                        </TableRow>
+                                                    )}
+                                                </TableBody>
+                                            </Table>
+                                        </Tab>
+                                    </Tabs>
+                                </CardBody>
+                            </Card>
+                        </motion.div>
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+};
+
+TimeOffApprovals.layout = (page) => <App children={page} />;
+export default TimeOffApprovals;

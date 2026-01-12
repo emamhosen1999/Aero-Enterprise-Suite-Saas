@@ -10,13 +10,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 /**
- * My Leave Balance Widget for Core Dashboard
+ * My Leave Balance Widget for Employee Dashboard
  *
  * Shows quick summary of user's leave balances.
  * This is a SUMMARY widget - quick stats, not detailed breakdown.
  *
- * Appears on: Core Dashboard (/dashboard)
- * Does NOT appear on: HRM Dashboard (which has full leave calendar)
+ * Appears on: HRM Employee Dashboard (/hrm/employee/dashboard)
  */
 class MyLeaveBalanceWidget extends AbstractDashboardWidget
 {
@@ -25,6 +24,7 @@ class MyLeaveBalanceWidget extends AbstractDashboardWidget
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::SUMMARY;
     protected array $requiredPermissions = ['leaves.own.view'];
+    protected array $dashboards = ['hrm.employee'];
 
     public function getKey(): string
     {

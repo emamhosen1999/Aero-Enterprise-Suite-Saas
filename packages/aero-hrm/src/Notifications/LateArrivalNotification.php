@@ -31,7 +31,7 @@ class LateArrivalNotification extends BaseHrmNotification
         $employee = $this->attendance->user;
         $employeeName = $employee?->name ?? 'Employee';
         $date = $this->attendance->date?->format('M d, Y') ?? now()->format('M d, Y');
-        $clockIn = $this->attendance->clock_in?->format('h:i A') ?? 'N/A';
+        $clockIn = $this->attendance->punchin?->format('h:i A') ?? 'N/A';
 
         $message = (new MailMessage)
             ->subject("Late Arrival Alert - {$employeeName}")
@@ -65,7 +65,7 @@ class LateArrivalNotification extends BaseHrmNotification
             'employee_id' => $this->attendance->user_id,
             'employee_name' => $employee?->name ?? 'Employee',
             'date' => $this->attendance->date?->format('Y-m-d'),
-            'clock_in' => $this->attendance->clock_in?->format('H:i:s'),
+            'clock_in' => $this->attendance->punchin?->format('H:i:s'),
             'late_count' => $this->lateCount,
             'message' => ($employee?->name ?? 'An employee') . " arrived late on {$this->attendance->date?->format('M d')}. Late count this month: {$this->lateCount}",
             'action_url' => '/hrm/attendance',

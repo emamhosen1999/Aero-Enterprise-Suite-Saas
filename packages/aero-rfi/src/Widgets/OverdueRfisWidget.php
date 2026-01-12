@@ -9,12 +9,12 @@ use Aero\Core\Contracts\CoreWidgetCategory;
 use Aero\Rfi\Models\Rfi;
 
 /**
- * Overdue RFIs Widget for Core Dashboard
+ * Overdue RFIs Widget
  *
  * Shows count of RFIs that are overdue (past planned completion).
  * This is an ALERT widget - needs urgent attention.
  *
- * Appears on: Core Dashboard (/dashboard) for managers
+ * Appears on: RFI Dashboard (/rfi/dashboard)
  */
 class OverdueRfisWidget extends AbstractDashboardWidget
 {
@@ -23,6 +23,7 @@ class OverdueRfisWidget extends AbstractDashboardWidget
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
     protected array $requiredPermissions = ['rfi.manage'];
+    protected array $dashboards = ['rfi'];
 
     public function getKey(): string
     {

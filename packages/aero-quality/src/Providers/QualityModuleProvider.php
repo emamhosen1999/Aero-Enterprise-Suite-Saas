@@ -55,12 +55,36 @@ class QualityModuleProvider extends AbstractModuleProvider
         // Register navigation
         $this->registerNavigation();
         
+        // Register dashboards
+        $this->registerDashboards();
+        
         // Publish configuration
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__.'/../../config/module.php' => config_path('quality.php'),
             ], 'quality-config');
         }
+    }
+
+    /**
+     * Register Quality dashboards with DashboardRegistry.
+     */
+    protected function registerDashboards(): void
+    {
+        if (! $this->app->bound(\Aero\Core\Services\DashboardRegistry::class)) {
+            return;
+        }
+
+        $registry = $this->app->make(\Aero\Core\Services\DashboardRegistry::class);
+
+        $registry->register(
+            'quality.dashboard',
+            'Quality Dashboard',
+            'quality',
+            'Quality metrics, inspections, and NCR tracking',
+            'ChartBarIcon',
+            'quality.dashboard.view'
+        );
     }
 
     /**

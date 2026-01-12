@@ -93,10 +93,34 @@ class DmsModuleProvider extends AbstractModuleProvider
         // Register dashboard widgets for Core Dashboard
         $this->registerDashboardWidgets();
 
+        // Register dashboards
+        $this->registerDashboards();
+
         // Publish module assets
         $this->publishes([
             $this->getModulePath('config/module.php') => config_path('modules/dms.php'),
         ], 'dms-config');
+    }
+
+    /**
+     * Register DMS dashboards with DashboardRegistry.
+     */
+    protected function registerDashboards(): void
+    {
+        if (! $this->app->bound(\Aero\Core\Services\DashboardRegistry::class)) {
+            return;
+        }
+
+        $registry = $this->app->make(\Aero\Core\Services\DashboardRegistry::class);
+
+        $registry->register(
+            'dms.dashboard',
+            'DMS Dashboard',
+            'dms',
+            'Document management analytics and approvals',
+            'DocumentTextIcon',
+            'dms.dashboard.view'
+        );
     }
 
     /**

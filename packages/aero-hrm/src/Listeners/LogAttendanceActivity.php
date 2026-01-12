@@ -33,8 +33,8 @@ class LogAttendanceActivity implements ShouldQueue
             ->performedOn($attendance)
             ->causedBy($employee)
             ->withProperties([
-                'clock_in' => $attendance->clock_in,
-                'clock_out' => $attendance->clock_out,
+                'clock_in' => $attendance->punchin,
+                'clock_out' => $attendance->punchout,
                 'status' => $attendance->status,
                 'date' => $attendance->date,
             ])

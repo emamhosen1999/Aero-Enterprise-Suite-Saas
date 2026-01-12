@@ -49,9 +49,9 @@ class DashboardController extends Controller
             }
         }
 
-        // Get dynamic widgets from registry (from Core + all modules)
+        // Get dynamic widgets from registry for Core dashboard only
         // The registry handles lazy loading and permission checks
-        $dynamicWidgets = $this->widgetRegistry->getWidgetsForFrontend();
+        $dynamicWidgets = $this->widgetRegistry->getWidgetsForFrontend('core');
 
         // Note: Navigation is provided by HandleInertiaRequests middleware
         // Do NOT pass 'navigation' here as it would override the middleware's prop

@@ -9,13 +9,12 @@ use Aero\Core\Contracts\CoreWidgetCategory;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Pending Leave Approvals Widget for Core Dashboard
+ * Pending Leave Approvals Widget
  *
  * Shows count of leaves pending manager/HR approval.
  * This is an ALERT widget - needs attention.
  *
- * Appears on: Core Dashboard (/dashboard) for managers/HR
- * Does NOT appear on: HRM Dashboard (which has full approval queue)
+ * Appears on: HRM Manager Dashboard (/hrm/dashboard)
  */
 class PendingLeaveApprovalsWidget extends AbstractDashboardWidget
 {
@@ -24,6 +23,7 @@ class PendingLeaveApprovalsWidget extends AbstractDashboardWidget
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
     protected array $requiredPermissions = ['leaves.approve'];
+    protected array $dashboards = ['hrm'];
 
     public function getKey(): string
     {

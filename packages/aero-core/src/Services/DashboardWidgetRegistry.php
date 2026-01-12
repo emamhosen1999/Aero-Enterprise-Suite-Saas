@@ -163,18 +163,50 @@ class DashboardWidgetRegistry
     }
 
     /**
+     * Get widgets for a specific dashboard.
+     *
+     * Dashboard keys:
+     * - 'core' - Core Dashboard (/dashboard)
+     * - 'hrm' - HRM Manager Dashboard (/hrm/dashboard)
+     * - 'hrm.employee' - Employee Self-Service Dashboard (/hrm/employee/dashboard)
+     * - 'project' - Project Dashboard (/project/dashboard)
+     * - 'quality' - Quality Dashboard (/quality/dashboard)
+     * - 'dms' - Document Management Dashboard (/dms/dashboard)
+     * - 'finance' - Finance Dashboard (/finance/dashboard)
+     * - 'rfi' - RFI Dashboard (/rfi/dashboard)
+     * - 'compliance' - Compliance Dashboard (/compliance/dashboard)
+     *
+     * @param string $dashboardKey
+     * @return Collection<DashboardWidgetInterface>
+     */
+    public function getWidgetsForDashboard(string $dashboardKey): Collection
+    {
+        return $this->getWidgets()->filter(function (DashboardWidgetInterface $widget) use ($dashboardKey) {
+            $dashboards = $widget->getDashboards();
+            return in_array($dashboardKey, $dashboards, true);
+        });
+    }
+
+    /**
      * Get widgets formatted for frontend rendering.
      *
      * This is the main method called by DashboardController.
      * Returns structure that React can use to dynamically render widgets.
      *
+     * @param string|null $dashboardKey Optional dashboard key to filter widgets.
+     *                                  If null, returns all enabled widgets (for backward compatibility).
      * @return array
      */
-    public function getWidgetsForFrontend(): array
+    public function getWidgetsForFrontend(?string $dashboardKey = null): array
     {
         $widgets = [];
 
-        foreach ($this->getWidgets() as $widget) {
+        // Get widgets filtered by dashboard if specified, otherwise all enabled widgets
+        $widgetCollection = $dashboardKey !== null
+            ? $this->getWidgetsForDashboard($dashboardKey)
+            : $this->getWidgets();
+
+        foreach ($widgetCollection as $widget) {
             $widgetData = [
                 'key' => $widget->getKey(),
                 'component' => $widget->getComponent(),

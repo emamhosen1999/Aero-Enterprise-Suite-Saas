@@ -253,4 +253,148 @@ const TimeOffCalendar = ({ title, events: initialEvents, employees: initialEmplo
                                                 <ButtonGroup size="sm">
                                                     <Button
                                                         variant={viewMode === 'month' ? 'solid' : 'flat'}
-                                                        onPress={() => setViewMode('month')}\n                                    >\n                                        Month\n                                    </Button>\n                                    <Button\n                                        variant={viewMode === 'week' ? 'solid' : 'flat'}\n                                        onPress={() => setViewMode('week')}\n                                    >\n                                        Week\n                                    </Button>\n                                </ButtonGroup>\n                                \n                                <div className=\"flex items-center gap-2\">\n                                    <Button \n                                        isIconOnly \n                                        size=\"sm\" \n                                        variant=\"flat\"\n                                        onPress={() => navigateDate(-1)}\n                                    >\n                                        <ChevronLeftIcon className=\"w-4 h-4\" />\n                                    </Button>\n                                    <span className=\"font-semibold min-w-[120px] text-center\">\n                                        {formatDisplayDate()}\n                                    </span>\n                                    <Button \n                                        isIconOnly \n                                        size=\"sm\" \n                                        variant=\"flat\"\n                                        onPress={() => navigateDate(1)}\n                                    >\n                                        <ChevronRightIcon className=\"w-4 h-4\" />\n                                    </Button>\n                                </div>\n                            </div>\n                        </div>\n                    </div>\n                </CardHeader>\n\n                                <CardBody className=\"p-6\">\n                                    {/* Stats Cards */}\n                                    <StatsCards stats={statsData} isLoading={statsLoading} className=\"mb-6\" />\n                                    \n                                    {/* Filter Section */}\n                                    <div className=\"flex flex-col sm:flex-row gap-4 mb-6\">\n                                        <Select\n                                            label=\"Employee\"\n                                            placeholder=\"All Employees\"\n                                            selectedKeys={filters.employee !== 'all' ? [filters.employee] : []}\n                                            onSelectionChange={(keys) => handleFilterChange('employee', Array.from(keys)[0] || 'all')}\n                                            size=\"sm\"\n                                            radius={themeRadius}\n                                        >\n                                            <SelectItem key=\"all\">All Employees</SelectItem>\n                                            {employees.map(emp => (\n                                                <SelectItem key={emp.id}>{emp.name}</SelectItem>\n                                            ))}\n                                        </Select>\n\n                                        <Select\n                                            label=\"Status\"\n                                            placeholder=\"Approved Only\"\n                                            selectedKeys={filters.status !== 'all' ? [filters.status] : []}\n                                            onSelectionChange={(keys) => handleFilterChange('status', Array.from(keys)[0] || 'approved')}\n                                            size=\"sm\"\n                                            radius={themeRadius}\n                                        >\n                                            <SelectItem key=\"approved\">Approved Only</SelectItem>\n                                            <SelectItem key=\"all\">All Status</SelectItem>\n                                            <SelectItem key=\"pending\">Pending</SelectItem>\n                                        </Select>\n                                    </div>\n\n                                    {/* Calendar Grid */}\n                                    {viewMode === 'month' && (\n                                        <div className=\"border border-divider rounded-lg overflow-hidden\">\n                                            {/* Calendar Header */}\n                                            <div className=\"grid grid-cols-7 bg-default-100\">\n                                                {weekdays.map(day => (\n                                                    <div key={day} className=\"p-3 text-center font-semibold text-sm text-default-600\">\n                                                        {day}\n                                                    </div>\n                                                ))}\n                                            </div>\n                                            \n                                            {/* Calendar Body */}\n                                            <div className=\"grid grid-cols-7 divide-x divide-y divide-divider\">\n                                                {calendarGrid.flat().map((dayData, index) => (\n                                                    <div \n                                                        key={index} \n                                                        className={`min-h-[100px] p-2 ${\n                                                            !dayData ? 'bg-default-50' : \n                                                            dayData.isToday ? 'bg-primary-50' : 'bg-content1'\n                                                        }`}\n                                                    >\n                                                        {dayData && (\n                                                            <>\n                                                                <div className={`text-sm font-medium mb-1 ${\n                                                                    dayData.isToday ? 'text-primary' : 'text-default-700'\n                                                                }`}>\n                                                                    {dayData.date}\n                                                                </div>\n                                                                <div className=\"space-y-1\">\n                                                                    {dayData.events.slice(0, 3).map((event, eventIndex) => (\n                                                                        <div \n                                                                            key={eventIndex}\n                                                                            className=\"text-xs p-1 rounded bg-primary-100 text-primary-800 truncate\"\n                                                                            title={`${event.employee?.name} - ${event.leave_type}`}\n                                                                        >\n                                                                            {event.employee?.name}\n                                                                        </div>\n                                                                    ))}\n                                                                    {dayData.events.length > 3 && (\n                                                                        <div className=\"text-xs text-default-500\">\n                                                                            +{dayData.events.length - 3} more\n                                                                        </div>\n                                                                    )}\n                                                                </div>\n                                                            </>\n                                                        )}\n                                                    </div>\n                                                ))}\n                                            </div>\n                                        </div>\n                                    )}\n                                    \n                                    {/* Week View */}\n                                    {viewMode === 'week' && (\n                                        <div className=\"border border-divider rounded-lg p-4\">\n                                            <div className=\"text-center text-default-500\">\n                                                Week view implementation coming soon...\n                                            </div>\n                                        </div>\n                                    )}\n                                </CardBody>\n                            </Card>\n                        </motion.div>\n                    </div>\n                </div>\n            </div>\n        </>\n    );\n};\n\nTimeOffCalendar.layout = (page) => <App children={page} />;\nexport default TimeOffCalendar;
+                                                        onPress={() => setViewMode('month')}
+                                                    >
+                                                        Month
+                                                    </Button>
+                                                    <Button
+                                                        variant={viewMode === 'week' ? 'solid' : 'flat'}
+                                                        onPress={() => setViewMode('week')}
+                                                    >
+                                                        Week
+                                                    </Button>
+                                                </ButtonGroup>
+                                                
+                                                <div className="flex items-center gap-2">
+                                                    <Button 
+                                                        isIconOnly 
+                                                        size="sm" 
+                                                        variant="flat"
+                                                        onPress={() => navigateDate(-1)}
+                                                    >
+                                                        <ChevronLeftIcon className="w-4 h-4" />
+                                                    </Button>
+                                                    <span className="font-semibold min-w-[120px] text-center">
+                                                        {formatDisplayDate()}
+                                                    </span>
+                                                    <Button 
+                                                        isIconOnly 
+                                                        size="sm" 
+                                                        variant="flat"
+                                                        onPress={() => navigateDate(1)}
+                                                    >
+                                                        <ChevronRightIcon className="w-4 h-4" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardHeader>
+
+                                <CardBody className="p-6">
+                                    {/* Stats Cards */}
+                                    <StatsCards stats={statsData} isLoading={statsLoading} className="mb-6" />
+                                    
+                                    {/* Filter Section */}
+                                    <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                                        <Select
+                                            label="Employee"
+                                            placeholder="All Employees"
+                                            selectedKeys={filters.employee !== 'all' ? [filters.employee] : []}
+                                            onSelectionChange={(keys) => handleFilterChange('employee', Array.from(keys)[0] || 'all')}
+                                            size="sm"
+                                            radius={themeRadius}
+                                        >
+                                            <SelectItem key="all">All Employees</SelectItem>
+                                            {employees.map(emp => (
+                                                <SelectItem key={emp.id}>{emp.name}</SelectItem>
+                                            ))}
+                                        </Select>
+
+                                        <Select
+                                            label="Status"
+                                            placeholder="Approved Only"
+                                            selectedKeys={filters.status !== 'all' ? [filters.status] : []}
+                                            onSelectionChange={(keys) => handleFilterChange('status', Array.from(keys)[0] || 'approved')}
+                                            size="sm"
+                                            radius={themeRadius}
+                                        >
+                                            <SelectItem key="approved">Approved Only</SelectItem>
+                                            <SelectItem key="all">All Status</SelectItem>
+                                            <SelectItem key="pending">Pending</SelectItem>
+                                        </Select>
+                                    </div>
+
+                                    {/* Calendar Grid */}
+                                    {viewMode === 'month' && (
+                                        <div className="border border-divider rounded-lg overflow-hidden">
+                                            {/* Calendar Header */}
+                                            <div className="grid grid-cols-7 bg-default-100">
+                                                {weekdays.map(day => (
+                                                    <div key={day} className="p-3 text-center font-semibold text-sm text-default-600">
+                                                        {day}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            
+                                            {/* Calendar Body */}
+                                            <div className="grid grid-cols-7 divide-x divide-y divide-divider">
+                                                {calendarGrid.flat().map((dayData, index) => (
+                                                    <div 
+                                                        key={index} 
+                                                        className={`min-h-[100px] p-2 ${
+                                                            !dayData ? 'bg-default-50' : 
+                                                            dayData.isToday ? 'bg-primary-50' : 'bg-content1'
+                                                        }`}
+                                                    >
+                                                        {dayData && (
+                                                            <>
+                                                                <div className={`text-sm font-medium mb-1 ${
+                                                                    dayData.isToday ? 'text-primary' : 'text-default-700'
+                                                                }`}>
+                                                                    {dayData.date}
+                                                                </div>
+                                                                <div className="space-y-1">
+                                                                    {dayData.events.slice(0, 3).map((event, eventIndex) => (
+                                                                        <div 
+                                                                            key={eventIndex}
+                                                                            className="text-xs p-1 rounded bg-primary-100 text-primary-800 truncate"
+                                                                            title={`${event.employee?.name} - ${event.leave_type}`}
+                                                                        >
+                                                                            {event.employee?.name}
+                                                                        </div>
+                                                                    ))}
+                                                                    {dayData.events.length > 3 && (
+                                                                        <div className="text-xs text-default-500">
+                                                                            +{dayData.events.length - 3} more
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                    
+                                    {/* Week View */}
+                                    {viewMode === 'week' && (
+                                        <div className="border border-divider rounded-lg p-4">
+                                            <div className="text-center text-default-500">
+                                                Week view implementation coming soon...
+                                            </div>
+                                        </div>
+                                    )}
+                                </CardBody>
+                            </Card>
+                        </motion.div>
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+};
+
+TimeOffCalendar.layout = (page) => <App children={page} />;
+export default TimeOffCalendar;

@@ -1,1 +1,452 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';\nimport { Head, usePage } from '@inertiajs/react';\nimport { motion } from 'framer-motion';\nimport { \n    Button, \n    Card, \n    CardBody, \n    CardHeader, \n    Input, \n    Select, \n    SelectItem,\n    Switch,\n    Tabs,\n    Tab,\n    Divider,\n    Chip\n} from \"@heroui/react\";\nimport { \n    Cog6ToothIcon,\n    CalendarDaysIcon,\n    ClockIcon,\n    ShieldCheckIcon,\n    DocumentTextIcon,\n    BellIcon\n} from \"@heroicons/react/24/outline\";\nimport App from '@/Layouts/App.jsx';\nimport StatsCards from '@/Components/StatsCards.jsx';\nimport axios from 'axios';\nimport { showToast } from '@/utils/toastUtils.jsx';\nimport { useThemeRadius } from '@/Hooks/useThemeRadius.js';\nimport { useHRMAC } from '@/Hooks/useHRMAC';\n\nconst TimeOffSettings = ({ title, settings: initialSettings, leaveTypes: initialLeaveTypes }) => {\n    const { auth } = usePage().props;\n    const themeRadius = useThemeRadius();\n    const { canUpdate, hasAccess } = useHRMAC();\n    \n    // Responsive breakpoints\n    const [isMobile, setIsMobile] = useState(false);\n    const [isTablet, setIsTablet] = useState(false);\n    \n    useEffect(() => {\n        const checkScreenSize = () => {\n            setIsMobile(window.innerWidth < 640);\n            setIsTablet(window.innerWidth < 768);\n        };\n        checkScreenSize();\n        window.addEventListener('resize', checkScreenSize);\n        return () => window.removeEventListener('resize', checkScreenSize);\n    }, []);\n\n    // State management\n    const [loading, setLoading] = useState(false);\n    const [saving, setSaving] = useState(false);\n    const [statsLoading, setStatsLoading] = useState(true);\n    const [settings, setSettings] = useState(initialSettings || {});\n    const [leaveTypes, setLeaveTypes] = useState(initialLeaveTypes || []);\n    const [activeTab, setActiveTab] = useState('general');\n    const [stats, setStats] = useState({ \n        activeTypes: 0, \n        totalPolicies: 0, \n        autoApproval: 0, \n        notifications: 0 \n    });\n\n    // Stats data for StatsCards component\n    const statsData = useMemo(() => [\n        { \n            title: \"Active Leave Types\", \n            value: stats.activeTypes, \n            icon: <CalendarDaysIcon className=\"w-5 h-5\" />, \n            color: \"text-primary\", \n            iconBg: \"bg-primary/20\" \n        },\n        { \n            title: \"Total Policies\", \n            value: stats.totalPolicies, \n            icon: <DocumentTextIcon className=\"w-5 h-5\" />, \n            color: \"text-success\", \n            iconBg: \"bg-success/20\" \n        },\n        { \n            title: \"Auto Approval Rules\", \n            value: stats.autoApproval, \n            icon: <ShieldCheckIcon className=\"w-5 h-5\" />, \n            color: \"text-warning\", \n            iconBg: \"bg-warning/20\" \n        },\n        { \n            title: \"Notification Rules\", \n            value: stats.notifications, \n            icon: <BellIcon className=\"w-5 h-5\" />, \n            color: \"text-secondary\", \n            iconBg: \"bg-secondary/20\" \n        }\n    ], [stats]);\n\n    // Permission checks\n    const canUpdateSettings = canUpdate && hasAccess('hrm.time-off.settings');\n\n    // Fetch settings data\n    const fetchSettings = useCallback(async () => {\n        setLoading(true);\n        try {\n            const response = await axios.get(route('hrm.time-off.settings'));\n            if (response.status === 200) {\n                setSettings(response.data.settings || {});\n                setLeaveTypes(response.data.leaveTypes || []);\n                setStats(response.data.stats || { \n                    activeTypes: 0, \n                    totalPolicies: 0, \n                    autoApproval: 0, \n                    notifications: 0 \n                });\n            }\n        } catch (error) {\n            showToast.promise(Promise.reject(error), { error: 'Failed to fetch settings' });\n        } finally {\n            setLoading(false);\n            setStatsLoading(false);\n        }\n    }, []);\n\n    useEffect(() => { fetchSettings(); }, [fetchSettings]);\n\n    // Settings update handler\n    const handleSettingsUpdate = useCallback(async (section, key, value) => {\n        if (!canUpdateSettings) return;\n        \n        setSaving(true);\n        const promise = new Promise(async (resolve, reject) => {\n            try {\n                const response = await axios.put(route('hrm.time-off.settings.update'), {\n                    section,\n                    key,\n                    value\n                });\n                if (response.status === 200) {\n                    // Update local state\n                    setSettings(prev => ({\n                        ...prev,\n                        [section]: {\n                            ...prev[section],\n                            [key]: value\n                        }\n                    }));\n                    resolve([response.data.message || 'Settings updated successfully']);\n                }\n            } catch (error) {\n                reject(error.response?.data?.errors || ['Failed to update settings']);\n            } finally {\n                setSaving(false);\n            }\n        });\n\n        showToast.promise(promise, {\n            loading: 'Updating settings...',\n            success: (data) => data.join(', '),\n            error: (data) => Array.isArray(data) ? data.join(', ') : data,\n        });\n    }, [canUpdateSettings]);\n\n    return (\n        <>\n            <Head title={title} />\n            \n            {/* Main content wrapper */}\n            <div className=\"flex flex-col w-full h-full p-4\" role=\"main\" aria-label=\"Time Off Settings\">\n                <div className=\"space-y-4\">\n                    <div className=\"w-full\">\n                        {/* Animated Card wrapper */}\n                        <motion.div\n                            initial={{ scale: 0.9, opacity: 0 }}\n                            animate={{ scale: 1, opacity: 1 }}\n                            transition={{ duration: 0.5 }}\n                        >\n                            {/* Main Card with theme styling */}\n                            <Card \n                                className=\"transition-all duration-200\"\n                                style={{\n                                    border: `var(--borderWidth, 2px) solid transparent`,\n                                    borderRadius: `var(--borderRadius, 12px)`,\n                                    fontFamily: `var(--fontFamily, \"Inter\")`,\n                                    transform: `scale(var(--scale, 1))`,\n                                    background: `linear-gradient(135deg, \n                                        var(--theme-content1, #FAFAFA) 20%, \n                                        var(--theme-content2, #F4F4F5) 10%, \n                                        var(--theme-content3, #F1F3F4) 20%)`,\n                                }}\n                            >\n                                {/* Card Header */}\n                                <CardHeader \n                                    className=\"border-b p-0\"\n                                    style={{\n                                        borderColor: `var(--theme-divider, #E4E4E7)`,\n                                        background: `linear-gradient(135deg, \n                                            color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, \n                                            color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,\n                                    }}\n                                >\n                                    <div className={`${!isMobile ? 'p-6' : 'p-4'} w-full`}>\n                                        <div className=\"flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4\">\n                                            {/* Title Section */}\n                                            <div className=\"flex items-center gap-3 lg:gap-4\">\n                                                <div className={`${!isMobile ? 'p-3' : 'p-2'} rounded-xl`}\n                                                    style={{\n                                                        background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,\n                                                        borderRadius: `var(--borderRadius, 12px)`,\n                                                    }}\n                                                >\n                                                    <Cog6ToothIcon className={`${!isMobile ? 'w-8 h-8' : 'w-6 h-6'}`} \n                                                        style={{ color: 'var(--theme-primary)' }} />\n                                                </div>\n                                                <div>\n                                                    <h4 className={`${!isMobile ? 'text-2xl' : 'text-xl'} font-bold`}>\n                                                        Time Off Settings\n                                                    </h4>\n                                                    <p className={`${!isMobile ? 'text-sm' : 'text-xs'} text-default-500`}>\n                                                        Configure time off policies and system settings\n                                                    </p>\n                                                </div>\n                                            </div>\n                                        </div>\n                                    </div>\n                                </CardHeader>\n\n                                <CardBody className=\"p-6\">\n                                    {/* Stats Cards */}\n                                    <StatsCards stats={statsData} isLoading={statsLoading} className=\"mb-6\" />\n\n                                    {/* Settings Tabs */}\n                                    <Tabs \n                                        selectedKey={activeTab}\n                                        onSelectionChange={setActiveTab}\n                                        className=\"mb-6\"\n                                    >\n                                        <Tab key=\"general\" title=\"General Settings\">\n                                            <div className=\"space-y-6\">\n                                                <Card>\n                                                    <CardHeader>\n                                                        <h3 className=\"text-lg font-semibold\">General Configuration</h3>\n                                                    </CardHeader>\n                                                    <CardBody className=\"space-y-4\">\n                                                        <div className=\"flex items-center justify-between\">\n                                                            <div>\n                                                                <p className=\"font-medium\">Allow Weekend Requests</p>\n                                                                <p className=\"text-sm text-default-500\">Allow employees to request time off on weekends</p>\n                                                            </div>\n                                                            <Switch \n                                                                isSelected={settings.general?.allowWeekends || false}\n                                                                onValueChange={(value) => handleSettingsUpdate('general', 'allowWeekends', value)}\n                                                                isDisabled={!canUpdateSettings || saving}\n                                                            />\n                                                        </div>\n                                                        \n                                                        <Divider />\n                                                        \n                                                        <div className=\"flex items-center justify-between\">\n                                                            <div>\n                                                                <p className=\"font-medium\">Require Reason</p>\n                                                                <p className=\"text-sm text-default-500\">Require employees to provide a reason for time off</p>\n                                                            </div>\n                                                            <Switch \n                                                                isSelected={settings.general?.requireReason || false}\n                                                                onValueChange={(value) => handleSettingsUpdate('general', 'requireReason', value)}\n                                                                isDisabled={!canUpdateSettings || saving}\n                                                            />\n                                                        </div>\n                                                        \n                                                        <Divider />\n                                                        \n                                                        <div className=\"grid grid-cols-1 md:grid-cols-2 gap-4\">\n                                                            <Input\n                                                                label=\"Minimum Notice (Days)\"\n                                                                type=\"number\"\n                                                                value={settings.general?.minimumNotice || 1}\n                                                                onChange={(e) => handleSettingsUpdate('general', 'minimumNotice', parseInt(e.target.value))}\n                                                                isDisabled={!canUpdateSettings || saving}\n                                                                radius={themeRadius}\n                                                            />\n                                                            \n                                                            <Input\n                                                                label=\"Maximum Days Per Request\"\n                                                                type=\"number\"\n                                                                value={settings.general?.maxDaysPerRequest || 30}\n                                                                onChange={(e) => handleSettingsUpdate('general', 'maxDaysPerRequest', parseInt(e.target.value))}\n                                                                isDisabled={!canUpdateSettings || saving}\n                                                                radius={themeRadius}\n                                                            />\n                                                        </div>\n                                                    </CardBody>\n                                                </Card>\n                                            </div>\n                                        </Tab>\n\n                                        <Tab key=\"approval\" title=\"Approval Workflow\">\n                                            <div className=\"space-y-6\">\n                                                <Card>\n                                                    <CardHeader>\n                                                        <h3 className=\"text-lg font-semibold\">Approval Configuration</h3>\n                                                    </CardHeader>\n                                                    <CardBody className=\"space-y-4\">\n                                                        <div className=\"flex items-center justify-between\">\n                                                            <div>\n                                                                <p className=\"font-medium\">Auto-Approve Short Requests</p>\n                                                                <p className=\"text-sm text-default-500\">Automatically approve requests under specified days</p>\n                                                            </div>\n                                                            <Switch \n                                                                isSelected={settings.approval?.autoApproveShort || false}\n                                                                onValueChange={(value) => handleSettingsUpdate('approval', 'autoApproveShort', value)}\n                                                                isDisabled={!canUpdateSettings || saving}\n                                                            />\n                                                        </div>\n                                                        \n                                                        <div className=\"grid grid-cols-1 md:grid-cols-2 gap-4\">\n                                                            <Input\n                                                                label=\"Auto-Approve Threshold (Days)\"\n                                                                type=\"number\"\n                                                                value={settings.approval?.autoApproveThreshold || 1}\n                                                                onChange={(e) => handleSettingsUpdate('approval', 'autoApproveThreshold', parseInt(e.target.value))}\n                                                                isDisabled={!canUpdateSettings || saving || !settings.approval?.autoApproveShort}\n                                                                radius={themeRadius}\n                                                            />\n                                                            \n                                                            <Select\n                                                                label=\"Default Approver\"\n                                                                placeholder=\"Direct Manager\"\n                                                                selectedKeys={settings.approval?.defaultApprover ? [settings.approval.defaultApprover] : []}\n                                                                onSelectionChange={(keys) => handleSettingsUpdate('approval', 'defaultApprover', Array.from(keys)[0])}\n                                                                isDisabled={!canUpdateSettings || saving}\n                                                                radius={themeRadius}\n                                                            >\n                                                                <SelectItem key=\"manager\">Direct Manager</SelectItem>\n                                                                <SelectItem key=\"hr\">HR Manager</SelectItem>\n                                                                <SelectItem key=\"admin\">System Admin</SelectItem>\n                                                            </Select>\n                                                        </div>\n                                                    </CardBody>\n                                                </Card>\n                                            </div>\n                                        </Tab>\n\n                                        <Tab key=\"notifications\" title=\"Notifications\">\n                                            <div className=\"space-y-6\">\n                                                <Card>\n                                                    <CardHeader>\n                                                        <h3 className=\"text-lg font-semibold\">Notification Settings</h3>\n                                                    </CardHeader>\n                                                    <CardBody className=\"space-y-4\">\n                                                        <div className=\"flex items-center justify-between\">\n                                                            <div>\n                                                                <p className=\"font-medium\">Email Notifications</p>\n                                                                <p className=\"text-sm text-default-500\">Send email notifications for requests and approvals</p>\n                                                            </div>\n                                                            <Switch \n                                                                isSelected={settings.notifications?.email || true}\n                                                                onValueChange={(value) => handleSettingsUpdate('notifications', 'email', value)}\n                                                                isDisabled={!canUpdateSettings || saving}\n                                                            />\n                                                        </div>\n                                                        \n                                                        <div className=\"flex items-center justify-between\">\n                                                            <div>\n                                                                <p className=\"font-medium\">Slack Notifications</p>\n                                                                <p className=\"text-sm text-default-500\">Send Slack notifications to designated channels</p>\n                                                            </div>\n                                                            <Switch \n                                                                isSelected={settings.notifications?.slack || false}\n                                                                onValueChange={(value) => handleSettingsUpdate('notifications', 'slack', value)}\n                                                                isDisabled={!canUpdateSettings || saving}\n                                                            />\n                                                        </div>\n                                                        \n                                                        <div className=\"flex items-center justify-between\">\n                                                            <div>\n                                                                <p className=\"font-medium\">Reminder Notifications</p>\n                                                                <p className=\"text-sm text-default-500\">Send reminder notifications for pending approvals</p>\n                                                            </div>\n                                                            <Switch \n                                                                isSelected={settings.notifications?.reminders || true}\n                                                                onValueChange={(value) => handleSettingsUpdate('notifications', 'reminders', value)}\n                                                                isDisabled={!canUpdateSettings || saving}\n                                                            />\n                                                        </div>\n                                                    </CardBody>\n                                                </Card>\n                                            </div>\n                                        </Tab>\n\n                                        <Tab key=\"leave-types\" title=\"Leave Types\">\n                                            <div className=\"space-y-6\">\n                                                <Card>\n                                                    <CardHeader className=\"flex justify-between items-center\">\n                                                        <h3 className=\"text-lg font-semibold\">Manage Leave Types</h3>\n                                                        {canUpdateSettings && (\n                                                            <Button size=\"sm\" color=\"primary\">\n                                                                Add Leave Type\n                                                            </Button>\n                                                        )}\n                                                    </CardHeader>\n                                                    <CardBody>\n                                                        <div className=\"space-y-4\">\n                                                            {leaveTypes.map((type, index) => (\n                                                                <div key={index} className=\"flex items-center justify-between p-4 border border-divider rounded-lg\">\n                                                                    <div className=\"flex items-center gap-3\">\n                                                                        <div>\n                                                                            <p className=\"font-medium\">{type.name}</p>\n                                                                            <p className=\"text-sm text-default-500\">{type.description}</p>\n                                                                        </div>\n                                                                    </div>\n                                                                    <div className=\"flex items-center gap-3\">\n                                                                        <Chip \n                                                                            color={type.isActive ? 'success' : 'default'} \n                                                                            size=\"sm\"\n                                                                        >\n                                                                            {type.isActive ? 'Active' : 'Inactive'}\n                                                                        </Chip>\n                                                                        <Chip variant=\"flat\" size=\"sm\">\n                                                                            {type.maxDaysPerYear || 'Unlimited'} days/year\n                                                                        </Chip>\n                                                                        {canUpdateSettings && (\n                                                                            <Button size=\"sm\" variant=\"flat\">\n                                                                                Edit\n                                                                            </Button>\n                                                                        )}\n                                                                    </div>\n                                                                </div>\n                                                            ))}\n                                                            \n                                                            {leaveTypes.length === 0 && (\n                                                                <div className=\"text-center text-default-500 py-8\">\n                                                                    No leave types configured. Add your first leave type to get started.\n                                                                </div>\n                                                            )}\n                                                        </div>\n                                                    </CardBody>\n                                                </Card>\n                                            </div>\n                                        </Tab>\n                                    </Tabs>\n                                </CardBody>\n                            </Card>\n                        </motion.div>\n                    </div>\n                </div>\n            </div>\n        </>\n    );\n};\n\nTimeOffSettings.layout = (page) => <App children={page} />;\nexport default TimeOffSettings;
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Head, usePage } from '@inertiajs/react';
+import { motion } from 'framer-motion';
+import { 
+    Button, 
+    Card, 
+    CardBody, 
+    CardHeader, 
+    Input, 
+    Select, 
+    SelectItem,
+    Switch,
+    Tabs,
+    Tab,
+    Divider,
+    Chip
+} from "@heroui/react";
+import { 
+    Cog6ToothIcon,
+    CalendarDaysIcon,
+    ClockIcon,
+    ShieldCheckIcon,
+    DocumentTextIcon,
+    BellIcon
+} from "@heroicons/react/24/outline";
+import App from '@/Layouts/App.jsx';
+import StatsCards from '@/Components/StatsCards.jsx';
+import axios from 'axios';
+import { showToast } from '@/utils/toastUtils.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
+
+const TimeOffSettings = ({ title, settings: initialSettings, leaveTypes: initialLeaveTypes }) => {
+    const { auth } = usePage().props;
+    const themeRadius = useThemeRadius();
+    const { canUpdate, hasAccess } = useHRMAC();
+    
+    // Responsive breakpoints
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
+
+    // State management
+    const [loading, setLoading] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [statsLoading, setStatsLoading] = useState(true);
+    const [settings, setSettings] = useState(initialSettings || {});
+    const [leaveTypes, setLeaveTypes] = useState(initialLeaveTypes || []);
+    const [activeTab, setActiveTab] = useState('general');
+    const [stats, setStats] = useState({ 
+        activeTypes: 0, 
+        totalPolicies: 0, 
+        autoApproval: 0, 
+        notifications: 0 
+    });
+
+    // Stats data for StatsCards component
+    const statsData = useMemo(() => [
+        { 
+            title: "Active Leave Types", 
+            value: stats.activeTypes, 
+            icon: <CalendarDaysIcon className="w-5 h-5" />, 
+            color: "text-primary", 
+            iconBg: "bg-primary/20" 
+        },
+        { 
+            title: "Total Policies", 
+            value: stats.totalPolicies, 
+            icon: <DocumentTextIcon className="w-5 h-5" />, 
+            color: "text-success", 
+            iconBg: "bg-success/20" 
+        },
+        { 
+            title: "Auto Approval Rules", 
+            value: stats.autoApproval, 
+            icon: <ShieldCheckIcon className="w-5 h-5" />, 
+            color: "text-warning", 
+            iconBg: "bg-warning/20" 
+        },
+        { 
+            title: "Notification Rules", 
+            value: stats.notifications, 
+            icon: <BellIcon className="w-5 h-5" />, 
+            color: "text-secondary", 
+            iconBg: "bg-secondary/20" 
+        }
+    ], [stats]);
+
+    // Permission checks
+    const canUpdateSettings = canUpdate && hasAccess('hrm.time-off.settings');
+
+    // Fetch settings data
+    const fetchSettings = useCallback(async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get(route('hrm.time-off.settings'));
+            if (response.status === 200) {
+                setSettings(response.data.settings || {});
+                setLeaveTypes(response.data.leaveTypes || []);
+                setStats(response.data.stats || { 
+                    activeTypes: 0, 
+                    totalPolicies: 0, 
+                    autoApproval: 0, 
+                    notifications: 0 
+                });
+            }
+        } catch (error) {
+            showToast.promise(Promise.reject(error), { error: 'Failed to fetch settings' });
+        } finally {
+            setLoading(false);
+            setStatsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => { fetchSettings(); }, [fetchSettings]);
+
+    // Settings update handler
+    const handleSettingsUpdate = useCallback(async (section, key, value) => {
+        if (!canUpdateSettings) return;
+        
+        setSaving(true);
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.put(route('hrm.time-off.settings.update'), {
+                    section,
+                    key,
+                    value
+                });
+                if (response.status === 200) {
+                    // Update local state
+                    setSettings(prev => ({
+                        ...prev,
+                        [section]: {
+                            ...prev[section],
+                            [key]: value
+                        }
+                    }));
+                    resolve([response.data.message || 'Settings updated successfully']);
+                }
+            } catch (error) {
+                reject(error.response?.data?.errors || ['Failed to update settings']);
+            } finally {
+                setSaving(false);
+            }
+        });
+
+        showToast.promise(promise, {
+            loading: 'Updating settings...',
+            success: (data) => data.join(', '),
+            error: (data) => Array.isArray(data) ? data.join(', ') : data,
+        });
+    }, [canUpdateSettings]);
+
+    return (
+        <>
+            <Head title={title} />
+            
+            {/* Main content wrapper */}
+            <div className="flex flex-col w-full h-full p-4" role="main" aria-label="Time Off Settings">
+                <div className="space-y-4">
+                    <div className="w-full">
+                        {/* Animated Card wrapper */}
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.5 }}
+                        >
+                            {/* Main Card with theme styling */}
+                            <Card 
+                                className="transition-all duration-200"
+                                style={{
+                                    border: `var(--borderWidth, 2px) solid transparent`,
+                                    borderRadius: `var(--borderRadius, 12px)`,
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                    transform: `scale(var(--scale, 1))`,
+                                    background: `linear-gradient(135deg, 
+                                        var(--theme-content1, #FAFAFA) 20%, 
+                                        var(--theme-content2, #F4F4F5) 10%, 
+                                        var(--theme-content3, #F1F3F4) 20%)`,
+                                }}
+                            >
+                                {/* Card Header */}
+                                <CardHeader 
+                                    className="border-b p-0"
+                                    style={{
+                                        borderColor: `var(--theme-divider, #E4E4E7)`,
+                                        background: `linear-gradient(135deg, 
+                                            color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
+                                            color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
+                                    }}
+                                >
+                                    <div className={`${!isMobile ? 'p-6' : 'p-4'} w-full`}>
+                                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                            {/* Title Section */}
+                                            <div className="flex items-center gap-3 lg:gap-4">
+                                                <div className={`${!isMobile ? 'p-3' : 'p-2'} rounded-xl`}
+                                                    style={{
+                                                        background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,
+                                                        borderRadius: `var(--borderRadius, 12px)`,
+                                                    }}
+                                                >
+                                                    <Cog6ToothIcon className={`${!isMobile ? 'w-8 h-8' : 'w-6 h-6'}`} 
+                                                        style={{ color: 'var(--theme-primary)' }} />
+                                                </div>
+                                                <div>
+                                                    <h4 className={`${!isMobile ? 'text-2xl' : 'text-xl'} font-bold`}>
+                                                        Time Off Settings
+                                                    </h4>
+                                                    <p className={`${!isMobile ? 'text-sm' : 'text-xs'} text-default-500`}>
+                                                        Configure time off policies and system settings
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardHeader>
+
+                                <CardBody className="p-6">
+                                    {/* Stats Cards */}
+                                    <StatsCards stats={statsData} isLoading={statsLoading} className="mb-6" />
+
+                                    {/* Settings Tabs */}
+                                    <Tabs 
+                                        selectedKey={activeTab}
+                                        onSelectionChange={setActiveTab}
+                                        className="mb-6"
+                                    >
+                                        <Tab key="general" title="General Settings">
+                                            <div className="space-y-6">
+                                                <Card>
+                                                    <CardHeader>
+                                                        <h3 className="text-lg font-semibold">General Configuration</h3>
+                                                    </CardHeader>
+                                                    <CardBody className="space-y-4">
+                                                        <div className="flex items-center justify-between">
+                                                            <div>
+                                                                <p className="font-medium">Allow Weekend Requests</p>
+                                                                <p className="text-sm text-default-500">Allow employees to request time off on weekends</p>
+                                                            </div>
+                                                            <Switch 
+                                                                isSelected={settings.general?.allowWeekends || false}
+                                                                onValueChange={(value) => handleSettingsUpdate('general', 'allowWeekends', value)}
+                                                                isDisabled={!canUpdateSettings || saving}
+                                                            />
+                                                        </div>
+                                                        
+                                                        <Divider />
+                                                        
+                                                        <div className="flex items-center justify-between">
+                                                            <div>
+                                                                <p className="font-medium">Require Reason</p>
+                                                                <p className="text-sm text-default-500">Require employees to provide a reason for time off</p>
+                                                            </div>
+                                                            <Switch 
+                                                                isSelected={settings.general?.requireReason || false}
+                                                                onValueChange={(value) => handleSettingsUpdate('general', 'requireReason', value)}
+                                                                isDisabled={!canUpdateSettings || saving}
+                                                            />
+                                                        </div>
+                                                        
+                                                        <Divider />
+                                                        
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            <Input
+                                                                label="Minimum Notice (Days)"
+                                                                type="number"
+                                                                value={settings.general?.minimumNotice || 1}
+                                                                onChange={(e) => handleSettingsUpdate('general', 'minimumNotice', parseInt(e.target.value))}
+                                                                isDisabled={!canUpdateSettings || saving}
+                                                                radius={themeRadius}
+                                                            />
+                                                            
+                                                            <Input
+                                                                label="Maximum Days Per Request"
+                                                                type="number"
+                                                                value={settings.general?.maxDaysPerRequest || 30}
+                                                                onChange={(e) => handleSettingsUpdate('general', 'maxDaysPerRequest', parseInt(e.target.value))}
+                                                                isDisabled={!canUpdateSettings || saving}
+                                                                radius={themeRadius}
+                                                            />
+                                                        </div>
+                                                    </CardBody>
+                                                </Card>
+                                            </div>
+                                        </Tab>
+
+                                        <Tab key="approval" title="Approval Workflow">
+                                            <div className="space-y-6">
+                                                <Card>
+                                                    <CardHeader>
+                                                        <h3 className="text-lg font-semibold">Approval Configuration</h3>
+                                                    </CardHeader>
+                                                    <CardBody className="space-y-4">
+                                                        <div className="flex items-center justify-between">
+                                                            <div>
+                                                                <p className="font-medium">Auto-Approve Short Requests</p>
+                                                                <p className="text-sm text-default-500">Automatically approve requests under specified days</p>
+                                                            </div>
+                                                            <Switch 
+                                                                isSelected={settings.approval?.autoApproveShort || false}
+                                                                onValueChange={(value) => handleSettingsUpdate('approval', 'autoApproveShort', value)}
+                                                                isDisabled={!canUpdateSettings || saving}
+                                                            />
+                                                        </div>
+                                                        
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            <Input
+                                                                label="Auto-Approve Threshold (Days)"
+                                                                type="number"
+                                                                value={settings.approval?.autoApproveThreshold || 1}
+                                                                onChange={(e) => handleSettingsUpdate('approval', 'autoApproveThreshold', parseInt(e.target.value))}
+                                                                isDisabled={!canUpdateSettings || saving || !settings.approval?.autoApproveShort}
+                                                                radius={themeRadius}
+                                                            />
+                                                            
+                                                            <Select
+                                                                label="Default Approver"
+                                                                placeholder="Direct Manager"
+                                                                selectedKeys={settings.approval?.defaultApprover ? [settings.approval.defaultApprover] : []}
+                                                                onSelectionChange={(keys) => handleSettingsUpdate('approval', 'defaultApprover', Array.from(keys)[0])}
+                                                                isDisabled={!canUpdateSettings || saving}
+                                                                radius={themeRadius}
+                                                            >
+                                                                <SelectItem key="manager">Direct Manager</SelectItem>
+                                                                <SelectItem key="hr">HR Manager</SelectItem>
+                                                                <SelectItem key="admin">System Admin</SelectItem>
+                                                            </Select>
+                                                        </div>
+                                                    </CardBody>
+                                                </Card>
+                                            </div>
+                                        </Tab>
+
+                                        <Tab key="notifications" title="Notifications">
+                                            <div className="space-y-6">
+                                                <Card>
+                                                    <CardHeader>
+                                                        <h3 className="text-lg font-semibold">Notification Settings</h3>
+                                                    </CardHeader>
+                                                    <CardBody className="space-y-4">
+                                                        <div className="flex items-center justify-between">
+                                                            <div>
+                                                                <p className="font-medium">Email Notifications</p>
+                                                                <p className="text-sm text-default-500">Send email notifications for requests and approvals</p>
+                                                            </div>
+                                                            <Switch 
+                                                                isSelected={settings.notifications?.email || true}
+                                                                onValueChange={(value) => handleSettingsUpdate('notifications', 'email', value)}
+                                                                isDisabled={!canUpdateSettings || saving}
+                                                            />
+                                                        </div>
+                                                        
+                                                        <div className="flex items-center justify-between">
+                                                            <div>
+                                                                <p className="font-medium">Slack Notifications</p>
+                                                                <p className="text-sm text-default-500">Send Slack notifications to designated channels</p>
+                                                            </div>
+                                                            <Switch 
+                                                                isSelected={settings.notifications?.slack || false}
+                                                                onValueChange={(value) => handleSettingsUpdate('notifications', 'slack', value)}
+                                                                isDisabled={!canUpdateSettings || saving}
+                                                            />
+                                                        </div>
+                                                        
+                                                        <div className="flex items-center justify-between">
+                                                            <div>
+                                                                <p className="font-medium">Reminder Notifications</p>
+                                                                <p className="text-sm text-default-500">Send reminder notifications for pending approvals</p>
+                                                            </div>
+                                                            <Switch 
+                                                                isSelected={settings.notifications?.reminders || true}
+                                                                onValueChange={(value) => handleSettingsUpdate('notifications', 'reminders', value)}
+                                                                isDisabled={!canUpdateSettings || saving}
+                                                            />
+                                                        </div>
+                                                    </CardBody>
+                                                </Card>
+                                            </div>
+                                        </Tab>
+
+                                        <Tab key="leave-types" title="Leave Types">
+                                            <div className="space-y-6">
+                                                <Card>
+                                                    <CardHeader className="flex justify-between items-center">
+                                                        <h3 className="text-lg font-semibold">Manage Leave Types</h3>
+                                                        {canUpdateSettings && (
+                                                            <Button size="sm" color="primary">
+                                                                Add Leave Type
+                                                            </Button>
+                                                        )}
+                                                    </CardHeader>
+                                                    <CardBody>
+                                                        <div className="space-y-4">
+                                                            {leaveTypes.map((type, index) => (
+                                                                <div key={index} className="flex items-center justify-between p-4 border border-divider rounded-lg">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div>
+                                                                            <p className="font-medium">{type.name}</p>
+                                                                            <p className="text-sm text-default-500">{type.description}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-3">
+                                                                        <Chip 
+                                                                            color={type.isActive ? 'success' : 'default'} 
+                                                                            size="sm"
+                                                                        >
+                                                                            {type.isActive ? 'Active' : 'Inactive'}
+                                                                        </Chip>
+                                                                        <Chip variant="flat" size="sm">
+                                                                            {type.maxDaysPerYear || 'Unlimited'} days/year
+                                                                        </Chip>
+                                                                        {canUpdateSettings && (
+                                                                            <Button size="sm" variant="flat">
+                                                                                Edit
+                                                                            </Button>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                            
+                                                            {leaveTypes.length === 0 && (
+                                                                <div className="text-center text-default-500 py-8">
+                                                                    No leave types configured. Add your first leave type to get started.
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </CardBody>
+                                                </Card>
+                                            </div>
+                                        </Tab>
+                                    </Tabs>
+                                </CardBody>
+                            </Card>
+                        </motion.div>
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+};
+
+TimeOffSettings.layout = (page) => <App children={page} />;
+export default TimeOffSettings;

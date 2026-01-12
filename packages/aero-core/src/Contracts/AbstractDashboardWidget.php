@@ -7,11 +7,19 @@ namespace Aero\Core\Contracts;
 /**
  * Abstract Dashboard Widget
  *
- * Base class for Core Dashboard widgets with sensible defaults.
- * Modules extend this to create widgets for the main dashboard.
+ * Base class for Dashboard widgets with sensible defaults.
+ * Modules extend this to create widgets for any dashboard.
  *
- * Remember: This is for the CORE DASHBOARD only.
- * Module dashboards use their own components directly.
+ * Dashboard Keys:
+ * - 'core' - Core Dashboard (/dashboard)
+ * - 'hrm' - HRM Manager Dashboard (/hrm/dashboard)
+ * - 'hrm.employee' - Employee Self-Service Dashboard (/hrm/employee/dashboard)
+ * - 'project' - Project Dashboard (/project/dashboard)
+ * - 'quality' - Quality Dashboard (/quality/dashboard)
+ * - 'dms' - Document Management Dashboard (/dms/dashboard)
+ * - 'finance' - Finance Dashboard (/finance/dashboard)
+ * - 'rfi' - RFI Dashboard (/rfi/dashboard)
+ * - 'compliance' - Compliance Dashboard (/compliance/dashboard)
  */
 abstract class AbstractDashboardWidget implements DashboardWidgetInterface
 {
@@ -21,6 +29,14 @@ abstract class AbstractDashboardWidget implements DashboardWidgetInterface
     protected bool $lazy = false;
     protected array $requiredPermissions = [];
     protected CoreWidgetCategory $category = CoreWidgetCategory::SUMMARY;
+
+    /**
+     * Dashboards this widget should appear on.
+     * Override in subclass to target specific dashboards.
+     *
+     * @var array<string>
+     */
+    protected array $dashboards = ['core'];
 
     /**
      * Get widget category (override in subclass).
@@ -76,6 +92,16 @@ abstract class AbstractDashboardWidget implements DashboardWidgetInterface
     public function getRequiredPermissions(): array
     {
         return $this->requiredPermissions;
+    }
+
+    /**
+     * Get the dashboards this widget should appear on.
+     *
+     * @return array<string> Dashboard keys
+     */
+    public function getDashboards(): array
+    {
+        return $this->dashboards;
     }
 
     /**

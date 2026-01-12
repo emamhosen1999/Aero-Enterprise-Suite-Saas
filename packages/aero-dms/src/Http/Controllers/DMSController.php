@@ -2,6 +2,7 @@
 
 namespace Aero\Dms\Http\Controllers;
 
+use Aero\Core\Services\DashboardWidgetRegistry;
 use Aero\Dms\Http\Controllers\Controller;
 use Aero\Dms\Models\Category;
 use Aero\Dms\Models\Document;
@@ -18,7 +19,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class DMSController extends Controller
 {
     public function __construct(
-        protected DMSService $dmsService
+        protected DMSService $dmsService,
+        protected DashboardWidgetRegistry $widgetRegistry
     ) {}
 
     /**
@@ -29,11 +31,15 @@ class DMSController extends Controller
         $user = Auth::user();
         $statistics = $this->dmsService->getStatistics($user);
         $recentActivity = $this->dmsService->getRecentActivity(10);
+        
+        // Get dynamic widgets for DMS dashboard
+        $dynamicWidgets = $this->widgetRegistry->getWidgetsForFrontend('dms');
 
         return Inertia::render('DMS/Dashboard/Index', [
             'statistics' => $statistics,
             'recentActivity' => $recentActivity,
             'categories' => Category::active()->get(),
+            'dynamicWidgets' => $dynamicWidgets,
         ]);
     }
 

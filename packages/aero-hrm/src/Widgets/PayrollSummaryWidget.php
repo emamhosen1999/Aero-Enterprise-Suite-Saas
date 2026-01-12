@@ -11,6 +11,8 @@ use Aero\Core\Contracts\CoreWidgetCategory;
  * Payroll Summary Widget
  *
  * Displays payroll summary for HR managers.
+ * 
+ * Appears on: HRM Manager Dashboard (/hrm/dashboard)
  */
 class PayrollSummaryWidget extends AbstractDashboardWidget
 {
@@ -19,6 +21,7 @@ class PayrollSummaryWidget extends AbstractDashboardWidget
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::SUMMARY;
     protected array $requiredPermissions = ['hrm.payroll.view'];
+    protected array $dashboards = ['hrm'];
 
     public function getKey(): string
     {

@@ -3,12 +3,19 @@
 namespace Aero\Core\Services;
 
 use Aero\Core\Support\TenantCache;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Navigation Registry Service
  *
  * Central registry for module navigation items.
  * Modules register their navigation, and core aggregates them.
+ *
+ * Dashboard Navigation:
+ * - Dynamically builds dashboard menu from DashboardRegistry
+ * - Single dashboard: Shows as "Dashboard" (no dropdown)
+ * - Multiple dashboards: Shows as "Dashboards" with children
  *
  * Usage:
  *   $registry = app(NavigationRegistry::class);
@@ -95,16 +102,25 @@ class NavigationRegistry
     /**
      * Get navigation items ready for frontend.
      *
-     * Core/Platform modules: submodules are promoted to top level (Dashboard, Users, Roles, Settings)
+     * Dashboard navigation is dynamically built from DashboardRegistry:
+     * - Single dashboard: Shows as "Dashboard" (no children)
+     * - Multiple dashboards: Shows as "Dashboards" parent with children
+     *
+     * Core/Platform modules: submodules are promoted to top level (Users, Roles, Settings)
      * Other modules: wrapped under module name (Human Resources → Employees, Attendance, etc.)
      *
-     * Structure for non-core: [{ name: "Human Resources", children: [submodules...] }]
-     *
      * @param  string|null  $scope  Filter by scope: 'platform' for admin, 'tenant' for tenant users, null for all
+     * @param  \Aero\Core\Models\User|null  $user  Optional user to filter dashboards by permissions
      */
-    public function toFrontend(?string $scope = null): array
+    public function toFrontend(?string $scope = null, $user = null): array
     {
         $navigationItems = [];
+
+        // 1. Add dynamic dashboard navigation first (priority 1)
+        $dashboardNav = $this->getDashboardNavigation($user);
+        if ($dashboardNav) {
+            $navigationItems[] = $dashboardNav;
+        }
 
         $sortedModules = collect($this->navigationItems)->sortBy('priority');
 
@@ -117,12 +133,21 @@ class NavigationRegistry
 
             foreach ($moduleData['items'] as $item) {
                 // Core/Platform modules: flatten children (submodules) to top level
+                // BUT skip Dashboard submodule - it's handled dynamically above
                 if ($moduleCode === 'core' || $moduleCode === 'platform') {
                     if (! empty($item['children'])) {
                         foreach ($item['children'] as $child) {
+                            // Skip dashboard items - they come from DashboardRegistry
+                            if ($this->isDashboardItem($child)) {
+                                continue;
+                            }
                             $navigationItems[] = $child;
                         }
                     } else {
+                        // Skip dashboard items
+                        if ($this->isDashboardItem($item)) {
+                            continue;
+                        }
                         $navigationItems[] = $item;
                     }
                 } else {
@@ -140,6 +165,152 @@ class NavigationRegistry
     }
 
     /**
+     * Check if a navigation item is a dashboard item.
+     *
+     * Dashboard items should be excluded from regular navigation
+     * as they are dynamically built from DashboardRegistry.
+     */
+    protected function isDashboardItem(array $item): bool
+    {
+        $name = strtolower($item['name'] ?? '');
+        $path = strtolower($item['path'] ?? '');
+        $access = strtolower($item['access'] ?? '');
+
+        // Check if it's a dashboard item by name, path, or access code
+        if (str_contains($name, 'dashboard')) {
+            return true;
+        }
+
+        // Check if path is exactly /dashboard or ends with /dashboard
+        if ($path === '/dashboard' || preg_match('#/dashboard$#', $path)) {
+            return true;
+        }
+
+        // Check access code for dashboard
+        if (str_contains($access, '.dashboard') || $access === 'core.dashboard') {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Get dynamic dashboard navigation from DashboardRegistry.
+     *
+     * - If user has access to only 1 dashboard: Returns single "Dashboard" item
+     * - If user has access to 2+ dashboards: Returns "Dashboards" parent with children
+     *
+     * @param  \Aero\Core\Models\User|null  $user  User to filter by permissions
+     * @return array|null  Navigation item or null if no dashboards available
+     */
+    public function getDashboardNavigation($user = null): ?array
+    {
+        // Check if DashboardRegistry is available
+        if (!app()->bound(DashboardRegistry::class)) {
+            // Fallback to a simple dashboard link if registry not available
+            return [
+                'name' => 'Dashboard',
+                'path' => '/dashboard',
+                'icon' => 'HomeIcon',
+                'priority' => 1,
+                'children' => [],
+            ];
+        }
+
+        $dashboardRegistry = app(DashboardRegistry::class);
+        $user = $user ?? Auth::user();
+
+        // Get all available dashboards filtered by user permissions
+        $availableDashboards = $dashboardRegistry->getDashboardOptions($user);
+
+        // Filter to only include dashboards with valid routes
+        $validDashboards = array_filter($availableDashboards, function ($dashboard) {
+            return Route::has($dashboard['key']);
+        });
+
+        if (empty($validDashboards)) {
+            // No valid dashboards - show default
+            return [
+                'name' => 'Dashboard',
+                'path' => '/dashboard',
+                'icon' => 'HomeIcon',
+                'priority' => 1,
+                'children' => [],
+            ];
+        }
+
+        $dashboardCount = count($validDashboards);
+
+        if ($dashboardCount === 1) {
+            // Single dashboard - show as "Dashboard" without children
+            $dashboard = reset($validDashboards);
+            
+            return [
+                'name' => 'Dashboard',
+                'path' => $this->getRouteUrl($dashboard['key']),
+                'icon' => 'HomeIcon',
+                'priority' => 1,
+                'access' => $dashboard['key'],
+                'children' => [],
+            ];
+        }
+
+        // Multiple dashboards - show as "Dashboards" with children
+        $children = [];
+        foreach ($validDashboards as $dashboard) {
+            $children[] = [
+                'name' => $dashboard['label'],
+                'path' => $this->getRouteUrl($dashboard['key']),
+                'icon' => $this->getDashboardIcon($dashboard['module']),
+                'access' => $dashboard['key'],
+                'module' => $dashboard['module'],
+            ];
+        }
+
+        return [
+            'name' => 'Dashboards',
+            'path' => '/dashboard', // Default path for parent
+            'icon' => 'HomeIcon',
+            'priority' => 1,
+            'children' => $children,
+        ];
+    }
+
+    /**
+     * Get URL for a route name.
+     */
+    protected function getRouteUrl(string $routeName): string
+    {
+        try {
+            return route($routeName, [], false); // Get relative URL
+        } catch (\Exception $e) {
+            return '/dashboard'; // Fallback
+        }
+    }
+
+    /**
+     * Get icon for a dashboard based on module.
+     */
+    protected function getDashboardIcon(string $module): string
+    {
+        return match ($module) {
+            'core' => 'HomeIcon',
+            'hrm' => 'UserGroupIcon',
+            'finance' => 'BanknotesIcon',
+            'project' => 'ClipboardDocumentListIcon',
+            'dms' => 'DocumentDuplicateIcon',
+            'quality' => 'BeakerIcon',
+            'rfi' => 'ClipboardDocumentCheckIcon',
+            'compliance' => 'ShieldCheckIcon',
+            'crm' => 'UsersIcon',
+            'ims' => 'CubeIcon',
+            'pos' => 'ShoppingCartIcon',
+            'scm' => 'TruckIcon',
+            default => 'Squares2X2Icon',
+        };
+    }
+
+    /**
      * Clear navigation cache.
      */
     public function clearCache(): void
@@ -154,18 +325,27 @@ class NavigationRegistry
 
     /**
      * Get cached navigation for frontend.
+     *
+     * Note: Dashboard navigation is user-specific (based on permissions),
+     * so we cache per-user using their ID as part of the cache key.
+     *
+     * @param  \Aero\Core\Models\User|null  $user  User for permission-based filtering
      */
-    public function getCachedFrontend(): array
+    public function getCachedFrontend($user = null): array
     {
+        $user = $user ?? Auth::user();
+        $userId = $user?->id ?? 'guest';
+        $cacheKey = self::CACHE_KEY . '.frontend.' . $userId;
+
         try {
             return TenantCache::remember(
-                self::CACHE_KEY.'.frontend',
+                $cacheKey,
                 self::CACHE_TTL,
-                fn () => $this->toFrontend()
+                fn () => $this->toFrontend(null, $user)
             );
         } catch (\Throwable $e) {
             // Cache not available, return without caching
-            return $this->toFrontend();
+            return $this->toFrontend(null, $user);
         }
     }
 
