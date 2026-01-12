@@ -22,7 +22,7 @@ class PendingLeaveApprovalsWidget extends AbstractDashboardWidget
     protected int $order = 10;
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
-    protected array $requiredPermissions = ['leaves.approve'];
+    protected array $requiredPermissions = ['hrm.leaves']; // HRMAC format: module.submodule
     protected array $dashboards = ['hrm'];
 
     public function getKey(): string
@@ -64,8 +64,13 @@ class PendingLeaveApprovalsWidget extends AbstractDashboardWidget
                 ->join('users', 'leaves.user_id', '=', 'users.id')
                 ->where('leaves.status', 'pending');
 
-            // If user is a department manager, only show their department
-            if ($user->can('leaves.approve') && !$user->can('leaves.approve.all')) {
+            // Super Admin and users with manage action see all pending leaves
+            // Department managers only see their department's leaves
+            $isSuperAdmin = $this->isSuperAdmin();
+            $canManageAll = $this->userHasModuleAccess('hrm', 'leaves', 'manage');
+            
+            if (!$isSuperAdmin && !$canManageAll) {
+                // Filter to user's department only
                 $query->where('users.department_id', $user->department_id);
             }
 

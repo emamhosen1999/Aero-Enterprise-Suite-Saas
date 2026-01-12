@@ -205,9 +205,10 @@ class CoreModuleProvider extends AbstractModuleProvider
 
         $registry = $this->app->make(\Aero\Core\Services\DashboardRegistry::class);
 
+        // Register Core Dashboard - route name is 'core.dashboard' (maps to /dashboard)
         $registry->registerMany([
             [
-                'route' => 'dashboard',
+                'route' => 'core.dashboard',
                 'label' => 'Core Dashboard',
                 'module' => 'core',
                 'description' => 'System overview for administrators',

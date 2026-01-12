@@ -50,6 +50,32 @@ export const WIDGET_REGISTRY = {
     'Widgets/DMS/StorageUsageWidget': () => import('./DMS/StorageUsageWidget'),
     'Widgets/DMS/PendingApprovalsWidget': () => import('./DMS/PendingApprovalsWidget'),
     'Widgets/DMS/SharedWithMeWidget': () => import('./DMS/SharedWithMeWidget'),
+    
+    // Quality widgets
+    'Widgets/Quality/PendingNCRsWidget': () => import('./Quality/PendingNCRsWidget'),
+    'Widgets/Quality/OverdueCapasWidget': () => import('./Quality/OverdueCapasWidget'),
+    
+    // Project widgets
+    'Widgets/Project/MyTasksWidget': () => import('./Project/MyTasksWidget'),
+    'Widgets/Project/OverdueTasksWidget': () => import('./Project/OverdueTasksWidget'),
+    
+    // Finance widgets
+    'Widgets/Finance/PendingInvoicesWidget': () => import('./Finance/PendingInvoicesWidget'),
+    'Widgets/Finance/ExpenseApprovalWidget': () => import('./Finance/ExpenseApprovalWidget'),
+    
+    // IMS widgets
+    'Widgets/IMS/LowStockAlertsWidget': () => import('./IMS/LowStockAlertsWidget'),
+    'Widgets/IMS/PendingPurchaseOrdersWidget': () => import('./IMS/PendingPurchaseOrdersWidget'),
+    
+    // POS widgets
+    'Widgets/POS/TodaysSalesWidget': () => import('./POS/TodaysSalesWidget'),
+    'Widgets/POS/OpenCashRegistersWidget': () => import('./POS/OpenCashRegistersWidget'),
+    
+    // SCM widgets
+    'Widgets/SCM/PendingPurchaseRequisitionsWidget': () => import('./SCM/PendingPurchaseRequisitionsWidget'),
+    
+    // Compliance widgets
+    'Widgets/Compliance/PendingComplianceActionsWidget': () => import('./Compliance/PendingComplianceActionsWidget'),
 };
 
 /**

@@ -46,6 +46,9 @@ class AeroComplianceServiceProvider extends ServiceProvider
         // Register dashboards
         $this->registerDashboards();
 
+        // Register dashboard widgets
+        $this->registerDashboardWidgets();
+
         // Publish configuration
         $this->publishes([
             __DIR__.'/../config/module.php' => config_path('modules/compliance.php'),
@@ -106,5 +109,21 @@ class AeroComplianceServiceProvider extends ServiceProvider
             'ShieldCheckIcon',
             'compliance.dashboard.view'
         );
+    }
+
+    /**
+     * Register dashboard widgets for Core Dashboard.
+     */
+    protected function registerDashboardWidgets(): void
+    {
+        if (! $this->app->bound(\Aero\Core\Services\DashboardWidgetRegistry::class)) {
+            return;
+        }
+
+        $registry = $this->app->make(\Aero\Core\Services\DashboardWidgetRegistry::class);
+
+        $registry->registerMany([
+            new \Aero\Compliance\Widgets\PendingComplianceActionsWidget,
+        ]);
     }
 }

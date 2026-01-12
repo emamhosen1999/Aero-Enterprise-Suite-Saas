@@ -20,7 +20,7 @@ class MyGoalsWidget extends AbstractDashboardWidget
     protected int $order = 85;
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ACTION;
-    protected array $requiredPermissions = ['hrm.performance.goals.view'];
+    protected array $requiredPermissions = ['hrm.performance']; // HRMAC format: module.submodule
     protected array $dashboards = ['hrm.employee'];
 
     public function getKey(): string
@@ -81,9 +81,23 @@ class MyGoalsWidget extends AbstractDashboardWidget
         ]);
     }
 
+    /**
+     * Check if widget is enabled.
+     * Super Administrators bypass ALL checks.
+     */
     public function isEnabled(): bool
     {
-        return true;
+        // Super Admin bypass - always enabled, bypasses ALL checks
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        if (!$this->isModuleActive()) {
+            return false;
+        }
+
+        // Check HRM performance module access via HRMAC
+        return $this->userHasModuleAccess();
     }
 
     public function getPriority(): int

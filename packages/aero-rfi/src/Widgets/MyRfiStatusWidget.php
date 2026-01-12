@@ -23,7 +23,7 @@ class MyRfiStatusWidget extends AbstractDashboardWidget
     protected int $order = 10;
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ACTION;
-    protected array $requiredPermissions = ['rfi.view'];
+    protected array $requiredPermissions = ['rfi.dashboard']; // HRMAC format: module.submodule
     protected array $dashboards = ['rfi'];
 
     public function getKey(): string

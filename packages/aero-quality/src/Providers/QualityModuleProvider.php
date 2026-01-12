@@ -58,6 +58,9 @@ class QualityModuleProvider extends AbstractModuleProvider
         // Register dashboards
         $this->registerDashboards();
         
+        // Register dashboard widgets
+        $this->registerDashboardWidgets();
+        
         // Publish configuration
         if ($this->app->runningInConsole()) {
             $this->publishes([
@@ -85,6 +88,23 @@ class QualityModuleProvider extends AbstractModuleProvider
             'ChartBarIcon',
             'quality.dashboard.view'
         );
+    }
+
+    /**
+     * Register dashboard widgets for Core Dashboard.
+     */
+    protected function registerDashboardWidgets(): void
+    {
+        if (! $this->app->bound(\Aero\Core\Services\DashboardWidgetRegistry::class)) {
+            return;
+        }
+
+        $registry = $this->app->make(\Aero\Core\Services\DashboardWidgetRegistry::class);
+
+        $registry->registerMany([
+            new \Aero\Quality\Widgets\PendingNCRsWidget,
+            new \Aero\Quality\Widgets\OverdueCapasWidget,
+        ]);
     }
 
     /**

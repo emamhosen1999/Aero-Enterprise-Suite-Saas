@@ -269,7 +269,27 @@ class FinanceModuleProvider extends AbstractModuleProvider
      */
     protected function bootModule(): void
     {
+        // Register dashboard widgets
+        $this->registerDashboardWidgets();
+        
         // Register module-specific middleware, policies, etc.
+    }
+
+    /**
+     * Register dashboard widgets for Core Dashboard.
+     */
+    protected function registerDashboardWidgets(): void
+    {
+        if (! $this->app->bound(\Aero\Core\Services\DashboardWidgetRegistry::class)) {
+            return;
+        }
+
+        $registry = $this->app->make(\Aero\Core\Services\DashboardWidgetRegistry::class);
+
+        $registry->registerMany([
+            new \Aero\Finance\Widgets\PendingInvoicesWidget,
+            new \Aero\Finance\Widgets\ExpenseApprovalWidget,
+        ]);
     }
 
     /**

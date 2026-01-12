@@ -19,7 +19,7 @@ class StorageUsageWidget extends AbstractDashboardWidget
     protected string $position = 'sidebar';
     protected int $order = 10;
     protected int|string $span = 1;
-    protected array $requiredPermissions = ['dms.view'];
+    protected array $requiredPermissions = ['dms.dashboard']; // HRMAC format: module.submodule
     protected array $dashboards = ['dms'];
 
     public function getCategory(): CoreWidgetCategory

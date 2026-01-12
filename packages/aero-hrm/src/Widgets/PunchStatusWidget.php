@@ -23,7 +23,7 @@ class PunchStatusWidget extends AbstractDashboardWidget
     protected int $order = 5; // High priority - show first
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ACTION;
-    protected array $requiredPermissions = ['attendance.own.punch', 'attendance.own.view'];
+    protected array $requiredPermissions = ['hrm.attendance']; // HRMAC format: module.submodule
     protected array $dashboards = ['hrm.employee'];
 
     public function getKey(): string
@@ -53,16 +53,22 @@ class PunchStatusWidget extends AbstractDashboardWidget
     }
 
     /**
-     * Override isEnabled to check specific permission combination.
+     * Override isEnabled to check HRM attendance module access.
+     * Super Administrators bypass ALL checks.
      */
     public function isEnabled(): bool
     {
+        // Super Admin bypass - always enabled, bypasses ALL checks
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
         if (!$this->isModuleActive()) {
             return false;
         }
 
-        // User must have BOTH punch and view permissions
-        return $this->userHasAllPermissions(['attendance.own.punch', 'attendance.own.view']);
+        // Check HRM attendance module access via HRMAC
+        return $this->userHasModuleAccess();
     }
 
     public function getData(): array

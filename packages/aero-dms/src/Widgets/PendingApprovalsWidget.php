@@ -19,7 +19,7 @@ class PendingApprovalsWidget extends AbstractDashboardWidget
     protected string $position = 'main_right';
     protected int $order = 10;
     protected int|string $span = 1;
-    protected array $requiredPermissions = ['dms.approve'];
+    protected array $requiredPermissions = ['dms.dashboard']; // HRMAC format: module.submodule
     protected array $dashboards = ['dms'];
 
     public function getCategory(): CoreWidgetCategory

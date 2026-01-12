@@ -158,6 +158,10 @@ class DashboardRegistry
     /**
      * Get dashboard options for a Select/Dropdown component.
      *
+     * Uses HRMAC (Role Module Access) system for permission checks:
+     * - Super Administrator bypasses all checks
+     * - requiredPermission in 'module.submodule' format is checked via RoleModuleAccessService
+     *
      * @param \Aero\Core\Models\User|null $user Optional user to filter by permissions
      * @return array<array{key: string, label: string, description: string, module: string}>
      */
@@ -165,10 +169,17 @@ class DashboardRegistry
     {
         $options = [];
 
+        // Get HRMAC service if available
+        $hrmacService = $this->getHrmacService();
+
+        // Check if user is Super Administrator (bypasses all checks)
+        $isSuperAdmin = $this->isSuperAdmin($user);
+
         foreach ($this->dashboards as $routeName => $dashboard) {
             // Check permission if user provided and dashboard has requirement
-            if ($user && $dashboard['requiredPermission']) {
-                if (!$user->can($dashboard['requiredPermission'])) {
+            // Super Administrator bypasses all permission checks
+            if (!$isSuperAdmin && $user && $dashboard['requiredPermission']) {
+                if (!$this->userCanAccessDashboard($user, $dashboard['requiredPermission'], $hrmacService)) {
                     continue;
                 }
             }
@@ -188,6 +199,94 @@ class DashboardRegistry
         }
 
         return $options;
+    }
+
+    /**
+     * Check if user can access a dashboard based on requiredPermission.
+     *
+     * Uses HRMAC service if available, falls back to Spatie permission check.
+     *
+     * @param mixed $user The user to check
+     * @param string $requiredPermission Permission in 'module.submodule' format
+     * @param mixed $hrmacService The HRMAC service instance (or null)
+     * @return bool
+     */
+    protected function userCanAccessDashboard($user, string $requiredPermission, $hrmacService): bool
+    {
+        // Parse the permission - format: 'module.submodule' (e.g., 'hrm.dashboard')
+        $parts = explode('.', $requiredPermission, 2);
+        
+        if (count($parts) === 2 && $hrmacService) {
+            // Use HRMAC service for module.submodule check
+            $moduleCode = $parts[0];
+            $subModuleCode = $parts[1];
+            
+            return $hrmacService->userCanAccessSubModule($user, $moduleCode, $subModuleCode);
+        }
+        
+        // Fallback to Spatie permission check
+        if (method_exists($user, 'can')) {
+            return $user->can($requiredPermission);
+        }
+        
+        return false;
+    }
+
+    /**
+     * Get the HRMAC RoleModuleAccessService if available.
+     *
+     * @return mixed|null
+     */
+    protected function getHrmacService()
+    {
+        // Try to get the HRMAC interface
+        $interfaceClass = 'Aero\\HRMAC\\Contracts\\RoleModuleAccessInterface';
+        
+        if (interface_exists($interfaceClass) && app()->bound($interfaceClass)) {
+            return app($interfaceClass);
+        }
+        
+        // Try the service class directly
+        $serviceClass = 'Aero\\HRMAC\\Services\\RoleModuleAccessService';
+        
+        if (class_exists($serviceClass) && app()->bound($serviceClass)) {
+            return app($serviceClass);
+        }
+        
+        return null;
+    }
+
+    /**
+     * Check if user is a Super Administrator.
+     *
+     * Super Administrator bypasses all permission checks.
+     *
+     * @param mixed $user
+     * @return bool
+     */
+    protected function isSuperAdmin($user): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        // Check if User model has isSuperAdmin method
+        if (method_exists($user, 'isSuperAdmin')) {
+            return $user->isSuperAdmin();
+        }
+
+        // Check hasRole method for super admin roles
+        if (method_exists($user, 'hasRole')) {
+            $superAdminRoles = config('hrmac.super_admin_roles', [
+                'Super Administrator',
+                'super-admin',
+                'tenant_super_administrator',
+            ]);
+            
+            return $user->hasRole($superAdminRoles);
+        }
+
+        return false;
     }
 
     /**

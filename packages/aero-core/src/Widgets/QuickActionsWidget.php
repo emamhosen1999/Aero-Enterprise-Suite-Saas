@@ -65,6 +65,7 @@ class QuickActionsWidget extends AbstractDashboardWidget
     {
         $user = auth()->user();
         $actions = [];
+        $isSuperAdmin = $this->isSuperAdmin();
 
         // Core actions available to all users
         $actions[] = [
@@ -75,8 +76,8 @@ class QuickActionsWidget extends AbstractDashboardWidget
             'color' => 'default',
         ];
 
-        // Add role-based quick actions
-        if ($user?->can('users.view')) {
+        // Add role-based quick actions (Super Admin sees all)
+        if ($isSuperAdmin || $this->userHasModuleAccess('core', 'users')) {
             $actions[] = [
                 'key' => 'users',
                 'label' => 'Manage Users',
@@ -86,7 +87,7 @@ class QuickActionsWidget extends AbstractDashboardWidget
             ];
         }
 
-        if ($user?->can('roles.view')) {
+        if ($isSuperAdmin || $this->userHasModuleAccess('core', 'roles')) {
             $actions[] = [
                 'key' => 'roles',
                 'label' => 'Manage Roles',
@@ -97,7 +98,7 @@ class QuickActionsWidget extends AbstractDashboardWidget
         }
 
         // HRM-specific quick actions (if module is accessible)
-        if ($user?->can('attendance.own.punch')) {
+        if ($isSuperAdmin || $this->userHasModuleAccess('hrm', 'attendance')) {
             $actions[] = [
                 'key' => 'punch',
                 'label' => 'Clock In/Out',
@@ -107,7 +108,7 @@ class QuickActionsWidget extends AbstractDashboardWidget
             ];
         }
 
-        if ($user?->can('leave.own.apply')) {
+        if ($isSuperAdmin || $this->userHasModuleAccess('hrm', 'leaves')) {
             $actions[] = [
                 'key' => 'leave',
                 'label' => 'Apply Leave',

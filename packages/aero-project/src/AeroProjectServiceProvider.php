@@ -100,6 +100,9 @@ class AeroProjectServiceProvider extends ServiceProvider
         // Register dashboards
         $this->registerDashboards();
 
+        // Register dashboard widgets
+        $this->registerDashboardWidgets();
+
         // Publish configuration
         $this->publishConfigurations();
     }
@@ -197,5 +200,22 @@ class AeroProjectServiceProvider extends ServiceProvider
             'BriefcaseIcon',
             'project.dashboard.view'
         );
+    }
+
+    /**
+     * Register dashboard widgets for Core Dashboard.
+     */
+    protected function registerDashboardWidgets(): void
+    {
+        if (! $this->app->bound(\Aero\Core\Services\DashboardWidgetRegistry::class)) {
+            return;
+        }
+
+        $registry = $this->app->make(\Aero\Core\Services\DashboardWidgetRegistry::class);
+
+        $registry->registerMany([
+            new \Aero\Project\Widgets\MyTasksWidget,
+            new \Aero\Project\Widgets\OverdueTasksWidget,
+        ]);
     }
 }

@@ -23,7 +23,7 @@ class PendingInspectionsWidget extends AbstractDashboardWidget
     protected int $order = 15;
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
-    protected array $requiredPermissions = ['rfi.inspect', 'rfi.approve'];
+    protected array $requiredPermissions = ['rfi.dashboard']; // HRMAC format: module.submodule
     protected array $dashboards = ['rfi'];
 
     public function getKey(): string
@@ -53,15 +53,21 @@ class PendingInspectionsWidget extends AbstractDashboardWidget
 
     /**
      * Override isEnabled to check permission OR condition.
+     * Super Administrators bypass ALL checks.
      */
     public function isEnabled(): bool
     {
+        // Super Admin bypass - always enabled, bypasses ALL checks
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
         if (!$this->isModuleActive()) {
             return false;
         }
 
-        // User must have either inspect OR approve permission
-        return $this->userHasAnyPermission(['rfi.inspect', 'rfi.approve']);
+        // User must have RFI dashboard module access
+        return $this->userHasModuleAccess();
     }
 
     public function getData(): array
@@ -78,8 +84,12 @@ class PendingInspectionsWidget extends AbstractDashboardWidget
                 Rfi::STATUS_IN_PROGRESS,
             ])->whereNull('inspection_result');
 
-            // If user is assigned inspector, filter by their assignments
-            if ($user->can('rfi.inspect') && !$user->can('rfi.approve')) {
+            // Super Admin and users with manage access see all inspections
+            // Otherwise filter by their assignments
+            $isSuperAdmin = $this->isSuperAdmin();
+            $canManageAll = $this->userHasModuleAccess('rfi', 'inspections', 'manage');
+            
+            if (!$isSuperAdmin && !$canManageAll) {
                 $pendingQuery->where('assigned_user_id', $user->id);
             }
 

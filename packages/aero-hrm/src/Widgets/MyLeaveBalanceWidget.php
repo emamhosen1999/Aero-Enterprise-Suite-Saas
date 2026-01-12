@@ -23,7 +23,7 @@ class MyLeaveBalanceWidget extends AbstractDashboardWidget
     protected int $order = 20;
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::SUMMARY;
-    protected array $requiredPermissions = ['leaves.own.view'];
+    protected array $requiredPermissions = ['hrm.leaves']; // HRMAC format: module.submodule
     protected array $dashboards = ['hrm.employee'];
 
     public function getKey(): string

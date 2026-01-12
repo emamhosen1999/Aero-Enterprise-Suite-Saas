@@ -55,11 +55,18 @@ class UpcomingHolidaysWidget extends AbstractDashboardWidget
     }
 
     /**
-     * Holidays widget is always enabled.
+     * Check if widget is enabled.
+     * Super Administrators bypass ALL checks.
      */
     public function isEnabled(): bool
     {
-        return true;
+        // Super Admin bypass - always enabled, bypasses ALL checks
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        // Display widget - only requires module to be active
+        return $this->isModuleActive();
     }
 
     /**

@@ -344,15 +344,7 @@ class AeroCoreServiceProvider extends ServiceProvider
         $registry = $this->app->make(DashboardRegistry::class);
 
         // Register Core Dashboard (for system administrators)
-        $registry->register(
-            'dashboard',
-            'Core Dashboard',
-            'core',
-            'System overview for administrators',
-            'HomeIcon'
-        );
-
-        // Also register 'core.dashboard' as an alias
+        // Route name is 'core.dashboard' which maps to /dashboard
         $registry->register(
             'core.dashboard',
             'Core Dashboard',

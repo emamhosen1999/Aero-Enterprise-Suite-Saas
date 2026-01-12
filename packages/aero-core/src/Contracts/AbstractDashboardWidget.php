@@ -106,21 +106,51 @@ abstract class AbstractDashboardWidget implements DashboardWidgetInterface
 
     /**
      * Check if widget is enabled.
-     * Override for custom logic, or use permissions.
+     * Override for custom logic, or use module access checks.
+     * Super Administrators bypass ALL checks including module active check.
      */
     public function isEnabled(): bool
     {
+        // Super Admin bypass - always enabled, bypasses ALL checks
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
         // Check if module is active
         if (!$this->isModuleActive()) {
             return false;
         }
 
-        // Check permissions if any required
+        // Check module access via HRMAC if available
         if (!empty($this->requiredPermissions)) {
-            return $this->userHasAnyPermission($this->requiredPermissions);
+            return $this->userHasModuleAccess();
         }
 
         return true;
+    }
+
+    /**
+     * Check if the current user is a Super Administrator.
+     */
+    protected function isSuperAdmin(): bool
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return false;
+        }
+
+        // Check if user has isSuperAdmin method (from User model)
+        if (method_exists($user, 'isSuperAdmin') && $user->isSuperAdmin()) {
+            return true;
+        }
+
+        // Check for Super Administrator role
+        if (method_exists($user, 'hasRole')) {
+            return $user->hasRole(['Super Administrator', 'super-admin', 'tenant_super_administrator']);
+        }
+
+        return false;
     }
 
     /**
@@ -151,7 +181,64 @@ abstract class AbstractDashboardWidget implements DashboardWidgetInterface
     }
 
     /**
+     * Check if user has module access via HRMAC.
+     * Uses module.submodule format from requiredPermissions.
+     */
+    protected function userHasModuleAccess(): bool
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return false;
+        }
+
+        // Super Admin bypass
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        // Get HRMAC service if available
+        $hrmacService = $this->getHrmacService();
+
+        if ($hrmacService) {
+            // Use HRMAC for module access checks
+            foreach ($this->requiredPermissions as $permission) {
+                // Parse 'module.submodule' or 'module.submodule.action' format
+                $parts = explode('.', $permission);
+                $moduleCode = $parts[0] ?? $this->getModuleCode();
+                $subModuleCode = $parts[1] ?? 'dashboard';
+
+                if ($hrmacService->userCanAccessSubModule($user, $moduleCode, $subModuleCode)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Fallback to Spatie permissions if HRMAC not available
+        return $this->userHasAnyPermission($this->requiredPermissions);
+    }
+
+    /**
+     * Get HRMAC service if available.
+     */
+    protected function getHrmacService(): mixed
+    {
+        try {
+            // Try to resolve RoleModuleAccessInterface
+            if (app()->bound(\Aero\HRMAC\Contracts\RoleModuleAccessInterface::class)) {
+                return app(\Aero\HRMAC\Contracts\RoleModuleAccessInterface::class);
+            }
+        } catch (\Exception $e) {
+            // HRMAC not available
+        }
+
+        return null;
+    }
+
+    /**
      * Check if user has any of the specified permissions.
+     * @deprecated Use userHasModuleAccess() with HRMAC instead
      */
     protected function userHasAnyPermission(array $permissions): bool
     {
@@ -159,6 +246,11 @@ abstract class AbstractDashboardWidget implements DashboardWidgetInterface
 
         if (!$user) {
             return false;
+        }
+
+        // Super Admin bypass
+        if ($this->isSuperAdmin()) {
+            return true;
         }
 
         foreach ($permissions as $permission) {
@@ -172,6 +264,7 @@ abstract class AbstractDashboardWidget implements DashboardWidgetInterface
 
     /**
      * Check if user has all specified permissions.
+     * @deprecated Use userHasModuleAccess() with HRMAC instead
      */
     protected function userHasAllPermissions(array $permissions): bool
     {
@@ -179,6 +272,11 @@ abstract class AbstractDashboardWidget implements DashboardWidgetInterface
 
         if (!$user) {
             return false;
+        }
+
+        // Super Admin bypass
+        if ($this->isSuperAdmin()) {
+            return true;
         }
 
         foreach ($permissions as $permission) {

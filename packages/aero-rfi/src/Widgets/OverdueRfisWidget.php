@@ -22,7 +22,7 @@ class OverdueRfisWidget extends AbstractDashboardWidget
     protected int $order = 20;
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
-    protected array $requiredPermissions = ['rfi.manage'];
+    protected array $requiredPermissions = ['rfi.dashboard']; // HRMAC format: module.submodule
     protected array $dashboards = ['rfi'];
 
     public function getKey(): string

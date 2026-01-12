@@ -10,6 +10,7 @@ use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Leave;
 use Aero\HRM\Services\LeaveBalanceService;
+use Aero\Core\Services\DashboardWidgetRegistry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -29,7 +30,8 @@ use Inertia\Inertia;
 class EmployeeDashboardController extends Controller
 {
     public function __construct(
-        protected LeaveBalanceService $leaveBalanceService
+        protected LeaveBalanceService $leaveBalanceService,
+        protected DashboardWidgetRegistry $widgetRegistry
     ) {}
 
     /**
@@ -152,8 +154,12 @@ class EmployeeDashboardController extends Controller
             ],
         ];
 
+        // Get widgets for Employee Dashboard
+        $widgets = $this->widgetRegistry->getWidgetsForFrontend('hrm.employee');
+
         return Inertia::render('HRM/Employee/Dashboard', [
             'title' => 'My Dashboard',
+            'dynamicWidgets' => $widgets,
             'employee' => $employee ? [
                 'id' => $employee->id,
                 'name' => $employee->full_name ?? $user->name,

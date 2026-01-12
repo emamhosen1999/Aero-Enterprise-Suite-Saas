@@ -78,9 +78,23 @@ class PendingReviewsWidget extends AbstractDashboardWidget
         ]);
     }
 
+    /**
+     * Check if widget is enabled.
+     * Super Administrators bypass ALL checks.
+     */
     public function isEnabled(): bool
     {
-        return true;
+        // Super Admin bypass - always enabled, bypasses ALL checks
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        if (!$this->isModuleActive()) {
+            return false;
+        }
+
+        // Check HRM performance module access via HRMAC
+        return $this->userHasModuleAccess();
     }
 
     public function getPriority(): int

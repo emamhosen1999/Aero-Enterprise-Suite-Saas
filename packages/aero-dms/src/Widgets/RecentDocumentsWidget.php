@@ -19,7 +19,7 @@ class RecentDocumentsWidget extends AbstractDashboardWidget
     protected string $position = 'main_left';
     protected int $order = 20;
     protected int|string $span = 1;
-    protected array $requiredPermissions = ['dms.view'];
+    protected array $requiredPermissions = ['dms.dashboard']; // HRMAC format: module.submodule
     protected array $dashboards = ['dms'];
 
     public function getCategory(): CoreWidgetCategory
