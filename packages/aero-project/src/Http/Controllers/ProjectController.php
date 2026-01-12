@@ -2,17 +2,36 @@
 
 namespace Aero\Project\Http\Controllers;
 
-use Aero\HRM\Models\Department;
-use Illuminate\Routing\Controller;
-use Aero\Core\Models\User;
-use App\Models\Tenant\ProjectManagement\Project;
+use Aero\Project\Contracts\DepartmentResolverContract;
+use Aero\Project\Contracts\ProjectAuthorizationContract;
+use Aero\Project\Contracts\UserResolverContract;
+use Aero\Project\Models\Project;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
+/**
+ * ProjectController
+ *
+ * Main controller for project CRUD operations.
+ *
+ * ARCHITECTURAL PRINCIPLE: This controller uses service contracts
+ * (DepartmentResolverContract, UserResolverContract) instead of
+ * direct HRM model imports to maintain package isolation.
+ *
+ * @see \Aero\Project\Contracts\DepartmentResolverContract
+ * @see \Aero\Project\Contracts\UserResolverContract
+ */
 class ProjectController extends Controller
 {
+    public function __construct(
+        protected DepartmentResolverContract $departmentResolver,
+        protected UserResolverContract $userResolver,
+        protected ProjectAuthorizationContract $authorization
+    ) {}
+
     public function index(Request $request)
     {
         $query = Project::with(['projectLeader', 'teamLeader', 'department', 'tasks', 'milestones']);
@@ -122,8 +141,8 @@ class ProjectController extends Controller
                 'resourceUtilization' => $resourceUtilization,
                 'onTimeDeliveryRate' => round($onTimeDeliveryRate, 1),
             ],
-            'departments' => \Aero\HRM\Models\Department::all(['id', 'name']),
-            'users' => \Aero\Core\Models\User::all(['id', 'name']),
+            'departments' => $this->departmentResolver->getAllActiveDepartments(),
+            'users' => $this->userResolver->getAllActiveUsers(),
             'statusOptions' => [
                 ['id' => 'not_started', 'name' => 'Not Started'],
                 ['id' => 'in_progress', 'name' => 'In Progress'],
@@ -155,8 +174,9 @@ class ProjectController extends Controller
     public function create()
     {
         return Inertia::render('Project/Projects/Create', [
-            'departments' => Department::all(),
-            'users' => User::all(['id', 'name']),
+            'departments' => $this->departmentResolver->getAllActiveDepartments(),
+            'users' => $this->userResolver->getAllActiveUsers(),
+            'projectTypes' => config('project.types', []),
             'statusOptions' => [
                 ['id' => 'not_started', 'name' => 'Not Started'],
                 ['id' => 'in_progress', 'name' => 'In Progress'],
@@ -231,8 +251,9 @@ class ProjectController extends Controller
     {
         return Inertia::render('Project/Projects/Edit', [
             'project' => $project,
-            'departments' => Department::all(),
-            'users' => User::all(['id', 'name']),
+            'departments' => $this->departmentResolver->getAllActiveDepartments(),
+            'users' => $this->userResolver->getAllActiveUsers(),
+            'projectTypes' => config('project.types', []),
             'statusOptions' => [
                 ['id' => 'not_started', 'name' => 'Not Started'],
                 ['id' => 'in_progress', 'name' => 'In Progress'],

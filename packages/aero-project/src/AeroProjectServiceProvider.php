@@ -2,7 +2,16 @@
 
 namespace Aero\Project;
 
+use Aero\Project\Adapters\DepartmentResolverAdapter;
+use Aero\Project\Adapters\ProjectAuthorizationAdapter;
+use Aero\Project\Adapters\UserResolverAdapter;
+use Aero\Project\Contracts\DepartmentResolverContract;
+use Aero\Project\Contracts\ProjectAuthorizationContract;
+use Aero\Project\Contracts\UserResolverContract;
+use Aero\Project\Http\Middleware\ProjectHrmacMiddleware;
+use Aero\Project\Http\Middleware\ProjectMemberMiddleware;
 use Aero\Project\Providers\ProjectModuleProvider;
+use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -11,6 +20,10 @@ use Illuminate\Support\ServiceProvider;
  *
  * Main service provider for the Project Management package.
  * Registers the module service provider which handles navigation, policies, etc.
+ *
+ * ARCHITECTURAL PRINCIPLE: This package is department-agnostic and uses
+ * service contracts for external data (departments, users) to maintain
+ * package isolation. All authorization flows through HRMAC.
  */
 class AeroProjectServiceProvider extends ServiceProvider
 {
@@ -27,6 +40,41 @@ class AeroProjectServiceProvider extends ServiceProvider
         if (file_exists($configPath)) {
             $this->mergeConfigFrom($configPath, 'modules.project');
         }
+
+        // Register project types configuration
+        $projectTypesPath = __DIR__.'/../config/project_types.php';
+        if (file_exists($projectTypesPath)) {
+            $this->mergeConfigFrom($projectTypesPath, 'project.types');
+        }
+
+        // Register service contracts with their default adapters
+        $this->registerServiceContracts();
+    }
+
+    /**
+     * Register service contracts (adapters).
+     *
+     * These can be overridden by other packages (e.g., HRM can provide
+     * a richer DepartmentResolver implementation).
+     */
+    protected function registerServiceContracts(): void
+    {
+        // Department resolver - default uses DB table directly
+        // Can be overridden by HRM package
+        $this->app->singleton(DepartmentResolverContract::class, function ($app) {
+            return new DepartmentResolverAdapter();
+        });
+
+        // User resolver - default uses DB table directly
+        // Can be overridden by Core package
+        $this->app->singleton(UserResolverContract::class, function ($app) {
+            return new UserResolverAdapter();
+        });
+
+        // Project authorization - HRMAC integration
+        $this->app->singleton(ProjectAuthorizationContract::class, function ($app) {
+            return new ProjectAuthorizationAdapter();
+        });
     }
 
     /**
@@ -34,6 +82,9 @@ class AeroProjectServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register middleware aliases
+        $this->registerMiddleware();
+
         // Load migrations
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
@@ -50,11 +101,43 @@ class AeroProjectServiceProvider extends ServiceProvider
         $this->registerDashboards();
 
         // Publish configuration
+        $this->publishConfigurations();
+    }
+
+    /**
+     * Register middleware aliases.
+     */
+    protected function registerMiddleware(): void
+    {
+        $router = $this->app['router'];
+
+        // HRMAC-based project authorization middleware
+        $router->aliasMiddleware('project.hrmac', ProjectHrmacMiddleware::class);
+
+        // Project membership middleware
+        $router->aliasMiddleware('project.member', ProjectMemberMiddleware::class);
+    }
+
+    /**
+     * Publish package configurations.
+     */
+    protected function publishConfigurations(): void
+    {
         $configPath = __DIR__.'/../config/module.php';
+        $projectTypesPath = __DIR__.'/../config/project_types.php';
+
+        $publishes = [];
+
         if (file_exists($configPath)) {
-            $this->publishes([
-                $configPath => config_path('aero-project.php'),
-            ], 'aero-project-config');
+            $publishes[$configPath] = config_path('aero-project.php');
+        }
+
+        if (file_exists($projectTypesPath)) {
+            $publishes[$projectTypesPath] = config_path('project_types.php');
+        }
+
+        if (! empty($publishes)) {
+            $this->publishes($publishes, 'aero-project-config');
         }
     }
 
