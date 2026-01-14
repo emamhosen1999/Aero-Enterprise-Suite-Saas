@@ -22,7 +22,7 @@ class TodaysSalesWidget extends AbstractDashboardWidget
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::STAT;
     protected array $requiredPermissions = ['pos.sales'];
-    protected array $dashboards = ['core'];
+    protected array $dashboards = ['pos'];
 
     public function getKey(): string
     {

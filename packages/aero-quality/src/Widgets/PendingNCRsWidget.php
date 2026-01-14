@@ -22,7 +22,7 @@ class PendingNCRsWidget extends AbstractDashboardWidget
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
     protected array $requiredPermissions = ['quality.ncr'];
-    protected array $dashboards = ['core'];
+    protected array $dashboards = ['quality'];
 
     public function getKey(): string
     {

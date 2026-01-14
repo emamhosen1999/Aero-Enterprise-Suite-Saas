@@ -22,7 +22,7 @@ class PendingComplianceActionsWidget extends AbstractDashboardWidget
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
     protected array $requiredPermissions = ['compliance.actions'];
-    protected array $dashboards = ['core'];
+    protected array $dashboards = ['compliance'];
 
     public function getKey(): string
     {

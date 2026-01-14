@@ -22,7 +22,7 @@ class PendingPurchaseRequisitionsWidget extends AbstractDashboardWidget
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
     protected array $requiredPermissions = ['scm.requisitions'];
-    protected array $dashboards = ['core'];
+    protected array $dashboards = ['scm'];
 
     public function getKey(): string
     {

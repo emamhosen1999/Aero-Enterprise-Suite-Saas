@@ -164,6 +164,7 @@ class ImsModuleProvider extends AbstractModuleProvider
         $registry->registerMany([
             new \Aero\Ims\Widgets\LowStockAlertsWidget,
             new \Aero\Ims\Widgets\PendingPurchaseOrdersWidget,
+            new \Aero\Ims\Widgets\StockValueWidget,
         ]);
     }
 

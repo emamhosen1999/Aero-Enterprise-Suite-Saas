@@ -22,7 +22,7 @@ class LowStockAlertsWidget extends AbstractDashboardWidget
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
     protected array $requiredPermissions = ['ims.inventory'];
-    protected array $dashboards = ['core'];
+    protected array $dashboards = ['ims'];
 
     public function getKey(): string
     {

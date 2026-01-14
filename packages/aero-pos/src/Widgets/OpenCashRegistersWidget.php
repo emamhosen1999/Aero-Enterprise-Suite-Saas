@@ -22,7 +22,7 @@ class OpenCashRegistersWidget extends AbstractDashboardWidget
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
     protected array $requiredPermissions = ['pos.registers'];
-    protected array $dashboards = ['core'];
+    protected array $dashboards = ['pos'];
 
     public function getKey(): string
     {

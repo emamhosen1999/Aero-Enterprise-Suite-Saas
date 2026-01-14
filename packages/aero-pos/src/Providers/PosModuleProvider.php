@@ -148,6 +148,7 @@ class PosModuleProvider extends AbstractModuleProvider
         $registry->registerMany([
             new \Aero\Pos\Widgets\TodaysSalesWidget,
             new \Aero\Pos\Widgets\OpenCashRegistersWidget,
+            new \Aero\Pos\Widgets\TopSellingItemsWidget,
         ]);
     }
 

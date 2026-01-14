@@ -124,6 +124,8 @@ class AeroComplianceServiceProvider extends ServiceProvider
 
         $registry->registerMany([
             new \Aero\Compliance\Widgets\PendingComplianceActionsWidget,
+            new \Aero\Compliance\Widgets\ComplianceScoreWidget,
+            new \Aero\Compliance\Widgets\UpcomingComplianceAuditsWidget,
         ]);
     }
 }

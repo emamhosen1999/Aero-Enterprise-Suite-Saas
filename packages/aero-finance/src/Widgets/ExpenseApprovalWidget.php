@@ -22,7 +22,7 @@ class ExpenseApprovalWidget extends AbstractDashboardWidget
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
     protected array $requiredPermissions = ['finance.expenses'];
-    protected array $dashboards = ['core'];
+    protected array $dashboards = ['finance'];
 
     public function getKey(): string
     {

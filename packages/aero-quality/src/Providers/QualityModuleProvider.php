@@ -104,6 +104,8 @@ class QualityModuleProvider extends AbstractModuleProvider
         $registry->registerMany([
             new \Aero\Quality\Widgets\PendingNCRsWidget,
             new \Aero\Quality\Widgets\OverdueCapasWidget,
+            new \Aero\Quality\Widgets\UpcomingAuditsWidget,
+            new \Aero\Quality\Widgets\QualityMetricsWidget,
         ]);
     }
 

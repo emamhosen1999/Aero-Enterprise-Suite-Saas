@@ -54,28 +54,40 @@ export const WIDGET_REGISTRY = {
     // Quality widgets
     'Widgets/Quality/PendingNCRsWidget': () => import('./Quality/PendingNCRsWidget'),
     'Widgets/Quality/OverdueCapasWidget': () => import('./Quality/OverdueCapasWidget'),
+    'Widgets/Quality/UpcomingAuditsWidget': () => import('./Quality/UpcomingAuditsWidget'),
+    'Widgets/Quality/QualityMetricsWidget': () => import('./Quality/QualityMetricsWidget'),
     
     // Project widgets
     'Widgets/Project/MyTasksWidget': () => import('./Project/MyTasksWidget'),
     'Widgets/Project/OverdueTasksWidget': () => import('./Project/OverdueTasksWidget'),
+    'Widgets/Project/ProjectProgressWidget': () => import('./Project/ProjectProgressWidget'),
+    'Widgets/Project/UpcomingMilestonesWidget': () => import('./Project/UpcomingMilestonesWidget'),
     
     // Finance widgets
     'Widgets/Finance/PendingInvoicesWidget': () => import('./Finance/PendingInvoicesWidget'),
     'Widgets/Finance/ExpenseApprovalWidget': () => import('./Finance/ExpenseApprovalWidget'),
+    'Widgets/Finance/CashFlowWidget': () => import('./Finance/CashFlowWidget'),
+    'Widgets/Finance/BudgetOverviewWidget': () => import('./Finance/BudgetOverviewWidget'),
     
     // IMS widgets
     'Widgets/IMS/LowStockAlertsWidget': () => import('./IMS/LowStockAlertsWidget'),
     'Widgets/IMS/PendingPurchaseOrdersWidget': () => import('./IMS/PendingPurchaseOrdersWidget'),
+    'Widgets/IMS/StockValueWidget': () => import('./IMS/StockValueWidget'),
     
     // POS widgets
     'Widgets/POS/TodaysSalesWidget': () => import('./POS/TodaysSalesWidget'),
     'Widgets/POS/OpenCashRegistersWidget': () => import('./POS/OpenCashRegistersWidget'),
+    'Widgets/POS/TopSellingItemsWidget': () => import('./POS/TopSellingItemsWidget'),
     
     // SCM widgets
     'Widgets/SCM/PendingPurchaseRequisitionsWidget': () => import('./SCM/PendingPurchaseRequisitionsWidget'),
+    'Widgets/SCM/SupplierPerformanceWidget': () => import('./SCM/SupplierPerformanceWidget'),
+    'Widgets/SCM/InTransitShipmentsWidget': () => import('./SCM/InTransitShipmentsWidget'),
     
     // Compliance widgets
     'Widgets/Compliance/PendingComplianceActionsWidget': () => import('./Compliance/PendingComplianceActionsWidget'),
+    'Widgets/Compliance/ComplianceScoreWidget': () => import('./Compliance/ComplianceScoreWidget'),
+    'Widgets/Compliance/UpcomingComplianceAuditsWidget': () => import('./Compliance/UpcomingComplianceAuditsWidget'),
 };
 
 /**

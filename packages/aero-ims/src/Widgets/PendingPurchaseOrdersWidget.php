@@ -22,7 +22,7 @@ class PendingPurchaseOrdersWidget extends AbstractDashboardWidget
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
     protected array $requiredPermissions = ['ims.purchase_orders'];
-    protected array $dashboards = ['core'];
+    protected array $dashboards = ['ims'];
 
     public function getKey(): string
     {

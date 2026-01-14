@@ -22,7 +22,7 @@ class PendingInvoicesWidget extends AbstractDashboardWidget
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
     protected array $requiredPermissions = ['finance.invoices'];
-    protected array $dashboards = ['core'];
+    protected array $dashboards = ['finance'];
 
     public function getKey(): string
     {

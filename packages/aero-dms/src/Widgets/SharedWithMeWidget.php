@@ -67,7 +67,7 @@ class SharedWithMeWidget extends AbstractDashboardWidget
         return [
             'documents' => [],
             'count' => 0,
-            'view_all_url' => route('dms.shared', [], false),
+            'view_all_url' => route('dms.shared-documents', [], false),
         ];
     }
 }

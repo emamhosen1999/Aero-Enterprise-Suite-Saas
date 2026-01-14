@@ -197,6 +197,8 @@ class ScmModuleProvider extends AbstractModuleProvider
 
         $registry->registerMany([
             new \Aero\Scm\Widgets\PendingPurchaseRequisitionsWidget,
+            new \Aero\Scm\Widgets\SupplierPerformanceWidget,
+            new \Aero\Scm\Widgets\InTransitShipmentsWidget,
         ]);
     }
 

@@ -289,6 +289,8 @@ class FinanceModuleProvider extends AbstractModuleProvider
         $registry->registerMany([
             new \Aero\Finance\Widgets\PendingInvoicesWidget,
             new \Aero\Finance\Widgets\ExpenseApprovalWidget,
+            new \Aero\Finance\Widgets\CashFlowWidget,
+            new \Aero\Finance\Widgets\BudgetOverviewWidget,
         ]);
     }
 

@@ -22,7 +22,7 @@ class OverdueTasksWidget extends AbstractDashboardWidget
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
     protected array $requiredPermissions = ['project.tasks'];
-    protected array $dashboards = ['core'];
+    protected array $dashboards = ['project'];
 
     public function getKey(): string
     {
