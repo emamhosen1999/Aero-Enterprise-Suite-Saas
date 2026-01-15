@@ -565,6 +565,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/attendance/calendar-data', [AttendanceController::class, 'getCalendarData'])->name('attendance.calendar-data');
     });
 
+    // Expenses self-service route
+    Route::middleware(['module:hrm,expenses'])->group(function () {
+        Route::get('/my-expenses', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'myExpenses'])->name('my-expenses');
+    });
+
     // Punch routes - require punch permission
     Route::middleware(['module:hrm,attendance,own-attendance,punch'])->group(function () {
         Route::post('/punchIn', [AttendanceController::class, 'punchIn'])->name('punchIn');

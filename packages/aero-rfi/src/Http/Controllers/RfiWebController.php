@@ -411,4 +411,119 @@ class RfiWebController extends Controller
         // TODO: Implement export functionality
         return response()->json(['message' => 'Export functionality coming soon.']);
     }
+
+    /**
+     * Display the current user's RFIs (self-service).
+     */
+    public function myRfis(Request $request): Response
+    {
+        $userId = auth()->id();
+
+        $filters = array_merge(
+            $request->only([
+                'search', 'status', 'type', 'inspection_result',
+                'date_from', 'date_to',
+            ]),
+            ['user_id' => $userId]
+        );
+
+        $perPage = $request->input('per_page', 15);
+
+        try {
+            // Filter RFIs where user is incharge or assigned
+            $rfis = Rfi::query()
+                ->with(['workLocation', 'inchargeUser', 'assignedUser'])
+                ->where(function ($q) use ($userId) {
+                    $q->where('incharge_user_id', $userId)
+                        ->orWhere('assigned_user_id', $userId);
+                })
+                ->when($filters['search'] ?? null, function ($q, $search) {
+                    $q->where('number', 'like', "%{$search}%");
+                })
+                ->when($filters['status'] ?? null, function ($q, $status) {
+                    $q->where('status', $status);
+                })
+                ->orderBy('created_at', 'desc')
+                ->paginate($perPage);
+
+            // Stats
+            $stats = [
+                'total' => Rfi::where(function ($q) use ($userId) {
+                    $q->where('incharge_user_id', $userId)
+                        ->orWhere('assigned_user_id', $userId);
+                })->count(),
+                'pending' => Rfi::where('status', 'pending')
+                    ->where(function ($q) use ($userId) {
+                        $q->where('incharge_user_id', $userId)
+                            ->orWhere('assigned_user_id', $userId);
+                    })->count(),
+                'approved' => Rfi::where('status', 'approved')
+                    ->where(function ($q) use ($userId) {
+                        $q->where('incharge_user_id', $userId)
+                            ->orWhere('assigned_user_id', $userId);
+                    })->count(),
+            ];
+            $statuses = Rfi::$statuses;
+        } catch (\Exception $e) {
+            // Handle case where table might not exist or have issues
+            $rfis = new \Illuminate\Pagination\LengthAwarePaginator([], 0, $perPage, 1);
+            $stats = ['total' => 0, 'pending' => 0, 'approved' => 0];
+            $statuses = [];
+        }
+
+        return Inertia::render('Rfi/SelfService/MyRfis', [
+            'title' => 'My RFIs',
+            'rfis' => $rfis,
+            'stats' => $stats,
+            'filters' => $filters,
+            'statuses' => $statuses,
+        ]);
+    }
+
+    /**
+     * Display the current user's inspections (self-service).
+     */
+    public function myInspections(Request $request): Response
+    {
+        $userId = auth()->id();
+
+        $filters = $request->only(['search', 'inspection_result', 'date_from', 'date_to']);
+
+        try {
+            // Inspections are RFIs where user performed the inspection
+            $inspections = Rfi::query()
+                ->with(['workLocation', 'inchargeUser'])
+                ->where('assigned_user_id', $userId)
+                ->whereNotNull('inspection_result')
+                ->when($filters['inspection_result'] ?? null, function ($q, $result) {
+                    $q->where('inspection_result', $result);
+                })
+                ->when($filters['search'] ?? null, function ($q, $search) {
+                    $q->where('number', 'like', "%{$search}%");
+                })
+                ->orderBy('date', 'desc')
+                ->paginate(15);
+
+            $stats = [
+                'total' => Rfi::where('assigned_user_id', $userId)->whereNotNull('inspection_result')->count(),
+                'passed' => Rfi::where('assigned_user_id', $userId)->where('inspection_result', 'passed')->count(),
+                'failed' => Rfi::where('assigned_user_id', $userId)->where('inspection_result', 'failed')->count(),
+                'on_hold' => Rfi::where('assigned_user_id', $userId)->where('inspection_result', 'on_hold')->count(),
+            ];
+            $inspectionResults = Rfi::$inspectionResults;
+        } catch (\Exception $e) {
+            // Handle case where table might not exist or have issues
+            $inspections = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 15, 1);
+            $stats = ['total' => 0, 'passed' => 0, 'failed' => 0, 'on_hold' => 0];
+            $inspectionResults = [];
+        }
+
+        return Inertia::render('Rfi/SelfService/MyInspections', [
+            'title' => 'My Inspections',
+            'inspections' => $inspections,
+            'stats' => $stats,
+            'filters' => $filters,
+            'inspectionResults' => $inspectionResults,
+        ]);
+    }
 }

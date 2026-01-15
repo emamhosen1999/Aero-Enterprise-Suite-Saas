@@ -120,4 +120,44 @@ class TaskController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
+    /**
+     * Display tasks assigned to the current user (self-service).
+     */
+    public function myTasks(Request $request)
+    {
+        $userId = auth()->id();
+
+        try {
+            // Fetch tasks assigned to the current user
+            $tasks = $this->crudService->getTasks([
+                'assignee_id' => $userId,
+            ]);
+
+            // Calculate stats
+            $stats = [
+                'total' => $tasks->count(),
+                'pending' => $tasks->where('status', 'pending')->count(),
+                'in_progress' => $tasks->where('status', 'in_progress')->count(),
+                'completed' => $tasks->where('status', 'completed')->count(),
+            ];
+        } catch (\Throwable $e) {
+            // Handle case where tasks table doesn't exist or other DB errors
+            $tasks = collect([]);
+            $stats = [
+                'total' => 0,
+                'pending' => 0,
+                'in_progress' => 0,
+                'completed' => 0,
+            ];
+        }
+
+        // Render self-service page
+        return Inertia::render('Project/SelfService/MyTasks', [
+            'title' => 'My Tasks',
+            'tasks' => $tasks,
+            'stats' => $stats,
+            'filters' => $request->only(['status', 'priority', 'search']),
+        ]);
+    }
 }

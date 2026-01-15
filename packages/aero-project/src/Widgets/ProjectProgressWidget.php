@@ -17,7 +17,7 @@ use Aero\Core\Contracts\CoreWidgetCategory;
  */
 class ProjectProgressWidget extends AbstractDashboardWidget
 {
-    protected string $position = 'main_left';
+    protected string $position = 'main_right';
     protected int $order = 20;
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::SUMMARY;

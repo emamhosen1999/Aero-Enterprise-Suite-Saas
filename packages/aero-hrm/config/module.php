@@ -38,14 +38,14 @@ return [
             'code' => 'my-attendance',
             'name' => 'My Attendance',
             'icon' => 'ClockIcon',
-            'route' => '/hrm/my-attendance',
+            'route' => '/hrm/attendance-employee',
             'priority' => 2,
         ],
         [
             'code' => 'my-leaves',
             'name' => 'My Leaves',
             'icon' => 'CalendarIcon',
-            'route' => '/leaves/employee',
+            'route' => '/hrm/leaves-employee',
             'priority' => 3,
         ],
         [

@@ -77,6 +77,17 @@ class ExpenseClaimController extends Controller
         return response()->json(['message' => 'Claim rejected']);
     }
 
+    /**
+     * Show my (current user's) expense claims - self-service page.
+     */
+    public function myExpenses(Request $request)
+    {
+        return Inertia::render('HRM/Expenses/MyExpenseClaims', [
+            'title' => 'My Expense Claims',
+            'categories' => ExpenseCategory::active()->get(),
+        ]);
+    }
+
     public function update(Request $request, int $id)
     {
         $claim = ExpenseClaim::findOrFail($id);

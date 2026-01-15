@@ -17,7 +17,7 @@ use Aero\Core\Contracts\CoreWidgetCategory;
  */
 class NotificationsWidget extends AbstractDashboardWidget
 {
-    protected string $position = 'sidebar';
+    protected string $position = 'main_left';
     protected int $order = 5;
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;

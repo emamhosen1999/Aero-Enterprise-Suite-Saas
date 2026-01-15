@@ -69,6 +69,42 @@ class GoalSettingService
     public const MEASURE_MILESTONE = 'milestone';
 
     /**
+     * Aggregated arrays for frontend consumption.
+     */
+    public const TYPES = [
+        ['value' => self::TYPE_INDIVIDUAL, 'label' => 'Individual'],
+        ['value' => self::TYPE_TEAM, 'label' => 'Team'],
+        ['value' => self::TYPE_DEPARTMENT, 'label' => 'Department'],
+        ['value' => self::TYPE_COMPANY, 'label' => 'Company'],
+    ];
+
+    public const STATUSES = [
+        ['value' => self::STATUS_DRAFT, 'label' => 'Draft', 'color' => 'default'],
+        ['value' => self::STATUS_PENDING_APPROVAL, 'label' => 'Pending Approval', 'color' => 'warning'],
+        ['value' => self::STATUS_ACTIVE, 'label' => 'Active', 'color' => 'primary'],
+        ['value' => self::STATUS_ON_TRACK, 'label' => 'On Track', 'color' => 'success'],
+        ['value' => self::STATUS_AT_RISK, 'label' => 'At Risk', 'color' => 'warning'],
+        ['value' => self::STATUS_BEHIND, 'label' => 'Behind', 'color' => 'danger'],
+        ['value' => self::STATUS_COMPLETED, 'label' => 'Completed', 'color' => 'success'],
+        ['value' => self::STATUS_CANCELLED, 'label' => 'Cancelled', 'color' => 'default'],
+    ];
+
+    public const MEASUREMENT_TYPES = [
+        ['value' => self::MEASURE_PERCENTAGE, 'label' => 'Percentage', 'icon' => 'percent'],
+        ['value' => self::MEASURE_NUMBER, 'label' => 'Number', 'icon' => 'hash'],
+        ['value' => self::MEASURE_CURRENCY, 'label' => 'Currency', 'icon' => 'dollar-sign'],
+        ['value' => self::MEASURE_BOOLEAN, 'label' => 'Yes/No', 'icon' => 'check'],
+        ['value' => self::MEASURE_MILESTONE, 'label' => 'Milestone', 'icon' => 'flag'],
+    ];
+
+    public const PRIORITIES = [
+        ['value' => self::PRIORITY_LOW, 'label' => 'Low', 'color' => 'default'],
+        ['value' => self::PRIORITY_MEDIUM, 'label' => 'Medium', 'color' => 'primary'],
+        ['value' => self::PRIORITY_HIGH, 'label' => 'High', 'color' => 'warning'],
+        ['value' => self::PRIORITY_CRITICAL, 'label' => 'Critical', 'color' => 'danger'],
+    ];
+
+    /**
      * Create a new goal/objective.
      */
     public function createGoal(array $data): array

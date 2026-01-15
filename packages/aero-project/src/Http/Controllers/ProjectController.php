@@ -776,4 +776,73 @@ class ProjectController extends Controller
                 return '';
         }
     }
+
+    /**
+     * Display the current user's assigned projects (self-service).
+     */
+    public function myProjects(Request $request)
+    {
+        $userId = Auth::id();
+
+        try {
+            $query = Project::with(['projectLeader', 'teamLeader', 'department', 'tasks'])
+                ->where(function ($q) use ($userId) {
+                    $q->where('project_leader_id', $userId)
+                        ->orWhere('team_leader_id', $userId)
+                        ->orWhereHas('members', function ($q2) use ($userId) {
+                            $q2->where('user_id', $userId);
+                        });
+                });
+
+            // Apply search filter
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('project_name', 'like', "%{$search}%")
+                        ->orWhere('code', 'like', "%{$search}%");
+                });
+            }
+
+            // Apply status filter
+            if ($request->filled('status')) {
+                $query->whereIn('status', (array) $request->status);
+            }
+
+            $projects = $query->orderBy('updated_at', 'desc')->paginate(12);
+
+            // Stats for current user
+            $stats = [
+                'total' => $projects->total(),
+                'active' => Project::where('status', 'in_progress')
+                    ->where(function ($q) use ($userId) {
+                        $q->where('project_leader_id', $userId)
+                            ->orWhere('team_leader_id', $userId)
+                            ->orWhereHas('members', fn ($q2) => $q2->where('user_id', $userId));
+                    })->count(),
+                'completed' => Project::where('status', 'completed')
+                    ->where(function ($q) use ($userId) {
+                        $q->where('project_leader_id', $userId)
+                            ->orWhere('team_leader_id', $userId)
+                            ->orWhereHas('members', fn ($q2) => $q2->where('user_id', $userId));
+                    })->count(),
+            ];
+        } catch (\Exception $e) {
+            // Handle case where projects table might not exist
+            $projects = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12, 1);
+            $stats = ['total' => 0, 'active' => 0, 'completed' => 0];
+        }
+
+        return Inertia::render('Project/SelfService/MyProjects', [
+            'title' => 'My Projects',
+            'projects' => $projects,
+            'stats' => $stats,
+            'filters' => $request->only(['search', 'status']),
+            'statusOptions' => [
+                ['id' => 'not_started', 'name' => 'Not Started'],
+                ['id' => 'in_progress', 'name' => 'In Progress'],
+                ['id' => 'on_hold', 'name' => 'On Hold'],
+                ['id' => 'completed', 'name' => 'Completed'],
+            ],
+        ]);
+    }
 }

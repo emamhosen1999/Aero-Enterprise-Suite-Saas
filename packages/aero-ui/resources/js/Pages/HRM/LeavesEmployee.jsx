@@ -29,6 +29,8 @@ const LeavesEmployee = ({ title, allUsers }) => {
   const { auth } = usePage().props;
 
   const isMobile = useMediaQuery('(max-width: 640px)');
+  const isMediumScreen = useMediaQuery('(min-width: 641px) and (max-width: 1024px)');
+  const isLargeScreen = useMediaQuery('(min-width: 1025px)');
   const themeRadius = useThemeRadius();
   
   // TODO: Update with proper HRMAC module hierarchy path once defined
@@ -82,7 +84,7 @@ const LeavesEmployee = ({ title, allUsers }) => {
       const { year } = filters;
       
       
-      const response = await axios.get(route('leaves.paginate'), {
+      const response = await axios.get(route('hrm.leaves.paginate'), {
         params: { 
           page, 
           perPage, 
@@ -258,7 +260,7 @@ const LeavesEmployee = ({ title, allUsers }) => {
   // Fetch leave statistics
   const fetchLeavesStats = useCallback(async () => {
     try {
-      const response = await axios.get(route('leaves.stats'), {
+      const response = await axios.get(route('hrm.leaves.stats'), {
         params: {
           year: filters.year,
         },

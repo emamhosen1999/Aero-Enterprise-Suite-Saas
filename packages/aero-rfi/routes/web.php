@@ -34,6 +34,12 @@ use Illuminate\Support\Facades\Route;
 // Note: Service provider adds 'rfi.' prefix and '/rfi' path automatically
 Route::middleware(['auth', 'verified'])->group(function () {
 
+    // ========================================================================
+    // SELF-SERVICE ROUTES (My Workspace)
+    // ========================================================================
+    Route::get('/my-rfis', [RfiWebController::class, 'myRfis'])->name('my-rfis');
+    Route::get('/my-inspections', [RfiWebController::class, 'myInspections'])->name('my-inspections');
+
     // Dashboard - module level access only (no sub-module required for dashboard)
     Route::middleware(['module:rfi'])
         ->get('/', [RfiDashboardController::class, 'index'])

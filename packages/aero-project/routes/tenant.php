@@ -38,6 +38,16 @@ use Aero\Project\Http\Controllers\ProjectWatcherController;
 */
 
 // ============================================================================
+// SELF-SERVICE ROUTES (My Workspace)
+// User-facing routes for viewing own data
+// ============================================================================
+Route::middleware(['auth'])->group(function () {
+    Route::get('/my-tasks', [TaskController::class, 'myTasks'])->name('my-tasks');
+    Route::get('/my-projects', [ProjectController::class, 'myProjects'])->name('my-projects');
+    Route::get('/my-timesheets', [TimeTrackingController::class, 'myTimesheets'])->name('my-timesheets');
+});
+
+// ============================================================================
 // PROJECT CORE ROUTES
 // Maps to 'projects' sub-module
 // ============================================================================

@@ -244,4 +244,79 @@ class TimeTrackingController extends Controller
             'endDate' => $endDate,
         ]);
     }
+
+    /**
+     * Display the current user's timesheets (self-service).
+     */
+    public function myTimesheets(Request $request)
+    {
+        $userId = Auth::id();
+
+        try {
+            $query = ProjectTimeEntry::with(['project', 'task', 'approvedBy'])
+                ->where('user_id', $userId)
+                ->orderBy('date', 'desc');
+
+            // Filter by date range
+            if ($request->has('start_date') && $request->start_date) {
+                $query->where('date', '>=', $request->start_date);
+            }
+
+            if ($request->has('end_date') && $request->end_date) {
+                $query->where('date', '<=', $request->end_date);
+            }
+
+            // Filter by project
+            if ($request->has('project_id') && $request->project_id) {
+                $query->where('project_id', $request->project_id);
+            }
+
+            // Filter by approval status
+            if ($request->has('approved') && $request->approved !== '') {
+                $query->where('approved', $request->approved === 'true');
+            }
+
+            $timeEntries = $query->paginate(15);
+
+            // Calculate stats for current user
+            $totalMinutesThisMonth = ProjectTimeEntry::where('user_id', $userId)
+                ->whereMonth('date', now()->month)
+                ->whereYear('date', now()->year)
+                ->sum('duration_minutes');
+
+            $pendingApproval = ProjectTimeEntry::where('user_id', $userId)
+                ->where('approved', false)
+                ->count();
+
+            $totalEntries = ProjectTimeEntry::where('user_id', $userId)->count();
+
+            // Get projects this user has time entries for
+            $userProjects = Project::whereHas('timeEntries', function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            })->select('id', 'project_name')->get();
+
+            $stats = [
+                'totalEntries' => $totalEntries,
+                'hoursThisMonth' => round($totalMinutesThisMonth / 60, 1),
+                'pendingApproval' => $pendingApproval,
+            ];
+        } catch (\Exception $e) {
+            // Handle case where time entries table might not exist
+            $timeEntries = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 15, 1);
+            $userProjects = collect([]);
+            $stats = [
+                'totalEntries' => 0,
+                'hoursThisMonth' => 0,
+                'pendingApproval' => 0,
+            ];
+        }
+
+        return Inertia::render('Project/SelfService/MyTimesheets', [
+            'title' => 'My Timesheets',
+            'timeEntries' => $timeEntries,
+            'stats' => $stats,
+            'projects' => $userProjects,
+            'filters' => $request->only(['project_id', 'start_date', 'end_date', 'approved']),
+        ]);
+    }
 }
