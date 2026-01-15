@@ -453,6 +453,46 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
                 'children' => $submoduleNav,
             ],
         ], $modulePriority, 'tenant');
+
+        // Register self-service navigation items (if defined in config)
+        $this->registerSelfServiceNavigation($navRegistry, $config, $modulePriority);
+    }
+
+    /**
+     * Register self-service navigation items to NavigationRegistry.
+     *
+     * Reads from config/module.php 'self_service' array and registers
+     * items under the unified "My Workspace" menu.
+     *
+     * @param  NavigationRegistry  $navRegistry
+     * @param  array  $config  Module configuration
+     * @param  int  $modulePriority  Module priority for ordering
+     */
+    protected function registerSelfServiceNavigation(NavigationRegistry $navRegistry, array $config, int $modulePriority): void
+    {
+        $selfServiceItems = $config['self_service'] ?? [];
+
+        if (empty($selfServiceItems)) {
+            return;
+        }
+
+        // Process self-service items
+        $processedItems = [];
+        foreach ($selfServiceItems as $item) {
+            $processedItems[] = [
+                'name' => $item['name'] ?? ucfirst($item['code'] ?? 'Item'),
+                'path' => $item['route'] ?? '',
+                'icon' => $item['icon'] ?? 'UserIcon',
+                'access' => $this->moduleCode . '.self-service.' . ($item['code'] ?? ''),
+                'priority' => $item['priority'] ?? 100,
+            ];
+        }
+
+        // Sort by priority
+        usort($processedItems, fn($a, $b) => ($a['priority'] ?? 100) <=> ($b['priority'] ?? 100));
+
+        // Register with the self-service registry
+        $navRegistry->registerSelfService($this->moduleCode, $processedItems, $modulePriority);
     }
 
     /**

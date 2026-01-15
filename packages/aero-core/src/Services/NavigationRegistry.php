@@ -32,6 +32,14 @@ class NavigationRegistry
     protected array $navigationItems = [];
 
     /**
+     * Registered self-service navigation items by module.
+     * These are employee-facing "My *" pages aggregated under a single menu.
+     *
+     * @var array<string, array>
+     */
+    protected array $selfServiceItems = [];
+
+    /**
      * Cache key prefix.
      */
     protected const CACHE_KEY = 'aero.navigation';
@@ -60,6 +68,86 @@ class NavigationRegistry
 
         // Clear cache when navigation changes
         $this->clearCache();
+    }
+
+    /**
+     * Register self-service navigation items for a module.
+     * 
+     * Self-service items are employee-facing pages like "My Attendance", "My Leaves", etc.
+     * They are aggregated under a single "My Workspace" menu item.
+     *
+     * @param  string  $moduleCode  Module identifier
+     * @param  array  $items  Self-service navigation items
+     * @param  int  $priority  Priority within self-service menu
+     */
+    public function registerSelfService(string $moduleCode, array $items, int $priority = 100): void
+    {
+        $this->selfServiceItems[$moduleCode] = [
+            'module' => $moduleCode,
+            'priority' => $priority,
+            'items' => $items,
+        ];
+
+        // Clear cache when navigation changes
+        $this->clearCache();
+    }
+
+    /**
+     * Get aggregated self-service navigation.
+     * 
+     * Returns a single "My Workspace" menu item containing all self-service
+     * items from all modules, sorted by priority.
+     *
+     * @return array|null  Self-service navigation item or null if no items
+     */
+    public function getSelfServiceNavigation(): ?array
+    {
+        if (empty($this->selfServiceItems)) {
+            return null;
+        }
+
+        // Aggregate all self-service items from all modules
+        $allItems = collect($this->selfServiceItems)
+            ->sortBy('priority')
+            ->flatMap(function ($moduleData) {
+                return collect($moduleData['items'])->map(function ($item) use ($moduleData) {
+                    // Add module context to each item
+                    return array_merge($item, [
+                        'module' => $moduleData['module'],
+                    ]);
+                });
+            })
+            ->sortBy('priority')
+            ->values()
+            ->toArray();
+
+        if (empty($allItems)) {
+            return null;
+        }
+
+        return [
+            'name' => 'My Workspace',
+            'icon' => 'UserIcon',
+            'priority' => 2, // After Dashboard (1), before module menus
+            'access' => 'self-service',
+            'children' => $allItems,
+        ];
+    }
+
+    /**
+     * Get self-service items for a specific module.
+     */
+    public function getSelfServiceForModule(string $moduleCode): array
+    {
+        return $this->selfServiceItems[$moduleCode]['items'] ?? [];
+    }
+
+    /**
+     * Check if a module has registered self-service items.
+     */
+    public function hasSelfService(string $moduleCode): bool
+    {
+        return isset($this->selfServiceItems[$moduleCode]) && !empty($this->selfServiceItems[$moduleCode]['items']);
     }
 
     /**
@@ -120,6 +208,12 @@ class NavigationRegistry
         $dashboardNav = $this->getDashboardNavigation($user);
         if ($dashboardNav) {
             $navigationItems[] = $dashboardNav;
+        }
+
+        // 2. Add self-service navigation (priority 2) - "My Workspace" menu
+        $selfServiceNav = $this->getSelfServiceNavigation();
+        if ($selfServiceNav) {
+            $navigationItems[] = $selfServiceNav;
         }
 
         $sortedModules = collect($this->navigationItems)->sortBy('priority');
@@ -355,6 +449,7 @@ class NavigationRegistry
     public function unregister(string $moduleCode): void
     {
         unset($this->navigationItems[$moduleCode]);
+        unset($this->selfServiceItems[$moduleCode]);
         $this->clearCache();
     }
 
@@ -364,6 +459,7 @@ class NavigationRegistry
     public function clear(): void
     {
         $this->navigationItems = [];
+        $this->selfServiceItems = [];
         $this->clearCache();
     }
 }

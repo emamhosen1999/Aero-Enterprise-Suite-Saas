@@ -17,6 +17,95 @@ return [
     'dependencies' => ['core'],
     'release_date' => '2024-01-01',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Self-Service Navigation Items
+    |--------------------------------------------------------------------------
+    |
+    | Employee-facing "My *" pages that appear under the unified "My Workspace"
+    | menu. These are automatically aggregated by NavigationRegistry.
+    |
+    */
+    'self_service' => [
+        [
+            'code' => 'my-dashboard',
+            'name' => 'My Dashboard',
+            'icon' => 'HomeIcon',
+            'route' => '/hrm/employee/dashboard',
+            'priority' => 1,
+        ],
+        [
+            'code' => 'my-attendance',
+            'name' => 'My Attendance',
+            'icon' => 'ClockIcon',
+            'route' => '/hrm/my-attendance',
+            'priority' => 2,
+        ],
+        [
+            'code' => 'my-leaves',
+            'name' => 'My Leaves',
+            'icon' => 'CalendarIcon',
+            'route' => '/leaves/employee',
+            'priority' => 3,
+        ],
+        [
+            'code' => 'my-time-off',
+            'name' => 'My Time-Off',
+            'icon' => 'ArrowRightOnRectangleIcon',
+            'route' => '/hrm/self-service/time-off',
+            'priority' => 4,
+        ],
+        [
+            'code' => 'my-payslips',
+            'name' => 'My Payslips',
+            'icon' => 'BanknotesIcon',
+            'route' => '/hrm/self-service/payslips',
+            'priority' => 5,
+        ],
+        [
+            'code' => 'my-expenses',
+            'name' => 'My Expenses',
+            'icon' => 'ReceiptPercentIcon',
+            'route' => '/hrm/my-expenses',
+            'priority' => 6,
+        ],
+        [
+            'code' => 'my-documents',
+            'name' => 'My Documents',
+            'icon' => 'DocumentTextIcon',
+            'route' => '/hrm/self-service/documents',
+            'priority' => 7,
+        ],
+        [
+            'code' => 'my-benefits',
+            'name' => 'My Benefits',
+            'icon' => 'GiftIcon',
+            'route' => '/hrm/self-service/benefits',
+            'priority' => 8,
+        ],
+        [
+            'code' => 'my-trainings',
+            'name' => 'My Trainings',
+            'icon' => 'AcademicCapIcon',
+            'route' => '/hrm/self-service/trainings',
+            'priority' => 9,
+        ],
+        [
+            'code' => 'my-performance',
+            'name' => 'My Performance',
+            'icon' => 'ChartBarSquareIcon',
+            'route' => '/hrm/self-service/performance',
+            'priority' => 10,
+        ],
+        [
+            'code' => 'my-goals',
+            'name' => 'My Goals',
+            'icon' => 'FlagIcon',
+            'route' => '/hrm/goals',
+            'priority' => 11,
+        ],
+    ],
+
     'submodules' => [
         // 2.1 Employees (Original + Org Chart)
         [

@@ -55,7 +55,9 @@ const EmployeeDashboard = ({ title = 'My Dashboard', dynamicWidgets = [] }) => {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.3 }}
                         >
-                            <DynamicWidgetRenderer widgets={widgetsByPosition.welcome} />
+                            {widgetsByPosition.welcome.map((widget) => (
+                                <DynamicWidgetRenderer key={widget.key} widgets={[widget]} />
+                            ))}
                         </motion.div>
                     )}
 
@@ -65,40 +67,37 @@ const EmployeeDashboard = ({ title = 'My Dashboard', dynamicWidgets = [] }) => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.3, delay: 0.1 }}
+                            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
                         >
-                            <DynamicWidgetRenderer widgets={widgetsByPosition.stats_row} />
+                            {widgetsByPosition.stats_row.map((widget) => (
+                                <DynamicWidgetRenderer key={widget.key} widgets={[widget]} />
+                            ))}
                         </motion.div>
                     )}
 
                     {/* Main Content Area */}
-                    {(widgetsByPosition.main_left.length > 0 || widgetsByPosition.main_right.length > 0) && (
+                    {(widgetsByPosition.main_left.length > 0 || widgetsByPosition.main_right.length > 0 || widgetsByPosition.sidebar.length > 0) && (
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ duration: 0.3, delay: 0.2 }}
-                            className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+                            className="grid grid-cols-1 lg:grid-cols-3 gap-6"
                         >
-                            {widgetsByPosition.main_left.length > 0 && (
-                                <div className="space-y-6">
-                                    <DynamicWidgetRenderer widgets={widgetsByPosition.main_left} />
-                                </div>
-                            )}
-                            {widgetsByPosition.main_right.length > 0 && (
-                                <div className="space-y-6">
-                                    <DynamicWidgetRenderer widgets={widgetsByPosition.main_right} />
-                                </div>
-                            )}
-                        </motion.div>
-                    )}
-
-                    {/* Sidebar widgets in full width on dashboard */}
-                    {widgetsByPosition.sidebar.length > 0 && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.3, delay: 0.3 }}
-                        >
-                            <DynamicWidgetRenderer widgets={widgetsByPosition.sidebar} />
+                            {/* Left Column - 2/3 width */}
+                            <div className="lg:col-span-2 space-y-4">
+                                {widgetsByPosition.main_left.map((widget) => (
+                                    <DynamicWidgetRenderer key={widget.key} widgets={[widget]} />
+                                ))}
+                            </div>
+                            {/* Right Column - 1/3 width */}
+                            <div className="space-y-4">
+                                {widgetsByPosition.main_right.map((widget) => (
+                                    <DynamicWidgetRenderer key={widget.key} widgets={[widget]} />
+                                ))}
+                                {widgetsByPosition.sidebar.map((widget) => (
+                                    <DynamicWidgetRenderer key={widget.key} widgets={[widget]} />
+                                ))}
+                            </div>
                         </motion.div>
                     )}
 
@@ -108,8 +107,11 @@ const EmployeeDashboard = ({ title = 'My Dashboard', dynamicWidgets = [] }) => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.3, delay: 0.4 }}
+                            className="space-y-4"
                         >
-                            <DynamicWidgetRenderer widgets={widgetsByPosition.full_width} />
+                            {widgetsByPosition.full_width.map((widget) => (
+                                <DynamicWidgetRenderer key={widget.key} widgets={[widget]} />
+                            ))}
                         </motion.div>
                     )}
 

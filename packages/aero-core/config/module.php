@@ -36,6 +36,31 @@ return [
         'settings' => true,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Self-Service Navigation Items
+    |--------------------------------------------------------------------------
+    |
+    | Core self-service items available to all authenticated users.
+    |
+    */
+    'self_service' => [
+        [
+            'code' => 'my-profile',
+            'name' => 'My Profile',
+            'icon' => 'UserCircleIcon',
+            'route' => '/profile',
+            'priority' => 0, // First item
+        ],
+        [
+            'code' => 'my-notifications',
+            'name' => 'My Notifications',
+            'icon' => 'BellIcon',
+            'route' => '/notifications',
+            'priority' => 1,
+        ],
+    ],
+
     'submodules' => [
         /*
         |--------------------------------------------------------------------------

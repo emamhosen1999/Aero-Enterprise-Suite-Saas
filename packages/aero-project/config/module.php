@@ -13,6 +13,38 @@ return [
     'minimum_plan' => 'enterprise',
     'dependencies' => ['core', 'finance', 'assets', 'hr'],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Self-Service Navigation Items
+    |--------------------------------------------------------------------------
+    |
+    | User-facing "My *" pages for the Project module.
+    |
+    */
+    'self_service' => [
+        [
+            'code' => 'my-tasks',
+            'name' => 'My Tasks',
+            'icon' => 'ClipboardDocumentCheckIcon',
+            'route' => '/projects/my-tasks',
+            'priority' => 20,
+        ],
+        [
+            'code' => 'my-projects',
+            'name' => 'My Projects',
+            'icon' => 'FolderIcon',
+            'route' => '/projects/my-projects',
+            'priority' => 21,
+        ],
+        [
+            'code' => 'my-timesheets',
+            'name' => 'My Timesheets',
+            'icon' => 'ClockIcon',
+            'route' => '/projects/my-timesheets',
+            'priority' => 22,
+        ],
+    ],
+
     // ==================== Submodules ====================
     'submodules' => [
 

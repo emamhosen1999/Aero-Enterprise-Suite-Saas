@@ -42,6 +42,28 @@ return [
     'minimum_plan' => 'professional',
     'dependencies' => ['core', 'project', 'hr', 'assets'],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Self-Service Navigation Items
+    |--------------------------------------------------------------------------
+    */
+    'self_service' => [
+        [
+            'code' => 'my-rfis',
+            'name' => 'My RFIs',
+            'icon' => 'ClipboardDocumentCheckIcon',
+            'route' => '/rfi/my-rfis',
+            'priority' => 30,
+        ],
+        [
+            'code' => 'my-inspections',
+            'name' => 'My Inspections',
+            'icon' => 'MagnifyingGlassIcon',
+            'route' => '/rfi/my-inspections',
+            'priority' => 31,
+        ],
+    ],
+
     'submodules' => [
 
         // ==================== 1. INTELLIGENT DAILY REPORTING ====================

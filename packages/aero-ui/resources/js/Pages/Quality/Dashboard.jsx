@@ -57,7 +57,7 @@ const QualityDashboard = ({ title = 'Quality Dashboard', dynamicWidgets = [] }) 
                             transition={{ duration: 0.3 }}
                         >
                             {widgetsByPosition.welcome.map((widget) => (
-                                <DynamicWidgetRenderer key={widget.id} widget={widget} />
+                                <DynamicWidgetRenderer key={widget.key} widgets={[widget]} />
                             ))}
                         </motion.div>
                     )}
@@ -71,7 +71,7 @@ const QualityDashboard = ({ title = 'Quality Dashboard', dynamicWidgets = [] }) 
                             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
                         >
                             {widgetsByPosition.stats_row.map((widget) => (
-                                <DynamicWidgetRenderer key={widget.id} widget={widget} />
+                                <DynamicWidgetRenderer key={widget.key} widgets={[widget]} />
                             ))}
                         </motion.div>
                     )}
@@ -89,17 +89,17 @@ const QualityDashboard = ({ title = 'Quality Dashboard', dynamicWidgets = [] }) 
                             {/* Left Column */}
                             <div className="lg:col-span-2 space-y-4">
                                 {widgetsByPosition.main_left.map((widget) => (
-                                    <DynamicWidgetRenderer key={widget.id} widget={widget} />
+                                    <DynamicWidgetRenderer key={widget.key} widgets={[widget]} />
                                 ))}
                             </div>
 
                             {/* Right Column / Sidebar */}
                             <div className="space-y-4">
                                 {widgetsByPosition.main_right.map((widget) => (
-                                    <DynamicWidgetRenderer key={widget.id} widget={widget} />
+                                    <DynamicWidgetRenderer key={widget.key} widgets={[widget]} />
                                 ))}
                                 {widgetsByPosition.sidebar.map((widget) => (
-                                    <DynamicWidgetRenderer key={widget.id} widget={widget} />
+                                    <DynamicWidgetRenderer key={widget.key} widgets={[widget]} />
                                 ))}
                             </div>
                         </motion.div>
@@ -114,7 +114,7 @@ const QualityDashboard = ({ title = 'Quality Dashboard', dynamicWidgets = [] }) 
                             className="space-y-4"
                         >
                             {widgetsByPosition.full_width.map((widget) => (
-                                <DynamicWidgetRenderer key={widget.id} widget={widget} />
+                                <DynamicWidgetRenderer key={widget.key} widgets={[widget]} />
                             ))}
                         </motion.div>
                     )}

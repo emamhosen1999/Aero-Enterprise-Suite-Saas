@@ -63,7 +63,7 @@ import {
 /**
  * Icon Map - Maps string icon names to actual icon components
  */
-const ICON_MAP = {
+export const ICON_MAP = {
     HomeIcon: <HomeIcon />,
     UserGroupIcon: <UserGroupIcon />,
     UsersIcon: <UsersIcon />,
