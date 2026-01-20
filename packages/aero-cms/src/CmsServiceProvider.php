@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Aero\Cms;
 
-use Illuminate\Support\ServiceProvider;
+use Aero\Cms\Blocks\BlockRegistry;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ServiceProvider;
 
 class CmsServiceProvider extends ServiceProvider
 {
@@ -16,6 +17,15 @@ class CmsServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__ . '/../config/cms.php', 'cms');
         $this->mergeConfigFrom(__DIR__ . '/../config/module.php', 'aero-cms-module');
+        $this->mergeConfigFrom(__DIR__ . '/../config/blocks.php', 'cms-blocks');
+
+        // Register BlockRegistry as singleton
+        $this->app->singleton(BlockRegistry::class, function ($app) {
+            $registry = new BlockRegistry();
+            $registry->registerFromConfig();
+
+            return $registry;
+        });
     }
 
     /**

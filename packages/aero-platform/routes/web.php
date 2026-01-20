@@ -161,4 +161,56 @@ Route::middleware('platform.domain')->group(function () {
     Route::post('/checkout/{plan}', [BillingController::class, 'checkout'])
         ->name('platform.checkout');
 
+    // =========================================================================
+    // NEWSLETTER SUBSCRIPTION (Public)
+    // =========================================================================
+    Route::prefix('newsletter')->name('newsletter.')->group(function () {
+        Route::post('/subscribe', [\Aero\Platform\Http\Controllers\Public\NewsletterController::class, 'subscribe'])
+            ->middleware('throttle:10,1')
+            ->name('subscribe');
+        Route::get('/confirm/{token}', [\Aero\Platform\Http\Controllers\Public\NewsletterController::class, 'confirm'])
+            ->name('confirm');
+        Route::get('/unsubscribe/{token}', [\Aero\Platform\Http\Controllers\Public\NewsletterController::class, 'unsubscribe'])
+            ->name('unsubscribe');
+        Route::post('/unsubscribe/{token}', [\Aero\Platform\Http\Controllers\Public\NewsletterController::class, 'processUnsubscribe'])
+            ->name('unsubscribe.process');
+    });
+
+    // =========================================================================
+    // AFFILIATE PROGRAM (Public)
+    // =========================================================================
+    Route::get('/ref/{code}', [\Aero\Platform\Http\Controllers\Public\AffiliateController::class, 'trackReferral'])
+        ->name('affiliate.referral');
+    Route::get('/affiliates', [\Aero\Platform\Http\Controllers\Public\AffiliateController::class, 'landing'])
+        ->name('affiliate.landing');
+    Route::get('/affiliates/apply', [\Aero\Platform\Http\Controllers\Public\AffiliateController::class, 'showApplication'])
+        ->name('affiliate.apply');
+    Route::post('/affiliates/apply', [\Aero\Platform\Http\Controllers\Public\AffiliateController::class, 'submitApplication'])
+        ->middleware('throttle:5,60')
+        ->name('affiliate.apply.submit');
+
+    // =========================================================================
+    // SOCIAL AUTHENTICATION (Public OAuth Flow)
+    // =========================================================================
+    Route::prefix('auth')->name('social.')->group(function () {
+        Route::get('/{provider}', [\Aero\Platform\Http\Controllers\Public\SocialAuthController::class, 'redirect'])
+            ->name('redirect');
+        Route::get('/{provider}/callback', [\Aero\Platform\Http\Controllers\Public\SocialAuthController::class, 'callback'])
+            ->name('callback');
+    });
+
+    // =========================================================================
+    // LEAD CAPTURE FORMS (Public)
+    // =========================================================================
+    Route::prefix('leads')->name('leads.')->middleware('throttle:10,1')->group(function () {
+        Route::post('/contact', [\Aero\Platform\Http\Controllers\Public\LeadController::class, 'contact'])
+            ->name('contact');
+        Route::post('/demo', [\Aero\Platform\Http\Controllers\Public\LeadController::class, 'demoRequest'])
+            ->name('demo');
+        Route::post('/pricing', [\Aero\Platform\Http\Controllers\Public\LeadController::class, 'pricingInquiry'])
+            ->name('pricing');
+        Route::post('/capture', [\Aero\Platform\Http\Controllers\Public\LeadController::class, 'genericCapture'])
+            ->name('capture');
+    });
+
 });

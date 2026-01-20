@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aero\Cms\Models;
 
+use Aero\Cms\Database\Factories\CmsPageBlockFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +13,14 @@ use Illuminate\Support\Str;
 class CmsPageBlock extends Model
 {
     use HasFactory;
+
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory(): CmsPageBlockFactory
+    {
+        return CmsPageBlockFactory::new();
+    }
 
     /**
      * CMS blocks are stored in the central (landlord) database.

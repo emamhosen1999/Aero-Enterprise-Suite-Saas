@@ -1094,6 +1094,275 @@ Route::middleware(['auth:landlord'])->group(function () {
     });
 
     // =========================================================================
+    // 15. SEO MANAGEMENT MODULE (seo-management)
+    // =========================================================================
+    Route::middleware(['module:seo-management'])->prefix('seo')->name('admin.seo.')->group(function () {
+        Route::get('/', [\Aero\Platform\Http\Controllers\Admin\SeoController::class, 'index'])
+            ->middleware(['module:seo-management,seo-settings,view'])
+            ->name('index');
+
+        Route::put('/settings', [\Aero\Platform\Http\Controllers\Admin\SeoController::class, 'updateSettings'])
+            ->middleware(['module:seo-management,seo-settings,update'])
+            ->name('settings.update');
+
+        Route::put('/analytics', [\Aero\Platform\Http\Controllers\Admin\SeoController::class, 'updateAnalytics'])
+            ->middleware(['module:seo-management,analytics-integrations,update'])
+            ->name('analytics.update');
+
+        Route::get('/pages', [\Aero\Platform\Http\Controllers\Admin\SeoController::class, 'pages'])
+            ->middleware(['module:seo-management,page-seo,view'])
+            ->name('pages.index');
+
+        Route::post('/pages', [\Aero\Platform\Http\Controllers\Admin\SeoController::class, 'storePage'])
+            ->middleware(['module:seo-management,page-seo,create'])
+            ->name('pages.store');
+
+        Route::put('/pages/{page}', [\Aero\Platform\Http\Controllers\Admin\SeoController::class, 'updatePage'])
+            ->middleware(['module:seo-management,page-seo,update'])
+            ->name('pages.update');
+
+        Route::delete('/pages/{page}', [\Aero\Platform\Http\Controllers\Admin\SeoController::class, 'destroyPage'])
+            ->middleware(['module:seo-management,page-seo,delete'])
+            ->name('pages.destroy');
+
+        Route::get('/sitemap', [\Aero\Platform\Http\Controllers\Admin\SeoController::class, 'sitemap'])
+            ->middleware(['module:seo-management,sitemap,view'])
+            ->name('sitemap');
+
+        Route::post('/sitemap/regenerate', [\Aero\Platform\Http\Controllers\Admin\SeoController::class, 'regenerateSitemap'])
+            ->middleware(['module:seo-management,sitemap,generate'])
+            ->name('sitemap.regenerate');
+
+        Route::post('/validate-meta', [\Aero\Platform\Http\Controllers\Admin\SeoController::class, 'validateMeta'])
+            ->middleware(['module:seo-management,seo-settings,view'])
+            ->name('validate-meta');
+    });
+
+    // =========================================================================
+    // 16. LEAD MANAGEMENT MODULE (lead-management)
+    // =========================================================================
+    Route::middleware(['module:lead-management'])->prefix('leads')->name('admin.leads.')->group(function () {
+        Route::get('/', [\Aero\Platform\Http\Controllers\Admin\LeadController::class, 'index'])
+            ->middleware(['module:lead-management,all-leads,view'])
+            ->name('index');
+
+        Route::get('/paginate', [\Aero\Platform\Http\Controllers\Admin\LeadController::class, 'paginate'])
+            ->middleware(['module:lead-management,all-leads,view'])
+            ->name('paginate');
+
+        Route::get('/stats', [\Aero\Platform\Http\Controllers\Admin\LeadController::class, 'stats'])
+            ->middleware(['module:lead-management,lead-analytics,view'])
+            ->name('stats');
+
+        Route::get('/high-value', [\Aero\Platform\Http\Controllers\Admin\LeadController::class, 'highValue'])
+            ->middleware(['module:lead-management,all-leads,view'])
+            ->name('high-value');
+
+        Route::get('/{lead}', [\Aero\Platform\Http\Controllers\Admin\LeadController::class, 'show'])
+            ->middleware(['module:lead-management,all-leads,view'])
+            ->name('show');
+
+        Route::post('/', [\Aero\Platform\Http\Controllers\Admin\LeadController::class, 'store'])
+            ->middleware(['module:lead-management,all-leads,create'])
+            ->name('store');
+
+        Route::put('/{lead}', [\Aero\Platform\Http\Controllers\Admin\LeadController::class, 'update'])
+            ->middleware(['module:lead-management,all-leads,update'])
+            ->name('update');
+
+        Route::delete('/{lead}', [\Aero\Platform\Http\Controllers\Admin\LeadController::class, 'destroy'])
+            ->middleware(['module:lead-management,all-leads,delete'])
+            ->name('destroy');
+
+        Route::post('/{lead}/assign', [\Aero\Platform\Http\Controllers\Admin\LeadController::class, 'assign'])
+            ->middleware(['module:lead-management,all-leads,assign'])
+            ->name('assign');
+
+        Route::post('/bulk-assign', [\Aero\Platform\Http\Controllers\Admin\LeadController::class, 'bulkAssign'])
+            ->middleware(['module:lead-management,all-leads,assign'])
+            ->name('bulk-assign');
+
+        Route::put('/{lead}/status', [\Aero\Platform\Http\Controllers\Admin\LeadController::class, 'updateStatus'])
+            ->middleware(['module:lead-management,pipeline,move'])
+            ->name('status');
+
+        Route::post('/{lead}/convert', [\Aero\Platform\Http\Controllers\Admin\LeadController::class, 'convert'])
+            ->middleware(['module:lead-management,pipeline,convert'])
+            ->name('convert');
+    });
+
+    // =========================================================================
+    // 17. NEWSLETTER MANAGEMENT MODULE (newsletter-management)
+    // =========================================================================
+    Route::middleware(['module:newsletter-management'])->prefix('newsletter')->name('admin.newsletter.')->group(function () {
+        Route::get('/', [\Aero\Platform\Http\Controllers\Admin\NewsletterController::class, 'index'])
+            ->middleware(['module:newsletter-management,subscribers,view'])
+            ->name('index');
+
+        Route::get('/paginate', [\Aero\Platform\Http\Controllers\Admin\NewsletterController::class, 'paginate'])
+            ->middleware(['module:newsletter-management,subscribers,view'])
+            ->name('paginate');
+
+        Route::get('/stats', [\Aero\Platform\Http\Controllers\Admin\NewsletterController::class, 'stats'])
+            ->middleware(['module:newsletter-management,subscribers,view'])
+            ->name('stats');
+
+        Route::get('/export', [\Aero\Platform\Http\Controllers\Admin\NewsletterController::class, 'export'])
+            ->middleware(['module:newsletter-management,subscribers,export'])
+            ->name('export');
+
+        Route::post('/import', [\Aero\Platform\Http\Controllers\Admin\NewsletterController::class, 'import'])
+            ->middleware(['module:newsletter-management,subscribers,import'])
+            ->name('import');
+
+        Route::get('/{subscriber}', [\Aero\Platform\Http\Controllers\Admin\NewsletterController::class, 'show'])
+            ->middleware(['module:newsletter-management,subscribers,view'])
+            ->name('show');
+
+        Route::post('/', [\Aero\Platform\Http\Controllers\Admin\NewsletterController::class, 'store'])
+            ->middleware(['module:newsletter-management,subscribers,create'])
+            ->name('store');
+
+        Route::put('/{subscriber}', [\Aero\Platform\Http\Controllers\Admin\NewsletterController::class, 'update'])
+            ->middleware(['module:newsletter-management,subscribers,update'])
+            ->name('update');
+
+        Route::delete('/{subscriber}', [\Aero\Platform\Http\Controllers\Admin\NewsletterController::class, 'destroy'])
+            ->middleware(['module:newsletter-management,subscribers,delete'])
+            ->name('destroy');
+
+        Route::post('/bulk-delete', [\Aero\Platform\Http\Controllers\Admin\NewsletterController::class, 'bulkDelete'])
+            ->middleware(['module:newsletter-management,subscribers,delete'])
+            ->name('bulk-delete');
+
+        Route::post('/{subscriber}/confirm', [\Aero\Platform\Http\Controllers\Admin\NewsletterController::class, 'confirm'])
+            ->middleware(['module:newsletter-management,subscribers,update'])
+            ->name('confirm');
+
+        Route::post('/{subscriber}/unsubscribe', [\Aero\Platform\Http\Controllers\Admin\NewsletterController::class, 'unsubscribe'])
+            ->middleware(['module:newsletter-management,subscribers,update'])
+            ->name('unsubscribe');
+
+        Route::post('/{subscriber}/resend-confirmation', [\Aero\Platform\Http\Controllers\Admin\NewsletterController::class, 'resendConfirmation'])
+            ->middleware(['module:newsletter-management,subscribers,update'])
+            ->name('resend-confirmation');
+
+        Route::put('/settings', [\Aero\Platform\Http\Controllers\Admin\NewsletterController::class, 'updateSettings'])
+            ->middleware(['module:newsletter-management,newsletter-settings,update'])
+            ->name('settings.update');
+    });
+
+    // =========================================================================
+    // 18. AFFILIATE PROGRAM MODULE (affiliate-program)
+    // =========================================================================
+    Route::middleware(['module:affiliate-program'])->prefix('affiliates')->name('admin.affiliates.')->group(function () {
+        Route::get('/', [\Aero\Platform\Http\Controllers\Admin\AffiliateController::class, 'index'])
+            ->middleware(['module:affiliate-program,affiliates,view'])
+            ->name('index');
+
+        Route::get('/paginate', [\Aero\Platform\Http\Controllers\Admin\AffiliateController::class, 'paginate'])
+            ->middleware(['module:affiliate-program,affiliates,view'])
+            ->name('paginate');
+
+        Route::get('/stats', [\Aero\Platform\Http\Controllers\Admin\AffiliateController::class, 'stats'])
+            ->middleware(['module:affiliate-program,affiliate-analytics,view'])
+            ->name('stats');
+
+        Route::get('/pending-payouts', [\Aero\Platform\Http\Controllers\Admin\AffiliateController::class, 'pendingPayouts'])
+            ->middleware(['module:affiliate-program,payouts,view'])
+            ->name('pending-payouts');
+
+        Route::get('/{affiliate}', [\Aero\Platform\Http\Controllers\Admin\AffiliateController::class, 'show'])
+            ->middleware(['module:affiliate-program,affiliates,view'])
+            ->name('show');
+
+        Route::post('/', [\Aero\Platform\Http\Controllers\Admin\AffiliateController::class, 'store'])
+            ->middleware(['module:affiliate-program,affiliates,create'])
+            ->name('store');
+
+        Route::put('/{affiliate}', [\Aero\Platform\Http\Controllers\Admin\AffiliateController::class, 'update'])
+            ->middleware(['module:affiliate-program,affiliates,update'])
+            ->name('update');
+
+        Route::delete('/{affiliate}', [\Aero\Platform\Http\Controllers\Admin\AffiliateController::class, 'destroy'])
+            ->middleware(['module:affiliate-program,affiliates,delete'])
+            ->name('destroy');
+
+        Route::post('/{affiliate}/approve', [\Aero\Platform\Http\Controllers\Admin\AffiliateController::class, 'approve'])
+            ->middleware(['module:affiliate-program,affiliates,approve'])
+            ->name('approve');
+
+        Route::post('/{affiliate}/reject', [\Aero\Platform\Http\Controllers\Admin\AffiliateController::class, 'reject'])
+            ->middleware(['module:affiliate-program,affiliates,reject'])
+            ->name('reject');
+
+        Route::post('/{affiliate}/suspend', [\Aero\Platform\Http\Controllers\Admin\AffiliateController::class, 'suspend'])
+            ->middleware(['module:affiliate-program,affiliates,suspend'])
+            ->name('suspend');
+
+        Route::get('/{affiliate}/referrals', [\Aero\Platform\Http\Controllers\Admin\AffiliateController::class, 'referrals'])
+            ->middleware(['module:affiliate-program,referrals,view'])
+            ->name('referrals');
+
+        Route::get('/{affiliate}/payouts', [\Aero\Platform\Http\Controllers\Admin\AffiliateController::class, 'payouts'])
+            ->middleware(['module:affiliate-program,payouts,view'])
+            ->name('payouts');
+
+        Route::post('/{affiliate}/payout', [\Aero\Platform\Http\Controllers\Admin\AffiliateController::class, 'createPayout'])
+            ->middleware(['module:affiliate-program,payouts,create'])
+            ->name('payout.create');
+
+        Route::post('/payouts/{payout}/process', [\Aero\Platform\Http\Controllers\Admin\AffiliateController::class, 'processPayout'])
+            ->middleware(['module:affiliate-program,payouts,process'])
+            ->name('payout.process');
+
+        Route::post('/payouts/{payout}/complete', [\Aero\Platform\Http\Controllers\Admin\AffiliateController::class, 'completePayout'])
+            ->middleware(['module:affiliate-program,payouts,complete'])
+            ->name('payout.complete');
+
+        Route::put('/settings', [\Aero\Platform\Http\Controllers\Admin\AffiliateController::class, 'updateSettings'])
+            ->middleware(['module:affiliate-program,affiliate-settings,update'])
+            ->name('settings.update');
+    });
+
+    // =========================================================================
+    // 19. SOCIAL AUTHENTICATION MODULE (social-authentication)
+    // =========================================================================
+    Route::middleware(['module:social-authentication'])->prefix('social-auth')->name('admin.social-auth.')->group(function () {
+        Route::get('/', [\Aero\Platform\Http\Controllers\Admin\SocialAuthController::class, 'index'])
+            ->middleware(['module:social-authentication,providers,view'])
+            ->name('index');
+
+        Route::get('/providers/{provider}', [\Aero\Platform\Http\Controllers\Admin\SocialAuthController::class, 'showProvider'])
+            ->middleware(['module:social-authentication,providers,view'])
+            ->name('providers.show');
+
+        Route::put('/providers/{provider}', [\Aero\Platform\Http\Controllers\Admin\SocialAuthController::class, 'updateProvider'])
+            ->middleware(['module:social-authentication,providers,configure'])
+            ->name('providers.update');
+
+        Route::post('/providers/{provider}/toggle', [\Aero\Platform\Http\Controllers\Admin\SocialAuthController::class, 'toggleProvider'])
+            ->middleware(['module:social-authentication,providers,configure'])
+            ->name('providers.toggle');
+
+        Route::get('/accounts', [\Aero\Platform\Http\Controllers\Admin\SocialAuthController::class, 'accounts'])
+            ->middleware(['module:social-authentication,linked-accounts,view'])
+            ->name('accounts.index');
+
+        Route::delete('/accounts/{account}', [\Aero\Platform\Http\Controllers\Admin\SocialAuthController::class, 'destroyAccount'])
+            ->middleware(['module:social-authentication,linked-accounts,delete'])
+            ->name('accounts.destroy');
+
+        Route::get('/stats', [\Aero\Platform\Http\Controllers\Admin\SocialAuthController::class, 'stats'])
+            ->middleware(['module:social-authentication,providers,view'])
+            ->name('stats');
+
+        Route::put('/settings', [\Aero\Platform\Http\Controllers\Admin\SocialAuthController::class, 'updateSettings'])
+            ->middleware(['module:social-authentication,providers,configure'])
+            ->name('settings.update');
+    });
+
+    // =========================================================================
     // ADMIN API ROUTES (Authenticated - Landlord Guard)
     // =========================================================================
     // These are JSON API endpoints for admin operations

@@ -702,6 +702,247 @@ return [
                 ],
             ],
         ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | 15. SEO Management
+        |--------------------------------------------------------------------------
+        */
+        [
+            'code' => 'seo_management',
+            'name' => 'SEO',
+            'description' => 'Search engine optimization and meta tag management',
+            'icon' => 'MagnifyingGlassIcon',
+            'route' => '/seo',
+            'priority' => 15,
+
+            'components' => [
+                [
+                    'code' => 'seo_settings',
+                    'name' => 'SEO Settings',
+                    'route' => '/seo/settings',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View SEO Settings'],
+                        ['code' => 'edit', 'name' => 'Edit SEO Settings'],
+                    ],
+                ],
+                [
+                    'code' => 'page_seo',
+                    'name' => 'Page SEO',
+                    'route' => '/seo/pages',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Page SEO'],
+                        ['code' => 'edit', 'name' => 'Edit Page SEO'],
+                    ],
+                ],
+                [
+                    'code' => 'sitemap_management',
+                    'name' => 'Sitemap',
+                    'route' => '/seo/sitemap',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Sitemap'],
+                        ['code' => 'generate', 'name' => 'Generate Sitemap'],
+                    ],
+                ],
+                [
+                    'code' => 'analytics_integrations',
+                    'name' => 'Analytics Integrations',
+                    'route' => '/seo/analytics',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Integrations'],
+                        ['code' => 'configure', 'name' => 'Configure Integrations'],
+                    ],
+                ],
+            ],
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | 16. Lead Management
+        |--------------------------------------------------------------------------
+        */
+        [
+            'code' => 'lead_management',
+            'name' => 'Leads',
+            'description' => 'Manage prospect leads and inquiries',
+            'icon' => 'UserPlusIcon',
+            'route' => '/leads',
+            'priority' => 16,
+
+            'components' => [
+                [
+                    'code' => 'lead_list',
+                    'name' => 'All Leads',
+                    'route' => '/leads',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Leads'],
+                        ['code' => 'create', 'name' => 'Create Lead'],
+                        ['code' => 'edit', 'name' => 'Edit Lead'],
+                        ['code' => 'delete', 'name' => 'Delete Lead'],
+                        ['code' => 'assign', 'name' => 'Assign Lead'],
+                        ['code' => 'convert', 'name' => 'Convert Lead'],
+                    ],
+                ],
+                [
+                    'code' => 'lead_pipeline',
+                    'name' => 'Pipeline',
+                    'route' => '/leads/pipeline',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Pipeline'],
+                        ['code' => 'manage', 'name' => 'Manage Pipeline'],
+                    ],
+                ],
+                [
+                    'code' => 'lead_analytics',
+                    'name' => 'Lead Analytics',
+                    'route' => '/leads/analytics',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Analytics'],
+                        ['code' => 'export', 'name' => 'Export Reports'],
+                    ],
+                ],
+            ],
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | 17. Newsletter Management
+        |--------------------------------------------------------------------------
+        */
+        [
+            'code' => 'newsletter_management',
+            'name' => 'Newsletter',
+            'description' => 'Manage newsletter subscribers and campaigns',
+            'icon' => 'EnvelopeIcon',
+            'route' => '/newsletter',
+            'priority' => 17,
+
+            'components' => [
+                [
+                    'code' => 'subscriber_list',
+                    'name' => 'Subscribers',
+                    'route' => '/newsletter/subscribers',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Subscribers'],
+                        ['code' => 'create', 'name' => 'Add Subscriber'],
+                        ['code' => 'delete', 'name' => 'Remove Subscriber'],
+                        ['code' => 'import', 'name' => 'Import Subscribers'],
+                        ['code' => 'export', 'name' => 'Export Subscribers'],
+                    ],
+                ],
+                [
+                    'code' => 'newsletter_settings',
+                    'name' => 'Settings',
+                    'route' => '/newsletter/settings',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Settings'],
+                        ['code' => 'edit', 'name' => 'Edit Settings'],
+                    ],
+                ],
+            ],
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | 18. Affiliate Program
+        |--------------------------------------------------------------------------
+        */
+        [
+            'code' => 'affiliate_program',
+            'name' => 'Affiliates',
+            'description' => 'Manage affiliate/referral program',
+            'icon' => 'UsersIcon',
+            'route' => '/affiliates',
+            'priority' => 18,
+
+            'components' => [
+                [
+                    'code' => 'affiliate_list',
+                    'name' => 'All Affiliates',
+                    'route' => '/affiliates',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Affiliates'],
+                        ['code' => 'create', 'name' => 'Create Affiliate'],
+                        ['code' => 'edit', 'name' => 'Edit Affiliate'],
+                        ['code' => 'delete', 'name' => 'Delete Affiliate'],
+                        ['code' => 'approve', 'name' => 'Approve Affiliate'],
+                        ['code' => 'suspend', 'name' => 'Suspend Affiliate'],
+                    ],
+                ],
+                [
+                    'code' => 'affiliate_referrals',
+                    'name' => 'Referrals',
+                    'route' => '/affiliates/referrals',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Referrals'],
+                        ['code' => 'approve_commission', 'name' => 'Approve Commission'],
+                    ],
+                ],
+                [
+                    'code' => 'affiliate_payouts',
+                    'name' => 'Payouts',
+                    'route' => '/affiliates/payouts',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Payouts'],
+                        ['code' => 'create', 'name' => 'Create Payout'],
+                        ['code' => 'process', 'name' => 'Process Payout'],
+                    ],
+                ],
+                [
+                    'code' => 'affiliate_settings',
+                    'name' => 'Settings',
+                    'route' => '/affiliates/settings',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Settings'],
+                        ['code' => 'edit', 'name' => 'Edit Settings'],
+                    ],
+                ],
+                [
+                    'code' => 'affiliate_analytics',
+                    'name' => 'Analytics',
+                    'route' => '/affiliates/analytics',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Analytics'],
+                        ['code' => 'export', 'name' => 'Export Reports'],
+                    ],
+                ],
+            ],
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | 19. Social Authentication
+        |--------------------------------------------------------------------------
+        */
+        [
+            'code' => 'social_auth',
+            'name' => 'Social Login',
+            'description' => 'Configure social authentication providers',
+            'icon' => 'ShareIcon',
+            'route' => '/social-auth',
+            'priority' => 19,
+
+            'components' => [
+                [
+                    'code' => 'social_providers',
+                    'name' => 'Providers',
+                    'route' => '/social-auth/providers',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Providers'],
+                        ['code' => 'configure', 'name' => 'Configure Provider'],
+                    ],
+                ],
+                [
+                    'code' => 'social_accounts',
+                    'name' => 'Linked Accounts',
+                    'route' => '/social-auth/accounts',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Accounts'],
+                        ['code' => 'unlink', 'name' => 'Unlink Account'],
+                    ],
+                ],
+            ],
+        ],
     ],
 
     'access_control' => [

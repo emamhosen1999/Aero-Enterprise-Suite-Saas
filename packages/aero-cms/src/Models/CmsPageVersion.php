@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace Aero\Cms\Models;
 
+use Aero\Cms\Database\Factories\CmsPageVersionFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CmsPageVersion extends Model
 {
+    use HasFactory;
+
     /**
      * Page versions are stored in the central (landlord) database.
      */
@@ -35,6 +39,14 @@ class CmsPageVersion extends Model
         'settings' => 'array',
         'version_number' => 'integer',
     ];
+
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory(): CmsPageVersionFactory
+    {
+        return CmsPageVersionFactory::new();
+    }
 
     /**
      * Get the page this version belongs to.

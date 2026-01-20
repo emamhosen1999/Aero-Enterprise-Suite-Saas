@@ -136,10 +136,25 @@ class BlockRegistry
      */
     public function registerFromConfig(): self
     {
-        $blocks = config('cms.blocks', []);
+        // Load from cms-blocks config (new format with categories)
+        $blocksConfig = config('cms-blocks', []);
 
-        foreach ($blocks as $type => $config) {
-            $this->register(BlockSchema::fromConfig($type, $config));
+        if (isset($blocksConfig['blocks']) && is_array($blocksConfig['blocks'])) {
+            foreach ($blocksConfig['blocks'] as $blockConfig) {
+                $type = $blockConfig['type'] ?? null;
+                if ($type) {
+                    $this->register(BlockSchema::fromConfig($type, $blockConfig));
+                }
+            }
+        }
+
+        // Also support legacy cms.blocks format
+        $legacyBlocks = config('cms.blocks', []);
+
+        foreach ($legacyBlocks as $type => $config) {
+            if (! $this->has($type)) {
+                $this->register(BlockSchema::fromConfig($type, $config));
+            }
         }
 
         return $this;

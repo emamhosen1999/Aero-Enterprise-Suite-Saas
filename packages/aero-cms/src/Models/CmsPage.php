@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aero\Cms\Models;
 
+use Aero\Cms\Database\Factories\CmsPageFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,6 +16,14 @@ class CmsPage extends Model
 {
     use HasFactory;
     use SoftDeletes;
+
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory(): CmsPageFactory
+    {
+        return CmsPageFactory::new();
+    }
 
     /**
      * CMS pages are stored in the central (landlord) database.
