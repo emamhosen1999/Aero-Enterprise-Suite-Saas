@@ -41,15 +41,25 @@ class RfiWebController extends Controller
         $perPage = $request->input('per_page', 15);
         $rfis = $this->rfiService->getPaginated($filters, $perPage);
 
-        return Inertia::render('Rfi/Index', [
+        // Get users
+        $users = User::select(['id', 'name'])->orderBy('name')->get();
+        
+        // Prepare allData structure expected by the Inertia page
+        $allData = [
+            'juniors' => $users, // Junior engineers/staff
+            'allInCharges' => $users, // In-charge staff (can be same as juniors)
+            'workLayers' => [], // Work layers if needed
+        ];
+
+        return Inertia::render('Rfi/Rfis/Index', [
             'title' => 'RFIs',
-            'rfis' => $rfis,
-            'filters' => $filters,
-            'statuses' => Rfi::$statuses,
-            'types' => Rfi::$types,
-            'inspectionResults' => Rfi::$inspectionResults,
-            'workLocations' => WorkLocation::active()->get(['id', 'name']),
-            'users' => User::select(['id', 'name'])->orderBy('name')->get(),
+            'allData' => $allData,
+            'jurisdictions' => [], // Add jurisdictions if needed
+            'users' => $users,
+            'reports' => $rfis, // RFIs data
+            'reports_with_rfis' => $rfis, // Same data for compatibility
+            'overallEndDate' => now()->format('Y-m-d'),
+            'overallStartDate' => now()->subDays(30)->format('Y-m-d'),
         ]);
     }
 

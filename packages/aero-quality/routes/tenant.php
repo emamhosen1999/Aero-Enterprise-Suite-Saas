@@ -44,5 +44,7 @@ Route::middleware(['auth', 'module:quality,material-lab'])->group(function () {
 
 // Non-Conformance Reports - maps to 'ncr-management' sub-module
 Route::middleware(['auth', 'module:quality,ncr-management'])->group(function () {
+    Route::get('ncr', [NCRController::class, 'index'])->name('ncr.index'); // NCR Register list page
+    Route::get('ncr/analysis', [NCRController::class, 'analysis'])->name('ncr.analysis'); // Root Cause Analysis page
     Route::resource('ncrs', NCRController::class);
 });

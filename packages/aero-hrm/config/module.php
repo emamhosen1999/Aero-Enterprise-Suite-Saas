@@ -312,7 +312,7 @@ return [
                     'code' => 'leave-types',
                     'name' => 'Leave Types',
                     'type' => 'page',
-                    'route' => '/hrm/leaves/types',
+                    'route' => '/hrm/leaves', // Fixed: Use working leave management page
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Leave Types'],
                         ['code' => 'create', 'name' => 'Create Leave Type'],
@@ -324,7 +324,7 @@ return [
                     'code' => 'leave-balances',
                     'name' => 'Leave Balances',
                     'type' => 'page',
-                    'route' => '/hrm/leaves/balances',
+                    'route' => '/hrm/leaves', // Fixed: Use actual working route (LeaveController@index2)
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Leave Balances'],
                         ['code' => 'update', 'name' => 'Update Leave Balance'],
@@ -334,7 +334,7 @@ return [
                     'code' => 'leave-requests',
                     'name' => 'Leave Requests',
                     'type' => 'page',
-                    'route' => '/hrm/leaves/requests',
+                    'route' => '/hrm/leaves', // Fixed: Use actual working route (LeaveController@index2)
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Leave Requests'],
                         ['code' => 'create', 'name' => 'Create Leave Request'],
@@ -368,14 +368,14 @@ return [
                     'code' => 'leave-policies',
                     'name' => 'Leave Policies',
                     'type' => 'page',
-                    'route' => '/hrm/leaves/policies',
+                    'route' => '/hrm/leaves', // Fixed: Use working leave management page
                     'actions' => [['code' => 'manage', 'name' => 'Manage Leave Policies']],
                 ],
                 [
                     'code' => 'leave-accrual',
                     'name' => 'Leave Accrual Engine',
                     'type' => 'page',
-                    'route' => '/hrm/leaves/accrual',
+                    'route' => null, // Disabled: Not implemented yet
                     'actions' => [['code' => 'run', 'name' => 'Run Leave Accrual']],
                 ],
             ],

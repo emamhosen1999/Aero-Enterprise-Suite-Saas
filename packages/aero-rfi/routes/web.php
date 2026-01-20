@@ -45,6 +45,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->get('/', [RfiDashboardController::class, 'index'])
         ->name('dashboard');
 
+    // Site Diary - maps to daily-reporting sub-module
+    Route::middleware(['module:rfi,daily-reporting'])
+        ->get('/site-diary', [RfiDashboardController::class, 'index'])
+        ->name('site-diary');
+
+    // Hindrance Register (Daily Delays) - maps to daily-reporting sub-module
+    Route::middleware(['module:rfi,daily-reporting'])
+        ->get('/daily/delays', [RfiDashboardController::class, 'index'])
+        ->name('daily.delays');
+
     // RFIs - maps to inspection-management sub-module
     Route::prefix('rfis')->name('rfis.')->middleware(['module:rfi,inspection-management'])->group(function () {
     Route::get('/', [RfiWebController::class, 'index'])->name('index');

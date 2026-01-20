@@ -450,6 +450,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Payroll Management System
     Route::middleware(['module:hrm,payroll'])->group(function () {
         Route::get('/payroll', [PayrollController::class, 'index'])->name('payroll.index');
+        Route::get('/payroll/structures', [PayrollController::class, 'index'])->name('payroll.structures'); // Salary structures
+        Route::get('/payroll/components', [PayrollController::class, 'index'])->name('payroll.components'); // Salary components
+        Route::get('/payroll/run', [PayrollController::class, 'index'])->name('payroll.run'); // Payroll run
+        Route::get('/payroll/payslips', [PayrollController::class, 'index'])->name('payroll.payslips'); // Payslips list
+        Route::get('/payroll/tax', [PayrollController::class, 'index'])->name('payroll.tax'); // Tax setup
+        Route::get('/payroll/declarations', [PayrollController::class, 'index'])->name('payroll.declarations'); // IT/Tax declarations
+        Route::get('/payroll/loans', [PayrollController::class, 'index'])->name('payroll.loans'); // Loan & Advance management
+        Route::get('/payroll/bank-file', [PayrollController::class, 'index'])->name('payroll.bank-file'); // Bank file generator
         Route::get('/payroll/create', [PayrollController::class, 'create'])->name('payroll.create');
         Route::post('/payroll', [PayrollController::class, 'store'])->name('payroll.store');
         Route::get('/payroll/{id}', [PayrollController::class, 'show'])->name('payroll.show');
@@ -710,6 +718,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Attendance management routes
     Route::middleware(['module:hrm,attendance'])->group(function () {
         Route::get('/attendances', [AttendanceController::class, 'index1'])->name('attendances');
+        Route::get('/attendance/daily', [AttendanceController::class, 'index1'])->name('attendance.daily'); // Daily attendance view (alias)
+        Route::get('/attendance/calendar', [AttendanceController::class, 'index1'])->name('attendance.calendar'); // Monthly calendar view
+        Route::get('/attendance/logs', [AttendanceController::class, 'index1'])->name('attendance.logs'); // Attendance logs view
+        Route::get('/attendance/adjustments', [AttendanceController::class, 'index1'])->name('attendance.adjustments'); // Adjustment requests
+        Route::get('/attendance/rules', [AttendanceController::class, 'index1'])->name('attendance.rules'); // Device/IP/Geo rules
+        Route::get('/shifts', [AttendanceController::class, 'index1'])->name('shifts'); // Shift scheduling
+        Route::get('/overtime/rules', [AttendanceController::class, 'index1'])->name('overtime.rules'); // Overtime rules
+        Route::get('/my-attendance', [AttendanceController::class, 'index2'])->name('my-attendance'); // Employee attendance view
         Route::get('/timesheet', [AttendanceController::class, 'index3'])->name('timesheet'); // New TimeSheet page route
         Route::get('/attendances-admin-paginate', [AttendanceController::class, 'paginate'])->name('attendancesAdmin.paginate');
         Route::get('/attendance/locations-today', [AttendanceController::class, 'getUserLocationsForDate'])->name('getUserLocationsForDate');

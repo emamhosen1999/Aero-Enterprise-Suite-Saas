@@ -414,6 +414,11 @@ Route::middleware('auth:web')->group(function () {
     Route::prefix('settings')->name('core.settings.')->group(function () {
         // System Settings
         Route::get('/system', [SystemSettingController::class, 'index'])->name('system.index');
+        Route::get('/security', [SystemSettingController::class, 'index'])->name('security.index'); // Security settings
+        Route::get('/branding', [SystemSettingController::class, 'index'])->name('branding.index'); // Branding & appearance
+        Route::get('/localization', [SystemSettingController::class, 'index'])->name('localization.index'); // Localization settings
+        Route::get('/mail', [SystemSettingController::class, 'index'])->name('mail.index'); // Email (SMTP) settings
+        Route::get('/integrations', [SystemSettingController::class, 'index'])->name('integrations.index'); // API & integrations
         Route::put('/system', [SystemSettingController::class, 'update'])->name('system.update');
         Route::post('/system/test-email', [SystemSettingController::class, 'sendTestEmail'])->name('system.test-email');
         Route::post('/system/test-sms', [SystemSettingController::class, 'sendTestSms'])->name('system.test-sms');
