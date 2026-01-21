@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Head, usePage, router } from '@inertiajs/react';
+import { motion } from 'framer-motion';
 import {
     Button,
     Chip,
@@ -36,7 +37,7 @@ import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import { showToast } from '@/utils/toastUtils.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
 
 // Status color mapping
 const statusColorMap = {
@@ -57,9 +58,23 @@ const statusLabelMap = {
 const OnboardingIndex = ({ title, onboardings }) => {
     const { auth } = usePage().props;
     const themeRadius = useThemeRadius();
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+    
+    // Manual responsive state management (HRMAC pattern)
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
     
     // HRMAC permissions
-    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     const canCreateOnboarding = canCreate('hrm.onboarding') || isSuperAdmin();
     const canEditOnboarding = canUpdate('hrm.onboarding') || isSuperAdmin();
     const canDeleteOnboarding = canDelete('hrm.onboarding') || isSuperAdmin();

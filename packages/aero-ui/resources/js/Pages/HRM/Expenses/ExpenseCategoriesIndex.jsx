@@ -9,15 +9,22 @@ import { getThemedCardStyle } from '@/Components/UI/ThemedCard.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
 import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const ExpenseCategoriesIndex = ({ title }) => {
     const { auth } = usePage().props;
     const themeRadius = useThemeRadius();
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
+    // Manual responsive state management (HRMAC pattern)
     const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
     
     useEffect(() => {
-        const checkScreenSize = () => setIsMobile(window.innerWidth < 640);
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
         checkScreenSize();
         window.addEventListener('resize', checkScreenSize);
         return () => window.removeEventListener('resize', checkScreenSize);
@@ -27,7 +34,7 @@ const ExpenseCategoriesIndex = ({ title }) => {
     const [categories, setCategories] = useState([]);
     const [search, setSearch] = useState('');
 
-    const canCreate = auth.permissions?.includes('hrm.expenses.categories.create') || false;
+    const canCreateCategory = canCreate('hrm.expenses.categories') || isSuperAdmin();
 
     const fetchCategories = useCallback(async () => {
         setLoading(true);
@@ -72,7 +79,7 @@ const ExpenseCategoriesIndex = ({ title }) => {
                                                     <p className={`${!isMobile ? 'text-sm' : 'text-xs'} text-default-500`}>Manage expense claim categories and limits</p>
                                                 </div>
                                             </div>
-                                            {canCreate && (
+                                            {canCreateCategory && (
                                                 <Button color="primary" variant="shadow" startContent={<PlusIcon className="w-4 h-4" />} size={isMobile ? "sm" : "md"}>
                                                     Add Category
                                                 </Button>
