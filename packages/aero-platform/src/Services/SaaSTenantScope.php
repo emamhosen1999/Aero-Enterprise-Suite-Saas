@@ -17,6 +17,7 @@ use Aero\Platform\Models\Tenant;
 class SaaSTenantScope implements TenantScopeInterface
 {
     use ParsesHostDomain;
+
     /**
      * {@inheritdoc}
      */
@@ -105,8 +106,6 @@ class SaaSTenantScope implements TenantScopeInterface
 
     /**
      * Get the current tenant model.
-     *
-     * @return Tenant|null
      */
     public function getTenant(): ?Tenant
     {
@@ -119,7 +118,6 @@ class SaaSTenantScope implements TenantScopeInterface
      * Check if the current tenant has an active subscription for a module.
      *
      * @param  string  $moduleCode  The module code (e.g., 'hrm')
-     * @return bool
      */
     public function hasModuleSubscription(string $moduleCode): bool
     {

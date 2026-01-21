@@ -24,7 +24,7 @@ class UpdateSocialAuthProviderRequest extends FormRequest
 
         if (! in_array($provider, $supportedProviders)) {
             return [
-                'provider' => ['required', 'in:' . implode(',', $supportedProviders)],
+                'provider' => ['required', 'in:'.implode(',', $supportedProviders)],
             ];
         }
 

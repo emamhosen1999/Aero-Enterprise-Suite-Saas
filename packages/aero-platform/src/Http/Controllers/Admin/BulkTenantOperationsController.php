@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Validator;
 
 /**
  * Bulk Tenant Operations Controller
- * 
+ *
  * Handles bulk operations on multiple tenants
  */
 class BulkTenantOperationsController extends Controller
@@ -44,7 +44,7 @@ class BulkTenantOperationsController extends Controller
         $this->validateOperationOptions($operation, $options);
 
         // Verify user has permission
-        if (!$request->user()->can('manage-tenants')) {
+        if (! $request->user()->can('manage-tenants')) {
             return response()->json([
                 'message' => 'Unauthorized to perform bulk tenant operations',
             ], 403);
@@ -53,9 +53,9 @@ class BulkTenantOperationsController extends Controller
         // Dispatch job
         if ($async) {
             BulkTenantOperationsJob::dispatch($tenantIds, $operation, $options);
-            
+
             return response()->json([
-                'message' => "Bulk operation '{$operation}' queued for " . count($tenantIds) . ' tenant(s)',
+                'message' => "Bulk operation '{$operation}' queued for ".count($tenantIds).' tenant(s)',
                 'async' => true,
                 'tenant_count' => count($tenantIds),
             ]);
@@ -64,9 +64,9 @@ class BulkTenantOperationsController extends Controller
         // Execute synchronously
         try {
             BulkTenantOperationsJob::dispatchSync($tenantIds, $operation, $options);
-            
+
             return response()->json([
-                'message' => "Bulk operation '{$operation}' completed for " . count($tenantIds) . ' tenant(s)',
+                'message' => "Bulk operation '{$operation}' completed for ".count($tenantIds).' tenant(s)',
                 'async' => false,
                 'tenant_count' => count($tenantIds),
             ]);
@@ -84,6 +84,7 @@ class BulkTenantOperationsController extends Controller
     public function suspend(Request $request)
     {
         $request->merge(['operation' => 'suspend']);
+
         return $this->execute($request);
     }
 
@@ -93,6 +94,7 @@ class BulkTenantOperationsController extends Controller
     public function activate(Request $request)
     {
         $request->merge(['operation' => 'activate']);
+
         return $this->execute($request);
     }
 
@@ -102,6 +104,7 @@ class BulkTenantOperationsController extends Controller
     public function delete(Request $request)
     {
         $request->merge(['operation' => 'delete']);
+
         return $this->execute($request);
     }
 
@@ -128,6 +131,7 @@ class BulkTenantOperationsController extends Controller
     public function resetQuota(Request $request)
     {
         $request->merge(['operation' => 'reset_quota']);
+
         return $this->execute($request);
     }
 
@@ -150,7 +154,7 @@ class BulkTenantOperationsController extends Controller
     {
         switch ($operation) {
             case 'update_plan':
-                if (!isset($options['plan_id'])) {
+                if (! isset($options['plan_id'])) {
                     throw new \InvalidArgumentException('plan_id is required for update_plan operation');
                 }
                 break;
@@ -158,7 +162,7 @@ class BulkTenantOperationsController extends Controller
             case 'delete':
                 // Hard delete requires explicit confirmation
                 if (isset($options['confirm_hard_delete']) && $options['confirm_hard_delete'] === true) {
-                    if (!isset($options['confirmation_token']) || $options['confirmation_token'] !== 'CONFIRM_HARD_DELETE') {
+                    if (! isset($options['confirmation_token']) || $options['confirmation_token'] !== 'CONFIRM_HARD_DELETE') {
                         throw new \InvalidArgumentException('Hard delete requires confirmation_token = "CONFIRM_HARD_DELETE"');
                     }
                 }
@@ -227,7 +231,7 @@ class BulkTenantOperationsController extends Controller
         }
 
         if ($operation === 'delete') {
-            $warnings[] = "Tenants will be soft deleted and can be recovered within 30 days";
+            $warnings[] = 'Tenants will be soft deleted and can be recovered within 30 days';
         }
 
         return $warnings;

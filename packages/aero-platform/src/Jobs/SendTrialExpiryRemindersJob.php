@@ -23,8 +23,6 @@ class SendTrialExpiryRemindersJob implements ShouldQueue
 
     /**
      * Execute the job.
-     *
-     * @return void
      */
     public function handle(): void
     {
@@ -39,9 +37,6 @@ class SendTrialExpiryRemindersJob implements ShouldQueue
 
     /**
      * Send reminders for tenants expiring in specific days
-     *
-     * @param int $days
-     * @return void
      */
     protected function sendRemindersForDays(int $days): void
     {
@@ -49,7 +44,7 @@ class SendTrialExpiryRemindersJob implements ShouldQueue
 
         // Get tenants whose trial expires on the target date
         $tenants = DB::table('tenants')
-            ->where('trial_ends_at', 'like', $targetDate . '%')
+            ->where('trial_ends_at', 'like', $targetDate.'%')
             ->where('plan_id', null) // Still on trial, no paid plan
             ->whereNull('deleted_at')
             ->get();
@@ -71,22 +66,21 @@ class SendTrialExpiryRemindersJob implements ShouldQueue
     /**
      * Send reminder notification to a specific tenant
      *
-     * @param object $tenant
-     * @param int $days
-     * @return void
+     * @param  object  $tenant
      */
     protected function sendReminderToTenant($tenant, int $days): void
     {
         $trialEnds = \Carbon\Carbon::parse($tenant->trial_ends_at);
-        
+
         // Get tenant admin email and phone
         $adminUser = DB::table('users')
             ->where('tenant_id', $tenant->id)
             ->where('is_owner', true)
             ->first();
 
-        if (!$adminUser) {
+        if (! $adminUser) {
             Log::warning("SendTrialExpiryRemindersJob: No admin user found for tenant {$tenant->id}");
+
             return;
         }
 
@@ -95,8 +89,8 @@ class SendTrialExpiryRemindersJob implements ShouldQueue
             'tenant_name' => $tenant->name,
             'days_remaining' => $days,
             'trial_ends' => $trialEnds->format('F j, Y'),
-            'upgrade_url' => config('app.url') . '/billing/upgrade',
-            'support_url' => config('app.url') . '/support',
+            'upgrade_url' => config('app.url').'/billing/upgrade',
+            'support_url' => config('app.url').'/support',
             'discount' => '20',
             'show_pricing' => $days <= 3, // Show pricing for urgent reminders
         ];
@@ -106,7 +100,7 @@ class SendTrialExpiryRemindersJob implements ShouldQueue
             MailService::make()
                 ->template('notifications/trial-expiry', $variables)
                 ->to($adminUser->email)
-                ->subject("Your trial ends in {$days} " . ($days == 1 ? 'day' : 'days'))
+                ->subject("Your trial ends in {$days} ".($days == 1 ? 'day' : 'days'))
                 ->queue('notifications')
                 ->send();
 
@@ -120,7 +114,7 @@ class SendTrialExpiryRemindersJob implements ShouldQueue
                     'app_name' => config('app.name'),
                     'days' => $days,
                     'discount' => '20',
-                    'upgrade_url' => config('app.url') . '/upgrade',
+                    'upgrade_url' => config('app.url').'/upgrade',
                 ])
                 ->queue('sms')
                 ->retry(3)

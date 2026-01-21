@@ -82,8 +82,8 @@ class SeoService
             $baseUrl = $seo['canonical_domain'] ?? config('app.url');
             $pages = PlatformPage::active()->orderBy('priority')->get();
 
-            $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-            $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+            $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n";
+            $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n";
 
             // Add homepage
             $xml .= $this->buildSitemapUrl($baseUrl, 1.0, 'daily');
@@ -134,7 +134,7 @@ class SeoService
         $xml .= "    <loc>{$url}</loc>\n";
 
         if ($lastmod) {
-            $xml .= '    <lastmod>' . $lastmod->format('Y-m-d') . "</lastmod>\n";
+            $xml .= '    <lastmod>'.$lastmod->format('Y-m-d')."</lastmod>\n";
         }
 
         $xml .= "    <changefreq>{$changefreq}</changefreq>\n";

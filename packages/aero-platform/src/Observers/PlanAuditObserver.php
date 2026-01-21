@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Plan Audit Observer
- * 
+ *
  * Logs all plan mutations for compliance and audit purposes.
  */
 class PlanAuditObserver
@@ -35,7 +35,7 @@ class PlanAuditObserver
     public function updated(Plan $plan): void
     {
         $changes = $plan->getChanges();
-        
+
         // Don't log if only timestamps changed
         if (count($changes) === 1 && isset($changes['updated_at'])) {
             return;

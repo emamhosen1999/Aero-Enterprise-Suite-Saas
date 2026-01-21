@@ -86,7 +86,7 @@ class InstallationService
                 \PDO::ATTR_TIMEOUT => 5,
             ]);
 
-            $stmt = $pdo->prepare("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?");
+            $stmt = $pdo->prepare('SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?');
             $stmt->execute([$database]);
 
             return $stmt->rowCount() > 0;
@@ -124,7 +124,7 @@ class InstallationService
             ]);
 
             // Check if database already exists
-            $stmt = $pdo->prepare("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?");
+            $stmt = $pdo->prepare('SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?');
             $stmt->execute([$database]);
 
             if ($stmt->rowCount() > 0) {
@@ -181,7 +181,7 @@ class InstallationService
                 \PDO::ATTR_TIMEOUT => 5,
             ]);
 
-            $stmt = $pdo->query("SHOW DATABASES");
+            $stmt = $pdo->query('SHOW DATABASES');
             $databases = $stmt->fetchAll(\PDO::FETCH_COLUMN);
 
             // Filter out system databases

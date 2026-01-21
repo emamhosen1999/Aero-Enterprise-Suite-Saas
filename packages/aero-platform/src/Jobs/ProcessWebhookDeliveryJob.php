@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Process Webhook Delivery Job
- * 
+ *
  * Asynchronously delivers webhooks to registered endpoints
  */
 class ProcessWebhookDeliveryJob implements ShouldQueue
@@ -49,15 +49,15 @@ class ProcessWebhookDeliveryJob implements ShouldQueue
     public function handle(WebhookDeliveryService $deliveryService): void
     {
         try {
-            Log::info("Processing webhook delivery", [
+            Log::info('Processing webhook delivery', [
                 'webhook_id' => $this->webhook->id,
                 'event' => $this->event,
             ]);
 
             $result = $deliveryService->deliver($this->webhook, $this->payload, $this->event);
 
-            if (!$result['success']) {
-                Log::warning("Webhook delivery failed", [
+            if (! $result['success']) {
+                Log::warning('Webhook delivery failed', [
                     'webhook_id' => $this->webhook->id,
                     'event' => $this->event,
                     'error' => $result['error'] ?? 'Unknown error',
@@ -80,7 +80,7 @@ class ProcessWebhookDeliveryJob implements ShouldQueue
      */
     public function failed(\Throwable $exception): void
     {
-        Log::error("Webhook delivery job failed permanently", [
+        Log::error('Webhook delivery job failed permanently', [
             'webhook_id' => $this->webhook->id,
             'event' => $this->event,
             'exception' => $exception->getMessage(),

@@ -4,28 +4,24 @@ namespace Aero\Platform\Services;
 
 use Aero\Platform\Models\RateLimitConfig;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Rate Limit Configuration Service
- * 
+ *
  * Manages rate limit configurations for tenants and global settings
  */
 class RateLimitConfigService
 {
     protected string $cachePrefix = 'rate_limit_config:';
+
     protected int $cacheTtl = 3600; // 1 hour
 
     /**
      * Get rate limit configuration for a tenant
-     *
-     * @param string|null $tenantId
-     * @param string $limitType
-     * @return array
      */
     public function getConfig(?string $tenantId, string $limitType = 'api'): array
     {
-        $cacheKey = $this->cachePrefix . ($tenantId ?? 'global') . ':' . $limitType;
+        $cacheKey = $this->cachePrefix.($tenantId ?? 'global').':'.$limitType;
 
         return Cache::remember($cacheKey, $this->cacheTtl, function () use ($tenantId, $limitType) {
             // Try tenant-specific config first
@@ -52,9 +48,6 @@ class RateLimitConfigService
 
     /**
      * Create or update rate limit configuration
-     *
-     * @param array $data
-     * @return RateLimitConfig
      */
     public function createOrUpdate(array $data): RateLimitConfig
     {
@@ -83,22 +76,18 @@ class RateLimitConfigService
 
     /**
      * Delete rate limit configuration
-     *
-     * @param string $configId
-     * @return bool
      */
     public function delete(string $configId): bool
     {
         $config = RateLimitConfig::findOrFail($configId);
         $this->clearCache($config->tenant_id, $config->limit_type);
-        
+
         return $config->delete();
     }
 
     /**
      * Get all configurations for a tenant
      *
-     * @param string|null $tenantId
      * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getTenantConfigs(?string $tenantId)
@@ -111,10 +100,6 @@ class RateLimitConfigService
 
     /**
      * Check if IP is whitelisted
-     *
-     * @param string|null $tenantId
-     * @param string $ip
-     * @return bool
      */
     public function isWhitelisted(?string $tenantId, string $ip): bool
     {
@@ -134,10 +119,6 @@ class RateLimitConfigService
 
     /**
      * Check if IP is blacklisted
-     *
-     * @param string|null $tenantId
-     * @param string $ip
-     * @return bool
      */
     public function isBlacklisted(?string $tenantId, string $ip): bool
     {
@@ -157,16 +138,13 @@ class RateLimitConfigService
 
     /**
      * Get rate limit statistics
-     *
-     * @param string|null $tenantId
-     * @return array
      */
     public function getStats(?string $tenantId): array
     {
         // Get from cache or calculate
-        $cacheKey = $this->cachePrefix . 'stats:' . ($tenantId ?? 'global');
+        $cacheKey = $this->cachePrefix.'stats:'.($tenantId ?? 'global');
 
-        return Cache::remember($cacheKey, 300, function () use ($tenantId) {
+        return Cache::remember($cacheKey, 300, function () {
             // TODO: Implement statistics calculation from logs
             return [
                 'total_requests' => 0,
@@ -179,9 +157,6 @@ class RateLimitConfigService
 
     /**
      * Format configuration for output
-     *
-     * @param RateLimitConfig $config
-     * @return array
      */
     protected function formatConfig(RateLimitConfig $config): array
     {
@@ -201,9 +176,6 @@ class RateLimitConfigService
 
     /**
      * Get default configuration
-     *
-     * @param string $limitType
-     * @return array
      */
     protected function getDefaultConfig(string $limitType): array
     {
@@ -253,23 +225,19 @@ class RateLimitConfigService
 
     /**
      * Clear configuration cache
-     *
-     * @param string|null $tenantId
-     * @param string|null $limitType
-     * @return void
      */
     protected function clearCache(?string $tenantId, ?string $limitType = null): void
     {
-        $pattern = $this->cachePrefix . ($tenantId ?? 'global');
-        
+        $pattern = $this->cachePrefix.($tenantId ?? 'global');
+
         if ($limitType) {
-            Cache::forget($pattern . ':' . $limitType);
+            Cache::forget($pattern.':'.$limitType);
         } else {
-            Cache::forget($pattern . ':api');
-            Cache::forget($pattern . ':web');
-            Cache::forget($pattern . ':webhook');
+            Cache::forget($pattern.':api');
+            Cache::forget($pattern.':web');
+            Cache::forget($pattern.':webhook');
         }
 
-        Cache::forget($this->cachePrefix . 'stats:' . ($tenantId ?? 'global'));
+        Cache::forget($this->cachePrefix.'stats:'.($tenantId ?? 'global'));
     }
 }

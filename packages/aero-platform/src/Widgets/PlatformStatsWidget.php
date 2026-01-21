@@ -7,7 +7,6 @@ namespace Aero\Platform\Widgets;
 use Aero\Platform\Contracts\AbstractPlatformWidget;
 use Aero\Platform\Contracts\PlatformWidgetCategory;
 use Aero\Platform\Models\LandlordUser;
-use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\Subscription;
 use Aero\Platform\Models\Tenant;
 use Carbon\Carbon;

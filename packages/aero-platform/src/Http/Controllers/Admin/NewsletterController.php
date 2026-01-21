@@ -79,7 +79,7 @@ class NewsletterController extends Controller
         $validated = $request->validate([
             'email' => 'required|email|max:255',
             'name' => 'nullable|string|max:255',
-            'source' => 'nullable|string|in:' . implode(',', array_keys(NewsletterSubscriber::getSourceOptions())),
+            'source' => 'nullable|string|in:'.implode(',', array_keys(NewsletterSubscriber::getSourceOptions())),
             'preferences' => 'nullable|array',
             'skip_confirmation' => 'boolean',
         ]);
@@ -110,7 +110,7 @@ class NewsletterController extends Controller
         $validated = $request->validate([
             'name' => 'nullable|string|max:255',
             'preferences' => 'nullable|array',
-            'status' => 'nullable|string|in:' . implode(',', array_keys(NewsletterSubscriber::getStatusOptions())),
+            'status' => 'nullable|string|in:'.implode(',', array_keys(NewsletterSubscriber::getStatusOptions())),
         ]);
 
         $subscriber->update($validated);

@@ -7,14 +7,13 @@ namespace Aero\Platform\Services;
 use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\Subscription;
 use Aero\Platform\Models\Tenant;
-use Aero\Platform\Services\PlanEntitlementService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Subscription Lifecycle Service
- * 
+ *
  * Handles upgrade/downgrade workflows with grace periods,
  * cancellation policies, and prorated billing.
  */
@@ -199,7 +198,7 @@ class SubscriptionLifecycleService
     protected function applyEndOfPeriodCancellation(Subscription $subscription): void
     {
         $endsAt = $subscription->next_billing_date ?? now()->addMonth();
-        
+
         $subscription->update([
             'status' => 'cancelled',
             'cancelled_at' => now(),
@@ -230,7 +229,7 @@ class SubscriptionLifecycleService
     {
         $billingCycleStart = $subscription->current_period_start ?? now()->startOfMonth();
         $billingCycleEnd = $subscription->next_billing_date ?? now()->endOfMonth();
-        
+
         $totalDays = $billingCycleStart->diffInDays($billingCycleEnd);
         $remainingDays = now()->diffInDays($billingCycleEnd);
 
@@ -253,6 +252,7 @@ class SubscriptionLifecycleService
     protected function calculateNextBillingDate(Plan $plan): Carbon
     {
         $months = $plan->duration_in_months ?? 1;
+
         return now()->addMonths($months);
     }
 
@@ -271,8 +271,8 @@ class SubscriptionLifecycleService
         foreach ($subscriptions as $subscription) {
             try {
                 $newPlan = Plan::find($subscription->pending_plan_id);
-                
-                if (!$newPlan) {
+
+                if (! $newPlan) {
                     continue;
                 }
 

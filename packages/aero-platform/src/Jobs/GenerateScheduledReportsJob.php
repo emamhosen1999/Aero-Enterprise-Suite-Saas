@@ -2,21 +2,22 @@
 
 namespace Aero\Platform\Jobs;
 
+use Aero\Platform\Models\ScheduledReport;
+use Aero\Platform\Services\ReportScheduler;
+use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Aero\Platform\Models\ScheduledReport;
-use Aero\Platform\Services\ReportScheduler;
 use Illuminate\Support\Facades\Log;
-use Exception;
 
 class GenerateScheduledReportsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $timeout = 600; // 10 minutes timeout for report generation
+
     public $tries = 3;
 
     /**
@@ -30,7 +31,7 @@ class GenerateScheduledReportsJob implements ShouldQueue
             // Get all reports that are due for execution
             $dueReports = ScheduledReport::dueNow()->get();
 
-            Log::info('Found ' . $dueReports->count() . ' reports due for execution');
+            Log::info('Found '.$dueReports->count().' reports due for execution');
 
             foreach ($dueReports as $report) {
                 try {

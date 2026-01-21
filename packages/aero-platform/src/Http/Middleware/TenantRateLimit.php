@@ -30,10 +30,7 @@ class TenantRateLimit
     /**
      * Handle an incoming request.
      *
-     * @param Request $request
-     * @param Closure $next
-     * @param string $action The action type (api, export, import, etc.)
-     * @return Response
+     * @param  string  $action  The action type (api, export, import, etc.)
      */
     public function handle(Request $request, Closure $next, string $action = 'api'): Response
     {
@@ -57,10 +54,6 @@ class TenantRateLimit
 
     /**
      * Build rate limit exceeded response.
-     *
-     * @param mixed $tenant
-     * @param string $action
-     * @return Response
      */
     protected function buildRateLimitResponse(mixed $tenant, string $action): Response
     {
@@ -78,11 +71,6 @@ class TenantRateLimit
 
     /**
      * Add rate limit headers to response.
-     *
-     * @param Response $response
-     * @param mixed $tenant
-     * @param string $action
-     * @return Response
      */
     protected function addRateLimitHeaders(Response $response, mixed $tenant, string $action): Response
     {

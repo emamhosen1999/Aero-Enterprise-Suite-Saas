@@ -2,9 +2,9 @@
 
 namespace Aero\Platform\Models;
 
+use Aero\Core\Support\TenantCache;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\Crypt;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -605,4 +605,3 @@ class PlatformSetting extends Model implements HasMedia
         );
     }
 }
-

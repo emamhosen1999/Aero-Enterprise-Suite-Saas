@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aero\Platform\Http\Middleware;
 
-use Aero\Platform\Services\Module\RoleModuleAccessService;
+use Aero\HRMAC\Contracts\RoleModuleAccessInterface;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,7 +26,7 @@ use Symfony\Component\HttpFoundation\Response;
 class CheckRoleModuleAccess
 {
     public function __construct(
-        protected RoleModuleAccessService $roleModuleAccessService
+        protected RoleModuleAccessInterface $roleModuleAccessService
     ) {}
 
     /**
@@ -53,7 +55,7 @@ class CheckRoleModuleAccess
         }
 
         // Super admin bypasses all checks
-        if ($user->hasRole(['Super Administrator', 'super-admin', 'tenant_super_administrator'])) {
+        if ($this->isSuperAdmin($user)) {
             return $next($request);
         }
 
@@ -123,7 +125,30 @@ class CheckRoleModuleAccess
             ], 403, ['X-Inertia' => 'true']);
         }
 
-        // Regular redirect with error
-        return redirect()->route('core.dashboard')->with('error', $message);
+        // Try to redirect to an accessible route
+        $redirectRoute = $this->roleModuleAccessService->getFirstAccessibleRoute($request->user());
+        if ($redirectRoute) {
+            return redirect()->route($redirectRoute)->with('warning', $message);
+        }
+
+        return redirect()->route('login')->with('error', $message);
+    }
+
+    /**
+     * Check if user is a super admin.
+     */
+    protected function isSuperAdmin($user): bool
+    {
+        if (! method_exists($user, 'hasRole')) {
+            return false;
+        }
+
+        $superAdminRoles = config('hrmac.super_admin_roles', [
+            'Super Administrator',
+            'super-admin',
+            'tenant_super_administrator',
+        ]);
+
+        return $user->hasRole($superAdminRoles);
     }
 }

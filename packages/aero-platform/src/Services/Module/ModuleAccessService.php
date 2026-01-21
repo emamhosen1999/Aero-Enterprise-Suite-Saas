@@ -1,14 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aero\Platform\Services\Module;
 
+use Aero\Core\Support\TenantCache;
+use Aero\HRMAC\Contracts\RoleModuleAccessInterface;
 use Aero\Platform\Models\LandlordUser;
 use Aero\Platform\Models\Module;
 use Aero\Platform\Models\ModuleComponent;
 use Aero\Platform\Models\ModuleComponentAction;
 use Aero\Platform\Models\Role;
 use Aero\Platform\Models\SubModule;
-use Aero\Core\Support\TenantCache;
 
 /**
  * Module Access Service
@@ -23,9 +26,9 @@ use Aero\Core\Support\TenantCache;
  */
 class ModuleAccessService
 {
-    protected RoleModuleAccessService $roleAccessService;
+    protected RoleModuleAccessInterface $roleAccessService;
 
-    public function __construct(RoleModuleAccessService $roleAccessService)
+    public function __construct(RoleModuleAccessInterface $roleAccessService)
     {
         $this->roleAccessService = $roleAccessService;
     }
@@ -33,7 +36,7 @@ class ModuleAccessService
     /**
      * Check if user is platform super administrator.
      */
-    protected function isPlatformSuperAdmin(LandlordLandlordUser $user): bool
+    protected function isPlatformSuperAdmin(LandlordUser $user): bool
     {
         return $user->hasRole('Super Administrator');
     }
@@ -41,7 +44,7 @@ class ModuleAccessService
     /**
      * Check if user is tenant super administrator.
      */
-    protected function isTenantSuperAdmin(LandlordLandlordUser $user): bool
+    protected function isTenantSuperAdmin(LandlordUser $user): bool
     {
         return $user->hasRole('tenant_super_administrator');
     }
@@ -531,4 +534,3 @@ class ModuleAccessService
         }
     }
 }
-

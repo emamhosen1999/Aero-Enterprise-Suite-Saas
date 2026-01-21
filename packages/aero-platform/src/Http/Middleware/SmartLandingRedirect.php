@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aero\Platform\Http\Middleware;
 
-use Aero\Platform\Services\Module\RoleModuleAccessService;
+use Aero\HRMAC\Contracts\RoleModuleAccessInterface;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +24,7 @@ use Symfony\Component\HttpFoundation\Response;
 class SmartLandingRedirect
 {
     public function __construct(
-        protected RoleModuleAccessService $roleModuleAccessService
+        protected RoleModuleAccessInterface $roleModuleAccessService
     ) {}
 
     /**

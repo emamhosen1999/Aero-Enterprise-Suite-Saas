@@ -71,7 +71,7 @@ class DomainController extends Controller
      */
     public function stats(): JsonResponse
     {
-        $cacheKey = 'domain_stats_' . now()->format('Y-m-d_H-i');
+        $cacheKey = 'domain_stats_'.now()->format('Y-m-d_H-i');
         $cacheTtl = 120; // 2 minutes
 
         $stats = Cache::remember($cacheKey, $cacheTtl, function () {

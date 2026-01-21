@@ -2,8 +2,8 @@
 
 namespace Aero\Platform\Http\Controllers\Auth;
 
-use Aero\Platform\Services\Auth\SamlService;
 use Aero\Platform\Http\Controllers\Controller;
+use Aero\Platform\Services\Auth\SamlService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

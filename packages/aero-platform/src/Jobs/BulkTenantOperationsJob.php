@@ -9,12 +9,12 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Bulk Tenant Operations Job
- * 
+ *
  * Performs bulk operations on multiple tenants (suspend, activate, delete)
  */
 class BulkTenantOperationsJob implements ShouldQueue
@@ -49,7 +49,7 @@ class BulkTenantOperationsJob implements ShouldQueue
      */
     public function handle(WebhookEventDispatcher $eventDispatcher): void
     {
-        Log::info("Starting bulk tenant operation", [
+        Log::info('Starting bulk tenant operation', [
             'operation' => $this->operation,
             'tenant_count' => count($this->tenantIds),
         ]);
@@ -65,10 +65,11 @@ class BulkTenantOperationsJob implements ShouldQueue
                 DB::beginTransaction();
 
                 $tenant = Tenant::find($tenantId);
-                
-                if (!$tenant) {
+
+                if (! $tenant) {
                     $results['failed']++;
                     $results['errors'][] = "Tenant {$tenantId} not found";
+
                     continue;
                 }
 
@@ -93,7 +94,7 @@ class BulkTenantOperationsJob implements ShouldQueue
                 DB::rollBack();
                 $results['failed']++;
                 $results['errors'][] = "Tenant {$tenantId}: {$e->getMessage()}";
-                
+
                 Log::error("Bulk operation failed for tenant {$tenantId}", [
                     'operation' => $this->operation,
                     'error' => $e->getMessage(),
@@ -101,7 +102,7 @@ class BulkTenantOperationsJob implements ShouldQueue
             }
         }
 
-        Log::info("Completed bulk tenant operation", [
+        Log::info('Completed bulk tenant operation', [
             'operation' => $this->operation,
             'results' => $results,
         ]);
@@ -166,7 +167,7 @@ class BulkTenantOperationsJob implements ShouldQueue
         // Soft delete
         if ($this->options['soft_delete'] ?? true) {
             $tenant->delete();
-            
+
             $eventDispatcher->dispatch('tenant.deleted', [
                 'tenant_id' => $tenant->id,
                 'tenant_name' => $tenant->name,
@@ -180,7 +181,7 @@ class BulkTenantOperationsJob implements ShouldQueue
         // Hard delete (requires confirmation)
         if (($this->options['confirm_hard_delete'] ?? false) === true) {
             $tenant->forceDelete();
-            
+
             $eventDispatcher->dispatch('tenant.deleted', [
                 'tenant_id' => $tenant->id,
                 'tenant_name' => $tenant->name,
@@ -199,12 +200,12 @@ class BulkTenantOperationsJob implements ShouldQueue
      */
     protected function updateTenantPlan(Tenant $tenant, WebhookEventDispatcher $eventDispatcher): bool
     {
-        if (!isset($this->options['plan_id'])) {
+        if (! isset($this->options['plan_id'])) {
             throw new \InvalidArgumentException('plan_id is required for update_plan operation');
         }
 
         $oldPlanId = $tenant->plan_id;
-        
+
         $tenant->update([
             'plan_id' => $this->options['plan_id'],
         ]);
@@ -248,7 +249,7 @@ class BulkTenantOperationsJob implements ShouldQueue
      */
     public function failed(\Throwable $exception): void
     {
-        Log::error("Bulk tenant operation job failed permanently", [
+        Log::error('Bulk tenant operation job failed permanently', [
             'operation' => $this->operation,
             'tenant_count' => count($this->tenantIds),
             'exception' => $exception->getMessage(),

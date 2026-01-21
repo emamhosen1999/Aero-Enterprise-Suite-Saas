@@ -171,8 +171,6 @@ class ProductCatalogController extends Controller
 
     /**
      * Get all available products.
-     *
-     * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
@@ -201,12 +199,10 @@ class ProductCatalogController extends Controller
 
     /**
      * Get a specific product by code.
-     *
-     * @return JsonResponse
      */
     public function show(string $code): JsonResponse
     {
-        if (!isset($this->productCatalog[$code])) {
+        if (! isset($this->productCatalog[$code])) {
             return response()->json([
                 'success' => false,
                 'message' => 'Product not found',
@@ -221,8 +217,6 @@ class ProductCatalogController extends Controller
 
     /**
      * Get product categories.
-     *
-     * @return array
      */
     protected function getCategories(): array
     {
@@ -236,8 +230,6 @@ class ProductCatalogController extends Controller
 
     /**
      * Get featured/popular products.
-     *
-     * @return JsonResponse
      */
     public function featured(): JsonResponse
     {

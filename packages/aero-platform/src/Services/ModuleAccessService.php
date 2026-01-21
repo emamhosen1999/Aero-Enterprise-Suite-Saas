@@ -2,12 +2,12 @@
 
 namespace Aero\Platform\Services;
 
+use Aero\Core\Models\User;
+use Aero\Core\Support\TenantCache;
 use Aero\Platform\Models\Action;
 use Aero\Platform\Models\Component;
-use Aero\Core\Models\User;
 use Aero\Platform\Models\Module;
 use Aero\Platform\Models\SubModule;
-use Aero\Core\Support\TenantCache;
 
 /**
  * Module Access Service

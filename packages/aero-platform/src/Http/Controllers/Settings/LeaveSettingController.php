@@ -2,8 +2,8 @@
 
 namespace Aero\Platform\Http\Controllers\Settings;
 
-use Aero\Platform\Models\HRM\LeaveSetting;
 use Aero\Platform\Http\Controllers\Controller;
+use Aero\Platform\Models\HRM\LeaveSetting;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

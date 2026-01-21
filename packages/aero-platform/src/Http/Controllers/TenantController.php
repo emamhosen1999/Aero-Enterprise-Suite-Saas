@@ -8,7 +8,6 @@ use Aero\Platform\Models\Tenant;
 use Aero\Platform\Services\Monitoring\Tenant\TenantProvisioner;
 use Aero\Platform\Services\Tenant\TenantPurgeService;
 use Aero\Platform\Services\Tenant\TenantRetentionService;
-use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -238,7 +237,7 @@ class TenantController extends Controller
                 // Check for modules being removed (potential data loss)
                 $removedModules = array_diff($oldModules, $newModules);
 
-                if (!empty($removedModules)) {
+                if (! empty($removedModules)) {
                     // Log the plan change with removed modules for audit
                     \Illuminate\Support\Facades\Log::warning('Tenant plan downgrade detected', [
                         'tenant_id' => $tenant->id,
@@ -314,7 +313,7 @@ class TenantController extends Controller
         $this->authorize('restore', $tenant);
 
         // Check if restoration is allowed
-        if (!$this->retentionService->canRestore($tenant)) {
+        if (! $this->retentionService->canRestore($tenant)) {
             return response()->json([
                 'message' => 'Retention period expired. Tenant cannot be restored.',
             ], 422);
@@ -348,9 +347,9 @@ class TenantController extends Controller
         $this->authorize('forceDelete', $tenant);
 
         // Verify retention period expired
-        if (!$this->retentionService->canPurge($tenant)) {
+        if (! $this->retentionService->canPurge($tenant)) {
             $expiresAt = $this->retentionService->getRetentionExpiresAt($tenant);
-            
+
             return response()->json([
                 'message' => "Retention period not expired. Can purge after {$expiresAt->toDateString()}",
                 'retention_expires_at' => $expiresAt->toIso8601String(),
@@ -376,7 +375,7 @@ class TenantController extends Controller
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Failed to purge tenant: ' . $e->getMessage(),
+                'message' => 'Failed to purge tenant: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -449,7 +448,7 @@ class TenantController extends Controller
 
     /**
      * Check subdomain availability.
-     * 
+     *
      * Public API endpoint - no session required.
      * Only checks if subdomain is taken by an active tenant.
      */
@@ -559,7 +558,7 @@ class TenantController extends Controller
             tenancy()->end();
 
             return response()->json([
-                'message' => 'Failed to force logout: ' . $e->getMessage(),
+                'message' => 'Failed to force logout: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -585,13 +584,13 @@ class TenantController extends Controller
         $tenant->data = array_merge($tenant->data?->getArrayCopy() ?? [], [
             'maintenance_toggled_at' => now()->toIso8601String(),
             'maintenance_toggled_by' => auth('landlord')->id(),
-            'maintenance_mode' => !$isEnabled,
+            'maintenance_mode' => ! $isEnabled,
         ]);
         $tenant->save();
 
         return response()->json([
             'data' => $tenant->fresh(),
-            'maintenance_mode' => !$isEnabled,
+            'maintenance_mode' => ! $isEnabled,
             'message' => $message,
         ]);
     }
@@ -617,7 +616,7 @@ class TenantController extends Controller
             })
             ->orderBy('created_at', 'desc');
 
-        $filename = 'tenants_export_' . now()->format('Y-m-d_His') . '.csv';
+        $filename = 'tenants_export_'.now()->format('Y-m-d_His').'.csv';
 
         $headers = [
             'Content-Type' => 'text/csv',

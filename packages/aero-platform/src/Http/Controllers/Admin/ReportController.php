@@ -7,10 +7,10 @@ namespace Aero\Platform\Http\Controllers\Admin;
 use Aero\Platform\Http\Controllers\Controller;
 use Aero\Platform\Models\ScheduledReport;
 use Aero\Platform\Services\ReportScheduler;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
-use Exception;
 
 /**
  * Admin Report Management Controller
@@ -33,7 +33,7 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         $user = $request->user('landlord');
-        
+
         $filters = [];
         if ($request->has('is_active')) {
             $filters['is_active'] = $request->boolean('is_active');
@@ -79,7 +79,7 @@ class ReportController extends Controller
         try {
             $user = $request->user('landlord');
             $config = array_merge($request->all(), ['user_id' => $user->id]);
-            
+
             $report = $this->reportScheduler->saveReportConfig($config, $user->id);
 
             return response()->json([
@@ -102,7 +102,7 @@ class ReportController extends Controller
     public function show(Request $request, int $id)
     {
         $user = $request->user('landlord');
-        
+
         $report = ScheduledReport::where('id', $id)
             ->where('user_id', $user->id)
             ->with('latestExecution')
@@ -120,7 +120,7 @@ class ReportController extends Controller
     public function update(Request $request, int $id)
     {
         $user = $request->user('landlord');
-        
+
         $report = ScheduledReport::where('id', $id)
             ->where('user_id', $user->id)
             ->firstOrFail();
@@ -171,7 +171,7 @@ class ReportController extends Controller
     public function destroy(Request $request, int $id)
     {
         $user = $request->user('landlord');
-        
+
         $report = ScheduledReport::where('id', $id)
             ->where('user_id', $user->id)
             ->firstOrFail();
@@ -198,7 +198,7 @@ class ReportController extends Controller
     public function run(Request $request, int $id)
     {
         $user = $request->user('landlord');
-        
+
         $report = ScheduledReport::where('id', $id)
             ->where('user_id', $user->id)
             ->firstOrFail();
@@ -226,14 +226,14 @@ class ReportController extends Controller
     public function duplicate(Request $request, int $id)
     {
         $user = $request->user('landlord');
-        
+
         $report = ScheduledReport::where('id', $id)
             ->where('user_id', $user->id)
             ->firstOrFail();
 
         try {
             $newReport = $report->replicate();
-            $newReport->name = $report->name . ' (Copy)';
+            $newReport->name = $report->name.' (Copy)';
             $newReport->is_active = false; // Start as inactive
             $newReport->save();
 
@@ -257,7 +257,7 @@ class ReportController extends Controller
     public function executions(Request $request, int $id)
     {
         $user = $request->user('landlord');
-        
+
         $report = ScheduledReport::where('id', $id)
             ->where('user_id', $user->id)
             ->firstOrFail();
@@ -291,7 +291,7 @@ class ReportController extends Controller
         try {
             $config = $request->input('config');
             $config['report_type'] = $request->input('report_type');
-            
+
             $result = $this->reportScheduler->generateReport($config);
 
             return response()->json($result);

@@ -31,10 +31,6 @@ class SendSmsJob implements ShouldQueue
 
     /**
      * Create a new job instance.
-     *
-     * @param string $phoneNumber
-     * @param string $message
-     * @param int $tries
      */
     public function __construct(string $phoneNumber, string $message, int $tries = 3)
     {
@@ -45,15 +41,13 @@ class SendSmsJob implements ShouldQueue
 
     /**
      * Execute the job.
-     *
-     * @return void
      */
     public function handle(): void
     {
         try {
             $result = SmsService::sendDirectly($this->phoneNumber, $this->message);
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 throw new \Exception($result['message'] ?? 'SMS sending failed');
             }
 
@@ -75,9 +69,6 @@ class SendSmsJob implements ShouldQueue
 
     /**
      * Handle a job failure.
-     *
-     * @param \Throwable $exception
-     * @return void
      */
     public function failed(\Throwable $exception): void
     {

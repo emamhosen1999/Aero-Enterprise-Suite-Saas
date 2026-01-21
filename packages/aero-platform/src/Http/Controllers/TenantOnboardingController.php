@@ -4,6 +4,7 @@ namespace Aero\Platform\Http\Controllers;
 
 use Aero\Core\Models\User;
 use Aero\Core\Services\Module\ModuleDiscoveryService;
+use Aero\HRMAC\Models\Role;
 use Aero\Platform\Models\TenantInvitation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,7 +12,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
-use Aero\HRMAC\Models\Role;
 
 /**
  * TenantOnboardingController
@@ -206,6 +206,7 @@ class TenantOnboardingController extends Controller
                 if (User::where('email', $invitation['email'])->exists()) {
                     $skippedCount++;
                     $errors[] = "{$invitation['email']} is already a team member.";
+
                     continue;
                 }
 
@@ -215,6 +216,7 @@ class TenantOnboardingController extends Controller
                     ->exists()) {
                     $skippedCount++;
                     $errors[] = "{$invitation['email']} was already invited.";
+
                     continue;
                 }
 

@@ -22,7 +22,7 @@ class StoreNewsletterSubscriberRequest extends FormRequest
         return [
             'email' => ['required', 'email', 'max:255'],
             'name' => ['nullable', 'string', 'max:255'],
-            'source' => ['nullable', 'string', 'in:' . implode(',', array_keys(NewsletterSubscriber::getSourceOptions()))],
+            'source' => ['nullable', 'string', 'in:'.implode(',', array_keys(NewsletterSubscriber::getSourceOptions()))],
             'preferences' => ['nullable', 'array'],
             'preferences.*' => ['string', 'max:50'],
             'skip_confirmation' => ['boolean'],

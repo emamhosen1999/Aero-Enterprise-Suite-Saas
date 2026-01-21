@@ -29,7 +29,7 @@ class EnsureTenantIsActive
     {
         $tenant = tenant();
 
-        if (!$tenant) {
+        if (! $tenant) {
             // No tenant context - let InitializeTenancy handle this
             return $next($request);
         }
@@ -46,7 +46,7 @@ class EnsureTenantIsActive
 
         if ($tenant->status === Tenant::STATUS_SUSPENDED) {
             $reason = $tenant->data['suspended_reason'] ?? 'Your account has been suspended';
-            
+
             return response()->view('errors.tenant-suspended', [
                 'message' => $reason,
                 'suspended_at' => $tenant->data['suspended_at'] ?? now()->toIso8601String(),
@@ -58,7 +58,7 @@ class EnsureTenantIsActive
         }
 
         // Allow provisioning status to proceed (for admin setup)
-        if (!$tenant->isActive() && $tenant->status !== Tenant::STATUS_PROVISIONING) {
+        if (! $tenant->isActive() && $tenant->status !== Tenant::STATUS_PROVISIONING) {
             abort(503, 'This organization is currently unavailable.');
         }
 

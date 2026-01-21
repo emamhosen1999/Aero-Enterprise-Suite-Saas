@@ -2,13 +2,12 @@
 
 namespace Aero\Platform\Http\Controllers;
 
+use Aero\Core\Support\TenantCache;
 use Aero\Platform\Models\Module;
 use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\Subscription;
 use Aero\Platform\Models\Tenant;
-use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\DB;
 
 class ModuleAnalyticsController extends Controller

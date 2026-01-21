@@ -305,7 +305,7 @@ class AffiliateService
     {
         $sessionId = session()->getId();
 
-        return md5($sessionId . request()->ip());
+        return md5($sessionId.request()->ip());
     }
 
     /**

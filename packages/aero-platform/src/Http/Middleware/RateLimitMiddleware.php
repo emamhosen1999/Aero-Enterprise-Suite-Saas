@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Configurable Rate Limit Middleware
- * 
+ *
  * Applies rate limiting based on configurations from RateLimitConfigService
  */
 class RateLimitMiddleware
@@ -44,7 +44,7 @@ class RateLimitMiddleware
         // Get rate limit configuration
         $config = $this->configService->getConfig($tenantId, $limitType);
 
-        if (!$config['is_active']) {
+        if (! $config['is_active']) {
             return $next($request);
         }
 
@@ -96,6 +96,7 @@ class RateLimitMiddleware
         // Try to get tenant from request context
         if (function_exists('tenant')) {
             $tenant = tenant();
+
             return $tenant?->id;
         }
 
@@ -110,7 +111,7 @@ class RateLimitMiddleware
     {
         $prefix = 'rate_limit';
         $identifier = $tenantId ?? $ip;
-        
+
         return "{$prefix}:{$identifier}:{$limitType}";
     }
 
@@ -140,12 +141,12 @@ class RateLimitMiddleware
             'time_window' => $timeWindow,
             'retry_after' => $retryAfter,
         ], 429)
-        ->withHeaders([
-            'X-RateLimit-Limit' => $maxRequests,
-            'X-RateLimit-Remaining' => 0,
-            'X-RateLimit-Reset' => now()->addSeconds($timeWindow)->timestamp,
-            'Retry-After' => $retryAfter,
-        ]);
+            ->withHeaders([
+                'X-RateLimit-Limit' => $maxRequests,
+                'X-RateLimit-Remaining' => 0,
+                'X-RateLimit-Reset' => now()->addSeconds($timeWindow)->timestamp,
+                'Retry-After' => $retryAfter,
+            ]);
     }
 
     /**

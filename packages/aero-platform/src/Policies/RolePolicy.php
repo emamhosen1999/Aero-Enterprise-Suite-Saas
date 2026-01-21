@@ -3,8 +3,8 @@
 namespace Aero\Platform\Policies;
 
 use Aero\Core\Models\User;
-use Illuminate\Auth\Access\Response;
 use Aero\HRMAC\Models\Role;
+use Illuminate\Auth\Access\Response;
 
 /**
  * Role Policy

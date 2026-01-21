@@ -2,12 +2,11 @@
 
 namespace Aero\Platform\Http\Controllers;
 
+use Aero\Core\Support\TenantCache;
 use Aero\Platform\Models\PlatformSetting;
-use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Aero\Core\Support\TenantCache;
 use Inertia\Inertia;
 use Inertia\Response;
 

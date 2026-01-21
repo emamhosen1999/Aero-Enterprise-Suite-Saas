@@ -66,7 +66,7 @@ class CheckQuotaLimitsJob implements ShouldQueue
                     }
                     // Warning level (90-94%): Daily alert (check if we sent one today)
                     elseif ($percentage >= 90) {
-                        if (!$this->sentAlertToday($tenant, $quotaType)) {
+                        if (! $this->sentAlertToday($tenant, $quotaType)) {
                             $this->sendWarningAlert($quotaService, $tenant, $quotaType, $percentage);
                             $warningCount++;
                         }
@@ -86,10 +86,10 @@ class CheckQuotaLimitsJob implements ShouldQueue
     protected function sendCriticalAlert(EnhancedQuotaEnforcementService $quotaService, Tenant $tenant, string $quotaType, float $percentage): void
     {
         Log::critical("CRITICAL: Tenant {$tenant->id} at {$percentage}% for {$quotaType}");
-        
+
         // Create warning record
         $quotaService->getQuotaSummary($tenant); // This triggers internal warning creation
-        
+
         // TODO: Send immediate notification via email + SMS
         // TODO: Alert super administrators
     }
@@ -100,7 +100,7 @@ class CheckQuotaLimitsJob implements ShouldQueue
     protected function sendHighAlert(EnhancedQuotaEnforcementService $quotaService, Tenant $tenant, string $quotaType, float $percentage): void
     {
         Log::warning("HIGH: Tenant {$tenant->id} at {$percentage}% for {$quotaType}");
-        
+
         // TODO: Send email + SMS notification
     }
 
@@ -110,7 +110,7 @@ class CheckQuotaLimitsJob implements ShouldQueue
     protected function sendWarningAlert(EnhancedQuotaEnforcementService $quotaService, Tenant $tenant, string $quotaType, float $percentage): void
     {
         Log::info("WARNING: Tenant {$tenant->id} at {$percentage}% for {$quotaType}");
-        
+
         // TODO: Send email notification
     }
 

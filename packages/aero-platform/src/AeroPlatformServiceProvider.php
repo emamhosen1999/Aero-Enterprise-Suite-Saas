@@ -4,13 +4,14 @@ namespace Aero\Platform;
 
 use Aero\Core\Contracts\TenantScopeInterface;
 use Aero\Core\Services\NavigationRegistry;
+use Aero\HRMAC\Services\RoleModuleAccessService as HRMACRoleModuleAccessService;
 use Aero\Platform\Listeners\TenantCreatedListener;
 use Aero\Platform\Models\LandlordUser;
 use Aero\Platform\Services\Billing\SslCommerzService;
-use Aero\Platform\Services\ModuleAccessService;
+use Aero\Platform\Services\Module\ModuleAccessService;
+use Aero\Platform\Services\Module\RoleModuleAccessService;
 use Aero\Platform\Services\Monitoring\Tenant\ErrorLogService;
 use Aero\Platform\Services\PlatformSettingService;
-use Aero\Platform\Services\RoleModuleAccessService;
 use Aero\Platform\Services\SaaSTenantScope;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
@@ -74,13 +75,75 @@ class AeroPlatformServiceProvider extends ServiceProvider
         // Platform provides the SaaS implementation using stancl/tenancy
         $this->app->singleton(TenantScopeInterface::class, SaaSTenantScope::class);
 
-        // Register services as singletons (lazy-loaded to avoid DB access pre-install)
-        $this->app->singleton(ModuleAccessService::class, function ($app) {
-            return new ModuleAccessService;
+        // Register Module Access Services with fallback stubs for pre-install
+        // These services are lazy-loaded to avoid DB queries before installation
+        $this->app->singleton(HRMACRoleModuleAccessService::class, function ($app) {
+            // Only instantiate if installed to avoid DB queries pre-install
+            if (! file_exists(storage_path('app/aeos.installed'))) {
+                // Return a stub that uses __call for method handling
+                return new class
+                {
+                    public function __call($method, $args)
+                    {
+                        // Return appropriate defaults based on method signature
+                        if (str_starts_with($method, 'can') || str_starts_with($method, 'user')) {
+                            return false;
+                        }
+                        if (str_starts_with($method, 'get')) {
+                            return $method === 'getFirstAccessibleRoute' ? null : [];
+                        }
+
+                        return null;
+                    }
+                };
+            }
+
+            try {
+                return new HRMACRoleModuleAccessService;
+            } catch (\Throwable $e) {
+                return new class
+                {
+                    public function __call($method, $args)
+                    {
+                        if (str_starts_with($method, 'can') || str_starts_with($method, 'user')) {
+                            return false;
+                        }
+                        if (str_starts_with($method, 'get')) {
+                            return $method === 'getFirstAccessibleRoute' ? null : [];
+                        }
+
+                        return null;
+                    }
+                };
+            }
         });
 
-        $this->app->singleton(RoleModuleAccessService::class, function ($app) {
-            return new RoleModuleAccessService;
+        // Alias Platform's RoleModuleAccessService to HRMAC's for backward compatibility
+        $this->app->alias(HRMACRoleModuleAccessService::class, RoleModuleAccessService::class);
+
+        $this->app->singleton(ModuleAccessService::class, function ($app) {
+            // Only instantiate if installed to avoid DB queries pre-install
+            if (! file_exists(storage_path('app/aeos.installed'))) {
+                return new class
+                {
+                    public function __call($method, $args)
+                    {
+                        return [];
+                    }
+                };
+            }
+
+            try {
+                return new ModuleAccessService($app->make(RoleModuleAccessService::class));
+            } catch (\Throwable $e) {
+                return new class
+                {
+                    public function __call($method, $args)
+                    {
+                        return [];
+                    }
+                };
+            }
         });
 
         $this->app->singleton(PlatformSettingService::class, function ($app) {

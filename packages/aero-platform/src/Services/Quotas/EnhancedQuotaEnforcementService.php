@@ -55,24 +55,27 @@ class EnhancedQuotaEnforcementService extends QuotaEnforcementService
         // Check if we're in grace period
         if ($percentage >= $settings->block_threshold_percentage) {
             $firstWarning = $this->getFirstWarningDate($tenant, $quotaType);
-            
+
             if ($firstWarning) {
                 $daysInGrace = now()->diffInDays($firstWarning);
-                
+
                 // Still in grace period - allow but warn
                 if ($daysInGrace < $settings->warning_period_days) {
                     $this->sendGracePeriodNotification($tenant, $quotaType, $daysInGrace, $settings->warning_period_days);
+
                     return true;
                 }
-                
+
                 // Grace period expired - block
                 Log::warning("Tenant {$tenant->id} exceeded {$quotaType} quota after {$daysInGrace} days grace period");
+
                 return false;
             }
-            
+
             // First time hitting limit - create warning and allow
             $this->createQuotaWarning($tenant, $quotaType, $percentage);
             $this->sendWarningNotification($tenant, $quotaType, $percentage);
+
             return true;
         }
 
@@ -99,14 +102,14 @@ class EnhancedQuotaEnforcementService extends QuotaEnforcementService
      */
     protected function getDefaultSettings(string $quotaType): QuotaEnforcementSetting
     {
-        $setting = new QuotaEnforcementSetting();
+        $setting = new QuotaEnforcementSetting;
         $setting->quota_type = $quotaType;
         $setting->warning_threshold_percentage = 80;
         $setting->critical_threshold_percentage = 90;
         $setting->block_threshold_percentage = 100;
         $setting->warning_period_days = 10;
         $setting->is_active = true;
-        
+
         return $setting;
     }
 
@@ -144,9 +147,16 @@ class EnhancedQuotaEnforcementService extends QuotaEnforcementService
      */
     protected function getWarningLevel(float $percentage): string
     {
-        if ($percentage >= 100) return 'critical';
-        if ($percentage >= 90) return 'high';
-        if ($percentage >= 80) return 'medium';
+        if ($percentage >= 100) {
+            return 'critical';
+        }
+        if ($percentage >= 90) {
+            return 'high';
+        }
+        if ($percentage >= 80) {
+            return 'medium';
+        }
+
         return 'low';
     }
 
@@ -156,14 +166,14 @@ class EnhancedQuotaEnforcementService extends QuotaEnforcementService
     protected function checkAndSendWarnings(Tenant $tenant, string $quotaType, float $percentage): void
     {
         $settings = $this->getEnforcementSettings($quotaType);
-        
+
         // Check if we already sent a warning recently
         $recentWarning = QuotaWarning::where('tenant_id', $tenant->id)
             ->where('quota_type', $quotaType)
             ->where('created_at', '>=', now()->subHours(24))
             ->exists();
 
-        if (!$recentWarning) {
+        if (! $recentWarning) {
             $this->createQuotaWarning($tenant, $quotaType, $percentage);
             $this->sendWarningNotification($tenant, $quotaType, $percentage);
         }
@@ -186,18 +196,18 @@ class EnhancedQuotaEnforcementService extends QuotaEnforcementService
             // Send email notification
             $emailHtml = $this->notificationService->renderEmail($tenant, 'quota_warning', $data);
             // TODO: Dispatch email job here
-            
+
             // Send SMS if percentage is critical (>= 90%)
             if ($percentage >= 90) {
                 $smsMessage = $this->notificationService->renderSms($tenant, 'quota_warning', $data);
-                
+
                 // Get admin phone numbers for this tenant
                 $adminPhones = $this->getAdminPhoneNumbers($tenant);
                 foreach ($adminPhones as $phone) {
                     $this->smsService->send($phone, $smsMessage);
                 }
             }
-            
+
             Log::info("Sent quota warning for tenant {$tenant->id}, quota {$quotaType} at {$percentage}%");
         } catch (\Exception $e) {
             Log::error("Failed to send quota warning: {$e->getMessage()}");
@@ -210,7 +220,7 @@ class EnhancedQuotaEnforcementService extends QuotaEnforcementService
     protected function sendGracePeriodNotification(Tenant $tenant, string $quotaType, int $daysUsed, int $totalDays): void
     {
         $daysRemaining = $totalDays - $daysUsed;
-        
+
         $data = [
             'quota_type' => $quotaType,
             'days_remaining' => $daysRemaining,
@@ -222,17 +232,17 @@ class EnhancedQuotaEnforcementService extends QuotaEnforcementService
         try {
             $emailHtml = $this->notificationService->renderEmail($tenant, 'grace_period_warning', $data);
             // TODO: Dispatch email job
-            
+
             // Send SMS if less than 3 days remaining
             if ($daysRemaining <= 3) {
                 $smsMessage = $this->notificationService->renderSms($tenant, 'grace_period_warning', $data);
-                
+
                 $adminPhones = $this->getAdminPhoneNumbers($tenant);
                 foreach ($adminPhones as $phone) {
                     $this->smsService->send($phone, $smsMessage);
                 }
             }
-            
+
             Log::info("Sent grace period warning for tenant {$tenant->id}, {$daysRemaining} days remaining");
         } catch (\Exception $e) {
             Log::error("Failed to send grace period notification: {$e->getMessage()}");
@@ -255,13 +265,14 @@ class EnhancedQuotaEnforcementService extends QuotaEnforcementService
     public function dismissWarning(int $warningId): bool
     {
         $warning = QuotaWarning::find($warningId);
-        
+
         if ($warning) {
             $warning->is_dismissed = true;
             $warning->dismissed_at = now();
+
             return $warning->save();
         }
-        
+
         return false;
     }
 
@@ -272,7 +283,7 @@ class EnhancedQuotaEnforcementService extends QuotaEnforcementService
     {
         return QuotaWarning::where('tenant_id', $tenant->id)
             ->where('is_dismissed', false)
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->whereNull('expires_at')
                     ->orWhere('expires_at', '>', now());
             })
@@ -286,12 +297,12 @@ class EnhancedQuotaEnforcementService extends QuotaEnforcementService
     public function getQuotaSummary(Tenant $tenant): array
     {
         $summary = [];
-        
+
         foreach (array_keys($this->defaultQuotas['free']) as $quotaType) {
             $current = $this->getCurrentUsage($tenant, str_replace('max_', '', $quotaType));
             $limit = $this->getQuotaLimit($tenant, str_replace('max_', '', $quotaType));
             $percentage = $limit > 0 ? ($current / $limit) * 100 : 0;
-            
+
             $summary[$quotaType] = [
                 'current' => $current,
                 'limit' => $limit,
@@ -300,7 +311,7 @@ class EnhancedQuotaEnforcementService extends QuotaEnforcementService
                 'warning_level' => $this->getWarningLevel($percentage),
             ];
         }
-        
+
         return $summary;
     }
 
@@ -309,9 +320,16 @@ class EnhancedQuotaEnforcementService extends QuotaEnforcementService
      */
     protected function getQuotaStatus(float $percentage): string
     {
-        if ($percentage >= 100) return 'exceeded';
-        if ($percentage >= 90) return 'critical';
-        if ($percentage >= 80) return 'warning';
+        if ($percentage >= 100) {
+            return 'exceeded';
+        }
+        if ($percentage >= 90) {
+            return 'critical';
+        }
+        if ($percentage >= 80) {
+            return 'warning';
+        }
+
         return 'ok';
     }
 }

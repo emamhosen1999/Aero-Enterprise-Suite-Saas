@@ -34,8 +34,8 @@ class ThrottleApiQuotaMiddleware
     public function handle(Request $request, Closure $next)
     {
         $tenant = tenant();
-        
-        if (!$tenant) {
+
+        if (! $tenant) {
             return $next($request);
         }
 
@@ -54,7 +54,7 @@ class ThrottleApiQuotaMiddleware
         // Hard block at 100% usage
         if ($percentage >= 100) {
             Log::warning("API quota exceeded for tenant {$tenant->id}");
-            
+
             return response()->json([
                 'error' => 'API quota exceeded',
                 'message' => 'Your monthly API call limit has been reached. Please upgrade your plan or wait until the next billing cycle.',

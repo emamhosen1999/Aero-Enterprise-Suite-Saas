@@ -4,9 +4,9 @@ namespace Aero\Platform\Services\Auth;
 
 use Aero\Core\Models\User;
 use Aero\Core\Models\UserDevice;
+use Aero\Core\Support\TenantCache;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\Session;
 
 class DeviceSessionService

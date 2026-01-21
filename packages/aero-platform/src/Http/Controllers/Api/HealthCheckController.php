@@ -2,9 +2,9 @@
 
 namespace Aero\Platform\Http\Controllers\Api;
 
+use Aero\Core\Support\TenantCache;
 use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
-use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Redis;

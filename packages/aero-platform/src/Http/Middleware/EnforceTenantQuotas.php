@@ -38,10 +38,7 @@ class EnforceTenantQuotas
     /**
      * Handle an incoming request.
      *
-     * @param Request $request
-     * @param Closure $next
-     * @param string $quotaType The quota type to check (users, storage, api, etc.)
-     * @return Response
+     * @param  string  $quotaType  The quota type to check (users, storage, api, etc.)
      */
     public function handle(Request $request, Closure $next, string $quotaType = 'api'): Response
     {
@@ -73,9 +70,6 @@ class EnforceTenantQuotas
 
     /**
      * Check API call quota.
-     *
-     * @param mixed $tenant
-     * @return bool
      */
     protected function checkApiQuota(mixed $tenant): bool
     {
@@ -84,10 +78,6 @@ class EnforceTenantQuotas
 
     /**
      * Check storage quota for file uploads.
-     *
-     * @param mixed $tenant
-     * @param Request $request
-     * @return bool
      */
     protected function checkStorageQuota(mixed $tenant, Request $request): bool
     {
@@ -111,10 +101,6 @@ class EnforceTenantQuotas
 
     /**
      * Check resource creation quota.
-     *
-     * @param mixed $tenant
-     * @param string $quotaType
-     * @return bool
      */
     protected function checkResourceQuota(mixed $tenant, string $quotaType): bool
     {
@@ -123,9 +109,6 @@ class EnforceTenantQuotas
 
     /**
      * Build quota exceeded response.
-     *
-     * @param string $quotaType
-     * @return Response
      */
     protected function buildQuotaExceededResponse(string $quotaType): Response
     {

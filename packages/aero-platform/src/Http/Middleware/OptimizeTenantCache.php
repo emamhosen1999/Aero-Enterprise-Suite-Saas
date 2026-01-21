@@ -2,9 +2,9 @@
 
 namespace Aero\Platform\Http\Middleware;
 
+use Aero\Core\Support\TenantCache;
 use Closure;
 use Illuminate\Http\Request;
-use Aero\Core\Support\TenantCache;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -99,12 +99,13 @@ class OptimizeTenantCache
 
     /**
      * Cache all permissions for the tenant.
+     *
      * @deprecated We use module access instead of permissions
      */
     protected function warmPermissionsCache(string $tenantId): void
     {
         // We don't use permissions table - module access handles authorization
-        return;
+
     }
 
     /**

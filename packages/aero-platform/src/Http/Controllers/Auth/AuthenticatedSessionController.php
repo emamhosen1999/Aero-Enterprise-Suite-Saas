@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Http\Controllers\Auth;
 
-use Aero\Platform\Models\LandlordUser;
 use Aero\Platform\Http\Controllers\Controller;
+use Aero\Platform\Models\LandlordUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

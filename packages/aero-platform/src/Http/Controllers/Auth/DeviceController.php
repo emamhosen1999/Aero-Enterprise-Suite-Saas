@@ -3,8 +3,8 @@
 namespace Aero\Platform\Http\Controllers\Auth;
 
 use Aero\Core\Models\User;
-use Aero\Platform\Services\Shared\Auth\DeviceAuthService;
 use Aero\Platform\Http\Controllers\Controller;
+use Aero\Platform\Services\Shared\Auth\DeviceAuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;

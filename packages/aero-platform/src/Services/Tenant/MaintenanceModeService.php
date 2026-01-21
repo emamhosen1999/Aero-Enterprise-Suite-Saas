@@ -2,8 +2,8 @@
 
 namespace Aero\Platform\Services\Tenant;
 
-use Carbon\Carbon;
 use Aero\Core\Support\TenantCache;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -19,16 +19,22 @@ class MaintenanceModeService
      * Maintenance mode statuses.
      */
     public const STATUS_ACTIVE = 'active';
+
     public const STATUS_SCHEDULED = 'scheduled';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     /**
      * Maintenance types.
      */
     public const TYPE_PLANNED = 'planned';
+
     public const TYPE_EMERGENCY = 'emergency';
+
     public const TYPE_UPGRADE = 'upgrade';
+
     public const TYPE_MIGRATION = 'migration';
 
     /**
@@ -98,7 +104,7 @@ class MaintenanceModeService
     {
         $maintenanceData = $this->getMaintenanceData($tenantId);
 
-        if (!$maintenanceData || $maintenanceData['status'] !== self::STATUS_ACTIVE) {
+        if (! $maintenanceData || $maintenanceData['status'] !== self::STATUS_ACTIVE) {
             return [
                 'success' => false,
                 'error' => 'Maintenance mode is not active',
@@ -198,7 +204,7 @@ class MaintenanceModeService
     {
         $scheduled = $this->getScheduledMaintenance($tenantId, $scheduleId);
 
-        if (!$scheduled) {
+        if (! $scheduled) {
             return [
                 'success' => false,
                 'error' => 'Scheduled maintenance not found',
@@ -244,6 +250,7 @@ class MaintenanceModeService
     public function isInMaintenance(string $tenantId): bool
     {
         $data = $this->getMaintenanceData($tenantId);
+
         return $data && $data['status'] === self::STATUS_ACTIVE;
     }
 
@@ -254,7 +261,7 @@ class MaintenanceModeService
     {
         $data = $this->getMaintenanceData($tenantId);
 
-        if (!$data || $data['status'] !== self::STATUS_ACTIVE) {
+        if (! $data || $data['status'] !== self::STATUS_ACTIVE) {
             return true; // Not in maintenance
         }
 
@@ -293,7 +300,7 @@ class MaintenanceModeService
             'is_active' => $active && $active['status'] === self::STATUS_ACTIVE,
             'active_maintenance' => $active,
             'scheduled_maintenance' => $scheduled,
-            'has_upcoming' => !empty($scheduled),
+            'has_upcoming' => ! empty($scheduled),
         ];
     }
 
@@ -304,7 +311,7 @@ class MaintenanceModeService
     {
         $data = $this->getMaintenanceData($tenantId);
 
-        if (!$data) {
+        if (! $data) {
             return [
                 'in_maintenance' => false,
             ];
@@ -328,7 +335,7 @@ class MaintenanceModeService
     {
         $data = $this->getMaintenanceData($tenantId);
 
-        if (!$data || $data['status'] !== self::STATUS_ACTIVE) {
+        if (! $data || $data['status'] !== self::STATUS_ACTIVE) {
             return [
                 'success' => false,
                 'error' => 'Maintenance mode is not active',
@@ -364,7 +371,7 @@ class MaintenanceModeService
     {
         $data = $this->getMaintenanceData($tenantId);
 
-        if (!$data || $data['status'] !== self::STATUS_ACTIVE) {
+        if (! $data || $data['status'] !== self::STATUS_ACTIVE) {
             return [
                 'success' => false,
                 'error' => 'Maintenance mode is not active',
@@ -388,7 +395,7 @@ class MaintenanceModeService
     public function getHistory(string $tenantId, int $limit = 10): array
     {
         // In production, fetch from database
-        $cacheKey = $this->cachePrefix . 'history:' . $tenantId;
+        $cacheKey = $this->cachePrefix.'history:'.$tenantId;
         $history = TenantCache::get($cacheKey, []);
 
         return array_slice($history, 0, $limit);
@@ -415,7 +422,7 @@ class MaintenanceModeService
                 $endTime = Carbon::parse($scheduled['scheduled_end']);
 
                 // Auto-enable if start time reached
-                if ($scheduled['auto_enable'] && $startTime->isPast() && !$endTime->isPast()) {
+                if ($scheduled['auto_enable'] && $startTime->isPast() && ! $endTime->isPast()) {
                     if ($scheduled['status'] === self::STATUS_SCHEDULED) {
                         $this->enable($scheduled['tenant_id'], [
                             'type' => $scheduled['type'],
@@ -479,7 +486,7 @@ class MaintenanceModeService
      */
     protected function storeMaintenanceData(string $tenantId, array $data): void
     {
-        $cacheKey = $this->cachePrefix . $tenantId;
+        $cacheKey = $this->cachePrefix.$tenantId;
         TenantCache::put($cacheKey, $data, now()->addDays(7));
     }
 
@@ -488,7 +495,8 @@ class MaintenanceModeService
      */
     protected function getMaintenanceData(string $tenantId): ?array
     {
-        $cacheKey = $this->cachePrefix . $tenantId;
+        $cacheKey = $this->cachePrefix.$tenantId;
+
         return TenantCache::get($cacheKey);
     }
 
@@ -497,7 +505,7 @@ class MaintenanceModeService
      */
     protected function clearMaintenanceData(string $tenantId): void
     {
-        $cacheKey = $this->cachePrefix . $tenantId;
+        $cacheKey = $this->cachePrefix.$tenantId;
         TenantCache::forget($cacheKey);
     }
 
@@ -506,7 +514,7 @@ class MaintenanceModeService
      */
     protected function storeScheduledMaintenance(string $tenantId, string $scheduleId, array $data): void
     {
-        $cacheKey = $this->cachePrefix . 'scheduled:' . $tenantId . ':' . $scheduleId;
+        $cacheKey = $this->cachePrefix.'scheduled:'.$tenantId.':'.$scheduleId;
         TenantCache::put($cacheKey, $data, Carbon::parse($data['scheduled_end'])->addDay());
     }
 
@@ -515,7 +523,8 @@ class MaintenanceModeService
      */
     protected function getScheduledMaintenance(string $tenantId, string $scheduleId): ?array
     {
-        $cacheKey = $this->cachePrefix . 'scheduled:' . $tenantId . ':' . $scheduleId;
+        $cacheKey = $this->cachePrefix.'scheduled:'.$tenantId.':'.$scheduleId;
+
         return TenantCache::get($cacheKey);
     }
 
@@ -524,7 +533,7 @@ class MaintenanceModeService
      */
     protected function removeScheduledMaintenance(string $tenantId, string $scheduleId): void
     {
-        $cacheKey = $this->cachePrefix . 'scheduled:' . $tenantId . ':' . $scheduleId;
+        $cacheKey = $this->cachePrefix.'scheduled:'.$tenantId.':'.$scheduleId;
         TenantCache::forget($cacheKey);
     }
 
@@ -551,7 +560,7 @@ class MaintenanceModeService
      */
     protected function archiveMaintenance(string $tenantId, array $data): void
     {
-        $cacheKey = $this->cachePrefix . 'history:' . $tenantId;
+        $cacheKey = $this->cachePrefix.'history:'.$tenantId;
         $history = TenantCache::get($cacheKey, []);
         array_unshift($history, $data);
         $history = array_slice($history, 0, 50); // Keep last 50

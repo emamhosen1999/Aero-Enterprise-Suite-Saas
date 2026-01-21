@@ -45,26 +45,26 @@ class CpanelDatabaseManager implements TenantDatabaseManager
                 'name' => $dbName,
             ]);
 
-            if (!$response['success']) {
-                throw new \RuntimeException('Failed to create database: ' . ($response['error'] ?? 'Unknown error'));
+            if (! $response['success']) {
+                throw new \RuntimeException('Failed to create database: '.($response['error'] ?? 'Unknown error'));
             }
 
             Log::info('✅ cPanel: Database created successfully', ['db_name' => $fullDbName]);
 
             // Step 2: Grant privileges to the database user
             $dbUser = $this->getDatabaseUser();
-            
+
             $response = $this->callCpanelApi('Mysql', 'set_privileges_on_database', [
                 'user' => $dbUser,
                 'database' => $dbName,
                 'privileges' => 'ALL PRIVILEGES',
             ]);
 
-            if (!$response['success']) {
+            if (! $response['success']) {
                 Log::warning('⚠️ cPanel: Failed to set privileges, trying alternative method', [
                     'error' => $response['error'] ?? 'Unknown error',
                 ]);
-                
+
                 // Alternative: Try adding user to database with all privileges
                 $response = $this->callCpanelApi('Mysql', 'add_user_to_database', [
                     'user' => $dbUser,
@@ -77,9 +77,9 @@ class CpanelDatabaseManager implements TenantDatabaseManager
                         'TRIGGER', 'UPDATE',
                     ],
                 ]);
-                
-                if (!$response['success']) {
-                    throw new \RuntimeException('Failed to set database privileges: ' . ($response['error'] ?? 'Unknown error'));
+
+                if (! $response['success']) {
+                    throw new \RuntimeException('Failed to set database privileges: '.($response['error'] ?? 'Unknown error'));
                 }
             }
 
@@ -116,18 +116,20 @@ class CpanelDatabaseManager implements TenantDatabaseManager
                 'name' => $dbName,
             ]);
 
-            if (!$response['success']) {
+            if (! $response['success']) {
                 // Don't throw if database doesn't exist
                 if (str_contains($response['error'] ?? '', 'does not exist')) {
                     Log::info('ℹ️ cPanel: Database does not exist, nothing to delete', [
                         'db_name' => $fullDbName,
                     ]);
+
                     return true;
                 }
-                throw new \RuntimeException('Failed to delete database: ' . ($response['error'] ?? 'Unknown error'));
+                throw new \RuntimeException('Failed to delete database: '.($response['error'] ?? 'Unknown error'));
             }
 
             Log::info('✅ cPanel: Database deleted successfully', ['db_name' => $fullDbName]);
+
             return true;
         } catch (\Exception $e) {
             Log::error('❌ cPanel: Database deletion failed', [
@@ -144,22 +146,23 @@ class CpanelDatabaseManager implements TenantDatabaseManager
     public function databaseExists(TenantWithDatabase $tenant): bool
     {
         $dbName = $this->getShortDatabaseName($tenant);
-        
+
         try {
             $response = $this->callCpanelApi('Mysql', 'list_databases', []);
-            
-            if (!$response['success']) {
+
+            if (! $response['success']) {
                 return false;
             }
 
             $databases = $response['data'] ?? [];
             $fullDbName = $this->getFullDatabaseName($tenant);
-            
+
             return in_array($fullDbName, array_column($databases, 'database'));
         } catch (\Exception $e) {
             Log::error('❌ cPanel: Failed to check database existence', [
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -176,7 +179,7 @@ class CpanelDatabaseManager implements TenantDatabaseManager
         $token = config('tenancy.cpanel.api_token');
         $port = config('tenancy.cpanel.port', 2083);
 
-        if (!$host || !$username || !$token) {
+        if (! $host || ! $username || ! $token) {
             throw new \RuntimeException('cPanel API credentials not configured. Set CPANEL_HOST, CPANEL_USERNAME, and CPANEL_API_TOKEN in .env');
         }
 
@@ -193,13 +196,13 @@ class CpanelDatabaseManager implements TenantDatabaseManager
             $response = Http::withHeaders([
                 'Authorization' => "cpanel {$username}:{$token}",
             ])
-            ->timeout(30)
-            ->get($url, $params);
+                ->timeout(30)
+                ->get($url, $params);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return [
                     'success' => false,
-                    'error' => "HTTP {$response->status()}: " . $response->body(),
+                    'error' => "HTTP {$response->status()}: ".$response->body(),
                 ];
             }
 
@@ -227,24 +230,26 @@ class CpanelDatabaseManager implements TenantDatabaseManager
 
     /**
      * Get the short database name (without cPanel prefix).
-     * 
+     *
      * cPanel has a max database name length, so we need to truncate the UUID.
      * Format: tenant_{first8chars_of_uuid}
      */
     protected function getShortDatabaseName(TenantWithDatabase $tenant): string
     {
         $tenantId = $tenant->getTenantKey();
-        
+
         // Use subdomain if available, otherwise truncated UUID
         if (method_exists($tenant, 'getAttribute') && $tenant->getAttribute('subdomain')) {
             $subdomain = preg_replace('/[^a-z0-9]/i', '', $tenant->getAttribute('subdomain'));
+
             // Max 16 chars for the short name (cPanel username typically 8 chars + _ + 16 = 25 chars, well under 64)
-            return 'tn_' . substr(strtolower($subdomain), 0, 16);
+            return 'tn_'.substr(strtolower($subdomain), 0, 16);
         }
-        
+
         // Fallback: use first 16 chars of UUID
         $shortId = str_replace('-', '', substr($tenantId, 0, 16));
-        return 'tn_' . $shortId;
+
+        return 'tn_'.$shortId;
     }
 
     /**
@@ -254,7 +259,7 @@ class CpanelDatabaseManager implements TenantDatabaseManager
     {
         $username = config('tenancy.cpanel.username');
         $shortName = $this->getShortDatabaseName($tenant);
-        
+
         return "{$username}_{$shortName}";
     }
 
@@ -265,12 +270,12 @@ class CpanelDatabaseManager implements TenantDatabaseManager
     {
         $username = config('tenancy.cpanel.username');
         $dbUser = config('tenancy.cpanel.db_user', $username);
-        
+
         // If db_user doesn't have prefix, add it
-        if (!str_starts_with($dbUser, $username . '_')) {
+        if (! str_starts_with($dbUser, $username.'_')) {
             return "{$username}_{$dbUser}";
         }
-        
+
         return $dbUser;
     }
 

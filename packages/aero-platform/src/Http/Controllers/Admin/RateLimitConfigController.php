@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Validator;
 
 /**
  * Rate Limit Configuration Controller
- * 
+ *
  * Manages rate limiting configurations for tenants and global settings
  */
 class RateLimitConfigController extends Controller
@@ -28,12 +28,12 @@ class RateLimitConfigController extends Controller
     public function index(Request $request)
     {
         $tenantId = $request->input('tenant_id');
-        
+
         $configs = RateLimitConfig::query()
             ->when($tenantId, function ($query, $tenantId) {
                 $query->where('tenant_id', $tenantId);
             })
-            ->when(!$tenantId, function ($query) {
+            ->when(! $tenantId, function ($query) {
                 $query->whereNull('tenant_id'); // Global configs only
             })
             ->orderBy('limit_type')
@@ -148,7 +148,7 @@ class RateLimitConfigController extends Controller
     public function toggle(Request $request, string $id)
     {
         $config = RateLimitConfig::findOrFail($id);
-        
+
         $config->update([
             'is_active' => $request->boolean('is_active'),
         ]);
@@ -182,7 +182,7 @@ class RateLimitConfigController extends Controller
             'config_id' => $config->id,
             'limit_type' => $config->limit_type,
             'max_requests' => $config->max_requests,
-            'time_window' => $config->time_window_seconds . ' seconds',
+            'time_window' => $config->time_window_seconds.' seconds',
             'estimated_rpm' => round($config->max_requests / ($config->time_window_seconds / 60), 2),
             'burst_limit' => $config->burst_limit,
             'status' => 'Configuration valid',

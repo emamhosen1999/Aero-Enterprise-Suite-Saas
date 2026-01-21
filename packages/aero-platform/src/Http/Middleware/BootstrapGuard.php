@@ -4,19 +4,18 @@ namespace Aero\Platform\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
  * BootstrapGuard Middleware (Platform/SaaS Mode)
- * 
+ *
  * Global middleware that ensures ALL requests are redirected to /install
  * if the system is not installed. This middleware has route supremacy.
- * 
+ *
  * Unlike the Core BootstrapGuard, this handles multi-domain scenarios:
  * - Redirects tenant subdomains to platform domain /install
  * - Checks database accessibility (tenants table must exist)
- * 
+ *
  * Registered globally via AeroPlatformServiceProvider::register() to intercept
  * requests before any routing occurs.
  */
@@ -45,7 +44,7 @@ class BootstrapGuard
         }
 
         // Check if system is installed (file-based detection)
-        if (!$this->installed()) {
+        if (! $this->installed()) {
             $host = $request->getHost();
 
             // If it's an AJAX/API request, return JSON response
@@ -65,7 +64,7 @@ class BootstrapGuard
             }
 
             // Otherwise redirect to the platform domain's /install
-            return redirect()->away($request->getScheme() . '://' . $platformHost . '/install');
+            return redirect()->away($request->getScheme().'://'.$platformHost.'/install');
         }
 
         return $next($request);
@@ -73,11 +72,9 @@ class BootstrapGuard
 
     /**
      * Check if the system is installed using file-based detection.
-     * 
+     *
      * This is the ONLY authoritative method for checking installation status.
      * Never use database queries for installation detection.
-     * 
-     * @return bool
      */
     protected function installed(): bool
     {
@@ -90,7 +87,8 @@ class BootstrapGuard
     protected function getInstallUrl(Request $request, string $host): string
     {
         $platformHost = $this->getPlatformHost($host);
-        return $request->getScheme() . '://' . $platformHost . '/install';
+
+        return $request->getScheme().'://'.$platformHost.'/install';
     }
 
     /**

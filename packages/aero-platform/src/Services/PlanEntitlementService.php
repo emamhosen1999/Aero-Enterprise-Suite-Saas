@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Cache;
 
 /**
  * Plan Entitlement Service
- * 
+ *
  * Enforces plan limits and module access at runtime.
  * Used by middleware and feature gates.
  */
@@ -27,8 +27,8 @@ class PlanEntitlementService
         }
 
         $subscription = $this->getActiveSubscription($tenantId);
-        
-        if (!$subscription || !$subscription->plan) {
+
+        if (! $subscription || ! $subscription->plan) {
             return false; // No active plan, allow access
         }
 
@@ -59,8 +59,8 @@ class PlanEntitlementService
         }
 
         $subscription = $this->getActiveSubscription($tenantId);
-        
-        if (!$subscription || !$subscription->plan) {
+
+        if (! $subscription || ! $subscription->plan) {
             return false;
         }
 
@@ -88,8 +88,8 @@ class PlanEntitlementService
         }
 
         $subscription = $this->getActiveSubscription($tenantId);
-        
-        if (!$subscription || !$subscription->plan) {
+
+        if (! $subscription || ! $subscription->plan) {
             // Restrict access by default if no active subscription
             return false;
         }
@@ -114,8 +114,8 @@ class PlanEntitlementService
         }
 
         $subscription = $this->getActiveSubscription($tenantId);
-        
-        if (!$subscription || !$subscription->plan) {
+
+        if (! $subscription || ! $subscription->plan) {
             return null; // Unlimited
         }
 
