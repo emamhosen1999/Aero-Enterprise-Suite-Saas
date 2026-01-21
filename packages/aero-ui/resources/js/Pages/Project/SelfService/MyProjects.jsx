@@ -29,10 +29,12 @@ import {
 import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const MyProjects = ({ title, projects, stats, filters, statusOptions }) => {
     const { auth } = usePage().props;
     const themeRadius = useThemeRadius();
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
 
     const [isMobile, setIsMobile] = useState(false);
 

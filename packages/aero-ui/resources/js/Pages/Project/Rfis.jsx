@@ -37,7 +37,8 @@ import {
     ButtonGroup
 } from "@heroui/react";
 import StatsCards from "@/Components/StatsCards.jsx";
-import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import RfiForm from "@/Forms/HRM/RfiForm.jsx";
 import DeleteRfiForm from "@/Forms/HRM/DeleteRfiForm.jsx";
 import EnhancedRfisExportForm from "@/Forms/HRM/EnhancedRfisExportForm.jsx";
@@ -47,7 +48,24 @@ import ChainageProgressMap from "@/Components/RFI/ChainageProgressMap.jsx";
 
 
 const Rfis = ({ auth, title, allData, jurisdictions, users, reports, reports_with_rfis, overallEndDate, overallStartDate }) => {
-    const isLargeScreen = useMediaQuery('(min-width: 1025px)');
+    const themeRadius = useThemeRadius();
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+    
+    // Manual responsive state management (HRMAC pattern)
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    const [isLargeScreen, setIsLargeScreen] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+            setIsLargeScreen(window.innerWidth >= 1025);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
     const isMediumScreen = useMediaQuery('(min-width: 641px) and (max-width: 1024px)');
     const isMobile = useMediaQuery('(max-width: 640px)');
 
