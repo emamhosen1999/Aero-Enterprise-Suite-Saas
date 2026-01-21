@@ -33,10 +33,12 @@ import {
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
 
 const Items = ({ items = [], categories = [], brands = [], auth }) => {
     // HRMAC permissions - TODO: Update with actual module hierarchy paths once defined
     const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
+    const themeRadius = useThemeRadius();
     const canViewItems = hasAccess('ims.items') || isSuperAdmin();
     const canCreateItem = canCreate('ims.items') || isSuperAdmin();
     const canEditItem = canUpdate('ims.items') || isSuperAdmin();

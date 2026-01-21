@@ -46,6 +46,7 @@ import UserRolesTable from '@/Tables/UserRolesTable.jsx';
 import App from '@/Layouts/App';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 // Utility functions
 const normalizeArray = (arr) => Array.isArray(arr) ? [...arr] : [];
@@ -118,6 +119,7 @@ const RoleManagement = (props) => {
     const { themeSettings } = useTheme();
     const isDark = themeSettings?.mode === 'dark';
     const themeRadius = useThemeRadius();
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
     // Manual responsive state management (HRMAC pattern)
     const [isMobile, setIsMobile] = useState(false);
