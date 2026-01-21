@@ -46,6 +46,20 @@ const FixedAssets = ({ auth, assets = [], categories = [], locations = [] }) => 
     const canExportAssets = hasAccess('finance.fixed-assets.export') || isSuperAdmin();
 
     const themeRadius = useThemeRadius();
+    
+    // Responsive state management
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
 
     // Statistics
     const stats = useMemo(() => {
@@ -228,6 +242,7 @@ const FixedAssets = ({ auth, assets = [], categories = [], locations = [] }) => 
                     startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
                     onPress={handleExport}
                     radius={themeRadius}
+                    size={isMobile ? "sm" : "md"}
                 >
                     Export
                 </Button>
@@ -238,12 +253,13 @@ const FixedAssets = ({ auth, assets = [], categories = [], locations = [] }) => 
                     startContent={<PlusIcon className="w-4 h-4" />}
                     onPress={() => safeNavigate('finance.fixed-assets.create')}
                     radius={themeRadius}
+                    size={isMobile ? "sm" : "md"}
                 >
                     Add Asset
                 </Button>
             )}
         </div>
-    ), [canExportAssets, canCreateAsset, themeRadius]);
+    ), [canExportAssets, canCreateAsset, themeRadius, isMobile]);
 
     // Filters section
     const filtersSection = useMemo(() => (
@@ -303,7 +319,7 @@ const FixedAssets = ({ auth, assets = [], categories = [], locations = [] }) => 
     ), [filters, themeRadius, mockCategories, mockLocations, handleSearchChange, handleFilterChange]);
 
     return (
-        <App user={auth.user}>
+        <>
             <Head title="Fixed Assets" />
             <StandardPageLayout
                 title="Fixed Assets"
@@ -348,8 +364,9 @@ const FixedAssets = ({ auth, assets = [], categories = [], locations = [] }) => 
                     </div>
                 )}
             </StandardPageLayout>
-        </App>
+        </>
     );
 };
 
+FixedAssets.layout = (page) => <App children={page} />;
 export default FixedAssets;

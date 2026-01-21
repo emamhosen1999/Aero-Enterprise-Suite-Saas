@@ -1,14 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, usePage } from '@inertiajs/react';
+import { motion } from 'framer-motion';
 import { Card, CardBody } from '@heroui/react';
 import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App.jsx';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
 import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const RfiSummary = ({ title = 'RFI Summary' }) => {
     const { auth } = usePage().props;
-    const { hasAccess, isSuperAdmin } = useHRMAC();
+    const themeRadius = useThemeRadius();
+    const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
+    
+    // Manual responsive state management (HRMAC pattern)
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
 
     const canViewSummary = hasAccess('project.rfi') || hasAccess('rfi') || isSuperAdmin();
 

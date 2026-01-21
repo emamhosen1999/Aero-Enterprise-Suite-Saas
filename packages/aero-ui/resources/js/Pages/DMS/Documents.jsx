@@ -41,6 +41,7 @@ import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import { showToast } from '@/utils/toastUtils.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
 
 const statusColorMap = {
     draft: 'default',
@@ -63,19 +64,7 @@ const statusLabels = {
 const Documents = ({ documents = { data: [], total: 0, current_page: 1, per_page: 20, last_page: 1 }, categories = [], folders = [], filters: initialFilters = {} }) => {
     const { auth } = usePage().props;
     const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC('dms');
-
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
@@ -326,7 +315,7 @@ const Documents = ({ documents = { data: [], total: 0, current_page: 1, per_page
                 onValueChange={(value) => handleFilterChange('search', value)}
                 startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                 className="sm:max-w-xs"
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 variant="bordered"
                 size="sm"
             />
@@ -354,7 +343,7 @@ const Documents = ({ documents = { data: [], total: 0, current_page: 1, per_page
                     applyFilters();
                 }}
                 className="sm:max-w-xs"
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 variant="bordered"
                 size="sm"
             >
@@ -412,7 +401,7 @@ const Documents = ({ documents = { data: [], total: 0, current_page: 1, per_page
                 page={documents.current_page}
                 onChange={handlePageChange}
                 showControls
-                radius={getThemeRadius()}
+                radius={themeRadius}
             />
         </div>
     );

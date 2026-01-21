@@ -38,9 +38,9 @@ import { useHRMAC } from '@/Hooks/useHRMAC';
 const EmployeeSkillsPage = ({ title, employees: initialEmployees, skills: initialSkills, departments: initialDepartments }) => {
     const { auth } = usePage().props;
     const themeRadius = useThemeRadius();
-    const { canUpdate, hasAccess } = useHRMAC();
+    const { canUpdate, hasAccess, isSuperAdmin } = useHRMAC();
     
-    // Responsive breakpoints
+    // Manual responsive state management (HRMAC pattern)
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
     

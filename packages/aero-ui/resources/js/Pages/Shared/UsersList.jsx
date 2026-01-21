@@ -9,6 +9,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Head, router, usePage } from "@inertiajs/react";
+import { motion } from 'framer-motion';
 import { hasRoute, safeRoute, safeNavigate } from '@/utils/routeUtils';
 import { 
   Button,
@@ -69,6 +70,7 @@ import UsersTable from '@/Tables/UsersTable.jsx';
 import AddEditUserForm from "@/Forms/AddEditUserForm.jsx";
 import InviteUserForm from "@/Forms/InviteUserForm.jsx";
 import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
 
@@ -152,13 +154,14 @@ const UsersList = ({
 }) => {
   // Get routes for the current context
   const routes = useMemo(() => getRoutes(context), [context]);
+  const themeRadius = useThemeRadius();
+  const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
   
-  // Custom media query logic
+  // Manual responsive state management (HRMAC pattern)
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
   const [isMediumScreen, setIsMediumScreen] = useState(false);
-  const themeRadius = useThemeRadius();
   
   useEffect(() => {
     const checkScreenSize = () => {
@@ -167,7 +170,6 @@ const UsersList = ({
       setIsLargeScreen(window.innerWidth >= 1025);
       setIsMediumScreen(window.innerWidth >= 641 && window.innerWidth <= 1024);
     };
-    
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
     return () => window.removeEventListener('resize', checkScreenSize);

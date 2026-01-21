@@ -5,7 +5,8 @@ import { SparklesIcon } from '@heroicons/react/24/outline';
 import { Card, CardBody } from '@heroui/react';
 import App from "@/Layouts/App.jsx";
 import DynamicWidgetRenderer from "@/Components/DynamicWidgets/DynamicWidgetRenderer.jsx";
-import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 /**
  * Core Dashboard - Primary tenant landing page
@@ -18,8 +19,22 @@ import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
  */
 const CoreDashboard = ({ auth, dynamicWidgets = [] }) => {
     const { props } = usePage();
-    const isMobile = useMediaQuery('(max-width: 640px)');
-    const isTablet = useMediaQuery('(max-width: 768px)');
+    const themeRadius = useThemeRadius();
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+    
+    // Manual responsive state management (HRMAC pattern)
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
 
     // Group widgets by position
     const widgetsByPosition = useMemo(() => {

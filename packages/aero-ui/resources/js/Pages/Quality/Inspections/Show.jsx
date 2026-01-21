@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
     Button,
@@ -20,14 +20,24 @@ import {
 import App from '@/Layouts/App.jsx';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
-import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import { useHRMAC } from '@/Hooks/useHRMAC';
 import dayjs from 'dayjs';
 
 const InspectionsShow = ({ title, inspection = {} }) => {
     const { auth } = usePage().props;
     const themeRadius = useThemeRadius();
-    const isMobile = useMediaQuery('(max-width: 640px)');
+    
+    // Manual responsive state management (HRMAC pattern)
+    const [isMobile, setIsMobile] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
     
     // HRMAC permissions
     const { canUpdate, isSuperAdmin } = useHRMAC();

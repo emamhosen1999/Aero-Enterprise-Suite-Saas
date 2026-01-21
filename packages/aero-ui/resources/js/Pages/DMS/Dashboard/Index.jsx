@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, usePage, router, Link } from '@inertiajs/react';
 import App from '@/Layouts/App';
 import {
@@ -19,6 +19,8 @@ import {
     ChartBarIcon,
 } from '@heroicons/react/24/outline';
 import { FileManager, VersionHistory } from '@/Components/FileManager';
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 /**
  * Navigate using Inertia router (SPA navigation)
@@ -34,6 +36,23 @@ const Dashboard = () => {
         sharedWithMe = [],
         storageUsage = { used: 0, total: 100, percentage: 0 },
     } = usePage().props;
+    
+    const themeRadius = useThemeRadius();
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+    
+    // Manual responsive state management (HRMAC pattern)
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
 
     const [versionModalOpen, setVersionModalOpen] = useState(false);
     const [selectedDocument, setSelectedDocument] = useState(null);

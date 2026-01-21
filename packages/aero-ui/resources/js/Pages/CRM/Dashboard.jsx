@@ -1,9 +1,11 @@
-import React, { useMemo } from 'react';
-import { Head } from '@inertiajs/react';
+import React, { useMemo, useState, useEffect } from 'react';
+import { Head, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { UsersIcon } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
 import DynamicWidgetRenderer from '@/Components/DynamicWidgets/DynamicWidgetRenderer';
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 /**
  * CRM Dashboard - Dynamic Widgets Only
@@ -14,6 +16,24 @@ import DynamicWidgetRenderer from '@/Components/DynamicWidgets/DynamicWidgetRend
  * registered via the widget system in the aero-crm package.
  */
 const CRMDashboard = ({ title = 'CRM Dashboard', dynamicWidgets = [] }) => {
+    const { auth } = usePage().props;
+    const themeRadius = useThemeRadius();
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+    
+    // Manual responsive state management (HRMAC pattern)
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
+
     // Group widgets by position for layout
     const widgetsByPosition = useMemo(() => {
         const positions = {

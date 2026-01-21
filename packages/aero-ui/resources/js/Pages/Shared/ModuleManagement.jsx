@@ -39,8 +39,8 @@ import {
     DropdownMenu,
     DropdownItem
 } from "@heroui/react";
-import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import {
     CubeIcon,
     PlusIcon,
@@ -1076,24 +1076,24 @@ const ModuleManagement = (props) => {
         return 'full';
     };
 
-    // Responsive screen checks
-    const [isMobile, setIsMobile] = React.useState(false);
-    const [isTablet, setIsTablet] = React.useState(false);
-    const [isLargeScreen, setIsLargeScreen] = React.useState(false);
+    const themeRadius = useThemeRadius();
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
-    React.useEffect(() => {
+    // Manual responsive state management (HRMAC pattern)
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    const [isLargeScreen, setIsLargeScreen] = useState(false);
+    
+    useEffect(() => {
         const checkScreenSize = () => {
             setIsMobile(window.innerWidth < 640);
             setIsTablet(window.innerWidth < 768);
             setIsLargeScreen(window.innerWidth >= 1025);
         };
-        
         checkScreenSize();
         window.addEventListener('resize', checkScreenSize);
         return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
-
-    const themeRadius = useThemeRadius();
 
     return (
         <>

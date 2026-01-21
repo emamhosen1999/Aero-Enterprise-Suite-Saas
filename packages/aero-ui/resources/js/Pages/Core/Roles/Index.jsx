@@ -24,7 +24,6 @@ import {
   Switch
 } from "@heroui/react";
 import { useTheme } from '@/Context/ThemeContext.jsx';
-import useMediaQuery from '@/Hooks/useMediaQuery';
 import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
 import { 
   UserGroupIcon, 
@@ -120,9 +119,21 @@ const RoleManagement = (props) => {
     // Theme and responsive hooks
     const { themeSettings } = useTheme();
     const isDark = themeSettings?.mode === 'dark';
-    const isMobile = useMediaQuery('(max-width: 640px)');
-    const isTablet = useMediaQuery('(max-width: 768px)');
     const themeRadius = useThemeRadius();
+    
+    // Manual responsive state management (HRMAC pattern)
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
     
     // Main tab management
     const [activeTab, setActiveTab] = useState(0);

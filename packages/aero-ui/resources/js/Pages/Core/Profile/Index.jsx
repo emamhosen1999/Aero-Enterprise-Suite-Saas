@@ -1,12 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
+import { motion } from 'framer-motion';
 import { Card, CardBody, CardHeader, Button } from '@heroui/react';
 import App from '@/Layouts/App.jsx';
 import { ShieldCheckIcon, UserIcon } from '@heroicons/react/24/outline';
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
 import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const ProfileIndex = ({ title = 'My Profile', user }) => {
+  const themeRadius = useThemeRadius();
   const { hasAccess, isSuperAdmin } = useHRMAC();
+  
+  // Manual responsive state management (HRMAC pattern)
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+  
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 640);
+      setIsTablet(window.innerWidth < 768);
+    };
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
   
   // Permissions using HRMAC
   // TODO: Update with correct HRMAC path once module hierarchy is defined for Core

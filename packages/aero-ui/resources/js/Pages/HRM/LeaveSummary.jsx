@@ -39,7 +39,6 @@ import {
 import StatsCards from "@/Components/StatsCards.jsx";
 import LeaveAnalytics from "@/Components/Leave/LeaveAnalytics.jsx";
 import {useTheme} from '@/Context/ThemeContext.jsx';
-import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
 import {useHRMAC} from '@/Hooks/useHRMAC';
 import App from "@/Layouts/App.jsx";
@@ -49,9 +48,21 @@ import axios from 'axios';
 const LeaveSummary = ({ title, summaryData }) => {
     const { theme } = useTheme();
     const themeRadius = useThemeRadius();
-    const isMobile = useMediaQuery('(max-width: 640px)');
-    const isLargeScreen = useMediaQuery('(min-width: 1025px)');
-    const isMediumScreen = useMediaQuery('(min-width: 641px) and (max-width: 1024px)');
+    
+    // Manual responsive state management (HRMAC pattern)
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
     
     // HRMAC permissions
     const { hasAccess, isSuperAdmin } = useHRMAC();

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import {
     Button,
@@ -17,10 +17,27 @@ import {
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import { showToast } from '@/utils/toastUtils.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { motion } from 'framer-motion';
 
 const DocumentCreate = ({ categories = [], folders = [] }) => {
     const { auth } = usePage().props;
     const { canCreate } = useHRMAC('dms');
+    const themeRadius = useThemeRadius();
+    
+    // Manual responsive state management (HRMAC pattern)
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
 
     const [formData, setFormData] = useState({
         title: '',

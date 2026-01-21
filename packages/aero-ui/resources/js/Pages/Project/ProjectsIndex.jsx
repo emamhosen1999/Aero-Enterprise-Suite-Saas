@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
     Table,
@@ -27,10 +27,14 @@ import {
     ArrowDownTrayIcon,
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
-import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
-import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const ProjectsIndex = ({ projects = [], auth }) => {
+    const { user } = usePage().props.auth;
+    const themeRadius = useThemeRadius();
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+    
     const [searchTerm, setSearchTerm] = useState('');
     const [clientFilter, setClientFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -38,9 +42,19 @@ const ProjectsIndex = ({ projects = [], auth }) => {
     const [page, setPage] = useState(1);
     const rowsPerPage = 10;
 
-    // Responsive
-    const isMobile = useMediaQuery('(max-width: 640px)');
-    const themeRadius = useThemeRadius();
+    // Manual responsive state management (HRMAC pattern)
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
 
     // Permission helper
     const hasPermission = (permission) => {

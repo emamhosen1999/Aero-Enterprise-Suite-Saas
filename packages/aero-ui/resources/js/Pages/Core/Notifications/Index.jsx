@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Head, usePage } from "@inertiajs/react";
+import { motion } from 'framer-motion';
 import {
   Card,
   CardBody,
@@ -43,11 +44,10 @@ import {
 import App from "@/Layouts/App.jsx";
 import StandardPageLayout from "@/Layouts/StandardPageLayout.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
-import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
-import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
-import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const NotificationsIndex = () => {
   const { title } = usePage().props;
@@ -59,7 +59,20 @@ const NotificationsIndex = () => {
   const canMarkAsRead = canUpdate("core.notifications") || isSuperAdmin();
   const canDeleteNotification = canDelete("core.notifications") || isSuperAdmin();
   const themeRadius = useThemeRadius();
-  const isMobile = useMediaQuery('(max-width: 640px)');
+  
+  // Manual responsive state management (HRMAC pattern)
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+  
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 640);
+      setIsTablet(window.innerWidth < 768);
+    };
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
   
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);

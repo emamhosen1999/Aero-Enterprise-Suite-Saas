@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Head, usePage} from '@inertiajs/react';
 import dayjs from 'dayjs';
-import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
 import {Button, Card, CardBody, CardHeader, Divider, Select, SelectItem} from "@heroui/react";
 import {
@@ -27,11 +26,22 @@ import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const LeavesEmployee = ({ title, allUsers }) => {
   const { auth } = usePage().props;
-
-  const isMobile = useMediaQuery('(max-width: 640px)');
-  const isMediumScreen = useMediaQuery('(min-width: 641px) and (max-width: 1024px)');
-  const isLargeScreen = useMediaQuery('(min-width: 1025px)');
   const themeRadius = useThemeRadius();
+  
+  // Manual responsive state management (HRMAC pattern)
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+  
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 640);
+      setIsTablet(window.innerWidth < 768);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
   
   // TODO: Update with proper HRMAC module hierarchy path once defined
   const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
