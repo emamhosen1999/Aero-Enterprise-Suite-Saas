@@ -1,9 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { Head } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App';
 import DynamicWidgetRenderer from '@/Components/DynamicWidgets/DynamicWidgetRenderer';
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 /**
  * DMS Dashboard - Dynamic Widgets Only
@@ -14,6 +16,23 @@ import DynamicWidgetRenderer from '@/Components/DynamicWidgets/DynamicWidgetRend
  * registered via the widget system in the aero-dms package.
  */
 const DMSDashboard = ({ title = 'Document Management', dynamicWidgets = [] }) => {
+    const themeRadius = useThemeRadius();
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+    
+    // Manual responsive state management (HRMAC pattern)
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
+    
     // Group widgets by position for layout
     const widgetsByPosition = useMemo(() => {
         const positions = {
