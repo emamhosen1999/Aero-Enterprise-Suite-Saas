@@ -1,7 +1,6 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Head, usePage} from '@inertiajs/react';
 import {CalendarIcon, ChartBarIcon, CheckCircleIcon, UserPlusIcon} from "@heroicons/react/24/outline";
-import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
 import App from "@/Layouts/App.jsx";
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
@@ -13,10 +12,23 @@ import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const TimeSheet = ({ title, allUsers }) => {
     const { auth } = usePage().props;
-    const isMobile = useMediaQuery('(max-width: 768px)');
-    const isSmallScreen = useMediaQuery('(max-width: 640px)');
     const themeRadius = useThemeRadius();
     const { hasAccess, canCreate, canUpdate, isSuperAdmin } = useHRMAC();
+    
+    // Manual responsive state management (HRMAC pattern)
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
 
     // Permissions using HRMAC
     // TODO: Update with correct HRMAC path once module hierarchy is defined for HRM

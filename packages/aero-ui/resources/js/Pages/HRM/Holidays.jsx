@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Head} from '@inertiajs/react';
 import {motion} from 'framer-motion';
 import {
@@ -43,15 +43,27 @@ import App from "@/Layouts/App.jsx";
 import StandardPageLayout from "@/Layouts/StandardPageLayout.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
 import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
-import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import axios from 'axios';
 import {showToast} from '@/utils/toastUtils';
 import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
   const themeRadius = useThemeRadius();
-  const isMobile = useMediaQuery('(max-width: 640px)');
-  const isTablet = useMediaQuery('(max-width: 768px)');
+  
+  // Manual responsive state management (HRMAC pattern)
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+  
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 640);
+      setIsTablet(window.innerWidth < 768);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
   
   // TODO: Update with proper HRMAC module hierarchy path once defined
   const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();

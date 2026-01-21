@@ -27,7 +27,6 @@ import DepartmentForm from '@/Forms/HRM/DepartmentForm.jsx';
 import DeleteDepartmentForm from '@/Forms/HRM/DeleteDepartmentForm.jsx';
 import {useTheme} from '@/Context/ThemeContext.jsx';
 import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
-import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import axios from 'axios';
 import {showToast} from '@/utils/toastUtils.jsx';
 import dayjs from 'dayjs';
@@ -37,9 +36,22 @@ const Departments = ({ title, departments: initialDepartments, managers, parentD
     const { auth } = usePage().props;
     const { theme } = useTheme();
     const themeRadius = useThemeRadius();
-    const isMobile = useMediaQuery('(max-width: 640px)');
-    const isTablet = useMediaQuery('(max-width: 768px)');
     const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+    
+    // Manual responsive state management (HRMAC pattern)
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
     
     // Permissions using HRMAC
     // TODO: Update with correct HRMAC path once module hierarchy is defined for HRM
