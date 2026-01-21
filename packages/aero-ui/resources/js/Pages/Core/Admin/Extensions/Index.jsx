@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { motion } from 'framer-motion';
 import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import App from '@/Layouts/App';
 import PageHeader from '@/Components/PageHeader';
-import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import {
     Card,
     CardBody,
@@ -40,6 +42,22 @@ import axios from 'axios';
  */
 const ExtensionsIndex = ({ installedModules = [], marketplaceModules = [], purchasedCodes = {} }) => {
     const themeRadius = useThemeRadius();
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+    
+    // Manual responsive state management (HRMAC pattern)
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
+    
     const [activeTab, setActiveTab] = useState('installed');
     const [uploadModalOpen, setUploadModalOpen] = useState(false);
     const [uploadFile, setUploadFile] = useState(null);

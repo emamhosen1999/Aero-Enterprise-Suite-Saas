@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Head, usePage } from "@inertiajs/react";
+import { motion } from 'framer-motion';
 import {
   Card,
   CardBody,
@@ -39,11 +40,29 @@ import {
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
 
 const FileManagerIndex = () => {
   const { title } = usePage().props;
+  const themeRadius = useThemeRadius();
+  const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+  
+  // Manual responsive state management (HRMAC pattern)
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+  
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 640);
+      setIsTablet(window.innerWidth < 768);
+    };
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
   const [files, setFiles] = useState([]);

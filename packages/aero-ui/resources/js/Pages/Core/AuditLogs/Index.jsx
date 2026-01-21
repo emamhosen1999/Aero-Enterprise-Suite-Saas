@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Head, usePage } from "@inertiajs/react";
+import { motion } from 'framer-motion';
 import {
   Card,
   CardBody,
@@ -34,16 +35,28 @@ import {
 import App from "@/Layouts/App.jsx";
 import StandardPageLayout from "@/Layouts/StandardPageLayout.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
-import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
-import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
-import axios from 'axios';
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import axios from 'axios';
 
 const AuditLogsIndex = () => {
   const { title } = usePage().props;
   const themeRadius = useThemeRadius();
-  const isMobile = useMediaQuery('(max-width: 640px)');
   const { hasAccess, canDelete, isSuperAdmin } = useHRMAC();
+  
+  // Manual responsive state management (HRMAC pattern)
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+  
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 640);
+      setIsTablet(window.innerWidth < 768);
+    };
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   // Permissions using HRMAC
   // TODO: Update with correct HRMAC path once module hierarchy is defined for Core

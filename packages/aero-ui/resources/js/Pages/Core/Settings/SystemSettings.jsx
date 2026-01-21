@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, useForm, usePage } from '@inertiajs/react';
+import { motion } from 'framer-motion';
 import App from '@/Layouts/App';
 import axios from 'axios';
 import {
@@ -22,6 +23,8 @@ import {
 import { EnvelopeIcon, DevicePhoneMobileIcon } from '@heroicons/react/24/outline';
 import { showToast } from '@/utils/toastUtils';
 import { hasRoute } from '@/utils/routeUtils';
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const fieldClass = 'grid grid-cols-1 md:grid-cols-2 gap-4';
 
@@ -231,6 +234,23 @@ const getInitial = (payload = {}) => payload ?? {};
 
 const SystemSettings = () => {
     const { title = 'System Settings', systemSettings = {} } = usePage().props;
+    const themeRadius = useThemeRadius();
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+    
+    // Manual responsive state management (HRMAC pattern)
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
+    
     const organization = getInitial(systemSettings.organization);
     const branding = getInitial(systemSettings.branding);
     const metadata = getInitial(systemSettings.metadata);
