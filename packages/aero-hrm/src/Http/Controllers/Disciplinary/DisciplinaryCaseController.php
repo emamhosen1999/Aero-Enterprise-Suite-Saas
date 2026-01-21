@@ -12,7 +12,7 @@ class DisciplinaryCaseController extends Controller
 {
     public function index()
     {
-        return Inertia::render('HRM/Disciplinary/Cases/Index', [
+        return Inertia::render('HRM/Disciplinary/DisciplinaryCasesIndex', [
             'title' => 'Disciplinary Cases',
             'actionTypes' => DisciplinaryActionType::active()->get(),
         ]);

@@ -13,6 +13,7 @@ use Aero\HRM\Models\JobApplication;
 use Aero\HRM\Events\Recruitment\ApplicationReceived;
 use Aero\HRM\Events\Recruitment\InterviewScheduled;
 use Aero\HRM\Events\Recruitment\OfferExtended;
+use Aero\HRMAC\Facades\HRMAC;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
@@ -1402,8 +1403,7 @@ class RecruitmentController extends Controller
      */
     protected function getRecruitmentManagers(): Collection
     {
-        return $this->hrmac
-            ->getUsersWithSubModuleAccess('hrm', 'recruitment', 'create')
+        return HRMAC::getUsersWithSubModuleAccess('hrm', 'recruitment', 'create')
             ->unique('id')
             ->map(fn ($user) => ['id' => $user->id, 'name' => $user->name])
             ->values();
@@ -1414,8 +1414,7 @@ class RecruitmentController extends Controller
      */
     protected function getInterviewers(): Collection
     {
-        return $this->hrmac
-            ->getUsersWithSubModuleAccess('hrm', 'recruitment', 'create')
+        return HRMAC::getUsersWithSubModuleAccess('hrm', 'recruitment', 'create')
             ->unique('id')
             ->map(fn ($user) => ['id' => $user->id, 'name' => $user->name])
             ->values();

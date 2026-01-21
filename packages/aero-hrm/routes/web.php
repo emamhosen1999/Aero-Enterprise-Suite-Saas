@@ -849,6 +849,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/cases/{id}/take-action', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'takeAction'])->name('cases.take-action');
         Route::post('/cases/{id}/close', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'close'])->name('cases.close');
         Route::post('/cases/{id}/appeal', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'appeal'])->name('cases.appeal');
+
+        // Warnings
+        Route::get('/warnings', [\Aero\HRM\Http\Controllers\Disciplinary\WarningController::class, 'index'])->name('warnings.index');
+        Route::get('/warnings/data', [\Aero\HRM\Http\Controllers\Disciplinary\WarningController::class, 'getData'])->name('warnings.data');
+        Route::post('/warnings', [\Aero\HRM\Http\Controllers\Disciplinary\WarningController::class, 'store'])->name('warnings.store');
+        Route::put('/warnings/{id}', [\Aero\HRM\Http\Controllers\Disciplinary\WarningController::class, 'update'])->name('warnings.update');
+        Route::delete('/warnings/{id}', [\Aero\HRM\Http\Controllers\Disciplinary\WarningController::class, 'destroy'])->name('warnings.destroy');
+
+        // Action Types
+        Route::get('/action-types', [\Aero\HRM\Http\Controllers\Disciplinary\ActionTypeController::class, 'index'])->name('action-types.index');
+        Route::get('/action-types/data', [\Aero\HRM\Http\Controllers\Disciplinary\ActionTypeController::class, 'getData'])->name('action-types.data');
+        Route::post('/action-types', [\Aero\HRM\Http\Controllers\Disciplinary\ActionTypeController::class, 'store'])->name('action-types.store');
+        Route::put('/action-types/{id}', [\Aero\HRM\Http\Controllers\Disciplinary\ActionTypeController::class, 'update'])->name('action-types.update');
+        Route::delete('/action-types/{id}', [\Aero\HRM\Http\Controllers\Disciplinary\ActionTypeController::class, 'destroy'])->name('action-types.destroy');
     });
 
     Route::get('/api/designations/list', function () {
