@@ -308,12 +308,12 @@ class HRMServiceProvider extends AbstractModuleProvider
         $registry->registerRelationship('attendanceType', function ($user) {
             return $user->belongsTo(AttendanceType::class, 'attendance_type_id');
         });
-            $registry->registerRelationship('educations', function ($user) {
-                return $user->hasMany(EmployeeEducation::class, 'user_id');
-            });
-            $registry->registerRelationship('experiences', function ($user) {
-                return $user->hasMany(EmployeeWorkExperience::class, 'user_id');
-            });
+        $registry->registerRelationship('educations', function ($user) {
+            return $user->hasMany(EmployeeEducation::class, 'user_id');
+        });
+        $registry->registerRelationship('experiences', function ($user) {
+            return $user->hasMany(EmployeeWorkExperience::class, 'user_id');
+        });
 
         // Register scopes for user queries
         $registry->registerScope('employees', function ($query) {

@@ -12,6 +12,8 @@ use Aero\HRM\Http\Controllers\Controller;
 use Aero\Core\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Inertia\Inertia;
 
 class TrainingController extends Controller
@@ -21,6 +23,27 @@ class TrainingController extends Controller
      */
     public function index(Request $request)
     {
+        if (! Schema::hasTable('trainings')) {
+            $emptyPaginator = new LengthAwarePaginator([], 0, 10, 1, [
+                'path' => $request->url(),
+                'query' => $request->query(),
+            ]);
+
+            return Inertia::render('HRM/Training/Index', [
+                'trainings' => $emptyPaginator,
+                'filters' => $request->only(['search', 'status', 'category_id', 'department_id', 'sort_by', 'sort_order']),
+                'categories' => TrainingCategory::select('id', 'name')->get(),
+                'departments' => Department::select('id', 'name')->get(),
+                'statuses' => [
+                    ['id' => 'draft', 'name' => 'Draft'],
+                    ['id' => 'scheduled', 'name' => 'Scheduled'],
+                    ['id' => 'active', 'name' => 'Active'],
+                    ['id' => 'completed', 'name' => 'Completed'],
+                    ['id' => 'cancelled', 'name' => 'Cancelled'],
+                ],
+            ]);
+        }
+
         $trainings = Training::with(['category', 'instructor', 'department'])
             ->when($request->search, function ($query, $search) {
                 $query->where('title', 'like', "%{$search}%")
