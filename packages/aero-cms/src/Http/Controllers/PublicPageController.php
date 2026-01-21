@@ -15,11 +15,18 @@ class PublicPageController extends Controller
 {
     /**
      * Render a CMS page by slug.
+     *
+     * This controller handles the Route::fallback() for CMS pages.
+     * The slug is extracted from the request path since fallback routes
+     * don't receive route parameters.
      */
-    public function show(Request $request, string $slug = null): Response
+    public function show(Request $request): Response
     {
-        // Handle homepage
-        if (empty($slug) || $slug === '/') {
+        // Extract slug from request path (fallback routes don't have route parameters)
+        $slug = trim($request->path(), '/');
+
+        // Handle homepage (empty path or just '/')
+        if (empty($slug)) {
             $page = CmsPage::where('is_homepage', true)
                 ->where('status', 'published')
                 ->first();
@@ -29,13 +36,17 @@ class PublicPageController extends Controller
                 ->first();
         }
 
-        if (!$page) {
+        if (! $page) {
             throw new NotFoundHttpException('Page not found');
         }
 
-        // Load blocks
+        // Increment view count
+        $page->increment('view_count');
+
+        // Load visible blocks only, ordered by order_index
         $page->load(['blocks' => function ($query) {
-            $query->orderBy('order_index');
+            $query->where('is_visible', true)
+                ->orderBy('order_index');
         }]);
 
         return Inertia::render('Platform/Public/CmsPage', [

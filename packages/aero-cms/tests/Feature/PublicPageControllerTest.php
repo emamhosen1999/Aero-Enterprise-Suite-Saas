@@ -14,7 +14,7 @@ class PublicPageControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->artisan('migrate', [
             '--path' => 'packages/aero-cms/database/migrations',
             '--realpath' => true,
@@ -32,10 +32,9 @@ class PublicPageControllerTest extends TestCase
         $response = $this->get('/about-us');
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($assert) => 
-            $assert->component('CmsPage')
-                ->has('page')
-                ->where('page.slug', 'about-us')
+        $response->assertInertia(fn ($assert) => $assert->component('Platform/Public/CmsPage')
+            ->has('page')
+            ->where('page.slug', 'about-us')
         );
     }
 
@@ -85,8 +84,7 @@ class PublicPageControllerTest extends TestCase
         $response = $this->get("/{$page->slug}");
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($assert) => 
-            $assert->has('page.blocks', 3)
+        $response->assertInertia(fn ($assert) => $assert->has('blocks', 3)
         );
     }
 
@@ -94,33 +92,32 @@ class PublicPageControllerTest extends TestCase
     public function it_orders_blocks_correctly()
     {
         $page = CmsPage::factory()->create(['status' => 'published']);
-        
+
         \Aero\Cms\Models\CmsPageBlock::factory()->create([
             'page_id' => $page->id,
             'block_type' => 'text_block',
-            'order' => 2,
+            'order_index' => 2,
         ]);
-        
+
         \Aero\Cms\Models\CmsPageBlock::factory()->create([
             'page_id' => $page->id,
             'block_type' => 'hero_standard',
-            'order' => 0,
+            'order_index' => 0,
         ]);
-        
+
         \Aero\Cms\Models\CmsPageBlock::factory()->create([
             'page_id' => $page->id,
             'block_type' => 'cta_section',
-            'order' => 1,
+            'order_index' => 1,
         ]);
 
         $response = $this->get("/{$page->slug}");
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($assert) => 
-            $assert->has('page.blocks', 3)
-                ->where('page.blocks.0.block_type', 'hero_standard')
-                ->where('page.blocks.1.block_type', 'cta_section')
-                ->where('page.blocks.2.block_type', 'text_block')
+        $response->assertInertia(fn ($assert) => $assert->has('blocks', 3)
+            ->where('blocks.0.block_type', 'hero_standard')
+            ->where('blocks.1.block_type', 'cta_section')
+            ->where('blocks.2.block_type', 'text_block')
         );
     }
 
@@ -128,12 +125,12 @@ class PublicPageControllerTest extends TestCase
     public function it_excludes_hidden_blocks()
     {
         $page = CmsPage::factory()->create(['status' => 'published']);
-        
+
         \Aero\Cms\Models\CmsPageBlock::factory()->create([
             'page_id' => $page->id,
             'is_visible' => true,
         ]);
-        
+
         \Aero\Cms\Models\CmsPageBlock::factory()->create([
             'page_id' => $page->id,
             'is_visible' => false,
@@ -142,8 +139,7 @@ class PublicPageControllerTest extends TestCase
         $response = $this->get("/{$page->slug}");
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($assert) => 
-            $assert->has('page.blocks', 1)
+        $response->assertInertia(fn ($assert) => $assert->has('blocks', 1)
         );
     }
 
@@ -174,9 +170,8 @@ class PublicPageControllerTest extends TestCase
         $response = $this->get('/test-seo');
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($assert) => 
-            $assert->where('page.meta_title', 'Custom Meta Title')
-                ->where('page.meta_description', 'Custom meta description for SEO')
+        $response->assertInertia(fn ($assert) => $assert->where('page.meta_title', 'Custom Meta Title')
+            ->where('page.meta_description', 'Custom meta description for SEO')
         );
     }
 
@@ -228,6 +223,7 @@ class PublicPageControllerTest extends TestCase
     {
         $user = \App\Models\User::factory()->create();
         $this->actingAs($user);
+
         return $user;
     }
 }

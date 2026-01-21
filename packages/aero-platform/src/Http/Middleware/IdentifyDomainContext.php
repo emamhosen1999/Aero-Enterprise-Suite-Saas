@@ -47,22 +47,17 @@ class IdentifyDomainContext
         $context = $this->identifyContext($request);
         $request->attributes->set('domain_context', $context);
 
-        // 2. Only intercept the root path '/' for PLATFORM domain
-        // Admin and Tenant domains have their own route definitions for "/"
+        // 2. Check if application is installed (for platform domain root only)
+        // NOTE: Landing page rendering is now handled by CMS package.
+        // We only check for installation and redirect to installer if needed.
         if ($request->is('/') && $context === self::CONTEXT_PLATFORM) {
-            // Check if installed
             if (! $this->isApplicationInstalled()) {
                 return redirect('/install');
             }
-
-            // Set root view for Inertia (since this bypasses HandleInertiaRequests)
-            Inertia::setRootView('aero-ui::app');
-
-            // Render Landing Page
-            return Inertia::render('Platform/Public/Landing');
+            // Let the request continue to CMS catch-all route for landing page
         }
 
-        // 3. Pass to next middleware - let routes handle all requests including "/"
+        // 3. Pass to next middleware - let routes handle all requests
         return $next($request);
     }
 

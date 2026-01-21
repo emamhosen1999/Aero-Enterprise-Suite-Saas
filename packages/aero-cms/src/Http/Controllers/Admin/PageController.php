@@ -120,8 +120,8 @@ class PageController extends Controller
                 'settings' => $block->settings,
                 'order_index' => $block->order_index,
             ]),
-            'blockTypes' => $this->blockRegistry->toArray(),
-            'blockCategories' => $this->blockRegistry->categories()->toArray(),
+            'blockTypes' => array_values($this->blockRegistry->toArray()),
+            'blockCategories' => config('cms-blocks.categories', []),
             'layouts' => $this->getAvailableLayouts(),
         ]);
     }

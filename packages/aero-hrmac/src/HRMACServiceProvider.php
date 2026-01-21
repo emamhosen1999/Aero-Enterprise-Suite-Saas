@@ -77,6 +77,9 @@ class HRMACServiceProvider extends ServiceProvider
         $router = $this->app->make(Router::class);
 
         // Register middleware aliases
+        // 'hrmac' is the primary alias used in route definitions (e.g., 'hrmac:module.submodule.component.action')
+        $router->aliasMiddleware('hrmac', CheckRoleModuleAccess::class);
+        // 'role.access' is kept for backwards compatibility
         $router->aliasMiddleware('role.access', CheckRoleModuleAccess::class);
         $router->aliasMiddleware('smart.landing', SmartLandingRedirect::class);
     }
