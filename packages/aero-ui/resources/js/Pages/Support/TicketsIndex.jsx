@@ -34,7 +34,7 @@ import { useHRMAC } from '@/Hooks/useHRMAC';
 const TicketsIndex = ({ tickets = [], agents = [], auth }) => {
     const { auth: pageAuth } = usePage().props;
     const themeRadius = useThemeRadius();
-    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+    const { hasAccess, canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
     // Manual responsive state management (HRMAC pattern)
     const [isMobile, setIsMobile] = useState(false);
@@ -57,9 +57,6 @@ const TicketsIndex = ({ tickets = [], agents = [], auth }) => {
     const [page, setPage] = useState(1);
     const rowsPerPage = 10;
 
-    // HRMAC permissions with Super Admin bypass
-    const { hasAccess, canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
-    
     // TODO: Replace with actual module hierarchy paths from config/modules.php
     const canViewTickets = hasAccess('support.tickets') || isSuperAdmin();
     const canCreateTicket = canCreate('support.tickets') || isSuperAdmin();

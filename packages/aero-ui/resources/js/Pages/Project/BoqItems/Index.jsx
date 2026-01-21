@@ -65,9 +65,6 @@ const BoqItemsIndex = ({ title }) => {
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
 
-    const themeRadius = useThemeRadius();
-    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
-
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -120,12 +117,12 @@ const BoqItemsIndex = ({ title }) => {
         { title: "Total Value", value: `৳${(stats.totalValue / 1000000).toFixed(2)}M`, icon: <CurrencyDollarIcon className="w-5 h-5" />, color: "text-warning", iconBg: "bg-warning/20" },
     ], [stats]);
 
-    // Permissions
-    const canCreate = auth.permissions?.includes('project.boq-items.create') || auth.permissions?.includes('project.*') || true;
-    const canEdit = auth.permissions?.includes('project.boq-items.update') || auth.permissions?.includes('project.*') || true;
-    const canDelete = auth.permissions?.includes('project.boq-items.delete') || auth.permissions?.includes('project.*') || true;
-    const canImport = auth.permissions?.includes('project.boq-items.import') || auth.permissions?.includes('project.*') || true;
-    const canExport = auth.permissions?.includes('project.boq-items.export') || auth.permissions?.includes('project.*') || true;
+    // Permissions (using HRMAC hook values)
+    const canCreateBoq = canCreate('project.boq-items') || isSuperAdmin();
+    const canEditBoq = canUpdate('project.boq-items') || isSuperAdmin();
+    const canDeleteBoq = canDelete('project.boq-items') || isSuperAdmin();
+    const canImport = auth.permissions?.includes('project.boq-items.import') || auth.permissions?.includes('project.*') || isSuperAdmin();
+    const canExport = auth.permissions?.includes('project.boq-items.export') || auth.permissions?.includes('project.*') || isSuperAdmin();
 
     // Fetch data
     const fetchItems = useCallback(async () => {
@@ -418,13 +415,13 @@ const BoqItemsIndex = ({ title }) => {
                             </Button>
                         </DropdownTrigger>
                         <DropdownMenu aria-label="Actions">
-                            {canEdit && (
+                            {canEditBoq && (
                                 <DropdownItem key="edit" startContent={<PencilIcon className="w-4 h-4" />}
                                     onPress={() => openEditModal(item)}>
                                     Edit
                                 </DropdownItem>
                             )}
-                            {canDelete && (
+                            {canDeleteBoq && (
                                 <DropdownItem key="delete" className="text-danger" color="danger"
                                     startContent={<TrashIcon className="w-4 h-4" />}
                                     onPress={() => openDeleteModal(item)}>
@@ -646,7 +643,7 @@ const BoqItemsIndex = ({ title }) => {
                                                         Export
                                                     </Button>
                                                 )}
-                                                {canCreate && (
+                                                {canCreateBoq && (
                                                     <Button color="primary" variant="shadow"
                                                         startContent={<PlusIcon className="w-4 h-4" />}
                                                         onPress={openAddModal}

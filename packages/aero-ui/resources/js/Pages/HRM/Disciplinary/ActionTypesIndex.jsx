@@ -33,8 +33,6 @@ const ActionTypesIndex = ({ title }) => {
     const [actionTypes, setActionTypes] = useState([]);
     const [search, setSearch] = useState('');
 
-    const canCreate = auth.permissions?.includes('hrm.disciplinary.action-types.create') || false;
-
     const fetchActionTypes = useCallback(async () => {
         setLoading(true);
         try {

@@ -35,7 +35,7 @@ const WarningsIndex = ({ title }) => {
     const [stats, setStats] = useState({ total: 0, verbal: 0, written: 0, final: 0 });
     const [filters, setFilters] = useState({ search: '', type: [] });
 
-    const canCreate = auth.permissions?.includes('hrm.disciplinary.warnings.create') || false;
+    // Use HRMAC hook for permissions (canCreate is already available from useHRMAC)
 
     const statsData = useMemo(() => [
         { title: "Total Warnings", value: stats.total, icon: <ExclamationTriangleIcon className="w-6 h-6" />, color: "text-primary", iconBg: "bg-primary/20" },

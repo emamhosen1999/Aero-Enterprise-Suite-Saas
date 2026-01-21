@@ -67,7 +67,6 @@ const Rfis = ({ auth, title, allData, jurisdictions, users, reports, reports_wit
         return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
     const isMediumScreen = useMediaQuery('(min-width: 641px) and (max-width: 1024px)');
-    const isMobile = useMediaQuery('(max-width: 640px)');
 
     // Helper function to convert theme borderRadius to HeroUI radius values
     const getThemeRadius = () => {

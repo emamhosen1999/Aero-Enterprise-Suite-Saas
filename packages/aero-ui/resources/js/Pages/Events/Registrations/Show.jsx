@@ -78,19 +78,6 @@ const Show = ({ auth, registration, event }) => {
         return 'full';
     };
 
-    const [isMobile, setIsMobile] = useState(false);
-    const [isTablet, setIsTablet] = useState(false);
-
-    useEffect(() => {
-        const checkScreenSize = () => {
-            setIsMobile(window.innerWidth < 640);
-            setIsTablet(window.innerWidth < 768);
-        };
-        checkScreenSize();
-        window.addEventListener('resize', checkScreenSize);
-        return () => window.removeEventListener('resize', checkScreenSize);
-    }, []);
-
     const getStatusColor = (status) => {
         switch (status) {
             case 'approved': return 'success';

@@ -25,7 +25,9 @@ return new class extends Migration
             $table->json('provider_data')->nullable();
 
             // Polymorphic relationship - can link to landlord_users or be used for registration
-            $table->nullableMorphs('authenticatable');
+            $table->string('authenticatable_type')->nullable();
+            $table->unsignedBigInteger('authenticatable_id')->nullable();
+            $table->index(['authenticatable_type', 'authenticatable_id'], 'social_auth_morph_idx');
 
             // For pending registrations (before tenant is created)
             $table->string('pending_registration_token')->nullable()->unique();

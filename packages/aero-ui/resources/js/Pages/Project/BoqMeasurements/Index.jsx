@@ -61,8 +61,6 @@ const BoqMeasurementsIndex = ({ title, measurements: initialData, filters: initi
     const { auth } = usePage().props;
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
-    const themeRadius = useThemeRadius();
-    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
