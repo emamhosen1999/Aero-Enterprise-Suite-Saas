@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { motion } from 'framer-motion';
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
 import {
     Button,
     Input,
@@ -48,7 +49,8 @@ import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const RegistrationsIndex = ({ event, registrations: initialRegistrations }) => {
     const { auth } = usePage().props;
-    const { canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
+    const themeRadius = useThemeRadius();
+    const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
     
     // Permissions using HRMAC
     // TODO: Update with correct HRMAC path once module hierarchy is defined for Events
