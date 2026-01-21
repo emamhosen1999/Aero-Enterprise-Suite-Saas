@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import {
     Button,
@@ -40,7 +40,6 @@ import App from '@/Layouts/App.jsx';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
-import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import { useHRMAC } from '@/Hooks/useHRMAC';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
@@ -49,8 +48,20 @@ import dayjs from 'dayjs';
 const MaterialSubmittals = ({ title, submittals: initialSubmittals = [], stats: initialStats = {} }) => {
     const { auth } = usePage().props;
     const themeRadius = useThemeRadius();
-    const isMobile = useMediaQuery('(max-width: 640px)');
-    const isTablet = useMediaQuery('(max-width: 768px)');
+    
+    // Manual responsive state management (HRMAC pattern)
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
     
     // HRMAC permissions with Super Administrator bypass
     const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
