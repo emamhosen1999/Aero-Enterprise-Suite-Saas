@@ -46,7 +46,22 @@ const JournalEntries = () => {
     const canDeleteEntry = canDelete('finance.journal-entries') || isSuperAdmin();
     const canExportEntries = hasAccess('finance.journal-entries') || isSuperAdmin();
     
+    const themeRadius = useThemeRadius();
+    
+    // Responsive state management
     const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
+    
     const [filters, setFilters] = useState({
         search: '',
         type: 'all',
@@ -54,16 +69,6 @@ const JournalEntries = () => {
         date_from: '',
         date_to: '',
     });
-
-    // Theme radius hook
-    const themeRadius = useThemeRadius();
-
-    useEffect(() => {
-        const checkScreenSize = () => setIsMobile(window.innerWidth < 640);
-        checkScreenSize();
-        window.addEventListener('resize', checkScreenSize);
-        return () => window.removeEventListener('resize', checkScreenSize);
-    }, []);
 
     // Mock data
     const journalEntries = [

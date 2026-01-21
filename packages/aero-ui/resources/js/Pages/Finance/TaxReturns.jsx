@@ -44,20 +44,27 @@ const TaxReturns = () => {
     const canExportReturns = hasAccess('finance.tax-returns.export') || isSuperAdmin();
     
     const themeRadius = useThemeRadius();
+    
+    // Responsive state management
     const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
+    
     const [filters, setFilters] = useState({
         search: '',
         tax_year: 'all',
         status: 'all',
         authority: 'all',
     });
-
-    useEffect(() => {
-        const checkScreenSize = () => setIsMobile(window.innerWidth < 640);
-        checkScreenSize();
-        window.addEventListener('resize', checkScreenSize);
-        return () => window.removeEventListener('resize', checkScreenSize);
-    }, []);
 
     // Mock data
     const taxReturns = [
