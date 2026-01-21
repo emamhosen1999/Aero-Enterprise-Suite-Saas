@@ -2,7 +2,7 @@
 
 namespace Aero\HRM\Http\Controllers\Expense;
 
-use App\Http\Controllers\Controller;
+use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Models\{ExpenseClaim, ExpenseCategory, Employee};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +12,7 @@ class ExpenseClaimController extends Controller
 {
     public function index(Request $request)
     {
-        return Inertia::render('HRM/Expenses/Index', [
+        return Inertia::render('HRM/Expenses/ExpenseClaimsIndex', [
             'title' => 'Expense Claims',
             'categories' => ExpenseCategory::active()->get(),
         ]);

@@ -3,6 +3,7 @@
 use Aero\HRM\Http\Controllers\AIAnalyticsController;
 use Aero\HRM\Http\Controllers\Attendance\AttendanceController;
 use Aero\HRM\Http\Controllers\Asset\AssetController;
+use Aero\HRM\Http\Controllers\Asset\AssetCategoryController;
 use Aero\HRM\Http\Controllers\HRMDashboardController;
 use Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController;
 use Aero\HRM\Http\Controllers\Employee\BenefitsController;
@@ -31,6 +32,7 @@ use Aero\HRM\Http\Controllers\Employee\TrainingController;
 use Aero\HRM\Http\Controllers\Employee\WorkplaceSafetyController;
 use Aero\HRM\Http\Controllers\Employee\HolidayController;
 use Aero\HRM\Http\Controllers\Expense\ExpenseClaimController;
+use Aero\HRM\Http\Controllers\Expense\ExpenseCategoryController;
 use Aero\HRM\Http\Controllers\Leave\BulkLeaveController;
 use Aero\HRM\Http\Controllers\Leave\LeaveController;
 use Aero\HRM\Http\Controllers\Settings\LeaveSettingController;
@@ -799,6 +801,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['module:hrm,expenses'])->prefix('expenses')->name('expenses.')->group(function () {
         // Main index page (Inertia)
         Route::get('/', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'index'])->name('index');
+        Route::get('/categories', [ExpenseCategoryController::class, 'index'])->name('categories.index');
+        Route::get('/categories/list', [ExpenseCategoryController::class, 'list'])->name('categories.list');
         // API endpoints for data fetching
         Route::get('/paginate', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'paginate'])->name('paginate');
         Route::get('/stats', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'stats'])->name('stats');
@@ -815,6 +819,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['module:hrm,assets'])->prefix('assets')->name('assets.')->group(function () {
         // Main index page (Inertia)
         Route::get('/', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'index'])->name('index');
+        Route::get('/categories', [AssetCategoryController::class, 'index'])->name('categories.index');
+        Route::get('/categories/list', [AssetCategoryController::class, 'list'])->name('categories.list');
         // API endpoints for data fetching
         Route::get('/paginate', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'paginate'])->name('paginate');
         Route::get('/stats', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'stats'])->name('stats');
@@ -852,6 +858,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/api/departments/list', function () {
         return response()->json(\Aero\HRM\Models\Department::select('id', 'name')->get());
     })->name('departments.list');
+
+    Route::get('/employees/list', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'list'])->name('employees.list');
 
     // =========================================================================
     // AI Analytics - Next-Generation Predictive HR Intelligence

@@ -15,6 +15,7 @@ use Aero\HRM\Events\Employee\EmployeeUpdated;
 use Aero\HRM\Events\Employee\EmployeePromoted;
 use Aero\HRM\Events\Employee\EmployeeTerminated;
 use Aero\Core\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -55,6 +56,19 @@ class EmployeeController extends Controller
     public function index2()
     {
         return $this->index();
+    }
+
+    public function list(): JsonResponse
+    {
+        $employees = Employee::with('user:id,name')
+            ->orderBy('id')
+            ->get()
+            ->map(fn (Employee $employee) => [
+                'id' => $employee->id,
+                'name' => $employee->user?->name,
+            ]);
+
+        return response()->json($employees);
     }
 
     /**

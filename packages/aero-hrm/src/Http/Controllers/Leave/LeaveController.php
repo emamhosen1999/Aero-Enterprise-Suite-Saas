@@ -169,7 +169,7 @@ class LeaveController extends Controller
             }
 
             // Check for sufficient leave balance
-            $user = User::findOrFail($userId);
+            $user = $this->userModel()::findOrFail($userId);
             if (! $this->balanceService->hasSufficientBalance($user, $leaveTypeId, $daysCount, $fromDate->year)) {
                 return response()->json([
                     'success' => false,

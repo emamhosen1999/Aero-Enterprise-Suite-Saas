@@ -13,6 +13,8 @@ use Aero\HRM\Models\Attendance;
 use Aero\HRM\Models\AttendanceType;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Designation;
+use Aero\HRM\Models\EmployeeEducation;
+use Aero\HRM\Models\EmployeeWorkExperience;
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Leave;
 use Aero\HRM\Services\HrmNotificationChannelResolver;
@@ -306,6 +308,12 @@ class HRMServiceProvider extends AbstractModuleProvider
         $registry->registerRelationship('attendanceType', function ($user) {
             return $user->belongsTo(AttendanceType::class, 'attendance_type_id');
         });
+            $registry->registerRelationship('educations', function ($user) {
+                return $user->hasMany(EmployeeEducation::class, 'user_id');
+            });
+            $registry->registerRelationship('experiences', function ($user) {
+                return $user->hasMany(EmployeeWorkExperience::class, 'user_id');
+            });
 
         // Register scopes for user queries
         $registry->registerScope('employees', function ($query) {

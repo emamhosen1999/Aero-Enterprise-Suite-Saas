@@ -99,7 +99,7 @@ const AssetsIndex = ({ title, categories: initialCategories, employees: initialE
     const fetchCategories = useCallback(async () => {
         if (categories.length > 0) return;
         try {
-            const response = await axios.get(route('hrm.asset-categories.list'));
+            const response = await axios.get(route('hrm.assets.categories.list'));
             if (response.status === 200) setCategories(response.data);
         } catch (error) {
             console.error('Failed to fetch categories:', error);

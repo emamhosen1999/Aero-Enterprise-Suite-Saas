@@ -156,7 +156,7 @@ class LeaveQueryService
         if ($leaveRecords->isEmpty()) {
             if ($specificUserId) {
                 $message = 'No leave records found for the selected user.';
-            } elseif (! $isAdmin) {
+            } elseif (! $isAdminView) {
                 $message = 'You have no leave records for the selected period.';
             } else {
                 $message = 'No leave records found for the selected criteria.';

@@ -32,7 +32,7 @@ const ExpenseCategoriesIndex = ({ title }) => {
     const fetchCategories = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await axios.get(route('hrm.expenses.categories.index'));
+            const response = await axios.get(route('hrm.expenses.categories.list'));
             if (response.status === 200) setCategories(response.data);
         } catch (error) {
             showToast.promise(Promise.reject(error), { error: 'Failed to fetch categories' });

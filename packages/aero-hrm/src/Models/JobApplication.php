@@ -44,7 +44,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property-read string $candidate_name
  * @property-read string $candidate_email
  * @property-read int $job_posting_id Alias for job_id
- * @property-read JobRecruitment|null $job
+ * @property-read Job|null $job
  * @property-read JobHiringStage|null $currentStage
  * @property-read User|null $assignedTo
  */
@@ -116,7 +116,7 @@ class JobApplication extends Model
      */
     public function job(): BelongsTo
     {
-        return $this->belongsTo(JobRecruitment::class, 'job_id');
+        return $this->belongsTo(Job::class, 'job_id');
     }
 
     /**

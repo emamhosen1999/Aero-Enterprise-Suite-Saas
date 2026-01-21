@@ -1,10 +1,6 @@
 <?php
 
 namespace Aero\HRM\Models;
-
-use App\Models\Tenant\HRM\Job;
-use App\Models\Tenant\HRM\JobApplication;
-use App\Models\Tenant\HRM\JobApplicationStageHistory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -91,11 +87,11 @@ class JobHiringStage extends Model
 
         // Create stage history entry
         JobApplicationStageHistory::create([
-            'job_application_id' => $application->id,
-            'stage_id' => $nextStage->id,
-            'previous_stage_id' => $this->id,
-            'changed_by' => auth()->id(),
-            'changed_at' => now(),
+            'application_id' => $application->id,
+            'from_stage_id' => $this->id,
+            'to_stage_id' => $nextStage->id,
+            'moved_by' => auth()->id(),
+            'moved_at' => now(),
             'notes' => $notes,
         ]);
 

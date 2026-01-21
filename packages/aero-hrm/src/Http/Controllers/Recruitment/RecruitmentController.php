@@ -864,10 +864,10 @@ class RecruitmentController extends Controller
 
             // Create stage history entry
             $application->stageHistory()->create([
-                'stage_id' => $validated['current_stage_id'],
-                'previous_stage_id' => $previousStageId,
-                'changed_by' => Auth::id(),
-                'changed_at' => now(),
+                'from_stage_id' => $previousStageId,
+                'to_stage_id' => $validated['current_stage_id'],
+                'moved_by' => Auth::id(),
+                'moved_at' => now(),
                 'notes' => $request->stage_change_notes ?? 'Stage updated',
             ]);
 
@@ -1042,10 +1042,10 @@ class RecruitmentController extends Controller
 
         if ($offerStage) {
             $application->stageHistory()->create([
-                'stage_id' => $offerStage->id,
-                'previous_stage_id' => $application->current_stage_id,
-                'changed_by' => Auth::id(),
-                'changed_at' => now(),
+                'from_stage_id' => $application->current_stage_id,
+                'to_stage_id' => $offerStage->id,
+                'moved_by' => Auth::id(),
+                'moved_at' => now(),
                 'notes' => 'Offer extended to candidate',
             ]);
 
@@ -1111,6 +1111,7 @@ class RecruitmentController extends Controller
         $applications = JobApplication::whereIn('id', $validated['application_ids'])->get();
 
         foreach ($applications as $application) {
+            $previousStageId = $application->current_stage_id;
             $updateData = ['status' => $validated['status']];
 
             if (isset($validated['stage_id'])) {
@@ -1120,10 +1121,11 @@ class RecruitmentController extends Controller
             $application->update($updateData);
 
             // Create stage history if stage changed
-            if (isset($validated['stage_id']) && $validated['stage_id'] != $application->current_stage_id) {
+            if (isset($validated['stage_id']) && $validated['stage_id'] != $previousStageId) {
                 JobApplicationStageHistory::create([
                     'application_id' => $application->id,
-                    'stage_id' => $validated['stage_id'],
+                    'from_stage_id' => $previousStageId,
+                    'to_stage_id' => $validated['stage_id'],
                     'moved_by' => Auth::id(),
                     'moved_at' => now(),
                     'notes' => $validated['notes'] ?? 'Bulk status update',
@@ -1375,10 +1377,10 @@ class RecruitmentController extends Controller
 
         // Create stage history entry
         $application->stageHistory()->create([
-            'stage_id' => $validated['stage_id'],
-            'previous_stage_id' => $previousStageId,
-            'changed_by' => Auth::id(),
-            'changed_at' => now(),
+            'from_stage_id' => $previousStageId,
+            'to_stage_id' => $validated['stage_id'],
+            'moved_by' => Auth::id(),
+            'moved_at' => now(),
             'notes' => $validated['notes'] ?? 'Stage updated via Kanban',
         ]);
 

@@ -2,7 +2,7 @@
 
 namespace Aero\HRM\Http\Controllers\Asset;
 
-use App\Http\Controllers\Controller;
+use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Models\{Asset, AssetCategory, AssetAllocation, Employee};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +12,7 @@ class AssetController extends Controller
 {
     public function index()
     {
-        return Inertia::render('HRM/Assets/Index', [
+        return Inertia::render('HRM/Assets/AssetsIndex', [
             'title' => 'Asset Management',
             'categories' => AssetCategory::active()->get(),
         ]);
