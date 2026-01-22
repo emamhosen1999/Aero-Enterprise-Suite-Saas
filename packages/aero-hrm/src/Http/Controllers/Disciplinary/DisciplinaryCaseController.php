@@ -15,6 +15,15 @@ class DisciplinaryCaseController extends Controller
         return Inertia::render('HRM/Disciplinary/DisciplinaryCasesIndex', [
             'title' => 'Disciplinary Cases',
             'actionTypes' => DisciplinaryActionType::active()->get(),
+            'employees' => Employee::with('user:id,name,email')
+                ->whereHas('user', fn ($q) => $q->where('active', true))
+                ->get()
+                ->map(fn ($e) => [
+                    'id' => $e->id,
+                    'name' => $e->user?->name ?? $e->first_name.' '.$e->last_name,
+                    'email' => $e->user?->email,
+                    'employee_code' => $e->employee_code,
+                ]),
         ]);
     }
 

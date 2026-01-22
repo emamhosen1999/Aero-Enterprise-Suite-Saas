@@ -245,6 +245,38 @@ class GoalSettingService
     }
 
     /**
+     * Get goals for a user by user ID.
+     * This is a convenience method that looks up the employee and delegates to getEmployeeGoals.
+     *
+     * @param int $userId The user ID
+     * @param array $filters Optional filters (status, type, period, search)
+     * @return array Goals data with summary
+     */
+    public function getGoalsForUser(int $userId, array $filters = []): array
+    {
+        // Find the employee for this user
+        $employee = \Aero\HRM\Models\Employee::where('user_id', $userId)->first();
+
+        if (! $employee) {
+            return [
+                'user_id' => $userId,
+                'employee_id' => null,
+                'goals' => [],
+                'summary' => [
+                    'total' => 0,
+                    'completed' => 0,
+                    'in_progress' => 0,
+                    'at_risk' => 0,
+                    'average_progress' => 0,
+                ],
+                'message' => 'User does not have an employee profile',
+            ];
+        }
+
+        return $this->getEmployeeGoals($employee->id, $filters);
+    }
+
+    /**
      * Get goals for an employee.
      */
     public function getEmployeeGoals(int $employeeId, array $filters = []): array

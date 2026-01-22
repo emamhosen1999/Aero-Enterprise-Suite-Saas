@@ -22,7 +22,7 @@ class GoalController extends Controller
         $filters = $request->only(['status', 'type', 'period', 'search']);
         $userId = $request->user()->id;
 
-        return Inertia::render('Hrm/Performance/Goals/Index', [
+        return Inertia::render('HRM/Goals/Index', [
             'goals' => fn () => $this->goalService->getGoalsForUser($userId, $filters),
             'filters' => $filters,
             'goalTypes' => GoalSettingService::TYPES,
@@ -35,7 +35,7 @@ class GoalController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Hrm/Performance/Goals/Create', [
+        return Inertia::render('HRM/Goals/Create', [
             'goalTypes' => GoalSettingService::TYPES,
             'measurementTypes' => GoalSettingService::MEASUREMENT_TYPES,
         ]);
@@ -79,7 +79,7 @@ class GoalController extends Controller
     {
         $goal = $this->goalService->getGoal($goalId);
 
-        return Inertia::render('Hrm/Performance/Goals/Show', [
+        return Inertia::render('HRM/Goals/Show', [
             'goal' => $goal,
             'checkIns' => fn () => $this->goalService->getCheckIns($goalId),
         ]);

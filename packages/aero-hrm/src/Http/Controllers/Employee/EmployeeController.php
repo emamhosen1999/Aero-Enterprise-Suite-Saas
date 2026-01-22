@@ -501,12 +501,12 @@ class EmployeeController extends Controller
     }
 
     /**
-     * Display the specified employee
+     * Display the specified employee profile
      */
     public function show($id)
     {
         // Try to find by employee ID first, then by user ID
-        $employee = Employee::with(['user', 'department', 'designation', 'manager'])
+        $employee = Employee::with(['user', 'department', 'designation', 'manager.user'])
             ->where('id', $id)
             ->orWhere('user_id', $id)
             ->first();
@@ -515,7 +515,9 @@ class EmployeeController extends Controller
             // Fallback: Check if user exists but has no employee record
             $user = User::find($id);
             if ($user) {
-                return response()->json([
+                // Redirect to create employee profile or show message
+                return Inertia::render('HRM/UserProfile', [
+                    'title' => 'Employee Profile',
                     'employee' => [
                         'id' => null,
                         'user_id' => $user->id,
@@ -525,13 +527,30 @@ class EmployeeController extends Controller
                         'is_employee' => false,
                         'message' => 'User exists but has no employee record',
                     ],
+                    'allUsers' => User::where('active', true)->get(['id', 'name', 'email']),
+                    'report_to' => Employee::with('user:id,name')->get()->map(fn ($e) => [
+                        'id' => $e->id,
+                        'name' => $e->user?->name,
+                    ]),
+                    'departments' => Department::where('is_active', true)->get(['id', 'name']),
+                    'designations' => Designation::where('is_active', true)->get(['id', 'title']),
                 ]);
             }
 
-            return response()->json(['error' => 'Employee not found'], 404);
+            abort(404, 'Employee not found');
         }
 
-        return response()->json(['employee' => $this->transformEmployee($employee)]);
+        return Inertia::render('HRM/UserProfile', [
+            'title' => $employee->user?->name ?? 'Employee Profile',
+            'employee' => $this->transformEmployee($employee),
+            'allUsers' => User::where('active', true)->get(['id', 'name', 'email']),
+            'report_to' => Employee::with('user:id,name')->get()->map(fn ($e) => [
+                'id' => $e->id,
+                'name' => $e->user?->name,
+            ]),
+            'departments' => Department::where('is_active', true)->get(['id', 'name']),
+            'designations' => Designation::where('is_active', true)->get(['id', 'title']),
+        ]);
     }
 
     /**

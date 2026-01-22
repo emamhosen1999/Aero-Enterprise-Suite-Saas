@@ -18,6 +18,42 @@ class AssetController extends Controller
         ]);
     }
 
+    /**
+     * Display asset allocations page.
+     */
+    public function allocations()
+    {
+        return Inertia::render('HRM/Assets/AssetAllocationsIndex', [
+            'title' => 'Asset Allocations',
+            'categories' => AssetCategory::active()->get(),
+            'employees' => Employee::with('user')->whereHas('user', fn ($q) => $q->where('active', true))->get(),
+        ]);
+    }
+
+    /**
+     * Get allocations data for API endpoint.
+     */
+    public function allocationsIndex(Request $request)
+    {
+        $allocations = AssetAllocation::with(['asset.category', 'employee.user'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $stats = [
+            'total' => $allocations->count(),
+            'active' => $allocations->where('is_active', true)->count(),
+            'returned' => $allocations->where('is_active', false)->count(),
+            'overdue' => $allocations->where('is_active', true)
+                ->filter(fn ($a) => $a->expected_return_date && $a->expected_return_date < now())
+                ->count(),
+        ];
+
+        return response()->json([
+            'data' => $allocations,
+            'stats' => $stats,
+        ]);
+    }
+
     public function paginate(Request $request)
     {
         $perPage = $request->get('perPage', 30);

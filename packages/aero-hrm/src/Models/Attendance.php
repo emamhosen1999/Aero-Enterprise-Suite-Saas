@@ -3,6 +3,7 @@
 namespace Aero\HRM\Models;
 
 use Aero\Core\Models\User;
+use Aero\HRM\Models\Employee;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
@@ -80,6 +81,33 @@ class Attendance extends Model implements HasMedia
     public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Get the employee associated with this attendance record.
+     * This is a convenience accessor that goes through the User relationship.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOneThrough|null
+     */
+    public function employee(): \Illuminate\Database\Eloquent\Relations\HasOneThrough
+    {
+        return $this->hasOneThrough(
+            Employee::class,
+            User::class,
+            'id',          // Foreign key on users table
+            'user_id',     // Foreign key on employees table
+            'user_id',     // Local key on attendances table
+            'id'           // Local key on users table
+        );
+    }
+
+    /**
+     * Get the employee_id attribute for convenience.
+     * Returns the employee ID associated with the attendance's user.
+     */
+    public function getEmployeeIdAttribute(): ?int
+    {
+        return $this->user?->employee?->id;
     }
 
     /**

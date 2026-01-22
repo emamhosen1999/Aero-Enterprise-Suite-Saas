@@ -5,7 +5,6 @@ import {
     Button,
     Card,
     Chip,
-    DateInput,
     Input,
     Modal,
     ModalBody,
@@ -403,21 +402,27 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
                 ))}
               </Select>
               
-              <DateInput
-                label="From Date"
-                value={formData.from_date}
-                onChange={(date) => setFormData(prev => ({...prev, from_date: date}))}
-                isRequired
-                radius={themeRadius}
-              />
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-foreground">From Date <span className="text-danger">*</span></label>
+                <input
+                  type="date"
+                  value={formData.from_date}
+                  onChange={(e) => setFormData(prev => ({...prev, from_date: e.target.value}))}
+                  required
+                  className="w-full px-3 py-2 rounded-lg border border-default-200 bg-default-100 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
               
-              <DateInput
-                label="To Date"
-                value={formData.to_date}
-                onChange={(date) => setFormData(prev => ({...prev, to_date: date}))}
-                isRequired
-                radius={themeRadius}
-              />
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-foreground">To Date <span className="text-danger">*</span></label>
+                <input
+                  type="date"
+                  value={formData.to_date}
+                  onChange={(e) => setFormData(prev => ({...prev, to_date: e.target.value}))}
+                  required
+                  className="w-full px-3 py-2 rounded-lg border border-default-200 bg-default-100 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
             </div>
             
             <Textarea

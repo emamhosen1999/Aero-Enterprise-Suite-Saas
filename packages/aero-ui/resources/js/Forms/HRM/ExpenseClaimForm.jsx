@@ -32,11 +32,10 @@ const ExpenseClaimForm = ({ claim, categories, open, closeModal, onSuccess, edit
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const form = useForm('post', editMode ? route('hrm.expenses.update', claim?.id) : route('hrm.expenses.store'), {
-        expense_category_id: claim?.expense_category_id || '',
+        category_id: claim?.category_id || '',
         amount: claim?.amount || '',
-        claim_date: claim?.claim_date || new Date().toISOString().split('T')[0],
+        expense_date: claim?.expense_date || new Date().toISOString().split('T')[0],
         description: claim?.description || '',
-        notes: claim?.notes || '',
     });
 
     const handleSubmit = async (e) => {
@@ -92,10 +91,10 @@ const ExpenseClaimForm = ({ claim, categories, open, closeModal, onSuccess, edit
                             <Select
                                 label="Expense Category"
                                 placeholder="Select category"
-                                selectedKeys={form.data.expense_category_id ? [String(form.data.expense_category_id)] : []}
-                                onSelectionChange={(keys) => form.setData('expense_category_id', Array.from(keys)[0])}
-                                isInvalid={!!form.errors.expense_category_id}
-                                errorMessage={form.errors.expense_category_id}
+                                selectedKeys={form.data.category_id ? [String(form.data.category_id)] : []}
+                                onSelectionChange={(keys) => form.setData('category_id', Array.from(keys)[0])}
+                                isInvalid={!!form.errors.category_id}
+                                errorMessage={form.errors.category_id}
                                 isRequired
                                 radius={themeRadius}
                                 classNames={{ trigger: "bg-default-100" }}
@@ -124,11 +123,11 @@ const ExpenseClaimForm = ({ claim, categories, open, closeModal, onSuccess, edit
 
                             <Input
                                 type="date"
-                                label="Claim Date"
-                                value={form.data.claim_date}
-                                onChange={(e) => form.setData('claim_date', e.target.value)}
-                                isInvalid={!!form.errors.claim_date}
-                                errorMessage={form.errors.claim_date}
+                                label="Expense Date"
+                                value={form.data.expense_date}
+                                onChange={(e) => form.setData('expense_date', e.target.value)}
+                                isInvalid={!!form.errors.expense_date}
+                                errorMessage={form.errors.expense_date}
                                 isRequired
                                 radius={themeRadius}
                                 classNames={{ inputWrapper: "bg-default-100" }}
@@ -145,18 +144,6 @@ const ExpenseClaimForm = ({ claim, categories, open, closeModal, onSuccess, edit
                                 radius={themeRadius}
                                 classNames={{ inputWrapper: "bg-default-100" }}
                                 minRows={3}
-                            />
-
-                            <Textarea
-                                label="Notes (Optional)"
-                                placeholder="Additional notes"
-                                value={form.data.notes}
-                                onValueChange={(value) => form.setData('notes', value)}
-                                isInvalid={!!form.errors.notes}
-                                errorMessage={form.errors.notes}
-                                radius={themeRadius}
-                                classNames={{ inputWrapper: "bg-default-100" }}
-                                minRows={2}
                             />
                         </div>
                     </ModalBody>

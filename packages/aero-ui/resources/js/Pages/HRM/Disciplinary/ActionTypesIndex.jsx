@@ -38,7 +38,7 @@ const ActionTypesIndex = ({ title }) => {
     const fetchActionTypes = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await axios.get(route('hrm.disciplinary.action-types.index'));
+            const response = await axios.get(route('hrm.disciplinary.action-types.data'));
             if (response.status === 200) setActionTypes(response.data);
         } catch (error) {
             showToast.promise(Promise.reject(error), { error: 'Failed to fetch action types' });

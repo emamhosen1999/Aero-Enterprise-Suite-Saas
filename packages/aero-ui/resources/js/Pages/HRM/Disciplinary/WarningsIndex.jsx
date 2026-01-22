@@ -47,7 +47,7 @@ const WarningsIndex = ({ title }) => {
     const fetchWarnings = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await axios.get(route('hrm.disciplinary.warnings.index'));
+            const response = await axios.get(route('hrm.disciplinary.warnings.data'));
             if (response.status === 200) {
                 setWarnings(response.data.data);
                 setStats(response.data.stats);

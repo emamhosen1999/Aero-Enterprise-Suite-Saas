@@ -88,6 +88,38 @@ class ExpenseClaimController extends Controller
         ]);
     }
 
+    /**
+     * Get current user's expense claims for API endpoint.
+     */
+    public function myExpensesPaginate(Request $request)
+    {
+        $employee = Employee::where('user_id', $request->user()->id)->first();
+        
+        if (!$employee) {
+            return response()->json([
+                'data' => [],
+                'stats' => ['total' => 0, 'pending' => 0, 'approved' => 0, 'rejected' => 0],
+            ]);
+        }
+
+        $claims = ExpenseClaim::with(['category'])
+            ->where('employee_id', $employee->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $stats = [
+            'total' => $claims->count(),
+            'pending' => $claims->whereIn('status', ['draft', 'submitted', 'pending'])->count(),
+            'approved' => $claims->whereIn('status', ['approved', 'paid'])->count(),
+            'rejected' => $claims->where('status', 'rejected')->count(),
+        ];
+
+        return response()->json([
+            'data' => $claims,
+            'stats' => $stats,
+        ]);
+    }
+
     public function update(Request $request, int $id)
     {
         $claim = ExpenseClaim::findOrFail($id);

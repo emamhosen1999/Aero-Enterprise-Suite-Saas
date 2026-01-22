@@ -32,13 +32,13 @@ const AssetForm = ({ asset, categories, open, closeModal, onSuccess, editMode = 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const form = useForm('post', editMode ? route('hrm.assets.update', asset?.id) : route('hrm.assets.store'), {
-        asset_category_id: asset?.asset_category_id || '',
+        category_id: asset?.category_id || '',
         name: asset?.name || '',
         serial_number: asset?.serial_number || '',
-        qr_code: asset?.qr_code || '',
+        manufacturer: asset?.manufacturer || '',
+        model: asset?.model || '',
         purchase_date: asset?.purchase_date || '',
         purchase_price: asset?.purchase_price || '',
-        warranty_expiry: asset?.warranty_expiry || '',
         description: asset?.description || '',
     });
 
@@ -95,10 +95,10 @@ const AssetForm = ({ asset, categories, open, closeModal, onSuccess, editMode = 
                             <Select
                                 label="Asset Category"
                                 placeholder="Select category"
-                                selectedKeys={form.data.asset_category_id ? [String(form.data.asset_category_id)] : []}
-                                onSelectionChange={(keys) => form.setData('asset_category_id', Array.from(keys)[0])}
-                                isInvalid={!!form.errors.asset_category_id}
-                                errorMessage={form.errors.asset_category_id}
+                                selectedKeys={form.data.category_id ? [String(form.data.category_id)] : []}
+                                onSelectionChange={(keys) => form.setData('category_id', Array.from(keys)[0])}
+                                isInvalid={!!form.errors.category_id}
+                                errorMessage={form.errors.category_id}
                                 isRequired
                                 radius={themeRadius}
                                 classNames={{ trigger: "bg-default-100" }}
@@ -134,12 +134,23 @@ const AssetForm = ({ asset, categories, open, closeModal, onSuccess, editMode = 
                             />
 
                             <Input
-                                label="QR Code"
-                                placeholder="Scan or enter QR code"
-                                value={form.data.qr_code}
-                                onValueChange={(value) => form.setData('qr_code', value)}
-                                isInvalid={!!form.errors.qr_code}
-                                errorMessage={form.errors.qr_code}
+                                label="Manufacturer"
+                                placeholder="Enter manufacturer"
+                                value={form.data.manufacturer}
+                                onValueChange={(value) => form.setData('manufacturer', value)}
+                                isInvalid={!!form.errors.manufacturer}
+                                errorMessage={form.errors.manufacturer}
+                                radius={themeRadius}
+                                classNames={{ inputWrapper: "bg-default-100" }}
+                            />
+
+                            <Input
+                                label="Model"
+                                placeholder="Enter model"
+                                value={form.data.model}
+                                onValueChange={(value) => form.setData('model', value)}
+                                isInvalid={!!form.errors.model}
+                                errorMessage={form.errors.model}
                                 radius={themeRadius}
                                 classNames={{ inputWrapper: "bg-default-100" }}
                             />
@@ -167,17 +178,6 @@ const AssetForm = ({ asset, categories, open, closeModal, onSuccess, editMode = 
                                 radius={themeRadius}
                                 classNames={{ inputWrapper: "bg-default-100" }}
                                 startContent={<span className="text-default-400">$</span>}
-                            />
-
-                            <Input
-                                type="date"
-                                label="Warranty Expiry"
-                                value={form.data.warranty_expiry}
-                                onChange={(e) => form.setData('warranty_expiry', e.target.value)}
-                                isInvalid={!!form.errors.warranty_expiry}
-                                errorMessage={form.errors.warranty_expiry}
-                                radius={themeRadius}
-                                classNames={{ inputWrapper: "bg-default-100" }}
                             />
 
                             <Textarea

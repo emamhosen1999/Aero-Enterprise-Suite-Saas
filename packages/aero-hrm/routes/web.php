@@ -686,6 +686,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Leave settings routes
     Route::middleware(['module:hrm,time-off,leave-settings'])->group(function () {
         Route::get('/leave-settings', [LeaveSettingController::class, 'index'])->name('leave-settings');
+        Route::get('/leave-types', [LeaveSettingController::class, 'index'])->name('leave-types'); // Alias route
         Route::post('/add-leave-type', [LeaveSettingController::class, 'store'])->name('add-leave-type');
         Route::put('/update-leave-type/{id}', [LeaveSettingController::class, 'update'])->name('update-leave-type');
         Route::delete('/delete-leave-type/{id}', [LeaveSettingController::class, 'destroy'])->name('delete-leave-type');
@@ -719,6 +720,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Attendance management routes
     Route::middleware(['module:hrm,attendance'])->group(function () {
+        Route::get('/attendance', [AttendanceController::class, 'index1'])->name('attendance'); // Main attendance page alias
         Route::get('/attendances', [AttendanceController::class, 'index1'])->name('attendances');
         Route::get('/attendance/daily', [AttendanceController::class, 'index1'])->name('attendance.daily'); // Daily attendance view (alias)
         Route::get('/attendance/calendar', [AttendanceController::class, 'index1'])->name('attendance.calendar'); // Monthly calendar view
@@ -801,6 +803,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['module:hrm,expenses'])->prefix('expenses')->name('expenses.')->group(function () {
         // Main index page (Inertia)
         Route::get('/', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'index'])->name('index');
+        Route::get('/my-claims', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'myExpensesPaginate'])->name('my-claims');
         Route::get('/categories', [ExpenseCategoryController::class, 'index'])->name('categories.index');
         Route::get('/categories/list', [ExpenseCategoryController::class, 'list'])->name('categories.list');
         // API endpoints for data fetching
@@ -819,6 +822,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['module:hrm,assets'])->prefix('assets')->name('assets.')->group(function () {
         // Main index page (Inertia)
         Route::get('/', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'index'])->name('index');
+        Route::get('/allocations', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'allocations'])->name('allocations');
+        Route::get('/allocations/index', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'allocationsIndex'])->name('allocations.index');
         Route::get('/categories', [AssetCategoryController::class, 'index'])->name('categories.index');
         Route::get('/categories/list', [AssetCategoryController::class, 'list'])->name('categories.list');
         // API endpoints for data fetching
