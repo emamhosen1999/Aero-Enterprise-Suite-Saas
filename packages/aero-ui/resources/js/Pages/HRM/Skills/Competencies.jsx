@@ -55,11 +55,11 @@ const CompetenciesPage = ({ title, competencies: initialCompetencies, department
         return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
 
-    // State management
+    // State management - ensure arrays are always arrays
     const [loading, setLoading] = useState(false);
     const [statsLoading, setStatsLoading] = useState(true);
-    const [competencies, setCompetencies] = useState(initialCompetencies || []);
-    const [departments, setDepartments] = useState(initialDepartments || []);
+    const [competencies, setCompetencies] = useState(Array.isArray(initialCompetencies) ? initialCompetencies : []);
+    const [departments, setDepartments] = useState(Array.isArray(initialDepartments) ? initialDepartments : []);
     const [filters, setFilters] = useState({ search: '', department: 'all', level: 'all' });
     const [pagination, setPagination] = useState({ perPage: 30, currentPage: 1, total: 0 });
     const [stats, setStats] = useState({ total: 0, active: 0, pending: 0, advanced: 0 });

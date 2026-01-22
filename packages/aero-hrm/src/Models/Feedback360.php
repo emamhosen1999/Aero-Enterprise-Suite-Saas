@@ -17,7 +17,7 @@ class Feedback360 extends Model
 {
     use HasFactory;
 
-    protected $table = 'feedback_360';
+    protected $table = 'feedback_360_reviews';
 
     protected $fillable = [
         'employee_id',

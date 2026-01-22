@@ -140,7 +140,7 @@ const AttendanceAdmin = React.memo(({title}) => {
             setLeaveCounts(response.data.leaveCounts);
 
             // Fetch attendance settings for weekend configuration
-            const settingsResponse = await axios.get('/settings/attendance', {
+            const settingsResponse = await axios.get(route('hrm.attendance-settings.index'), {
                 headers: {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'

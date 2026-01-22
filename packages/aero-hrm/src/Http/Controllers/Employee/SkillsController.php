@@ -205,9 +205,13 @@ class SkillsController extends Controller
             return response()->json(['competencies' => $competencies]);
         }
 
+        // Get departments for filter dropdown
+        $departments = DB::table('departments')->select('id', 'name')->get();
+
         return Inertia::render('HRM/Skills/Competencies', [
             'title' => 'Competency Framework',
-            'competencies' => $competencies,
+            'competencies' => $competencies->items() ?? [],
+            'departments' => $departments ?? [],
         ]);
     }
 

@@ -104,6 +104,20 @@ return [
             'route' => '/hrm/goals',
             'priority' => 11,
         ],
+        [
+            'code' => 'my-career-path',
+            'name' => 'My Career Path',
+            'icon' => 'ArrowTrendingUpIcon',
+            'route' => '/hrm/self-service/career-path',
+            'priority' => 12,
+        ],
+        [
+            'code' => 'my-feedback',
+            'name' => 'My 360° Feedback',
+            'icon' => 'ArrowPathIcon',
+            'route' => '/hrm/feedback-360/my-pending',
+            'priority' => 13,
+        ],
     ],
 
     'submodules' => [
@@ -914,6 +928,324 @@ return [
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Performance Insights'],
                         ['code' => 'export', 'name' => 'Export Performance Data'],
+                    ],
+                ],
+            ],
+        ],
+
+        // 2.12 Succession Planning
+        [
+            'code' => 'succession-planning',
+            'name' => 'Succession Planning',
+            'description' => 'Identify and develop future leaders for critical positions',
+            'icon' => 'UserPlusIcon',
+            'route' => '/hrm/succession-planning',
+            'priority' => 12,
+            'components' => [
+                [
+                    'code' => 'succession-plans',
+                    'name' => 'Succession Plans',
+                    'type' => 'page',
+                    'route' => '/hrm/succession-planning',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Succession Plans'],
+                        ['code' => 'create', 'name' => 'Create Succession Plan'],
+                        ['code' => 'update', 'name' => 'Update Succession Plan'],
+                        ['code' => 'delete', 'name' => 'Delete Succession Plan'],
+                    ],
+                ],
+                [
+                    'code' => 'succession-candidates',
+                    'name' => 'Succession Candidates',
+                    'type' => 'page',
+                    'route' => '/hrm/succession-planning/candidates',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Candidates'],
+                        ['code' => 'manage', 'name' => 'Manage Candidates'],
+                    ],
+                ],
+            ],
+        ],
+
+        // 2.13 Career Pathing
+        [
+            'code' => 'career-pathing',
+            'name' => 'Career Pathing',
+            'description' => 'Define career progression paths and track employee development',
+            'icon' => 'ArrowTrendingUpIcon',
+            'route' => '/hrm/career-paths',
+            'priority' => 13,
+            'components' => [
+                [
+                    'code' => 'career-paths',
+                    'name' => 'Career Paths',
+                    'type' => 'page',
+                    'route' => '/hrm/career-paths',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Career Paths'],
+                        ['code' => 'create', 'name' => 'Create Career Path'],
+                        ['code' => 'update', 'name' => 'Update Career Path'],
+                        ['code' => 'delete', 'name' => 'Delete Career Path'],
+                    ],
+                ],
+                [
+                    'code' => 'career-milestones',
+                    'name' => 'Career Milestones',
+                    'type' => 'page',
+                    'route' => '/hrm/career-paths/milestones',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Milestones'],
+                        ['code' => 'manage', 'name' => 'Manage Milestones'],
+                    ],
+                ],
+                [
+                    'code' => 'employee-progressions',
+                    'name' => 'Employee Progressions',
+                    'type' => 'page',
+                    'route' => '/hrm/career-paths/progressions',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Progressions'],
+                        ['code' => 'assign', 'name' => 'Assign Career Path'],
+                        ['code' => 'update', 'name' => 'Update Progression'],
+                    ],
+                ],
+            ],
+        ],
+
+        // 2.14 360° Feedback
+        [
+            'code' => 'feedback-360',
+            'name' => '360° Feedback',
+            'description' => 'Multi-rater feedback for comprehensive performance insights',
+            'icon' => 'ArrowPathIcon',
+            'route' => '/hrm/feedback-360',
+            'priority' => 14,
+            'components' => [
+                [
+                    'code' => 'feedback-reviews',
+                    'name' => '360° Feedback Reviews',
+                    'type' => 'page',
+                    'route' => '/hrm/feedback-360',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View 360° Reviews'],
+                        ['code' => 'create', 'name' => 'Create 360° Review'],
+                        ['code' => 'update', 'name' => 'Update 360° Review'],
+                        ['code' => 'delete', 'name' => 'Delete 360° Review'],
+                        ['code' => 'launch', 'name' => 'Launch 360° Review'],
+                    ],
+                ],
+                [
+                    'code' => 'feedback-responses',
+                    'name' => 'Feedback Responses',
+                    'type' => 'page',
+                    'route' => '/hrm/feedback-360/responses',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Responses'],
+                        ['code' => 'submit', 'name' => 'Submit Feedback'],
+                    ],
+                ],
+                [
+                    'code' => 'my-pending-feedback',
+                    'name' => 'My Pending Feedback',
+                    'type' => 'page',
+                    'route' => '/hrm/feedback-360/my-pending',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Pending Feedback'],
+                        ['code' => 'submit', 'name' => 'Submit Feedback'],
+                    ],
+                ],
+            ],
+        ],
+
+        // 2.15 Compensation Planning
+        [
+            'code' => 'compensation-planning',
+            'name' => 'Compensation Planning',
+            'description' => 'Salary reviews, adjustments, and compensation budget management',
+            'icon' => 'BanknotesIcon',
+            'route' => '/hrm/compensation-planning',
+            'priority' => 15,
+            'components' => [
+                [
+                    'code' => 'compensation-reviews',
+                    'name' => 'Compensation Review Cycles',
+                    'type' => 'page',
+                    'route' => '/hrm/compensation-planning',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Compensation Reviews'],
+                        ['code' => 'create', 'name' => 'Create Compensation Review'],
+                        ['code' => 'update', 'name' => 'Update Compensation Review'],
+                        ['code' => 'delete', 'name' => 'Delete Compensation Review'],
+                    ],
+                ],
+                [
+                    'code' => 'compensation-adjustments',
+                    'name' => 'Salary Adjustments',
+                    'type' => 'page',
+                    'route' => '/hrm/compensation-planning/adjustments',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Adjustments'],
+                        ['code' => 'create', 'name' => 'Create Adjustment'],
+                        ['code' => 'approve', 'name' => 'Approve Adjustment'],
+                        ['code' => 'reject', 'name' => 'Reject Adjustment'],
+                    ],
+                ],
+                [
+                    'code' => 'compensation-analytics',
+                    'name' => 'Compensation Analytics',
+                    'type' => 'page',
+                    'route' => '/hrm/compensation-planning/analytics',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Compensation Analytics'],
+                        ['code' => 'export', 'name' => 'Export Compensation Data'],
+                    ],
+                ],
+            ],
+        ],
+
+        // 2.16 Workforce Planning
+        [
+            'code' => 'workforce-planning',
+            'name' => 'Workforce Planning',
+            'description' => 'Strategic headcount planning and workforce forecasting',
+            'icon' => 'ChartBarIcon',
+            'route' => '/hrm/workforce-planning',
+            'priority' => 16,
+            'components' => [
+                [
+                    'code' => 'workforce-plans',
+                    'name' => 'Workforce Plans',
+                    'type' => 'page',
+                    'route' => '/hrm/workforce-planning',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Workforce Plans'],
+                        ['code' => 'create', 'name' => 'Create Workforce Plan'],
+                        ['code' => 'update', 'name' => 'Update Workforce Plan'],
+                        ['code' => 'delete', 'name' => 'Delete Workforce Plan'],
+                        ['code' => 'approve', 'name' => 'Approve Workforce Plan'],
+                    ],
+                ],
+                [
+                    'code' => 'planned-positions',
+                    'name' => 'Planned Positions',
+                    'type' => 'page',
+                    'route' => '/hrm/workforce-planning/positions',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Planned Positions'],
+                        ['code' => 'manage', 'name' => 'Manage Positions'],
+                    ],
+                ],
+                [
+                    'code' => 'workforce-forecast',
+                    'name' => 'Workforce Forecast',
+                    'type' => 'page',
+                    'route' => '/hrm/workforce-planning/forecast',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Workforce Forecast'],
+                        ['code' => 'generate', 'name' => 'Generate Forecast'],
+                    ],
+                ],
+            ],
+        ],
+
+        // 2.17 Overtime Management
+        [
+            'code' => 'overtime',
+            'name' => 'Overtime Management',
+            'description' => 'Track and manage overtime requests and records',
+            'icon' => 'ClockIcon',
+            'route' => '/hrm/overtime',
+            'priority' => 17,
+            'components' => [
+                [
+                    'code' => 'overtime-records',
+                    'name' => 'Overtime Records',
+                    'type' => 'page',
+                    'route' => '/hrm/overtime',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Overtime Records'],
+                        ['code' => 'create', 'name' => 'Create Overtime Record'],
+                        ['code' => 'update', 'name' => 'Update Overtime Record'],
+                        ['code' => 'delete', 'name' => 'Delete Overtime Record'],
+                        ['code' => 'approve', 'name' => 'Approve Overtime'],
+                        ['code' => 'reject', 'name' => 'Reject Overtime'],
+                    ],
+                ],
+            ],
+        ],
+
+        // 2.18 Grievances
+        [
+            'code' => 'grievances',
+            'name' => 'Grievances & Complaints',
+            'description' => 'Employee grievance and complaint management system',
+            'icon' => 'ExclamationTriangleIcon',
+            'route' => '/hrm/grievances',
+            'priority' => 18,
+            'components' => [
+                [
+                    'code' => 'grievance-list',
+                    'name' => 'Grievances List',
+                    'type' => 'page',
+                    'route' => '/hrm/grievances',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Grievances'],
+                        ['code' => 'create', 'name' => 'Submit Grievance'],
+                        ['code' => 'update', 'name' => 'Update Grievance'],
+                        ['code' => 'delete', 'name' => 'Delete Grievance'],
+                        ['code' => 'investigate', 'name' => 'Investigate Grievance'],
+                        ['code' => 'resolve', 'name' => 'Resolve Grievance'],
+                    ],
+                ],
+            ],
+        ],
+
+        // 2.19 Exit Interviews
+        [
+            'code' => 'exit-interviews',
+            'name' => 'Exit Interviews',
+            'description' => 'Conduct and analyze employee exit interviews',
+            'icon' => 'ArrowRightOnRectangleIcon',
+            'route' => '/hrm/exit-interviews',
+            'priority' => 19,
+            'components' => [
+                [
+                    'code' => 'exit-interview-list',
+                    'name' => 'Exit Interviews',
+                    'type' => 'page',
+                    'route' => '/hrm/exit-interviews',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Exit Interviews'],
+                        ['code' => 'create', 'name' => 'Schedule Exit Interview'],
+                        ['code' => 'update', 'name' => 'Update Exit Interview'],
+                        ['code' => 'delete', 'name' => 'Delete Exit Interview'],
+                        ['code' => 'analyze', 'name' => 'Analyze Trends'],
+                    ],
+                ],
+            ],
+        ],
+
+        // 2.20 Pulse Surveys
+        [
+            'code' => 'pulse-surveys',
+            'name' => 'Pulse Surveys',
+            'description' => 'Quick employee engagement and sentiment surveys',
+            'icon' => 'ChartBarSquareIcon',
+            'route' => '/hrm/pulse-surveys',
+            'priority' => 20,
+            'components' => [
+                [
+                    'code' => 'survey-list',
+                    'name' => 'Pulse Surveys',
+                    'type' => 'page',
+                    'route' => '/hrm/pulse-surveys',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Surveys'],
+                        ['code' => 'create', 'name' => 'Create Survey'],
+                        ['code' => 'update', 'name' => 'Update Survey'],
+                        ['code' => 'delete', 'name' => 'Delete Survey'],
+                        ['code' => 'publish', 'name' => 'Publish Survey'],
+                        ['code' => 'analyze', 'name' => 'Analyze Results'],
                     ],
                 ],
             ],

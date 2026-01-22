@@ -1,0 +1,332 @@
+Submodule,Test ID,Test Scenario,Pre-conditions,Test Steps,Expected Result,Actual Result,Status,Bug Description,Priority,Fix Status
+Dashboard,DASH-001,Verify dashboard page loads correctly,"User logged in with HRM access","1. Navigate to HRM Dashboard
+2. Wait for page to load completely","Dashboard displays with stats cards, pending tasks, recent activities",,Not Started,,,
+Dashboard,DASH-002,Verify stats cards show accurate counts,Data exists in system,"1. Note counts on dashboard
+2. Cross-verify with individual module counts","Stats match actual data in database",,Not Started,,,
+Dashboard,DASH-003,Verify quick action buttons work,User has required permissions,"1. Click each quick action button
+2. Verify navigation works","Each button navigates to correct module",,Not Started,,,
+Dashboard,DASH-004,Verify responsive layout on mobile,"Logged in, mobile viewport","1. Resize browser to mobile width
+2. Check layout adaptation","Layout adapts without broken elements",,Not Started,,,
+Dashboard,DASH-005,Verify pending approvals widget,Pending leave/expense requests exist,"1. View pending approvals section
+2. Click on pending item","Pending items display and are clickable",,Not Started,,,
+Employee Management,EMP-001,Verify employee list page loads,"Logged in with employee view permission","1. Navigate to Employees
+2. Wait for page load","Employee list displays with table, filters, pagination",,Not Started,,,
+Employee Management,EMP-002,Verify employee search functionality,Employees exist in system,"1. Type employee name in search
+2. Press Enter or wait for debounce","Filtered results show matching employees",,Not Started,,,
+Employee Management,EMP-003,Verify create new employee,"User has create permission","1. Click Add Employee button
+2. Fill all required fields
+3. Submit form","New employee created, success toast shown",,Not Started,,,
+Employee Management,EMP-004,Verify edit employee details,Employee exists,"1. Click edit on existing employee
+2. Modify fields
+3. Save changes","Employee updated, changes reflected",,Not Started,,,
+Employee Management,EMP-005,Verify delete employee,Employee exists with no dependencies,"1. Click delete on employee
+2. Confirm deletion","Employee soft-deleted, removed from list",,Not Started,,,
+Employee Management,EMP-006,Verify employee profile view,Employee with complete profile,"1. Click on employee name
+2. View profile details","Full profile displays with all sections",,Not Started,,,
+Employee Management,EMP-007,Verify employee pagination,"More than page size employees","1. Navigate through pages
+2. Change page size","Pagination works correctly",,Not Started,,,
+Employee Management,EMP-008,Verify department filter works,Employees in multiple departments,"1. Select department from filter
+2. Check results","Only employees from selected department shown",,Not Started,,,
+Employee Management,EMP-009,Verify status filter works,Active and inactive employees exist,"1. Filter by status
+2. Check results","Filtered by selected status",,Not Started,,,
+Employee Management,EMP-010,Verify employee stats cards,Employees exist,"1. View stats section
+2. Check counts","Stats show correct counts by status",,Not Started,,,
+Employee Management,EMP-011,Verify employee onboarding action,New employee exists,"1. Click Onboard button
+2. Complete wizard","Employee marked as onboarded",,Not Started,,,
+Employee Management,EMP-012,Verify employee image upload,Employee exists,"1. Click profile image
+2. Upload new image
+3. Save","Image uploaded and displayed",,Not Started,,,
+Attendance,ATT-001,Verify attendance page loads,User has attendance access,"1. Navigate to Attendance
+2. Wait for load","Attendance page with today's records displays",,Not Started,,,
+Attendance,ATT-002,Verify punch in functionality,User not punched in today,"1. Click Punch In button
+2. Confirm action","Punch in recorded with timestamp",,Not Started,,,
+Attendance,ATT-003,Verify punch out functionality,User punched in today,"1. Click Punch Out button
+2. Confirm action","Punch out recorded, duration calculated",,Not Started,,,
+Attendance,ATT-004,Verify attendance calendar view,Attendance records exist,"1. Navigate to Calendar view
+2. View month","Calendar shows attendance status by day",,Not Started,,,
+Attendance,ATT-005,Verify timesheet view,User has timesheet access,"1. Navigate to Timesheet
+2. Select date range","Timesheet displays with work hours",,Not Started,,,
+Attendance,ATT-006,Verify admin attendance list,Admin with manage permission,"1. View admin attendance
+2. Filter by date","All employee attendance for date shown",,Not Started,,,
+Attendance,ATT-007,Verify mark as present action,Admin permissions,"1. Select absent employee
+2. Click Mark Present
+3. Fill details","Employee marked present manually",,Not Started,,,
+Attendance,ATT-008,Verify bulk mark present,Admin permissions,"1. Select multiple employees
+2. Click Bulk Mark Present","All selected marked present",,Not Started,,,
+Attendance,ATT-009,Verify attendance export Excel,Records exist,"1. Click Export Excel
+2. Download file","Excel file downloads with correct data",,Not Started,,,
+Attendance,ATT-010,Verify attendance export PDF,Records exist,"1. Click Export PDF
+2. Download file","PDF file downloads with correct data",,Not Started,,,
+Attendance,ATT-011,Verify attendance settings page,Admin access,"1. Navigate to Attendance Settings
+2. View configuration","Settings page loads with all options",,Not Started,,,
+Attendance,ATT-012,Verify attendance type management,Admin access,"1. Add new attendance type
+2. Edit existing type
+3. Delete type","CRUD operations work correctly",,Not Started,,,
+Time-Off Leave,LEAVE-001,Verify leave request page loads,User has leave access,"1. Navigate to Time-Off
+2. Wait for load","Leave page displays with request form",,Not Started,,,
+Time-Off Leave,LEAVE-002,Verify create leave request,Leave balance available,"1. Click Request Leave
+2. Select dates and type
+3. Submit","Leave request created successfully",,Not Started,,,
+Time-Off Leave,LEAVE-003,Verify leave balance display,User has leave allocation,"1. View leave balances section
+2. Check all leave types","Correct balances shown for each type",,Not Started,,,
+Time-Off Leave,LEAVE-004,Verify leave calendar view,Leave records exist,"1. Navigate to Leave Calendar
+2. View month","Calendar shows leave by type/color",,Not Started,,,
+Time-Off Leave,LEAVE-005,Verify leave approval workflow,Pending leave exists,"1. Manager views pending leaves
+2. Approves leave","Leave status changes to Approved",,Not Started,,,
+Time-Off Leave,LEAVE-006,Verify leave rejection workflow,Pending leave exists,"1. Manager views pending leaves
+2. Rejects with reason","Leave status changes to Rejected",,Not Started,,,
+Time-Off Leave,LEAVE-007,Verify bulk leave approval,Multiple pending leaves,"1. Select multiple leaves
+2. Click Bulk Approve","All selected leaves approved",,Not Started,,,
+Time-Off Leave,LEAVE-008,Verify bulk leave creation,Admin with create permission,"1. Click Bulk Create
+2. Select employees and dates
+3. Submit","Multiple leaves created",,Not Started,,,
+Time-Off Leave,LEAVE-009,Verify leave type management,Admin access,"1. Navigate to Leave Settings
+2. Add/Edit/Delete leave types","CRUD operations work",,Not Started,,,
+Time-Off Leave,LEAVE-010,Verify leave analytics,Leave data exists,"1. View leave analytics
+2. Check charts and stats","Analytics display correctly",,Not Started,,,
+Departments,DEPT-001,Verify departments page loads,User has department access,"1. Navigate to Departments
+2. Wait for load","Department list displays",,Not Started,,,
+Departments,DEPT-002,Verify create department,User has create permission,"1. Click Add Department
+2. Fill details
+3. Submit","Department created successfully",,Not Started,,,
+Departments,DEPT-003,Verify edit department,Department exists,"1. Click edit on department
+2. Modify fields
+3. Save","Department updated",,Not Started,,,
+Departments,DEPT-004,Verify delete department,Empty department exists,"1. Click delete
+2. Confirm","Department deleted",,Not Started,,,
+Departments,DEPT-005,Verify org chart view,Departments with hierarchy,"1. Navigate to Org Chart
+2. View structure","Org chart displays correctly",,Not Started,,,
+Departments,DEPT-006,Verify department stats,Departments with employees,"1. View department list
+2. Check employee counts","Correct counts shown",,Not Started,,,
+Designations,DES-001,Verify designations page loads,User has designation access,"1. Navigate to Designations
+2. Wait for load","Designation list displays",,Not Started,,,
+Designations,DES-002,Verify create designation,User has create permission,"1. Click Add Designation
+2. Fill details
+3. Submit","Designation created",,Not Started,,,
+Designations,DES-003,Verify edit designation,Designation exists,"1. Click edit
+2. Modify fields
+3. Save","Designation updated",,Not Started,,,
+Designations,DES-004,Verify delete designation,Unused designation exists,"1. Click delete
+2. Confirm","Designation deleted",,Not Started,,,
+Designations,DES-005,Verify designation stats,Designations with employees,"1. View stats section
+2. Check counts","Correct employee counts shown",,Not Started,,,
+Recruitment,REC-001,Verify recruitment page loads,User has recruitment access,"1. Navigate to Recruitment
+2. Wait for load","Job postings list displays",,Not Started,,,
+Recruitment,REC-002,Verify create job posting,User has create permission,"1. Click Add Job
+2. Fill job details
+3. Submit","Job posting created as draft",,Not Started,,,
+Recruitment,REC-003,Verify publish job posting,Draft job exists,"1. Click Publish on job
+2. Confirm","Job status changes to Published",,Not Started,,,
+Recruitment,REC-004,Verify view applications,Job with applications,"1. Click on job
+2. View applications list","Applications display correctly",,Not Started,,,
+Recruitment,REC-005,Verify Kanban board view,Job with applications,"1. Click Kanban view
+2. View stages","Kanban board shows applications by stage",,Not Started,,,
+Recruitment,REC-006,Verify drag-drop stage change,Applications in Kanban,"1. Drag application to new stage
+2. Release","Application stage updated",,Not Started,,,
+Recruitment,REC-007,Verify schedule interview,Application exists,"1. Open application
+2. Click Schedule Interview
+3. Fill details","Interview scheduled",,Not Started,,,
+Recruitment,REC-008,Verify extend offer,Interview completed,"1. Click Extend Offer
+2. Fill offer details
+3. Submit","Offer created and sent",,Not Started,,,
+Recruitment,REC-009,Verify recruitment statistics,Jobs and applications exist,"1. View statistics section
+2. Check metrics","Correct metrics displayed",,Not Started,,,
+Recruitment,REC-010,Verify close job posting,Published job exists,"1. Click Close Job
+2. Confirm","Job status changes to Closed",,Not Started,,,
+Performance,PERF-001,Verify performance page loads,User has performance access,"1. Navigate to Performance
+2. Wait for load","Performance reviews list displays",,Not Started,,,
+Performance,PERF-002,Verify create review,User has create permission,"1. Click Create Review
+2. Fill review details
+3. Submit","Review created",,Not Started,,,
+Performance,PERF-003,Verify edit review,Draft review exists,"1. Click edit
+2. Modify ratings
+3. Save","Review updated",,Not Started,,,
+Performance,PERF-004,Verify submit review,Draft review complete,"1. Click Submit
+2. Confirm","Review submitted for approval",,Not Started,,,
+Performance,PERF-005,Verify review templates,Admin access,"1. Navigate to Templates
+2. View templates","Template list displays",,Not Started,,,
+Goals,GOAL-001,Verify goals page loads,User has goals access,"1. Navigate to Goals
+2. Wait for load","Goals list displays",,Not Started,,,
+Goals,GOAL-002,Verify create goal,User has create permission,"1. Click Add Goal
+2. Fill goal details with key results
+3. Submit","Goal created with key results",,Not Started,,,
+Goals,GOAL-003,Verify update progress,Goal exists,"1. Click on goal
+2. Update progress
+3. Save","Progress updated, percentage calculated",,Not Started,,,
+Goals,GOAL-004,Verify goal completion,Goal at 100% progress,"1. Click Complete
+2. Confirm","Goal marked as completed",,Not Started,,,
+Goals,GOAL-005,Verify team goals view,Team goals exist,"1. Click Team Goals tab
+2. View team goals","Team goals display",,Not Started,,,
+Training,TRAIN-001,Verify training page loads,User has training access,"1. Navigate to Training
+2. Wait for load","Training programs list displays",,Not Started,,,
+Training,TRAIN-002,Verify create training program,Admin access,"1. Click Add Program
+2. Fill details
+3. Submit","Training program created",,Not Started,,,
+Training,TRAIN-003,Verify enroll employees,Training exists,"1. Open training
+2. Click Enroll
+3. Select employees","Employees enrolled",,Not Started,,,
+Training,TRAIN-004,Verify training materials,Training with materials,"1. View training details
+2. Access materials","Materials downloadable",,Not Started,,,
+Training,TRAIN-005,Verify training completion,Enrolled in training,"1. Mark training complete
+2. Submit feedback","Training marked complete",,Not Started,,,
+Payroll,PAY-001,Verify payroll page loads,User has payroll access,"1. Navigate to Payroll
+2. Wait for load","Payroll page displays",,Not Started,,,
+Payroll,PAY-002,Verify salary structure setup,Admin access,"1. Navigate to Structures
+2. Create structure","Salary structure created",,Not Started,,,
+Payroll,PAY-003,Verify payroll run,Employees with salary,"1. Click Run Payroll
+2. Select month
+3. Process","Payroll processed for all employees",,Not Started,,,
+Payroll,PAY-004,Verify payslip generation,Payroll run complete,"1. Click Generate Payslips
+2. Wait for generation","Payslips generated",,Not Started,,,
+Payroll,PAY-005,Verify payslip download,Payslip exists,"1. Click Download PDF
+2. Save file","PDF downloads correctly",,Not Started,,,
+Expenses,EXP-001,Verify expenses page loads,User has expenses access,"1. Navigate to Expenses
+2. Wait for load","Expense claims list displays",,Not Started,,,
+Expenses,EXP-002,Verify create expense claim,User permissions,"1. Click New Claim
+2. Fill details with receipt
+3. Submit","Expense claim created",,Not Started,,,
+Expenses,EXP-003,Verify expense approval,Pending claim exists,"1. Manager views claim
+2. Approves claim","Claim status changes to Approved",,Not Started,,,
+Expenses,EXP-004,Verify expense rejection,Pending claim exists,"1. Manager views claim
+2. Rejects with reason","Claim rejected with reason",,Not Started,,,
+Expenses,EXP-005,Verify expense categories,Admin access,"1. Navigate to Categories
+2. Manage categories","CRUD works for categories",,Not Started,,,
+Assets,ASSET-001,Verify assets page loads,User has assets access,"1. Navigate to Assets
+2. Wait for load","Asset inventory displays",,Not Started,,,
+Assets,ASSET-002,Verify create asset,Admin access,"1. Click Add Asset
+2. Fill details
+3. Submit","Asset created",,Not Started,,,
+Assets,ASSET-003,Verify allocate asset,Unallocated asset exists,"1. Click Allocate
+2. Select employee
+3. Confirm","Asset allocated to employee",,Not Started,,,
+Assets,ASSET-004,Verify return asset,Allocated asset exists,"1. Click Return
+2. Note condition
+3. Confirm","Asset returned and available",,Not Started,,,
+Assets,ASSET-005,Verify asset categories,Admin access,"1. Navigate to Categories
+2. Manage categories","CRUD works for categories",,Not Started,,,
+Disciplinary,DISC-001,Verify disciplinary page loads,User has disciplinary access,"1. Navigate to Disciplinary
+2. Wait for load","Cases list displays",,Not Started,,,
+Disciplinary,DISC-002,Verify create case,Admin access,"1. Click New Case
+2. Fill details
+3. Submit","Case created",,Not Started,,,
+Disciplinary,DISC-003,Verify case workflow,Case exists,"1. Start investigation
+2. Take action
+3. Close case","Workflow stages work correctly",,Not Started,,,
+Disciplinary,DISC-004,Verify warnings management,Admin access,"1. Navigate to Warnings
+2. Issue warning","Warning issued to employee",,Not Started,,,
+Disciplinary,DISC-005,Verify action types,Admin access,"1. Navigate to Action Types
+2. Manage types","CRUD works for action types",,Not Started,,,
+Overtime,OT-001,Verify overtime page loads,User has overtime access,"1. Navigate to Overtime
+2. Wait for load","Overtime requests list displays",,Not Started,,,
+Overtime,OT-002,Verify create overtime request,User permissions,"1. Click Request OT
+2. Fill hours and reason
+3. Submit","OT request created",,Not Started,,,
+Overtime,OT-003,Verify overtime approval,Pending OT exists,"1. Manager views request
+2. Approves OT","OT approved",,Not Started,,,
+Overtime,OT-004,Verify bulk approval,Multiple pending OT,"1. Select multiple
+2. Click Bulk Approve","All selected approved",,Not Started,,,
+Overtime,OT-005,Verify compensation tracking,Approved OT exists,"1. Mark as compensated
+2. Confirm","OT marked as compensated",,Not Started,,,
+Grievances,GRIEV-001,Verify grievances page loads,User has grievances access,"1. Navigate to Grievances
+2. Wait for load","Grievances list displays",,Not Started,,,
+Grievances,GRIEV-002,Verify submit grievance,Employee access,"1. Click Submit Grievance
+2. Fill details
+3. Submit","Grievance submitted",,Not Started,,,
+Grievances,GRIEV-003,Verify assign handler,Admin access,"1. Open grievance
+2. Assign to HR
+3. Save","Handler assigned",,Not Started,,,
+Grievances,GRIEV-004,Verify resolution workflow,Assigned grievance,"1. Investigate
+2. Resolve
+3. Close","Workflow completes",,Not Started,,,
+Grievances,GRIEV-005,Verify grievance categories,Admin access,"1. Manage categories
+2. Add/Edit/Delete","CRUD works",,Not Started,,,
+Succession Planning,SUCC-001,Verify succession page loads,User has succession access,"1. Navigate to Succession
+2. Wait for load","Succession plans list displays",,Not Started,,,
+Succession Planning,SUCC-002,Verify create plan,Admin access,"1. Click Add Plan
+2. Select position
+3. Add candidates","Plan created with candidates",,Not Started,,,
+Succession Planning,SUCC-003,Verify candidate management,Plan exists,"1. Add/Edit/Remove candidates
+2. Set readiness level","Candidates managed correctly",,Not Started,,,
+Succession Planning,SUCC-004,Verify pipeline report,Plans exist,"1. View Pipeline Report
+2. Check metrics","Report displays correctly",,Not Started,,,
+AI Analytics,AI-001,Verify AI analytics dashboard,User has AI access,"1. Navigate to AI Analytics
+2. Wait for load","AI dashboard displays",,Not Started,,,
+AI Analytics,AI-002,Verify attrition predictions,Prediction data exists,"1. View Attrition tab
+2. Check risk scores","Risk predictions display",,Not Started,,,
+AI Analytics,AI-003,Verify burnout analysis,Analysis data exists,"1. View Burnout tab
+2. Check risk factors","Burnout risks display",,Not Started,,,
+AI Analytics,AI-004,Verify run predictions,Admin access,"1. Click Run Predictions
+2. Wait for completion","Predictions updated",,Not Started,,,
+Exit Interviews,EXIT-001,Verify exit interviews page,User has exit access,"1. Navigate to Exit Interviews
+2. Wait for load","Exit interviews list displays",,Not Started,,,
+Exit Interviews,EXIT-002,Verify create interview,Exiting employee exists,"1. Click New Interview
+2. Fill responses
+3. Submit","Interview recorded",,Not Started,,,
+Exit Interviews,EXIT-003,Verify analytics view,Interviews exist,"1. View Analytics tab
+2. Check trends","Analytics display correctly",,Not Started,,,
+Pulse Surveys,PULSE-001,Verify surveys page loads,User has surveys access,"1. Navigate to Pulse Surveys
+2. Wait for load","Surveys list displays",,Not Started,,,
+Pulse Surveys,PULSE-002,Verify create survey,Admin access,"1. Click Create Survey
+2. Add questions
+3. Save","Survey created",,Not Started,,,
+Pulse Surveys,PULSE-003,Verify activate survey,Draft survey exists,"1. Click Activate
+2. Select audience
+3. Confirm","Survey activated",,Not Started,,,
+Pulse Surveys,PULSE-004,Verify respond to survey,Active survey for user,"1. Open survey
+2. Answer questions
+3. Submit","Response recorded",,Not Started,,,
+Career Paths,CAREER-001,Verify career paths page,User has career access,"1. Navigate to Career Paths
+2. Wait for load","Career paths list displays",,Not Started,,,
+Career Paths,CAREER-002,Verify create path,Admin access,"1. Click Add Path
+2. Define milestones
+3. Save","Career path created",,Not Started,,,
+Career Paths,CAREER-003,Verify assign employee,Path exists,"1. Open path
+2. Assign employee
+3. Confirm","Employee assigned to path",,Not Started,,,
+Career Paths,CAREER-004,Verify progression tracking,Employee on path,"1. Update milestone completion
+2. Save","Progress tracked",,Not Started,,,
+360 Feedback,FB360-001,Verify 360 feedback page,User has feedback access,"1. Navigate to 360 Feedback
+2. Wait for load","Feedback cycles list displays",,Not Started,,,
+360 Feedback,FB360-002,Verify create feedback cycle,Admin access,"1. Click Create Cycle
+2. Select subject
+3. Add reviewers","Cycle created",,Not Started,,,
+360 Feedback,FB360-003,Verify launch cycle,Draft cycle exists,"1. Click Launch
+2. Confirm","Cycle launched, reviewers notified",,Not Started,,,
+360 Feedback,FB360-004,Verify submit feedback,Reviewer for active cycle,"1. Open pending feedback
+2. Complete ratings
+3. Submit","Feedback submitted",,Not Started,,,
+Compensation Planning,COMP-001,Verify compensation page,User has comp access,"1. Navigate to Compensation
+2. Wait for load","Compensation cycles list displays",,Not Started,,,
+Compensation Planning,COMP-002,Verify create cycle,Admin access,"1. Click New Cycle
+2. Set budget
+3. Save","Cycle created",,Not Started,,,
+Compensation Planning,COMP-003,Verify add adjustments,Active cycle exists,"1. Add salary adjustments
+2. Calculate impact
+3. Save","Adjustments added",,Not Started,,,
+Compensation Planning,COMP-004,Verify approve adjustments,Pending adjustments exist,"1. Review adjustments
+2. Approve
+3. Confirm","Adjustments approved",,Not Started,,,
+Workforce Planning,WF-001,Verify workforce page,User has WF access,"1. Navigate to Workforce Planning
+2. Wait for load","Workforce plans list displays",,Not Started,,,
+Workforce Planning,WF-002,Verify create plan,Admin access,"1. Click New Plan
+2. Define headcount
+3. Save","Plan created",,Not Started,,,
+Workforce Planning,WF-003,Verify forecast view,Plan data exists,"1. View Forecast tab
+2. Check projections","Forecast displays correctly",,Not Started,,,
+Workforce Planning,WF-004,Verify position management,Plan exists,"1. Add/Edit positions
+2. Save","Positions managed",,Not Started,,,
+Onboarding,ONB-001,Verify onboarding page,User has onboarding access,"1. Navigate to Onboarding
+2. Wait for load","Onboarding list displays",,Not Started,,,
+Onboarding,ONB-002,Verify wizard flow,New employee exists,"1. Start onboarding wizard
+2. Complete each step
+3. Finish","Wizard completes successfully",,Not Started,,,
+Onboarding,ONB-003,Verify checklist management,Admin access,"1. View checklists
+2. Add/Edit items","Checklists managed",,Not Started,,,
+Workplace Safety,SAFE-001,Verify safety page,User has safety access,"1. Navigate to Safety
+2. Wait for load","Safety dashboard displays",,Not Started,,,
+Workplace Safety,SAFE-002,Verify report incident,User permissions,"1. Click Report Incident
+2. Fill details
+3. Submit","Incident reported",,Not Started,,,
+Workplace Safety,SAFE-003,Verify incident resolution,Open incident exists,"1. Investigate incident
+2. Add resolution
+3. Close","Incident resolved",,Not Started,,,

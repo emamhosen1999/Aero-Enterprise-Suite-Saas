@@ -27,6 +27,7 @@ import {
     MagnifyingGlassIcon
 } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
+import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
@@ -183,188 +184,119 @@ const TimeOffIndex = ({ title, timeOffRequests: initialRequests, employees: init
     }, [canApproveRequests, renderStatus]);
 
     return (
-        <>
-            <Head title={title} />
-            
-            {/* Main content wrapper */}
-            <div className="flex flex-col w-full h-full p-4" role="main" aria-label="Time Off Management">
-                <div className="space-y-4">
-                    <div className="w-full">
-                        {/* Animated Card wrapper */}
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ duration: 0.5 }}
-                        >
-                            {/* Main Card with theme styling */}
-                            <Card 
-                                className="transition-all duration-200"
-                                style={{
-                                    border: `var(--borderWidth, 2px) solid transparent`,
-                                    borderRadius: `var(--borderRadius, 12px)`,
-                                    fontFamily: `var(--fontFamily, "Inter")`,
-                                    transform: `scale(var(--scale, 1))`,
-                                    background: `linear-gradient(135deg, 
-                                        var(--theme-content1, #FAFAFA) 20%, 
-                                        var(--theme-content2, #F4F4F5) 10%, 
-                                        var(--theme-content3, #F1F3F4) 20%)`,
-                                }}
-                            >
-                                {/* Card Header */}
-                                <CardHeader 
-                                    className="border-b p-0"
-                                    style={{
-                                        borderColor: `var(--theme-divider, #E4E4E7)`,
-                                        background: `linear-gradient(135deg, 
-                                            color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
-                                            color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
-                                    }}
-                                >
-                                    <div className={`${!isMobile ? 'p-6' : 'p-4'} w-full`}>
-                                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                                            {/* Title Section */}
-                                            <div className="flex items-center gap-3 lg:gap-4">
-                                                <div className={`${!isMobile ? 'p-3' : 'p-2'} rounded-xl`}
-                                                    style={{
-                                                        background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,
-                                                        borderRadius: `var(--borderRadius, 12px)`,
-                                                    }}
-                                                >
-                                                    <CalendarDaysIcon className={`${!isMobile ? 'w-8 h-8' : 'w-6 h-6'}`} 
-                                                        style={{ color: 'var(--theme-primary)' }} />
-                                                </div>
-                                                <div>
-                                                    <h4 className={`${!isMobile ? 'text-2xl' : 'text-xl'} font-bold`}>
-                                                        Time Off Management
-                                                    </h4>
-                                                    <p className={`${!isMobile ? 'text-sm' : 'text-xs'} text-default-500`}>
-                                                        Manage employee time off requests and approvals
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            
-                                            {/* Action Buttons */}
-                                            <div className="flex gap-2 flex-wrap">
-                                                {canCreateRequest && (
-                                                    <Button 
-                                                        color="primary" 
-                                                        variant="shadow"
-                                                        startContent={<PlusIcon className="w-4 h-4" />}
-                                                        size={isMobile ? "sm" : "md"}
-                                                    >
-                                                        New Request
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </CardHeader>
+        <StandardPageLayout
+            title="Time Off Management"
+            subtitle="Manage employee time off requests and approvals"
+            icon={<CalendarDaysIcon className="w-8 h-8" />}
+            actions={
+                canCreateRequest && (
+                    <Button 
+                        color="primary" 
+                        variant="shadow"
+                        startContent={<PlusIcon className="w-4 h-4" />}
+                    >
+                        New Request
+                    </Button>
+                )
+            }
+            stats={<StatsCards stats={statsData} isLoading={statsLoading} />}
+            filters={
+                <div className="flex flex-col sm:flex-row gap-4">
+                    <Input
+                        label="Search"
+                        placeholder="Search requests..."
+                        value={filters.search}
+                        onChange={(e) => handleFilterChange('search', e.target.value)}
+                        startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
+                        variant="bordered"
+                        size="sm"
+                        radius={themeRadius}
+                    />
+                    
+                    <Select
+                        label="Employee"
+                        placeholder="All Employees"
+                        selectedKeys={filters.employee !== 'all' ? [filters.employee] : []}
+                        onSelectionChange={(keys) => handleFilterChange('employee', Array.from(keys)[0] || 'all')}
+                        size="sm"
+                        radius={themeRadius}
+                    >
+                        <SelectItem key="all">All Employees</SelectItem>
+                        {employees.map(emp => (
+                            <SelectItem key={emp.id}>{emp.name}</SelectItem>
+                        ))}
+                    </Select>
 
-                                <CardBody className="p-6">
-                                    {/* Stats Cards */}
-                                    <StatsCards stats={statsData} isLoading={statsLoading} className="mb-6" />
-                                    
-                                    {/* Filter Section */}
-                                    <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                                        <Input
-                                            label="Search"
-                                            placeholder="Search requests..."
-                                            value={filters.search}
-                                            onChange={(e) => handleFilterChange('search', e.target.value)}
-                                            startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
-                                            variant="bordered"
-                                            size="sm"
-                                            radius={themeRadius}
-                                        />
-                                        
-                                        <Select
-                                            label="Employee"
-                                            placeholder="All Employees"
-                                            selectedKeys={filters.employee !== 'all' ? [filters.employee] : []}
-                                            onSelectionChange={(keys) => handleFilterChange('employee', Array.from(keys)[0] || 'all')}
-                                            size="sm"
-                                            radius={themeRadius}
-                                        >
-                                            <SelectItem key="all">All Employees</SelectItem>
-                                            {employees.map(emp => (
-                                                <SelectItem key={emp.id}>{emp.name}</SelectItem>
-                                            ))}
-                                        </Select>
-
-                                        <Select
-                                            label="Status"
-                                            placeholder="All Status"
-                                            selectedKeys={filters.status !== 'all' ? [filters.status] : []}
-                                            onSelectionChange={(keys) => handleFilterChange('status', Array.from(keys)[0] || 'all')}
-                                            size="sm"
-                                            radius={themeRadius}
-                                        >
-                                            <SelectItem key="all">All Status</SelectItem>
-                                            <SelectItem key="pending">Pending</SelectItem>
-                                            <SelectItem key="approved">Approved</SelectItem>
-                                            <SelectItem key="rejected">Rejected</SelectItem>
-                                        </Select>
-                                    </div>
-
-                                    {/* Tabs for different views */}
-                                    <Tabs 
-                                        selectedKey={activeTab}
-                                        onSelectionChange={setActiveTab}
-                                        className="mb-6"
-                                    >
-                                        <Tab key="pending" title="Pending">
-                                            <Table
-                                                aria-label="Pending requests table"
-                                                isHeaderSticky
-                                                classNames={{
-                                                    wrapper: "shadow-none border border-divider rounded-lg",
-                                                    th: "bg-default-100 text-default-600 font-semibold",
-                                                    td: "py-3"
-                                                }}
-                                            >
-                                                <TableHeader columns={columns}>
-                                                    {(column) => <TableColumn key={column.uid}>{column.name}</TableColumn>}
-                                                </TableHeader>
-                                                <TableBody items={timeOffRequests.filter(r => r.status === 'pending')} emptyContent="No pending requests">
-                                                    {(request) => (
-                                                        <TableRow key={request.id}>
-                                                            {(columnKey) => <TableCell>{renderCell(request, columnKey)}</TableCell>}
-                                                        </TableRow>
-                                                    )}
-                                                </TableBody>
-                                            </Table>
-                                        </Tab>
-
-                                        <Tab key="all" title="All Requests">
-                                            <Table
-                                                aria-label="All requests table"
-                                                isHeaderSticky
-                                                classNames={{
-                                                    wrapper: "shadow-none border border-divider rounded-lg",
-                                                    th: "bg-default-100 text-default-600 font-semibold",
-                                                    td: "py-3"
-                                                }}
-                                            >
-                                                <TableHeader columns={columns}>
-                                                    {(column) => <TableColumn key={column.uid}>{column.name}</TableColumn>}
-                                                </TableHeader>
-                                                <TableBody items={timeOffRequests} emptyContent="No requests found">
-                                                    {(request) => (
-                                                        <TableRow key={request.id}>
-                                                            {(columnKey) => <TableCell>{renderCell(request, columnKey)}</TableCell>}
-                                                        </TableRow>
-                                                    )}
-                                                </TableBody>
-                                            </Table>
-                                        </Tab>
-                                    </Tabs>
-                                </CardBody>
-                            </Card>
-                        </motion.div>
-                    </div>
+                    <Select
+                        label="Status"
+                        placeholder="All Status"
+                        selectedKeys={filters.status !== 'all' ? [filters.status] : []}
+                        onSelectionChange={(keys) => handleFilterChange('status', Array.from(keys)[0] || 'all')}
+                        size="sm"
+                        radius={themeRadius}
+                    >
+                        <SelectItem key="all">All Status</SelectItem>
+                        <SelectItem key="pending">Pending</SelectItem>
+                        <SelectItem key="approved">Approved</SelectItem>
+                        <SelectItem key="rejected">Rejected</SelectItem>
+                    </Select>
                 </div>
-            </div>
-        </>
+            }
+            ariaLabel="Time Off Management"
+        >
+            {/* Tabs for different views */}
+            <Tabs 
+                selectedKey={activeTab}
+                onSelectionChange={setActiveTab}
+                className="mb-6"
+            >
+                <Tab key="pending" title="Pending">
+                    <Table
+                        aria-label="Pending requests table"
+                        isHeaderSticky
+                        classNames={{
+                            wrapper: "shadow-none border border-divider rounded-lg",
+                            th: "bg-default-100 text-default-600 font-semibold",
+                            td: "py-3"
+                        }}
+                    >
+                        <TableHeader columns={columns}>
+                            {(column) => <TableColumn key={column.uid}>{column.name}</TableColumn>}
+                        </TableHeader>
+                        <TableBody items={timeOffRequests.filter(r => r.status === 'pending')} emptyContent="No pending requests">
+                            {(request) => (
+                                <TableRow key={request.id}>
+                                    {(columnKey) => <TableCell>{renderCell(request, columnKey)}</TableCell>}
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </Tab>
+
+                <Tab key="all" title="All Requests">
+                    <Table
+                        aria-label="All requests table"
+                        isHeaderSticky
+                        classNames={{
+                            wrapper: "shadow-none border border-divider rounded-lg",
+                            th: "bg-default-100 text-default-600 font-semibold",
+                            td: "py-3"
+                        }}
+                    >
+                        <TableHeader columns={columns}>
+                            {(column) => <TableColumn key={column.uid}>{column.name}</TableColumn>}
+                        </TableHeader>
+                        <TableBody items={timeOffRequests} emptyContent="No requests found">
+                            {(request) => (
+                                <TableRow key={request.id}>
+                                    {(columnKey) => <TableCell>{renderCell(request, columnKey)}</TableCell>}
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </Tab>
+            </Tabs>
+        </StandardPageLayout>
     );
 };
 
