@@ -45,19 +45,22 @@ class SendDocumentExpiryNotifications implements ShouldQueue
     }
 
     /**
-     * Notify HR users.
+     * Notify users with HRM employees access using HRMAC.
      */
     protected function notifyHr($document, int $daysUntilExpiry): void
     {
-        if (class_exists('Spatie\Permission\Models\Role')) {
-            $hrRoleNames = ['HR Admin', 'HR Manager', 'hr', 'hr_manager', 'hr-manager', 'human_resources'];
-            $hrUsers = \Aero\Core\Models\User::role($hrRoleNames)->get();
+        try {
+            $hrUsers = \Aero\HRMAC\Facades\HRMAC::getUsersWithSubModuleAccess('hrm', 'employees');
 
             foreach ($hrUsers as $hrUser) {
                 if ($hrUser->id !== $document->user_id) {
                     $hrUser->notify(new DocumentExpiryNotification($document, $daysUntilExpiry));
                 }
             }
+        } catch (\Exception $e) {
+            Log::warning('HRMAC not available for document expiry notification', [
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 

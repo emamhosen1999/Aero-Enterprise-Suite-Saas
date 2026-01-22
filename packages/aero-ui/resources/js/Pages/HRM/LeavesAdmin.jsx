@@ -189,11 +189,15 @@ const LeavesAdmin = ({ title, allUsers }) => {
 
         if (!leavesData.leaveTypes) return defaultOptions;
 
-        const dynamicOptions = leavesData.leaveTypes.map(leaveType => ({
-            key: leaveType.type.toLowerCase(),
-            label: leaveType.type,
-            value: leaveType.type.toLowerCase()
-        }));
+        const dynamicOptions = leavesData.leaveTypes.map(leaveType => {
+            // Support both 'type' (legacy) and 'name' (current) field names
+            const typeName = leaveType.type || leaveType.name || 'Unknown';
+            return {
+                key: typeName.toLowerCase(),
+                label: typeName,
+                value: typeName.toLowerCase()
+            };
+        });
 
         return [...defaultOptions, ...dynamicOptions];
     }, [leavesData.leaveTypes]);
@@ -312,7 +316,7 @@ const LeavesAdmin = ({ title, allUsers }) => {
 
     const fetchLeavesStats = useCallback(async () => {
         try {
-            const response = await axios.get(route('leaves.stats'), {
+            const response = await axios.get(route('hrm.leaves.stats'), {
                 params: {
                     month: filters.selectedMonth,
                     admin_view: true, // Indicate this is an admin view
@@ -341,7 +345,7 @@ const LeavesAdmin = ({ title, allUsers }) => {
         if (!canApproveLeaves) return;
 
         try {
-            const response = await axios.post(route('leaves.bulk-approve'), {
+            const response = await axios.post(route('hrm.leaves.bulk-approve'), {
                 leave_ids: selectedLeaves
             });
 
@@ -365,7 +369,7 @@ const LeavesAdmin = ({ title, allUsers }) => {
         if (!canApproveLeaves) return;
 
         try {
-            const response = await axios.post(route('leaves.bulk-reject'), {
+            const response = await axios.post(route('hrm.leaves.bulk-reject'), {
                 leave_ids: selectedLeaves
             });
 

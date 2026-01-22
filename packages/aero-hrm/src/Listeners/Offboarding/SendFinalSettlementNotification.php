@@ -155,11 +155,8 @@ class SendFinalSettlementNotification implements ShouldQueue
     protected function notifyFinanceTeam($offboarding, array $settlementData): void
     {
         try {
-            $financeUsers = \Aero\Core\Models\User::query()
-                ->whereHas('roles', function ($query) {
-                    $query->whereIn('name', ['Finance Manager', 'Accountant', 'Payroll Manager']);
-                })
-                ->get();
+            // Get users with HRM payroll access using HRMAC
+            $financeUsers = \Aero\HRMAC\Facades\HRMAC::getUsersWithSubModuleAccess('hrm', 'payroll');
 
             foreach ($financeUsers as $financeUser) {
                 // Send in-app notification about pending settlement

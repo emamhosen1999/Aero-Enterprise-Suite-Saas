@@ -15,30 +15,41 @@ class NotifySafetyTeam implements ShouldQueue
     {
         $incident = $event->incident;
 
-        // Notify safety officers/managers
-        $safetyTeam = User::role(['Safety Officer', 'Safety Manager', 'HR Manager'])->get();
+        try {
+            // Notify users with HRM employee access (includes safety officers)
+            $hrUsers = \Aero\HRMAC\Facades\HRMAC::getUsersWithSubModuleAccess('hrm', 'employees');
 
-        foreach ($safetyTeam as $user) {
-            $user->notify(new SafetyIncidentReportedNotification(
-                incident: $incident,
-                requiresImmediateAction: $event->requiresImmediateAction
-            ));
-
-            $this->logNotification($user, $incident, $event);
-        }
-
-        // If high severity, also notify management
-        if ($event->requiresImmediateAction) {
-            $management = User::role(['General Manager', 'Operations Manager', 'Admin'])->get();
-            
-            foreach ($management as $user) {
+            foreach ($hrUsers as $user) {
                 $user->notify(new SafetyIncidentReportedNotification(
                     incident: $incident,
                     requiresImmediateAction: $event->requiresImmediateAction
                 ));
 
-                $this->logNotification($user, $incident, $event, 'management');
+                $this->logNotification($user, $incident, $event);
             }
+
+            // If high severity, also notify users with admin access
+            if ($event->requiresImmediateAction) {
+                $adminUsers = \Aero\HRMAC\Facades\HRMAC::getUsersWithModuleAccess('hrm');
+                
+                foreach ($adminUsers as $user) {
+                    // Skip if already notified
+                    if ($hrUsers->contains('id', $user->id)) {
+                        continue;
+                    }
+                    
+                    $user->notify(new SafetyIncidentReportedNotification(
+                        incident: $incident,
+                        requiresImmediateAction: $event->requiresImmediateAction
+                    ));
+
+                    $this->logNotification($user, $incident, $event, 'management');
+                }
+            }
+        } catch (\Exception $e) {
+            Log::warning('HRMAC not available for safety notification', [
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 

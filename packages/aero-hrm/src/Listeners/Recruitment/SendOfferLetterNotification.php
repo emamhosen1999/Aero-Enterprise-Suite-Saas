@@ -105,11 +105,8 @@ class SendOfferLetterNotification implements ShouldQueue
     protected function notifyRecruitmentTeam($offer): void
     {
         try {
-            $recruiters = \Aero\Core\Models\User::query()
-                ->whereHas('roles', function ($query) {
-                    $query->whereIn('name', ['Recruiter', 'HR Manager', 'Hiring Manager']);
-                })
-                ->get();
+            // Get users with HRM recruitment access using HRMAC
+            $recruiters = \Aero\HRMAC\Facades\HRMAC::getUsersWithSubModuleAccess('hrm', 'recruitment');
 
             foreach ($recruiters as $recruiter) {
                 $recruiter->notify(new OfferExtendedNotification($offer, [

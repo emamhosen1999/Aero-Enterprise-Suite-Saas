@@ -93,8 +93,8 @@ class PerformanceReviewController extends Controller
     public function create()
     {
         return Inertia::render('HRM/Performance/Create', [
-            'employees' => User::role('Employee')->get(['id', 'name']),
-            'reviewers' => User::role(['HR Manager', 'Department Manager', 'Team Lead'])->get(['id', 'name']),
+            'employees' => \Aero\Core\Models\User::all(['id', 'name']),
+            'reviewers' => $this->getUsersWithPerformanceAccess(),
             'departments' => Department::all(['id', 'name']),
             'templates' => PerformanceReviewTemplate::where('is_active', true)->get(['id', 'name']),
         ]);
@@ -155,8 +155,8 @@ class PerformanceReviewController extends Controller
 
         return Inertia::render('HRM/Performance/Edit', [
             'review' => $review,
-            'employees' => User::role('Employee')->get(['id', 'name']),
-            'reviewers' => User::role(['HR Manager', 'Department Manager', 'Team Lead'])->get(['id', 'name']),
+            'employees' => \Aero\Core\Models\User::all(['id', 'name']),
+            'reviewers' => $this->getUsersWithPerformanceAccess(),
             'departments' => Department::all(['id', 'name']),
             'templates' => PerformanceReviewTemplate::where('is_active', true)->get(['id', 'name']),
         ]);
@@ -323,5 +323,20 @@ class PerformanceReviewController extends Controller
 
         return redirect()->route('hr.performance.templates.index')
             ->with('success', 'Performance review template deleted successfully.');
+    }
+
+    /**
+     * Get users with performance module access for reviewer dropdowns.
+     */
+    protected function getUsersWithPerformanceAccess(): \Illuminate\Support\Collection
+    {
+        try {
+            return \Aero\HRMAC\Facades\HRMAC::getUsersWithSubModuleAccess('hrm', 'performance')
+                ->map(fn ($user) => ['id' => $user->id, 'name' => $user->name]);
+        } catch (\Exception $e) {
+            // Fallback to all active users
+            return \Aero\Core\Models\User::where('is_active', true)
+                ->get(['id', 'name']);
+        }
     }
 }

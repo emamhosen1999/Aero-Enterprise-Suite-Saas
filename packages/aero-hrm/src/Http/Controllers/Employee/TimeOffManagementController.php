@@ -149,11 +149,11 @@ class TimeOffManagementController extends Controller
             ->whereYear('leaves.from_date', $currentYear)
             ->select(
                 'departments.name as department',
-                'leave_settings.type as leave_type',
+                'leave_settings.name as leave_type',
                 DB::raw('COUNT(*) as total_requests'),
                 DB::raw('SUM(DATEDIFF(leaves.to_date, leaves.from_date) + 1) as total_days')
             )
-            ->groupBy('departments.name', 'leave_settings.type')
+            ->groupBy('departments.name', 'leave_settings.name')
             ->get();
 
         // Monthly trends
@@ -175,11 +175,11 @@ class TimeOffManagementController extends Controller
             ->where('leaves.status', 'approved')
             ->whereYear('leaves.from_date', $currentYear)
             ->select(
-                'leave_settings.type',
+                'leave_settings.name',
                 DB::raw('COUNT(*) as total_requests'),
                 DB::raw('SUM(DATEDIFF(leaves.to_date, leaves.from_date) + 1) as total_days')
             )
-            ->groupBy('leave_settings.type')
+            ->groupBy('leave_settings.name')
             ->get();
 
         return Inertia::render('HRM/TimeOff/Reports', [

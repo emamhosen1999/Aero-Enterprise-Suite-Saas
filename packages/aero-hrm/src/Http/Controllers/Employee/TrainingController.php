@@ -84,7 +84,7 @@ class TrainingController extends Controller
     {
         return Inertia::render('HRM/Training/Create', [
             'categories' => TrainingCategory::where('is_active', true)->get(['id', 'name']),
-            'instructors' => User::role(['HR Manager', 'Department Manager', 'Team Lead', 'Senior Employee'])->get(['id', 'name']),
+            'instructors' => $this->getUsersWithTrainingAccess(),
             'departments' => Department::all(['id', 'name']),
             'types' => [
                 ['id' => 'course', 'name' => 'Course'],
@@ -195,7 +195,7 @@ class TrainingController extends Controller
         return Inertia::render('HRM/Training/Edit', [
             'training' => $training,
             'categories' => TrainingCategory::where('is_active', true)->get(['id', 'name']),
-            'instructors' => User::role(['HR Manager', 'Department Manager', 'Team Lead', 'Senior Employee'])->get(['id', 'name']),
+            'instructors' => $this->getUsersWithTrainingAccess(),
             'departments' => Department::all(['id', 'name']),
             'types' => [
                 ['id' => 'course', 'name' => 'Course'],
@@ -543,5 +543,20 @@ class TrainingController extends Controller
 
         return redirect()->back()
             ->with('success', 'Enrollment deleted successfully.');
+    }
+
+    /**
+     * Get users with training module access for instructor dropdowns.
+     */
+    protected function getUsersWithTrainingAccess(): \Illuminate\Support\Collection
+    {
+        try {
+            return \Aero\HRMAC\Facades\HRMAC::getUsersWithSubModuleAccess('hrm', 'training')
+                ->map(fn ($user) => ['id' => $user->id, 'name' => $user->name]);
+        } catch (\Exception $e) {
+            // Fallback to all active users
+            return \Aero\Core\Models\User::where('is_active', true)
+                ->get(['id', 'name']);
+        }
     }
 }

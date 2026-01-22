@@ -65,19 +65,22 @@ class SendWorkAnniversaryNotifications implements ShouldQueue
     }
 
     /**
-     * Notify HR users.
+     * Notify users with HRM employees access using HRMAC.
      */
     protected function notifyHr($employee, int $years): void
     {
-        if (class_exists('Spatie\Permission\Models\Role')) {
-            $hrRoleNames = ['hr', 'hr_manager', 'hr-manager', 'human_resources'];
-            $hrUsers = \Aero\Core\Models\User::role($hrRoleNames)->get();
+        try {
+            $hrUsers = \Aero\HRMAC\Facades\HRMAC::getUsersWithSubModuleAccess('hrm', 'employees');
 
             foreach ($hrUsers as $hrUser) {
                 if ($hrUser->id !== $employee->user_id) {
                     $hrUser->notify(new WorkAnniversaryNotification($employee, $years));
                 }
             }
+        } catch (\Exception $e) {
+            Log::warning('HRMAC not available for work anniversary notification', [
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 

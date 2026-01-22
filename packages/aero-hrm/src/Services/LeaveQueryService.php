@@ -11,6 +11,7 @@ use Aero\HRM\Models\Employee;
 use Aero\HRM\Services\EmployeeResolutionService;
 use Aero\HRM\Services\HRMAuthorizationService;
 use Aero\HRM\Exceptions\UserNotOnboardedException;
+use Aero\HRMAC\Services\RoleModuleAccessService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,31 +21,48 @@ use Illuminate\Support\Facades\Log;
  * Leave Query Service
  *
  * REFACTORED: Employee-centric approach with no hardcoded role checks.
- * All authorization goes through HRMAuthorizationService.
+ * All authorization goes through HRMAuthorizationService and RoleModuleAccessService.
  */
 class LeaveQueryService
 {
     public function __construct(
         private EmployeeResolutionService $employeeResolver,
-        private HRMAuthorizationService $authService
-    ) {}
+        private HRMAuthorizationService $authService,
+        private ?RoleModuleAccessService $moduleAccessService = null
+    ) {
+        // Resolve from container if not injected
+        if ($this->moduleAccessService === null) {
+            $this->moduleAccessService = app(RoleModuleAccessService::class);
+        }
+    }
     /**
      * Get leave records with pagination and filtering
      *
      * REFACTORED: Uses Employee as entry point, authorization via HRMAuthorizationService
+     * Admin users who are not employees can still view all leaves if they have module access.
+     * Super Administrator bypasses all checks.
      */
     public function getLeaveRecords(Request $request, int $perPage = 30, int $page = 1, ?string $employee = '', ?int $year = null, ?string $month = null): array
     {
+        $user = $request->user();
+        $currentEmployee = null;
+        $isNonEmployeeAdmin = false;
+
         // Resolve Employee from authenticated user
         try {
             $currentEmployee = $this->employeeResolver->resolveFromRequest($request);
         } catch (UserNotOnboardedException $e) {
-            throw $e; // Propagate - user is not onboarded
+            // Check if user has access via module access system (Super Admin bypasses all, or user has HRM leaves access)
+            if ($user && $this->userHasLeaveModuleAccess($user)) {
+                $isNonEmployeeAdmin = true;
+            } else {
+                throw $e; // Propagate - user is not onboarded and doesn't have module access
+            }
         }
 
         // Check authorization - can they view all leaves or just their own?
-        $canViewAllLeaves = $this->authService->canViewAllLeaves($currentEmployee);
-        $canManageLeaves = $this->authService->canManageLeaves($currentEmployee);
+        $canViewAllLeaves = $isNonEmployeeAdmin || ($currentEmployee && $this->authService->canViewAllLeaves($currentEmployee));
+        $canManageLeaves = $isNonEmployeeAdmin || ($currentEmployee && $this->authService->canManageLeaves($currentEmployee));
 
         // Determine if this is an admin view based on request parameters and permissions
         $specificUserId = $request->get('user_id');
@@ -67,35 +85,37 @@ class LeaveQueryService
 
         $currentYear = $year ?: ($month ? Carbon::createFromFormat('Y-m-d', $month.'-01')->year : now()->year);
 
-        $leavesQuery = Leave::with(['employee.user', 'employee.department', 'employee.designation', 'leaveSetting'])
+        // Build query - leaves table uses user_id, join with employees via user_id
+        $leavesQuery = Leave::with(['user', 'leaveSetting'])
             ->join('leave_settings', 'leaves.leave_type', '=', 'leave_settings.id')
-            ->join('employees', 'leaves.employee_id', '=', 'employees.id') // Join with employees, not users
-            ->select('leaves.*', 'leave_settings.type as leave_type');
+            ->leftJoin('employees', 'leaves.user_id', '=', 'employees.user_id')
+            ->leftJoin('departments', 'employees.department_id', '=', 'departments.id')
+            ->leftJoin('designations', 'employees.designation_id', '=', 'designations.id')
+            ->select('leaves.*', 'leave_settings.name as leave_type_name', 'employees.id as employee_id', 'departments.name as department_name', 'designations.name as designation_name');
 
-        // If a specific user_id is provided, resolve to employee and filter
+        // If a specific user_id is provided, filter by that user
         if ($specificUserId) {
-            try {
-                $targetEmployee = $this->employeeResolver->resolveFromUserId($specificUserId);
-                $leavesQuery->where('leaves.employee_id', $targetEmployee->id);
-            } catch (UserNotOnboardedException) {
-                // User is not an employee, return empty result
-                return [
-                    'leaves' => [],
-                    'pagination' => [
-                        'current_page' => 1,
-                        'per_page' => $perPage,
-                        'total' => 0,
-                        'last_page' => 1,
-                    ],
-                ];
-            }
+            $leavesQuery->where('leaves.user_id', $specificUserId);
         }
         // Otherwise apply standard authorization rules
         elseif (! $isAdminView) {
-            $leavesQuery->where('leaves.employee_id', $currentEmployee->id);
+            // Non-admin users must have an employee record to view their own leaves
+            if (! $currentEmployee) {
+                return [
+                    'leaveRecords' => collect(),
+                    'leavesData' => [
+                        'leaveTypes' => [],
+                        'leaveCountsWithRemainingByUser' => [],
+                        'publicHolidays' => [],
+                    ],
+                    'message' => 'User is not onboarded as an employee',
+                ];
+            }
+            $leavesQuery->where('leaves.user_id', $currentEmployee->user_id);
         }
 
-        $this->applyDateFilters($leavesQuery, $year, $month, $isAdminView, $currentEmployee->id);
+        $currentEmployeeId = $currentEmployee?->id;
+        $this->applyDateFilters($leavesQuery, $year, $month, $isAdminView, $currentEmployee?->user_id);
         $this->applyEmployeeFilter($leavesQuery, $employee);
         $this->applyStatusFilter($leavesQuery, $status);
         $this->applyLeaveTypeFilter($leavesQuery, $leaveType);
@@ -177,7 +197,7 @@ class LeaveQueryService
     /**
      * Apply date filters to the query
      */
-    private function applyDateFilters($query, ?int $year, ?string $month, bool $isAdmin, int $userId): void
+    private function applyDateFilters($query, ?int $year, ?string $month, bool $isAdmin, ?int $userId): void
     {
         // Debug logging
         Log::info('LeaveQueryService - applyDateFilters called', [
@@ -223,11 +243,12 @@ class LeaveQueryService
 
     /**
      * Apply employee filter to the query
+     * Searches user name since leaves are linked to users, not employees directly
      */
     private function applyEmployeeFilter($query, ?string $employee): void
     {
         if ($employee) {
-            $query->whereHas('employee', fn ($q) => $q->where('name', 'like', "%$employee%"));
+            $query->whereHas('user', fn ($q) => $q->where('name', 'like', "%$employee%"));
         }
     }
 
@@ -302,13 +323,13 @@ class LeaveQueryService
                     // Use the already joined leave_settings table
                     $query->where(function ($q) use ($validTypes) {
                         foreach ($validTypes as $type) {
-                            $q->orWhere('leave_settings.type', 'like', "%$type%");
+                            $q->orWhere('leave_settings.name', 'like', "%$type%");
                         }
                     });
                 }
             } elseif (! is_array($leaveType) && $leaveType !== 'all') {
                 // Use the already joined leave_settings table
-                $query->where('leave_settings.type', 'like', "%$leaveType%");
+                $query->where('leave_settings.name', 'like', "%$leaveType%");
             }
         }
         // If leaveType is empty, null, or contains 'all', don't apply any filtering (show all leave types)
@@ -334,19 +355,23 @@ class LeaveQueryService
      *
      * REFACTORED: No hardcoded role checks, uses HRMAuthorizationService
      */
-    private function calculateLeaveCounts(?int $year, int $currentYear, Employee $currentEmployee, ?int $specificUserId = null): array
+    private function calculateLeaveCounts(?int $year, int $currentYear, ?Employee $currentEmployee, ?int $specificUserId = null): array
     {
-        // Use specific user ID if provided, otherwise use current employee
-        $targetUserId = $specificUserId ?: $currentEmployee->user_id;
+        // Use specific user ID if provided, otherwise use current employee's user_id
+        $targetUserId = $specificUserId ?: $currentEmployee?->user_id;
 
         // Check if employee can view all leaves (admin/manager level)
-        $calculateForAllUsers = is_null($specificUserId) && $this->authService->canViewAllLeaves($currentEmployee);
+        // Non-employee admins can view all leaves
+        $calculateForAllUsers = is_null($specificUserId) && (
+            ! $currentEmployee || $this->authService->canViewAllLeaves($currentEmployee)
+        );
 
         if ($calculateForAllUsers) {
             // Calculate for all employees (admin view)
+            // Note: leaves table has user_id, not employee_id - join via user_id
             $allLeaves = Leave::with('leaveSetting')
                 ->join('leave_settings', 'leaves.leave_type', '=', 'leave_settings.id')
-                ->join('employees', 'leaves.employee_id', '=', 'employees.id')
+                ->leftJoin('employees', 'leaves.user_id', '=', 'employees.user_id')
                 ->whereYear('leaves.from_date', $currentYear)
                 ->get();
         } else {
@@ -354,9 +379,10 @@ class LeaveQueryService
             try {
                 $targetEmployee = $this->employeeResolver->resolveFromUserId($targetUserId);
                 
+                // Note: leaves table has user_id, not employee_id - filter by user_id
                 $allLeaves = Leave::with('leaveSetting')
                     ->join('leave_settings', 'leaves.leave_type', '=', 'leave_settings.id')
-                    ->where('leaves.employee_id', $targetEmployee->id)
+                    ->where('leaves.user_id', $targetEmployee->user_id)
                     ->whereYear('leaves.from_date', $currentYear)
                     ->get();
             } catch (UserNotOnboardedException) {
@@ -441,7 +467,7 @@ class LeaveQueryService
         // Use join like in the main query for consistency
         $query = Leave::join('leave_settings', 'leaves.leave_type', '=', 'leave_settings.id')
             ->join('users', 'leaves.user_id', '=', 'users.id') // Ensure user exists
-            ->select('leaves.*', 'leave_settings.type as leave_type_name');
+            ->select('leaves.*', 'leave_settings.name as leave_type_name');
 
         // Base filtering
         if (! $isAdmin) {
@@ -475,14 +501,14 @@ class LeaveQueryService
                     if (count($validTypes) > 0) {
                         $query->where(function ($q) use ($validTypes) {
                             foreach ($validTypes as $type) {
-                                $q->orWhere('leave_settings.type', 'like', "%$type%");
+                                $q->orWhere('leave_settings.name', 'like', "%$type%");
                             }
                         });
                     }
                 }
                 // If 'all' is in array, don't apply any leave type filtering
             } elseif (! is_array($leaveType) && $leaveType !== 'all') {
-                $query->where('leave_settings.type', 'like', "%$leaveType%");
+                $query->where('leave_settings.name', 'like', "%$leaveType%");
             }
         }
 
@@ -495,5 +521,22 @@ class LeaveQueryService
         ];
 
         return $stats;
+    }
+
+    /**
+     * Check if user has access to the HRM leaves module via the module access system.
+     * Super Administrator bypasses all module access checks.
+     */
+    protected function userHasLeaveModuleAccess(mixed $user): bool
+    {
+        if (! $user || ! $this->moduleAccessService) {
+            return false;
+        }
+
+        // Check for HRM module access (includes leaves sub-module)
+        // Super Administrator is automatically handled by userCanAccessSubModule
+        return $this->moduleAccessService->userCanAccessSubModule($user, 'hrm', 'time-off')
+            || $this->moduleAccessService->userCanAccessSubModule($user, 'hrm', 'leaves')
+            || $this->moduleAccessService->userCanAccessModule($user, 'hrm');
     }
 }

@@ -14,12 +14,22 @@ class ManagersController extends Controller
      */
     public function index()
     {
-        // Use the same query as in RecruitmentController
-        $managers = User::role(['Super Administrator', 'Administrator', 'HR Manager', 'Department Manager', 'Team Lead'])
-            ->select('id', 'name')
-            ->orderBy('name')
-            ->get();
+        try {
+            // Get users with HRM employee access (managers typically have this)
+            $managers = \Aero\HRMAC\Facades\HRMAC::getUsersWithSubModuleAccess('hrm', 'employees')
+                ->map(fn ($user) => ['id' => $user->id, 'name' => $user->name])
+                ->sortBy('name')
+                ->values();
 
-        return response()->json($managers);
+            return response()->json($managers);
+        } catch (\Exception $e) {
+            // Fallback to all active users
+            return response()->json(
+                User::where('is_active', true)
+                    ->select('id', 'name')
+                    ->orderBy('name')
+                    ->get()
+            );
+        }
     }
 }

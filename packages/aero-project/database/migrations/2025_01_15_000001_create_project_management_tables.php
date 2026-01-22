@@ -34,8 +34,8 @@ return new class extends Migration
             $table->index('start_date');
         });
 
-        // Add sprint_id to project_tasks if not exists
-        if (!Schema::hasColumn('project_tasks', 'sprint_id')) {
+        // Add sprint_id to project_tasks if table exists and column not exists
+        if (Schema::hasTable('project_tasks') && !Schema::hasColumn('project_tasks', 'sprint_id')) {
             Schema::table('project_tasks', function (Blueprint $table) {
                 $table->foreignId('sprint_id')->nullable()->after('milestone_id')
                     ->constrained('project_sprints')->nullOnDelete();
@@ -181,8 +181,8 @@ return new class extends Migration
         Schema::dropIfExists('project_comments');
         Schema::dropIfExists('project_members');
 
-        // Remove added columns from project_tasks
-        if (Schema::hasColumn('project_tasks', 'sprint_id')) {
+        // Remove added columns from project_tasks if table exists
+        if (Schema::hasTable('project_tasks') && Schema::hasColumn('project_tasks', 'sprint_id')) {
             Schema::table('project_tasks', function (Blueprint $table) {
                 $table->dropForeign(['sprint_id']);
                 $table->dropColumn(['sprint_id', 'story_points', 'position']);

@@ -47,12 +47,8 @@ class SendTerminationNotification implements ShouldQueue
     protected function notifyHRTeam($employee, EmployeeTerminated $event): void
     {
         try {
-            // Get HR users
-            $hrUsers = \Aero\Core\Models\User::query()
-                ->whereHas('roles', function ($query) {
-                    $query->whereIn('name', ['HR Manager', 'HR Admin', 'Super Admin']);
-                })
-                ->get();
+            // Get users with HRM employee access using HRMAC
+            $hrUsers = \Aero\HRMAC\Facades\HRMAC::getUsersWithSubModuleAccess('hrm', 'employees');
 
             foreach ($hrUsers as $hrUser) {
                 if ($hrUser->id !== $event->terminatedBy) {

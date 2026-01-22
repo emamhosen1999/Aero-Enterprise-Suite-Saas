@@ -15,7 +15,7 @@ class LeaveOverlapService
     {
         $query = Leave::with('employee')
             ->join('leave_settings', 'leaves.leave_type', '=', 'leave_settings.id')
-            ->select('leaves.*', 'leave_settings.type as leave_type')
+            ->select('leaves.*', 'leave_settings.name as leave_type')
             ->where('leaves.user_id', $userId)
             ->where(function ($q) use ($fromDate, $toDate) {
                 $q->whereBetween('from_date', [$fromDate, $toDate])

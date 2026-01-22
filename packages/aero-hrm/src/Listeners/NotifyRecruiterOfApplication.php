@@ -37,10 +37,16 @@ class NotifyRecruiterOfApplication implements ShouldQueue
                 ->log('Application acknowledgment email sent to candidate');
         }
 
-        // Notify recruiters and hiring managers
-        $recruiters = \Aero\Core\Models\User::role(['Recruiter', 'HR Manager'])->get();
-        foreach ($recruiters as $recruiter) {
-            $recruiter->notify(new NewApplicationNotification($application));
+        // Notify users with recruitment module access
+        try {
+            $recruiters = \Aero\HRMAC\Facades\HRMAC::getUsersWithSubModuleAccess('hrm', 'recruitment');
+            foreach ($recruiters as $recruiter) {
+                $recruiter->notify(new NewApplicationNotification($application));
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning('HRMAC not available for recruitment notification', [
+                'error' => $e->getMessage(),
+            ]);
         }
 
         // Notify job owner if specified

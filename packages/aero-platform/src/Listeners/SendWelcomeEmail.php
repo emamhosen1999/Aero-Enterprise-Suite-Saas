@@ -39,9 +39,15 @@ class SendWelcomeEmail implements ShouldQueue
                 ->log('Welcome notification sent to new employee');
         }
 
-        // Notify HR team about new employee
-        $hrUsers = \Aero\Core\Models\User::role(['HR Manager', 'HR Admin'])->get();
-        Notification::send($hrUsers, new WelcomeEmployeeNotification($employee));
+        // Notify HR team about new employee using HRMAC
+        try {
+            $hrUsers = \Aero\HRMAC\Facades\HRMAC::getUsersWithSubModuleAccess('hrm', 'employees');
+            Notification::send($hrUsers, new WelcomeEmployeeNotification($employee));
+        } catch (\Exception $e) {
+            Log::warning('HRMAC not available for welcome email notification', [
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

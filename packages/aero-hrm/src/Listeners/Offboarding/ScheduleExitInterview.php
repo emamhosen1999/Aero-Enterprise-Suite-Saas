@@ -104,11 +104,8 @@ class ScheduleExitInterview implements ShouldQueue
     protected function notifyHRForInterview($offboarding, $employee, $interviewDate): void
     {
         try {
-            $hrUsers = \Aero\Core\Models\User::query()
-                ->whereHas('roles', function ($query) {
-                    $query->whereIn('name', ['HR Manager', 'HR Admin']);
-                })
-                ->get();
+            // Get users with HRM employee access using HRMAC
+            $hrUsers = \Aero\HRMAC\Facades\HRMAC::getUsersWithSubModuleAccess('hrm', 'employees');
 
             foreach ($hrUsers as $hrUser) {
                 $hrUser->notify(new \Aero\HRM\Notifications\Offboarding\OffboardingStartedNotification(

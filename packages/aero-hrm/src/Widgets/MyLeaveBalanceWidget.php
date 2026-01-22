@@ -66,7 +66,7 @@ class MyLeaveBalanceWidget extends AbstractDashboardWidget
                 ->where('leave_allocations.user_id', $user->id)
                 ->where('leave_allocations.year', now()->year)
                 ->select([
-                    'leave_settings.type as leave_type',
+                    'leave_settings.name as leave_type',
                     'leave_allocations.allocated_days',
                     'leave_allocations.used_days',
                     DB::raw('(leave_allocations.allocated_days - leave_allocations.used_days) as remaining_days'),

@@ -57,11 +57,8 @@ class SendOffboardingCompletionNotification implements ShouldQueue
     protected function notifyHRTeam($offboarding): void
     {
         try {
-            $hrUsers = \Aero\Core\Models\User::query()
-                ->whereHas('roles', function ($query) {
-                    $query->whereIn('name', ['HR Manager', 'HR Admin', 'Super Admin']);
-                })
-                ->get();
+            // Get users with HRM employee access using HRMAC
+            $hrUsers = \Aero\HRMAC\Facades\HRMAC::getUsersWithSubModuleAccess('hrm', 'employees');
 
             foreach ($hrUsers as $hrUser) {
                 $hrUser->notify(new OffboardingCompletedNotification($offboarding, [

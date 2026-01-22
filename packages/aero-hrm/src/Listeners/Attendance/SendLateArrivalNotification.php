@@ -5,6 +5,7 @@ namespace Aero\HRM\Listeners\Attendance;
 use Aero\Core\Models\User;
 use Aero\HRM\Events\Attendance\LateArrivalDetected;
 use Aero\HRM\Notifications\Attendance\LateArrivalNotification;
+use Aero\HRMAC\Facades\HRMAC;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -17,7 +18,7 @@ class SendLateArrivalNotification implements ShouldQueue
         $employee = $attendance->employee;
         $user = $employee?->user;
 
-        if (!$user) {
+        if (! $user) {
             Log::warning('Employee has no user for late arrival notification', [
                 'attendance_id' => $attendance->id,
             ]);
@@ -47,10 +48,14 @@ class SendLateArrivalNotification implements ShouldQueue
             $this->logNotification($managerUser, $attendance, $event, 'manager');
         }
 
-        // Notify HR if extremely late (> 60 minutes)
+        // Notify users with HRM attendance access if extremely late (> 60 minutes)
         if ($event->lateMinutes > 60) {
-            $hrUsers = User::role(['HR Manager', 'HR Admin'])->get();
+            $hrUsers = $this->getUsersWithHrmAccess('attendance');
             foreach ($hrUsers as $hrUser) {
+                // Skip the employee's own user to avoid self-notification
+                if ($hrUser->id === $user->id) {
+                    continue;
+                }
                 $hrUser->notify(new LateArrivalNotification(
                     attendance: $attendance,
                     lateMinutes: $event->lateMinutes,
@@ -60,6 +65,21 @@ class SendLateArrivalNotification implements ShouldQueue
 
                 $this->logNotification($hrUser, $attendance, $event, 'hr');
             }
+        }
+    }
+
+    /**
+     * Get users with access to a specific HRM submodule using HRMAC.
+     */
+    protected function getUsersWithHrmAccess(string $subModuleCode): \Illuminate\Support\Collection
+    {
+        try {
+            return HRMAC::getUsersWithSubModuleAccess('hrm', $subModuleCode);
+        } catch (\Exception $e) {
+            Log::warning('HRMAC not available, falling back to empty collection', [
+                'error' => $e->getMessage(),
+            ]);
+            return collect();
         }
     }
 

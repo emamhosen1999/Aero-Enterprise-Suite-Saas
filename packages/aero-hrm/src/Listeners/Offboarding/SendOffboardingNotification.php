@@ -5,6 +5,7 @@ namespace Aero\HRM\Listeners\Offboarding;
 use Aero\Core\Models\User;
 use Aero\HRM\Events\Offboarding\OffboardingStarted;
 use Aero\HRM\Notifications\Offboarding\OffboardingStartedNotification;
+use Aero\HRMAC\Facades\HRMAC;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -27,15 +28,34 @@ class SendOffboardingNotification implements ShouldQueue
             $this->logNotification($user, $offboarding, 'employee');
         }
 
-        // Notify HR team
-        $hrUsers = User::role(['HR Manager', 'HR Admin'])->get();
+        // Notify users with HRM employees submodule access (instead of hardcoded roles)
+        $hrUsers = $this->getUsersWithHrmAccess('employees');
         foreach ($hrUsers as $hrUser) {
+            // Skip the employee's own user to avoid self-notification
+            if ($user && $hrUser->id === $user->id) {
+                continue;
+            }
             $hrUser->notify(new OffboardingStartedNotification(
                 offboarding: $offboarding,
                 reason: $event->reason
             ));
 
             $this->logNotification($hrUser, $offboarding, 'hr');
+        }
+    }
+
+    /**
+     * Get users with access to a specific HRM submodule using HRMAC.
+     */
+    protected function getUsersWithHrmAccess(string $subModuleCode): \Illuminate\Support\Collection
+    {
+        try {
+            return HRMAC::getUsersWithSubModuleAccess('hrm', $subModuleCode);
+        } catch (\Exception $e) {
+            Log::warning('HRMAC not available, falling back to empty collection', [
+                'error' => $e->getMessage(),
+            ]);
+            return collect();
         }
     }
 

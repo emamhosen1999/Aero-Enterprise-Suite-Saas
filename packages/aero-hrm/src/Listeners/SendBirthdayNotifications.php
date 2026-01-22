@@ -88,19 +88,22 @@ class SendBirthdayNotifications implements ShouldQueue
     }
 
     /**
-     * Notify HR users.
+     * Notify users with HRM employees access using HRMAC.
      */
     protected function notifyHr($employee, int $age): void
     {
-        if (class_exists('Spatie\Permission\Models\Role')) {
-            $hrRoleNames = ['hr', 'hr_manager', 'hr-manager', 'human_resources'];
-            $hrUsers = \Aero\Core\Models\User::role($hrRoleNames)->get();
+        try {
+            $hrUsers = \Aero\HRMAC\Facades\HRMAC::getUsersWithSubModuleAccess('hrm', 'employees');
 
             foreach ($hrUsers as $hrUser) {
                 if ($hrUser->id !== $employee->user_id) {
                     $hrUser->notify(new TeamBirthdayAlertNotification($employee, $age));
                 }
             }
+        } catch (\Exception $e) {
+            Log::warning('HRMAC not available for birthday notification', [
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 

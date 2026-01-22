@@ -631,12 +631,12 @@ class LeaveController extends Controller
         }
 
         return $query->join('leave_settings', 'leaves.leave_type', '=', 'leave_settings.id')
-            ->select('leave_settings.type', DB::raw('count(*) as count'))
-            ->groupBy('leave_settings.type')
+            ->select('leave_settings.name', DB::raw('count(*) as count'))
+            ->groupBy('leave_settings.name')
             ->get()
             ->map(function ($item) {
                 return [
-                    'type' => $item->type,
+                    'type' => $item->name,
                     'count' => $item->count,
                 ];
             });

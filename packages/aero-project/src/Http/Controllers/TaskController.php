@@ -31,12 +31,13 @@ class TaskController extends Controller
         // $reports = Report::all();
         // $reports_with_tasks = Report::with('tasks')->has('tasks')->get();
         
-        $incharges = User::role('Supervision Engineer')->get();
+        // Get users with project module access for in-charges
+        $incharges = $this->getUsersWithProjectAccess();
         $users = User::with('roles')->get();
 
         // Loop through each user and add a new field 'role' with the role name
         $users->transform(function ($user) {
-            $user->role = $user->roles->first()->name;
+            $user->role = $user->roles->first()->name ?? 'No Role';
 
             return $user;
         });
@@ -159,5 +160,18 @@ class TaskController extends Controller
             'stats' => $stats,
             'filters' => $request->only(['status', 'priority', 'search']),
         ]);
+    }
+
+    /**
+     * Get users with project module access for in-charge dropdowns.
+     */
+    protected function getUsersWithProjectAccess(): \Illuminate\Support\Collection
+    {
+        try {
+            return \Aero\HRMAC\Facades\HRMAC::getUsersWithModuleAccess('project');
+        } catch (\Exception $e) {
+            // Fallback to all active users
+            return User::where('is_active', true)->get();
+        }
     }
 }

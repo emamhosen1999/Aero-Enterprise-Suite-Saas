@@ -19,6 +19,7 @@ return new class extends Migration
     public function up(): void
     {
         // Employee Risk Scores - Central risk tracking for each employee
+        if (! Schema::hasTable('employee_risk_scores')) {
         Schema::create('employee_risk_scores', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
@@ -48,11 +49,13 @@ return new class extends Migration
             $table->timestamps();
             
             $table->unique('employee_id');
-            $table->index(['attrition_risk_score', 'flight_risk_level']);
-            $table->index(['burnout_risk_score']);
+            $table->index(['attrition_risk_score', 'flight_risk_level'], 'ers_attrition_risk_idx');
+            $table->index(['burnout_risk_score'], 'ers_burnout_risk_idx');
         });
+        }
 
         // Attrition Prediction History - Track predictions over time
+        if (! Schema::hasTable('attrition_predictions')) {
         Schema::create('attrition_predictions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
@@ -73,8 +76,10 @@ return new class extends Migration
             $table->index(['employee_id', 'predicted_at']);
             $table->index('predicted_probability');
         });
+        }
 
         // Behavioral Anomalies - Detect unusual patterns
+        if (! Schema::hasTable('behavioral_anomalies')) {
         Schema::create('behavioral_anomalies', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
@@ -106,11 +111,13 @@ return new class extends Migration
             $table->date('anomaly_date');
             $table->timestamps();
             
-            $table->index(['employee_id', 'anomaly_type', 'status']);
-            $table->index(['anomaly_date', 'anomaly_score']);
+            $table->index(['employee_id', 'anomaly_type', 'status'], 'ba_emp_type_status_idx');
+            $table->index(['anomaly_date', 'anomaly_score'], 'ba_date_score_idx');
         });
+        }
 
         // Talent Mobility Recommendations
+        if (! Schema::hasTable('talent_mobility_recommendations')) {
         Schema::create('talent_mobility_recommendations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
@@ -149,11 +156,13 @@ return new class extends Migration
             $table->date('valid_until')->nullable();
             $table->timestamps();
             
-            $table->index(['employee_id', 'recommendation_type', 'status']);
-            $table->index(['match_score', 'status']);
+            $table->index(['employee_id', 'recommendation_type', 'status'], 'tmr_emp_type_status_idx');
+            $table->index(['match_score', 'status'], 'tmr_score_status_idx');
         });
+        }
 
         // Workload Metrics - Track employee workload
+        if (! Schema::hasTable('employee_workload_metrics')) {
         Schema::create('employee_workload_metrics', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
@@ -189,11 +198,13 @@ return new class extends Migration
             
             $table->timestamps();
             
-            $table->unique(['employee_id', 'metric_date', 'period_type']);
-            $table->index(['metric_date', 'utilization_rate']);
+            $table->unique(['employee_id', 'metric_date', 'period_type'], 'ewm_emp_date_period_unique');
+            $table->index(['metric_date', 'utilization_rate'], 'ewm_date_utilization_idx');
         });
+        }
 
         // Sentiment Analysis Records
+        if (! Schema::hasTable('employee_sentiment_records')) {
         Schema::create('employee_sentiment_records', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
@@ -237,11 +248,13 @@ return new class extends Migration
             $table->date('recorded_date');
             $table->timestamps();
             
-            $table->index(['employee_id', 'source_type', 'recorded_date']);
-            $table->index(['overall_sentiment', 'requires_followup']);
+            $table->index(['employee_id', 'source_type', 'recorded_date'], 'esr_emp_source_date_idx');
+            $table->index(['overall_sentiment', 'requires_followup'], 'esr_sentiment_followup_idx');
         });
+        }
 
         // Engagement Surveys
+        if (! Schema::hasTable('engagement_surveys')) {
         Schema::create('engagement_surveys', function (Blueprint $table) {
             $table->id();
             $table->string('title');
@@ -267,8 +280,10 @@ return new class extends Migration
             
             $table->index(['status', 'start_date', 'end_date']);
         });
+        }
 
         // Survey Responses
+        if (! Schema::hasTable('engagement_survey_responses')) {
         Schema::create('engagement_survey_responses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('survey_id')->constrained('engagement_surveys')->onDelete('cascade');
@@ -283,8 +298,10 @@ return new class extends Migration
             
             $table->index(['survey_id', 'employee_id']);
         });
+        }
 
         // AI Model Configurations
+        if (! Schema::hasTable('ai_model_configurations')) {
         Schema::create('ai_model_configurations', function (Blueprint $table) {
             $table->id();
             $table->string('model_name'); // attrition_predictor, anomaly_detector, etc.
@@ -303,8 +320,10 @@ return new class extends Migration
             
             $table->unique(['model_name', 'model_version']);
         });
+        }
 
         // AI Insights/Alerts
+        if (! Schema::hasTable('ai_insights')) {
         Schema::create('ai_insights', function (Blueprint $table) {
             $table->id();
             $table->enum('insight_type', [
@@ -345,8 +364,10 @@ return new class extends Migration
             $table->index(['employee_id', 'insight_date']);
             $table->index(['department_id', 'insight_date']);
         });
+        }
 
         // Approval Workflow Templates
+        if (! Schema::hasTable('approval_workflow_templates')) {
         Schema::create('approval_workflow_templates', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -379,8 +400,10 @@ return new class extends Migration
             
             $table->index(['entity_type', 'is_active']);
         });
+        }
 
         // Approval Workflow Instances
+        if (! Schema::hasTable('approval_workflow_instances')) {
         Schema::create('approval_workflow_instances', function (Blueprint $table) {
             $table->id();
             $table->foreignId('template_id')->constrained('approval_workflow_templates')->onDelete('cascade');
@@ -400,11 +423,13 @@ return new class extends Migration
             
             $table->timestamps();
             
-            $table->index(['status', 'current_step']);
-            $table->index(['requester_id', 'status']);
+            $table->index(['status', 'current_step'], 'awi_status_step_idx');
+            $table->index(['requester_id', 'status'], 'awi_requester_status_idx');
         });
+        }
 
         // Approval Actions (individual approvals within a workflow)
+        if (! Schema::hasTable('approval_actions')) {
         Schema::create('approval_actions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('workflow_instance_id')->constrained('approval_workflow_instances')->onDelete('cascade');
@@ -428,6 +453,7 @@ return new class extends Migration
             $table->index(['workflow_instance_id', 'step_number']);
             $table->index(['approver_id', 'action']);
         });
+        }
     }
 
     public function down(): void

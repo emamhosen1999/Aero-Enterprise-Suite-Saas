@@ -114,7 +114,7 @@ class AttendanceController extends Controller
             },
             'leaves' => function ($query) use ($year, $month) {
                 $query->join('leave_settings', 'leaves.leave_type', '=', 'leave_settings.id')
-                    ->select('leaves.*', 'leave_settings.type as leave_type')
+                    ->select('leaves.*', 'leave_settings.name as leave_type')
                     ->where(function ($query) use ($year, $month) {
                         $query->whereYear('leaves.from_date', $year)
                             ->whereMonth('leaves.from_date', $month)
@@ -142,7 +142,7 @@ class AttendanceController extends Controller
             ->join('leave_settings', 'leaves.leave_type', '=', 'leave_settings.id')
             ->select(
                 'leaves.user_id',
-                'leave_settings.type as leave_type',
+                'leave_settings.name as leave_type',
                 DB::raw('SUM(DATEDIFF(leaves.to_date, leaves.from_date) + 1) as total_days')
             )
             ->where(function ($query) use ($year, $month) {
@@ -151,7 +151,7 @@ class AttendanceController extends Controller
                     ->orWhereYear('leaves.to_date', $year)
                     ->whereMonth('leaves.to_date', $month);
             })
-            ->groupBy('leaves.user_id', 'leave_settings.type')
+            ->groupBy('leaves.user_id', 'leave_settings.name')
             ->get();
 
         $leaveCountsArray = [];
@@ -649,7 +649,7 @@ class AttendanceController extends Controller
             // Efficiently check if the user is on leave today
             $userLeave = DB::table('leaves')
                 ->join('leave_settings', 'leaves.leave_type', '=', 'leave_settings.id')
-                ->select('leaves.*', 'leave_settings.type as leave_type')
+                ->select('leaves.*', 'leave_settings.name as leave_type')
                 ->where('leaves.user_id', $currentUser->id)
                 ->whereDate('leaves.from_date', '<=', $today)
                 ->whereDate('leaves.to_date', '>=', $today)
@@ -823,7 +823,7 @@ class AttendanceController extends Controller
             $userIds = $allUsers->pluck('id');
             $todayLeaves = DB::table('leaves')
                 ->join('leave_settings', 'leaves.leave_type', '=', 'leave_settings.id')
-                ->select('leaves.*', 'leave_settings.type as leave_type')
+                ->select('leaves.*', 'leave_settings.name as leave_type')
                 ->whereDate('leaves.from_date', '<=', $selectedDate)
                 ->whereDate('leaves.to_date', '>=', $selectedDate)
                 ->whereIn('leaves.user_id', $userIds)
@@ -1149,7 +1149,7 @@ class AttendanceController extends Controller
             $userIds = $absentUsers->pluck('id');
             $todayLeaves = DB::table('leaves')
                 ->join('leave_settings', 'leaves.leave_type', '=', 'leave_settings.id')
-                ->select('leaves.*', 'leave_settings.type as leave_type')
+                ->select('leaves.*', 'leave_settings.name as leave_type')
                 ->whereDate('leaves.from_date', '<=', $selectedDate)
                 ->whereDate('leaves.to_date', '>=', $selectedDate)
                 ->whereIn('leaves.user_id', $userIds)

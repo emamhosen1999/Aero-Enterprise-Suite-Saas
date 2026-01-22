@@ -109,12 +109,17 @@ class UserPolicy
             return true;
         }
 
-        // HR managers and administrators can delete
-        if ($user->hasRole(['Administrator', 'HR Manager'])) {
-            return $user->hasPermissionTo('users.delete');
+        // Users with HRM employees access and delete permission can delete
+        try {
+            if (\Aero\HRMAC\Facades\HRMAC::userHasSubModuleAccess($user, 'hrm', 'employees', 'delete')) {
+                return true;
+            }
+        } catch (\Exception $e) {
+            // HRMAC not available, fall through to permission check
         }
 
-        return false;
+        // Fallback to permission check
+        return $user->hasPermissionTo('users.delete');
     }
 
     /**
