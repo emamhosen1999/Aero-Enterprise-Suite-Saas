@@ -1,9 +1,9 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {Head, usePage} from '@inertiajs/react';
-import {motion} from 'framer-motion';
 import axios from 'axios';
 import {Card, CardBody, CardHeader, Input, Tab, Tabs,} from "@heroui/react";
 import App from "@/Layouts/App.jsx";
+import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import AttendanceEmployeeTable from "@/Tables/HRM/AttendanceEmployeeTable.jsx";
 import AttendanceCalendar from "@/Components/HRM/Attendance/AttendanceCalendar.jsx";
@@ -19,9 +19,11 @@ import {
     XCircleIcon
 } from '@heroicons/react/24/outline';
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
 
 const AttendanceEmployee = React.memo(({ title, totalWorkingDays, presentDays, absentDays, lateArrivals }) => {
     const { auth } = usePage().props;
+    const themeRadius = useThemeRadius();
     
     // TODO: Update with proper HRMAC module hierarchy path once defined
     const { hasAccess, canUpdate, isSuperAdmin } = useHRMAC();
@@ -41,19 +43,6 @@ const AttendanceEmployee = React.memo(({ title, totalWorkingDays, presentDays, a
         window.addEventListener('resize', checkScreenSize);
         return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
-    
-    // Helper function for radius
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
     
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [updateTimeSheet, setUpdateTimeSheet] = useState(false);

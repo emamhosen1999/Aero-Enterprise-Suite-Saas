@@ -1,11 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Head, usePage} from '@inertiajs/react';
-import {motion} from 'framer-motion';
 import {
     Button, 
-    Card, 
-    CardBody, 
-    CardHeader, 
     Chip, 
     Input, 
     Select, 
@@ -593,195 +589,131 @@ const WorkforcePlanningIndex = ({title}) => {
                 </ModalContent>
             </Modal>
 
-            {/* Main Content */}
-            <div className="flex flex-col w-full h-full p-4" role="main" aria-label="Workforce Planning">
-                <div className="space-y-4">
-                    <div className="w-full">
-                        <motion.div
-                            initial={{scale: 0.9, opacity: 0}}
-                            animate={{scale: 1, opacity: 1}}
-                            transition={{duration: 0.5}}
+            <StandardPageLayout
+                title="Workforce Planning"
+                subtitle="Strategic headcount planning and workforce forecasting"
+                icon={<ChartBarIcon className="w-8 h-8" />}
+                actions={
+                    canCreate && (
+                        <Button 
+                            color="primary" 
+                            variant="shadow"
+                            startContent={<PlusIcon className="w-4 h-4" />}
+                            onPress={() => setShowAddModal(true)}
                         >
-                            <Card 
-                                className="transition-all duration-200"
-                                style={{
-                                    border: `var(--borderWidth, 2px) solid transparent`,
-                                    borderRadius: `var(--borderRadius, 12px)`,
-                                    fontFamily: `var(--fontFamily, "Inter")`,
-                                    background: `linear-gradient(135deg, 
-                                        var(--theme-content1, #FAFAFA) 20%, 
-                                        var(--theme-content2, #F4F4F5) 10%, 
-                                        var(--theme-content3, #F1F3F4) 20%)`,
-                                }}
-                            >
-                                <CardHeader 
-                                    className="border-b p-0"
-                                    style={{
-                                        borderColor: `var(--theme-divider, #E4E4E7)`,
-                                        background: `linear-gradient(135deg, 
-                                            color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
-                                            color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
-                                    }}
-                                >
-                                    <div className={`${!isMobile ? 'p-6' : 'p-4'} w-full`}>
-                                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                                            <div className="flex items-center gap-3 lg:gap-4">
-                                                <div 
-                                                    className={`${!isMobile ? 'p-3' : 'p-2'} rounded-xl`}
-                                                    style={{
-                                                        background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,
-                                                        borderRadius: `var(--borderRadius, 12px)`,
-                                                    }}
-                                                >
-                                                    <ChartBarIcon 
-                                                        className={`${!isMobile ? 'w-8 h-8' : 'w-6 h-6'}`} 
-                                                        style={{color: 'var(--theme-primary)'}} 
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <h4 className={`${!isMobile ? 'text-2xl' : 'text-xl'} font-bold`}>
-                                                        Workforce Planning
-                                                    </h4>
-                                                    <p className={`${!isMobile ? 'text-sm' : 'text-xs'} text-default-500`}>
-                                                        Strategic headcount planning and workforce forecasting
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="flex gap-2 flex-wrap">
-                                                {canCreate && (
-                                                    <Button 
-                                                        color="primary" 
-                                                        variant="shadow"
-                                                        startContent={<PlusIcon className="w-4 h-4" />}
-                                                        onPress={() => setShowAddModal(true)}
-                                                        size={isMobile ? "sm" : "md"}
-                                                    >
-                                                        New Workforce Plan
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </CardHeader>
-
-                                <CardBody className="p-6">
-                                    <StatsCards stats={statsData} className="mb-6" isLoading={loading} />
-                                    
-                                    {/* Tabs */}
-                                    <Tabs 
-                                        selectedKey={activeTab} 
-                                        onSelectionChange={setActiveTab}
-                                        className="mb-6"
-                                    >
-                                        <Tab key="plans" title="Workforce Plans" />
-                                        <Tab key="positions" title="Planned Positions" />
-                                        <Tab key="forecast" title="Forecast" />
-                                    </Tabs>
-
-                                    {/* Filter Section */}
-                                    <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                                        <Input
-                                            placeholder="Search plans..."
-                                            value={filters.search}
-                                            onValueChange={(v) => handleFilterChange('search', v)}
-                                            startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
-                                            variant="bordered"
-                                            size="sm"
-                                            radius={themeRadius}
-                                            className="max-w-xs"
-                                        />
-                                        <Select
-                                            placeholder="All Departments"
-                                            selectedKeys={filters.department_id ? [String(filters.department_id)] : []}
-                                            onSelectionChange={(keys) => handleFilterChange('department_id', Array.from(keys)[0] || '')}
-                                            size="sm"
-                                            radius={themeRadius}
-                                            className="max-w-xs"
-                                        >
-                                            {departments.map(dept => (
-                                                <SelectItem key={String(dept.id)}>{dept.name}</SelectItem>
-                                            ))}
-                                        </Select>
-                                        <Select
-                                            placeholder="All Statuses"
-                                            selectedKeys={filters.status ? [filters.status] : []}
-                                            onSelectionChange={(keys) => handleFilterChange('status', Array.from(keys)[0] || '')}
-                                            size="sm"
-                                            radius={themeRadius}
-                                            className="max-w-xs"
-                                        >
-                                            <SelectItem key="draft">Draft</SelectItem>
-                                            <SelectItem key="pending_approval">Pending Approval</SelectItem>
-                                            <SelectItem key="approved">Approved</SelectItem>
-                                            <SelectItem key="active">Active</SelectItem>
-                                            <SelectItem key="completed">Completed</SelectItem>
-                                        </Select>
-                                    </div>
-
-                                    {/* Table */}
-                                    {loading ? (
-                                        <div className="space-y-3">
-                                            {Array.from({length: 5}).map((_, i) => (
-                                                <div key={i} className="flex gap-4">
-                                                    <Skeleton className="h-12 w-12 rounded-lg" />
-                                                    <div className="flex-1 space-y-2">
-                                                        <Skeleton className="h-4 w-3/4 rounded" />
-                                                        <Skeleton className="h-3 w-1/2 rounded" />
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <Table
-                                                aria-label="Workforce plans table"
-                                                isHeaderSticky
-                                                classNames={{
-                                                    wrapper: "shadow-none border border-divider rounded-lg",
-                                                    th: "bg-default-100 text-default-600 font-semibold",
-                                                    td: "py-3"
-                                                }}
-                                            >
-                                                <TableHeader columns={columns}>
-                                                    {(column) => (
-                                                        <TableColumn key={column.uid}>
-                                                            {column.name}
-                                                        </TableColumn>
-                                                    )}
-                                                </TableHeader>
-                                                <TableBody 
-                                                    items={workforcePlans} 
-                                                    emptyContent="No workforce plans found"
-                                                >
-                                                    {(item) => (
-                                                        <TableRow key={item.id}>
-                                                            {(columnKey) => (
-                                                                <TableCell>{renderCell(item, columnKey)}</TableCell>
-                                                            )}
-                                                        </TableRow>
-                                                    )}
-                                                </TableBody>
-                                            </Table>
-                                            
-                                            {/* Pagination */}
-                                            {pagination.lastPage > 1 && (
-                                                <div className="flex justify-center mt-4">
-                                                    <Pagination
-                                                        total={pagination.lastPage}
-                                                        page={pagination.currentPage}
-                                                        onChange={(page) => setPagination(p => ({...p, currentPage: page}))}
-                                                        showControls
-                                                    />
-                                                </div>
-                                            )}
-                                        </>
-                                    )}
-                                </CardBody>
-                            </Card>
-                        </motion.div>
+                            New Workforce Plan
+                        </Button>
+                    )
+                }
+                stats={<StatsCards stats={statsData} isLoading={loading} />}
+                filters={
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <Input
+                            placeholder="Search plans..."
+                            value={filters.search}
+                            onValueChange={(v) => handleFilterChange('search', v)}
+                            startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
+                            radius={themeRadius}
+                            className="sm:max-w-xs"
+                        />
+                        <Select
+                            placeholder="All Departments"
+                            selectedKeys={filters.department_id ? [String(filters.department_id)] : []}
+                            onSelectionChange={(keys) => handleFilterChange('department_id', Array.from(keys)[0] || '')}
+                            radius={themeRadius}
+                            className="sm:max-w-xs"
+                        >
+                            {departments.map(dept => (
+                                <SelectItem key={String(dept.id)}>{dept.name}</SelectItem>
+                            ))}
+                        </Select>
+                        <Select
+                            placeholder="All Statuses"
+                            selectedKeys={filters.status ? [filters.status] : []}
+                            onSelectionChange={(keys) => handleFilterChange('status', Array.from(keys)[0] || '')}
+                            radius={themeRadius}
+                            className="sm:max-w-xs"
+                        >
+                            <SelectItem key="draft">Draft</SelectItem>
+                            <SelectItem key="pending_approval">Pending Approval</SelectItem>
+                            <SelectItem key="approved">Approved</SelectItem>
+                            <SelectItem key="active">Active</SelectItem>
+                            <SelectItem key="completed">Completed</SelectItem>
+                        </Select>
                     </div>
-                </div>
-            </div>
+                }
+                ariaLabel="Workforce Planning"
+            >
+                {/* Tabs */}
+                <Tabs 
+                    selectedKey={activeTab} 
+                    onSelectionChange={setActiveTab}
+                    className="mb-6"
+                >
+                    <Tab key="plans" title="Workforce Plans" />
+                    <Tab key="positions" title="Planned Positions" />
+                    <Tab key="forecast" title="Forecast" />
+                </Tabs>
+
+                {/* Table */}
+                {loading ? (
+                    <div className="space-y-3">
+                        {Array.from({length: 5}).map((_, i) => (
+                            <div key={i} className="flex gap-4">
+                                <Skeleton className="h-12 w-12 rounded-lg" />
+                                <div className="flex-1 space-y-2">
+                                    <Skeleton className="h-4 w-3/4 rounded" />
+                                    <Skeleton className="h-3 w-1/2 rounded" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <>
+                        <Table
+                            aria-label="Workforce plans table"
+                            isHeaderSticky
+                            classNames={{
+                                wrapper: "shadow-none border border-divider rounded-lg",
+                                th: "bg-default-100 text-default-600 font-semibold",
+                                td: "py-3"
+                            }}
+                        >
+                            <TableHeader columns={columns}>
+                                {(column) => (
+                                    <TableColumn key={column.uid}>
+                                        {column.name}
+                                    </TableColumn>
+                                )}
+                            </TableHeader>
+                            <TableBody 
+                                items={workforcePlans} 
+                                emptyContent="No workforce plans found"
+                            >
+                                {(item) => (
+                                    <TableRow key={item.id}>
+                                        {(columnKey) => (
+                                            <TableCell>{renderCell(item, columnKey)}</TableCell>
+                                        )}
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                        
+                        {/* Pagination */}
+                        {pagination.lastPage > 1 && (
+                            <div className="flex justify-center mt-4">
+                                <Pagination
+                                    total={pagination.lastPage}
+                                    page={pagination.currentPage}
+                                    onChange={(page) => setPagination(p => ({...p, currentPage: page}))}
+                                    showControls
+                                />
+                            </div>
+                        )}
+                    </>
+                )}
+            </StandardPageLayout>
         </>
     );
 };

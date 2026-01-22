@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
-import { motion } from 'framer-motion';
 import {
     Button,
     Card,
@@ -20,23 +19,10 @@ import {
     UserCircleIcon
 } from "@heroicons/react/24/outline";
 import {useHRMAC} from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
 import App from '@/Layouts/App.jsx';
+import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
-
-// Helper function to convert theme borderRadius to HeroUI radius values
-const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 16) return 'lg';
-    return 'full';
-};
 
 // Department Node component for the org chart
 const DepartmentNode = ({ department, allDepartments, level = 0, expandedNodes, toggleNode }) => {
