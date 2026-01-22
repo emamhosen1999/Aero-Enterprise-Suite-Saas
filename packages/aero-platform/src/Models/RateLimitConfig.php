@@ -2,12 +2,12 @@
 
 namespace Aero\Platform\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Rate Limit Configuration Model
- * 
+ *
  * Stores rate limiting configurations for tenants and global settings
  */
 class RateLimitConfig extends Model

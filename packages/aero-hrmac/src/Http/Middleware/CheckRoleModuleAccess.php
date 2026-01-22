@@ -41,7 +41,9 @@ class CheckRoleModuleAccess
         string $moduleCode,
         ?string $subModuleCode = null
     ): Response {
-        $user = Auth::user();
+        // Try to get user from request first (supports multiple guards)
+        // This ensures we get the authenticated user regardless of which guard was used
+        $user = $request->user() ?? Auth::user();
 
         if (! $user) {
             if ($request->expectsJson()) {
@@ -51,7 +53,8 @@ class CheckRoleModuleAccess
                 ], 401);
             }
 
-            return redirect()->route('login');
+            // Check if we're on admin domain to use appropriate login route
+            return redirect()->to($this->getLoginUrl($request));
         }
 
         // Super admin bypasses all checks
@@ -83,17 +86,27 @@ class CheckRoleModuleAccess
      */
     protected function isSuperAdmin($user): bool
     {
-        if (! method_exists($user, 'hasRole')) {
-            return false;
-        }
-
         $superAdminRoles = config('hrmac.super_admin_roles', [
             'Super Administrator',
             'super-admin',
             'tenant_super_administrator',
         ]);
 
-        return $user->hasRole($superAdminRoles);
+        // Check for hasAnyRole first (supports array of roles)
+        if (method_exists($user, 'hasAnyRole')) {
+            return $user->hasAnyRole($superAdminRoles);
+        }
+
+        // Fallback to hasRole with individual checks
+        if (method_exists($user, 'hasRole')) {
+            foreach ($superAdminRoles as $role) {
+                if ($user->hasRole($role)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -140,6 +153,27 @@ class CheckRoleModuleAccess
             return redirect()->route($redirectRoute)->with('warning', $message);
         }
 
-        return redirect()->route('login')->with('error', $message);
+        return redirect()->to($this->getLoginUrl($request))->with('error', $message);
+    }
+
+    /**
+     * Get the appropriate login URL based on domain context.
+     */
+    protected function getLoginUrl(Request $request): string
+    {
+        // Check if we're on admin domain
+        $host = $request->getHost();
+        $adminDomain = config('tenancy.admin_domain', 'admin.'.config('tenancy.platform_domain'));
+
+        if ($host === $adminDomain || str_starts_with($host, 'admin.')) {
+            return url('/login'); // Admin domain login
+        }
+
+        // Try named route for regular login
+        if (\Illuminate\Support\Facades\Route::has('login')) {
+            return route('login');
+        }
+
+        return url('/login');
     }
 }

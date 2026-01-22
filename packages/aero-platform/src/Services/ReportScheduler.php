@@ -2,11 +2,10 @@
 
 namespace Aero\Platform\Services;
 
-use Aero\Platform\Models\ScheduledReport;
 use Aero\Platform\Models\ReportExecution;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+use Aero\Platform\Models\ScheduledReport;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class ReportScheduler
 {
@@ -59,7 +58,7 @@ class ReportScheduler
     ): array {
         // This is a simplified implementation
         // In production, this would use proper query builders for each report type
-        
+
         return match ($reportType) {
             'revenue' => $this->buildRevenueReport($metrics, $filters, $groupBy, $dateRange),
             'subscription' => $this->buildSubscriptionReport($metrics, $filters, $groupBy, $dateRange),
@@ -176,11 +175,11 @@ class ReportScheduler
     {
         $frequency = $config['frequency'] ?? 'weekly';
         $scheduleConfig = $config['schedule_config'] ?? [];
-        
-        $report = new ScheduledReport();
+
+        $report = new ScheduledReport;
         $report->frequency = $frequency;
         $report->schedule_config = $scheduleConfig;
-        
+
         return $report->calculateNextRunAt();
     }
 
@@ -200,12 +199,12 @@ class ReportScheduler
             // Generate the report
             $result = $this->generateReport($report->config);
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 throw new Exception($result['error'] ?? 'Report generation failed');
             }
 
             // In production, would export to file format here
-            $filePath = storage_path('reports/report_' . $execution->id . '.json');
+            $filePath = storage_path('reports/report_'.$execution->id.'.json');
             $fileContent = json_encode($result['data'], JSON_PRETTY_PRINT);
             file_put_contents($filePath, $fileContent);
             $fileSizeKb = (int) (filesize($filePath) / 1024);

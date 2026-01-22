@@ -2,10 +2,10 @@
 
 namespace Aero\Platform\Http\Middleware;
 
+use Aero\Core\Support\TenantCache;
 use Aero\Platform\Services\Logging\ApplicationLogger;
 use Closure;
 use Illuminate\Http\Request;
-use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\RateLimiter;
 use Symfony\Component\HttpFoundation\Response;
 

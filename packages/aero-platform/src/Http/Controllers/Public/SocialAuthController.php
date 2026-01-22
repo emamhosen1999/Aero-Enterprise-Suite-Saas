@@ -103,7 +103,7 @@ class SocialAuthController extends Controller
 
         return redirect()->back()->with(
             'success',
-            ucfirst($provider) . ' account linked successfully!'
+            ucfirst($provider).' account linked successfully!'
         );
     }
 
@@ -122,7 +122,7 @@ class SocialAuthController extends Controller
             return response()->json([
                 'success' => $success,
                 'message' => $success
-                    ? ucfirst($provider) . ' account unlinked successfully.'
+                    ? ucfirst($provider).' account unlinked successfully.'
                     : 'Failed to unlink account.',
             ]);
         }
@@ -130,7 +130,7 @@ class SocialAuthController extends Controller
         return redirect()->back()->with(
             $success ? 'success' : 'error',
             $success
-                ? ucfirst($provider) . ' account unlinked successfully.'
+                ? ucfirst($provider).' account unlinked successfully.'
                 : 'Failed to unlink account.'
         );
     }

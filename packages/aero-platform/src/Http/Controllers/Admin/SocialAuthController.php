@@ -71,7 +71,7 @@ class SocialAuthController extends Controller
         $providerConfig = $supportedProviders[$provider];
 
         return Inertia::render('Admin/Pages/Marketing/SocialAuth/Provider', [
-            'title' => $providerConfig['name'] . ' Configuration',
+            'title' => $providerConfig['name'].' Configuration',
             'provider' => $provider,
             'providerConfig' => $providerConfig,
             'settings' => $providerSettings,
@@ -113,7 +113,7 @@ class SocialAuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => ucfirst($provider) . ' settings updated successfully.',
+            'message' => ucfirst($provider).' settings updated successfully.',
             'data' => $socialSettings['providers'][$provider],
         ]);
     }
@@ -154,7 +154,7 @@ class SocialAuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => ucfirst($provider) . ' ' . ($currentEnabled ? 'disabled' : 'enabled') . ' successfully.',
+            'message' => ucfirst($provider).' '.($currentEnabled ? 'disabled' : 'enabled').' successfully.',
             'enabled' => ! $currentEnabled,
         ]);
     }

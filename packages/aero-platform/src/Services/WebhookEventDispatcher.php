@@ -2,13 +2,13 @@
 
 namespace Aero\Platform\Services;
 
-use Aero\Platform\Models\Webhook;
 use Aero\Platform\Jobs\ProcessWebhookDeliveryJob;
+use Aero\Platform\Models\Webhook;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Webhook Event Dispatcher
- * 
+ *
  * Dispatches events to registered webhooks
  */
 class WebhookEventDispatcher
@@ -23,10 +23,9 @@ class WebhookEventDispatcher
     /**
      * Dispatch event to all matching webhooks
      *
-     * @param string $event Event name (e.g., 'subscription.created')
-     * @param array $payload Event payload data
-     * @param bool $async Whether to dispatch asynchronously
-     * @return array
+     * @param  string  $event  Event name (e.g., 'subscription.created')
+     * @param  array  $payload  Event payload data
+     * @param  bool  $async  Whether to dispatch asynchronously
      */
     public function dispatch(string $event, array $payload, bool $async = true): array
     {
@@ -34,6 +33,7 @@ class WebhookEventDispatcher
 
         if ($webhooks->isEmpty()) {
             Log::info("No webhooks registered for event: {$event}");
+
             return [
                 'dispatched' => 0,
                 'message' => 'No webhooks registered for this event',
@@ -64,23 +64,18 @@ class WebhookEventDispatcher
     /**
      * Get webhooks that are subscribed to a specific event
      *
-     * @param string $event
      * @return \Illuminate\Database\Eloquent\Collection
      */
     protected function getWebhooksForEvent(string $event)
     {
         return Webhook::where('is_active', true)
             ->whereJsonContains('events', $event)
-            ->orWhere('events', 'like', '%' . $event . '%')
+            ->orWhere('events', 'like', '%'.$event.'%')
             ->get();
     }
 
     /**
      * Enrich payload with metadata
-     *
-     * @param array $payload
-     * @param string $event
-     * @return array
      */
     protected function enrichPayload(array $payload, string $event): array
     {
@@ -94,9 +89,7 @@ class WebhookEventDispatcher
     /**
      * Dispatch multiple events in batch
      *
-     * @param array $events Array of ['event' => 'name', 'payload' => [...]]
-     * @param bool $async
-     * @return array
+     * @param  array  $events  Array of ['event' => 'name', 'payload' => [...]]
      */
     public function dispatchBatch(array $events, bool $async = true): array
     {
@@ -120,8 +113,6 @@ class WebhookEventDispatcher
 
     /**
      * Get available event types
-     *
-     * @return array
      */
     public function getAvailableEvents(): array
     {

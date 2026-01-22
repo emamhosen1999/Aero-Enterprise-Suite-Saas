@@ -29,15 +29,17 @@ class CurrencyService
         // If not found and no specific date requested, try to fetch from API
         if ($date === null || $date->isToday()) {
             $rate = $this->fetchFromApi($from, $to);
-            
+
             if ($rate !== null) {
                 ExchangeRate::storeRate($from, $to, $rate, now(), 'api');
+
                 return $rate;
             }
         }
 
         // Fallback: return 1.0
         Log::warning("Exchange rate not found for {$from}/{$to}, using 1.0");
+
         return 1.0;
     }
 
@@ -47,6 +49,7 @@ class CurrencyService
     public function convert(float $amount, string $from, string $to, ?Carbon $date = null): float
     {
         $rate = $this->getRate($from, $to, $date);
+
         return round($amount * $rate, 2);
     }
 
@@ -65,7 +68,7 @@ class CurrencyService
     {
         $apiKey = config('services.exchangerate_api.key');
 
-        if (!$apiKey) {
+        if (! $apiKey) {
             return null;
         }
 
@@ -75,7 +78,7 @@ class CurrencyService
 
             if ($response->successful()) {
                 $data = $response->json();
-                
+
                 if (isset($data['conversion_rate'])) {
                     return (float) $data['conversion_rate'];
                 }
@@ -102,7 +105,7 @@ class CurrencyService
                 }
 
                 $rate = $this->fetchFromApi($from, $to);
-                
+
                 if ($rate !== null) {
                     ExchangeRate::storeRate($from, $to, $rate, now(), 'api');
                     $synced++;
@@ -137,6 +140,7 @@ class CurrencyService
     public function getSymbol(string $currency): string
     {
         $currencies = $this->getSupportedCurrencies();
+
         return $currencies[$currency]['symbol'] ?? $currency;
     }
 
@@ -146,12 +150,12 @@ class CurrencyService
     public function format(float $amount, string $currency): string
     {
         $symbol = $this->getSymbol($currency);
-        
+
         // Special formatting for JPY (no decimals)
         if ($currency === 'JPY') {
-            return $symbol . number_format($amount, 0);
+            return $symbol.number_format($amount, 0);
         }
 
-        return $symbol . number_format($amount, 2);
+        return $symbol.number_format($amount, 2);
     }
 }

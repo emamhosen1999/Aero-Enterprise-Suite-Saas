@@ -422,11 +422,11 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             ->where('starts_at', '<=', now())
             ->where(function ($query) {
                 $query->whereNull('ends_at')
-                      ->orWhere('ends_at', '>=', now());
+                    ->orWhere('ends_at', '>=', now());
             })
             ->whereHas('plan.modules', function ($query) use ($moduleName) {
                 $query->where('code', $moduleName)
-                      ->where('is_active', true);
+                    ->where('is_active', true);
             })
             ->exists();
 
@@ -642,7 +642,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         try {
             $dbName = $this->database()?->getName();
 
-            if (!$dbName) {
+            if (! $dbName) {
                 return null;
             }
 
@@ -683,6 +683,6 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         $pow = min($pow, count($units) - 1);
         $bytes /= pow(1024, $pow);
 
-        return round($bytes, $precision) . ' ' . $units[$pow];
+        return round($bytes, $precision).' '.$units[$pow];
     }
 }

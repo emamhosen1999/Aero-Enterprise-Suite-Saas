@@ -46,7 +46,7 @@ class SocialAuthService
         } catch (\Throwable $e) {
             return [
                 'success' => false,
-                'error' => 'Failed to authenticate with ' . ucfirst($provider),
+                'error' => 'Failed to authenticate with '.ucfirst($provider),
                 'exception' => $e->getMessage(),
             ];
         }
@@ -106,7 +106,7 @@ class SocialAuthService
         } catch (\Throwable $e) {
             return [
                 'success' => false,
-                'error' => 'Failed to authenticate with ' . ucfirst($provider),
+                'error' => 'Failed to authenticate with '.ucfirst($provider),
             ];
         }
 
@@ -116,7 +116,7 @@ class SocialAuthService
         if ($existing && $existing->authenticatable_id !== $authenticatable->getKey()) {
             return [
                 'success' => false,
-                'error' => 'This ' . ucfirst($provider) . ' account is already linked to another user.',
+                'error' => 'This '.ucfirst($provider).' account is already linked to another user.',
             ];
         }
 

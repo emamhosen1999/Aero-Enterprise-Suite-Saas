@@ -121,7 +121,7 @@ class SeoController extends Controller
         $validated = $request->validate([
             'slug' => 'required|string|max:255|unique:platform_pages,slug',
             'title' => 'required|string|max:255',
-            'page_type' => 'required|string|in:' . implode(',', array_keys(PlatformPage::getPageTypes())),
+            'page_type' => 'required|string|in:'.implode(',', array_keys(PlatformPage::getPageTypes())),
             'meta_title' => 'nullable|string|max:60',
             'meta_description' => 'nullable|string|max:160',
             'meta_keywords' => 'nullable|string|max:255',
@@ -153,9 +153,9 @@ class SeoController extends Controller
     public function updatePage(Request $request, PlatformPage $page): JsonResponse
     {
         $validated = $request->validate([
-            'slug' => 'required|string|max:255|unique:platform_pages,slug,' . $page->id,
+            'slug' => 'required|string|max:255|unique:platform_pages,slug,'.$page->id,
             'title' => 'required|string|max:255',
-            'page_type' => 'required|string|in:' . implode(',', array_keys(PlatformPage::getPageTypes())),
+            'page_type' => 'required|string|in:'.implode(',', array_keys(PlatformPage::getPageTypes())),
             'meta_title' => 'nullable|string|max:60',
             'meta_description' => 'nullable|string|max:160',
             'meta_keywords' => 'nullable|string|max:255',

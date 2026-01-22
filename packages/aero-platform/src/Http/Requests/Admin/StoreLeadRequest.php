@@ -25,7 +25,7 @@ class StoreLeadRequest extends FormRequest
             'company_name' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
             'country' => ['nullable', 'string', 'max:100'],
-            'source' => ['required', 'string', 'in:' . implode(',', array_keys(ProspectLead::getSourceOptions()))],
+            'source' => ['required', 'string', 'in:'.implode(',', array_keys(ProspectLead::getSourceOptions()))],
             'source_detail' => ['nullable', 'string', 'max:500'],
             'interest_level' => ['nullable', 'string', 'in:low,medium,high'],
             'interests' => ['nullable', 'array'],

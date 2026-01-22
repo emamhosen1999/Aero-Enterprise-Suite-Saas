@@ -3,7 +3,6 @@
 namespace Aero\Platform\Services\Billing;
 
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Proration Service
@@ -17,27 +16,27 @@ class ProrationService
      * Proration strategies.
      */
     public const STRATEGY_FULL_CREDIT = 'full_credit';
+
     public const STRATEGY_PRORATED_CREDIT = 'prorated_credit';
+
     public const STRATEGY_NO_CREDIT = 'no_credit';
+
     public const STRATEGY_END_OF_PERIOD = 'end_of_period';
 
     /**
      * Billing models.
      */
     public const BILLING_MONTHLY = 'monthly';
+
     public const BILLING_YEARLY = 'yearly';
+
     public const BILLING_QUARTERLY = 'quarterly';
 
     /**
      * Calculate proration for plan change.
      *
-     * @param array $currentPlan ['price' => float, 'billing_cycle' => string, 'name' => string]
-     * @param array $newPlan ['price' => float, 'billing_cycle' => string, 'name' => string]
-     * @param Carbon $changeDate
-     * @param Carbon $periodStart
-     * @param Carbon $periodEnd
-     * @param string $strategy
-     * @return array
+     * @param  array  $currentPlan  ['price' => float, 'billing_cycle' => string, 'name' => string]
+     * @param  array  $newPlan  ['price' => float, 'billing_cycle' => string, 'name' => string]
      */
     public function calculatePlanChange(
         array $currentPlan,

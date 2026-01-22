@@ -45,7 +45,7 @@ class QuotaManagementController extends Controller
 
         // Search by name
         if ($request->has('search') && $request->input('search')) {
-            $query->where('name', 'like', '%' . $request->input('search') . '%');
+            $query->where('name', 'like', '%'.$request->input('search').'%');
         }
 
         $tenants = $query->paginate(20);
@@ -63,7 +63,7 @@ class QuotaManagementController extends Controller
                 'status' => $tenant->status,
                 'quotas' => $summary,
                 'active_warnings' => $warnings->count(),
-                'critical_quotas' => collect($summary)->filter(fn($q) => $q['status'] === 'critical')->count(),
+                'critical_quotas' => collect($summary)->filter(fn ($q) => $q['status'] === 'critical')->count(),
             ];
         });
 
@@ -181,7 +181,7 @@ class QuotaManagementController extends Controller
         $metadata = $tenant->metadata ?? [];
         $metadata['quota_overrides'] = $metadata['quota_overrides'] ?? [];
         $metadata['quota_overrides'][$quotaType] = $value;
-        
+
         $tenant->metadata = $metadata;
         $tenant->save();
 
@@ -198,7 +198,7 @@ class QuotaManagementController extends Controller
     public function removeOverride(Request $request, Tenant $tenant)
     {
         $quotaType = $request->input('quota_type');
-        
+
         $metadata = $tenant->metadata ?? [];
         if (isset($metadata['quota_overrides'][$quotaType])) {
             unset($metadata['quota_overrides'][$quotaType]);
@@ -251,7 +251,7 @@ class QuotaManagementController extends Controller
                 $current = $this->quotaService->getCurrentUsage($tenant, $type);
                 $limit = $this->quotaService->getQuotaLimit($tenant, $type);
                 $percentage = $limit > 0 ? ($current / $limit) * 100 : 0;
-                
+
                 if ($percentage >= 80) {
                     $usage[] = [
                         'tenant_id' => $tenant->id,
@@ -262,7 +262,7 @@ class QuotaManagementController extends Controller
                     ];
                 }
             }
-            
+
             $stats['quota_types'][$type] = [
                 'high_usage_count' => count($usage),
                 'tenants' => $usage,

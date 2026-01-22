@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Check Plan Entitlements Middleware
- * 
+ *
  * Enforces plan limits before processing requests.
  * Apply to routes that create resources subject to plan limits.
  */
@@ -19,8 +19,7 @@ class CheckPlanEntitlements
 {
     public function __construct(
         protected PlanEntitlementService $entitlementService
-    ) {
-    }
+    ) {}
 
     /**
      * Handle an incoming request.
@@ -31,7 +30,7 @@ class CheckPlanEntitlements
     {
         $tenantId = $request->user()?->tenant_id;
 
-        if (!$tenantId) {
+        if (! $tenantId) {
             return $next($request);
         }
 
@@ -51,7 +50,7 @@ class CheckPlanEntitlements
     {
         if ($this->entitlementService->hasReachedUserLimit($tenantId)) {
             $remaining = $this->entitlementService->getRemainingUserSlots($tenantId);
-            
+
             abort(403, sprintf(
                 'User limit reached for your plan. Please upgrade to add more users. Remaining slots: %d',
                 $remaining ?? 0

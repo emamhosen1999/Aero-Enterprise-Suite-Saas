@@ -14,7 +14,9 @@ use Exception;
 class QuotaExceededException extends Exception
 {
     protected string $quotaType;
+
     protected int $limit;
+
     protected int $current;
 
     public function __construct(

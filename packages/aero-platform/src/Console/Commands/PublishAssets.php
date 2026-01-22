@@ -6,12 +6,12 @@ use Illuminate\Console\Command;
 
 /**
  * Build Assets Command
- * 
+ *
  * Simplified asset building for SaaS deployments.
- * 
+ *
  * Since the host app's vite.config.js already points to vendor/aero/* packages,
  * we just need to run the host app's build command.
- * 
+ *
  * Usage: php artisan aero:build-assets
  */
 class PublishAssets extends Command
@@ -30,11 +30,11 @@ class PublishAssets extends Command
 
         // Call Laravel's native vendor:publish with our tag
         $tags = ['aero-platform-assets'];
-        
+
         foreach ($tags as $tag) {
             $this->call('vendor:publish', [
                 '--tag' => $tag,
-                '--force' => $force
+                '--force' => $force,
             ]);
         }
 
@@ -43,7 +43,7 @@ class PublishAssets extends Command
         $this->line('   Location: public/vendor/aero-platform/');
         $this->newLine();
         $this->info('💡 Run "php artisan optimize:clear" to clear caches.');
-        
+
         return self::SUCCESS;
     }
 }

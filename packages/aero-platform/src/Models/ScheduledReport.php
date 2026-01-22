@@ -2,11 +2,11 @@
 
 namespace Aero\Platform\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Carbon\Carbon;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ScheduledReport extends Model
 {
@@ -147,14 +147,14 @@ class ScheduledReport extends Model
 
         return match ($this->frequency) {
             'daily' => sprintf('Daily at %02d:%02d', $config['hour'] ?? 6, $config['minute'] ?? 0),
-            'weekly' => sprintf('Weekly on %s at %02d:%02d', 
-                ucfirst($config['day'] ?? 'Monday'), 
-                $config['hour'] ?? 6, 
+            'weekly' => sprintf('Weekly on %s at %02d:%02d',
+                ucfirst($config['day'] ?? 'Monday'),
+                $config['hour'] ?? 6,
                 $config['minute'] ?? 0
             ),
-            'monthly' => sprintf('Monthly on day %d at %02d:%02d', 
-                $config['day_of_month'] ?? 1, 
-                $config['hour'] ?? 6, 
+            'monthly' => sprintf('Monthly on day %d at %02d:%02d',
+                $config['day_of_month'] ?? 1,
+                $config['hour'] ?? 6,
                 $config['minute'] ?? 0
             ),
             'custom' => $config['cron'] ?? 'Custom schedule',

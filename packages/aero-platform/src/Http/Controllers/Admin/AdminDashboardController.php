@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Http\Controllers\Admin;
 
-use Aero\Platform\Services\PlatformWidgetRegistry;
 use Aero\Platform\Http\Controllers\Controller;
 use Aero\Platform\Models\LandlordUser;
-use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\Subscription;
 use Aero\Platform\Models\Tenant;
+use Aero\Platform\Services\PlatformWidgetRegistry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -219,9 +218,9 @@ class AdminDashboardController extends Controller
 
             // Formatted values for display
             'formatted' => [
-                'mrr' => '$' . number_format($mrr / 1000, 1) . 'K',
-                'arr' => '$' . number_format($arr / 1000000, 2) . 'M',
-                'arpt' => '$' . number_format($arpt, 0),
+                'mrr' => '$'.number_format($mrr / 1000, 1).'K',
+                'arr' => '$'.number_format($arr / 1000000, 2).'M',
+                'arpt' => '$'.number_format($arpt, 0),
             ],
         ];
     }

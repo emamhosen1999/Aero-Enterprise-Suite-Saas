@@ -24,19 +24,17 @@ class TenantPurgeService
     /**
      * Permanently purge a tenant.
      *
-     * @param Tenant $tenant
-     * @return void
      * @throws \DomainException
      */
     public function purge(Tenant $tenant): void
     {
         // Ensure tenant is soft deleted
-        if (!$tenant->trashed()) {
+        if (! $tenant->trashed()) {
             throw new \DomainException('Tenant must be archived before purging');
         }
 
         // Check retention period
-        if (!$this->retentionService->retentionExpired($tenant)) {
+        if (! $this->retentionService->retentionExpired($tenant)) {
             $expiresAt = $this->retentionService->getRetentionExpiresAt($tenant);
             throw new \DomainException(
                 "Retention period not expired. Can purge after {$expiresAt->toDateString()}"
@@ -70,17 +68,15 @@ class TenantPurgeService
 
     /**
      * Drop the tenant's database.
-     *
-     * @param Tenant $tenant
-     * @return void
      */
     protected function dropTenantDatabase(Tenant $tenant): void
     {
-        if (!$tenant->database()->exists()) {
+        if (! $tenant->database()->exists()) {
             Log::warning('Tenant database does not exist', [
                 'tenant_id' => $tenant->id,
                 'database_name' => $tenant->database()->getName(),
             ]);
+
             return;
         }
 
@@ -103,7 +99,7 @@ class TenantPurgeService
                 'tenant_id' => $tenant->id,
                 'error' => $e->getMessage(),
             ]);
-            
+
             throw $e;
         } finally {
             // Always end tenancy
@@ -119,7 +115,6 @@ class TenantPurgeService
     /**
      * Batch purge multiple tenants.
      *
-     * @param iterable $tenants
      * @return array ['success' => int, 'failed' => int, 'errors' => array]
      */
     public function batchPurge(iterable $tenants): array

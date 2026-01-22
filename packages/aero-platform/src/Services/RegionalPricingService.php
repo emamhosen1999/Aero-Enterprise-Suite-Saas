@@ -31,9 +31,7 @@ class RegionalPricingService
         ],
     ];
 
-    public function __construct(protected CurrencyService $currencyService)
-    {
-    }
+    public function __construct(protected CurrencyService $currencyService) {}
 
     /**
      * Calculate regional price with psychological pricing.
@@ -56,6 +54,7 @@ class RegionalPricingService
 
         // No predefined rule, convert and apply psychological pricing
         $converted = $this->currencyService->convert($usdPrice, 'USD', $targetCurrency);
+
         return $this->applyRoundingLogic($converted, $targetCurrency);
     }
 
@@ -64,7 +63,7 @@ class RegionalPricingService
      */
     protected function applyRoundingLogic(float $amount, string $currency): float
     {
-        return match($currency) {
+        return match ($currency) {
             'JPY' => round($amount, -3), // Round to nearest 1000
             'EUR', 'GBP' => floor($amount) - 1, // €89 instead of €90
             'CAD', 'AUD' => ceil($amount / 10) * 10 - 1, // $129 instead of $130
@@ -93,6 +92,7 @@ class RegionalPricingService
     public function formatRegionalPrice(float $usdPrice, string $currency): string
     {
         $amount = $this->calculateRegionalPrice($usdPrice, $currency);
+
         return $this->currencyService->format($amount, $currency);
     }
 
@@ -106,7 +106,7 @@ class RegionalPricingService
     ): float {
         $regionalPrice = $this->calculateRegionalPrice($usdPrice, $currency);
         $discounted = $regionalPrice * (1 - $discountPercentage / 100);
-        
+
         // Apply rounding again for psychological pricing
         return $this->applyRoundingLogic($discounted, $currency);
     }
@@ -138,7 +138,7 @@ class RegionalPricingService
      */
     public function setRoundingRule(string $currency, float $usdPrice, float $regionalPrice): void
     {
-        if (!isset($this->roundingRules[$currency])) {
+        if (! isset($this->roundingRules[$currency])) {
             $this->roundingRules[$currency] = [];
         }
 

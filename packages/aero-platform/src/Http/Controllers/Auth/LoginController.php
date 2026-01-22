@@ -3,9 +3,9 @@
 namespace Aero\Platform\Http\Controllers\Auth;
 
 use Aero\Core\Models\User;
+use Aero\Platform\Http\Controllers\Controller;
 use Aero\Platform\Services\Shared\Auth\DeviceAuthService;
 use Aero\Platform\Services\Shared\Auth\ModernAuthenticationService;
-use Aero\Platform\Http\Controllers\Controller;
 use App\Http\Middleware\IdentifyDomainContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

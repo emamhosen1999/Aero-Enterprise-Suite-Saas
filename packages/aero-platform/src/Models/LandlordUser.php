@@ -2,13 +2,13 @@
 
 namespace Aero\Platform\Models;
 
+use Aero\HRMAC\Models\Role;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
-use Aero\HRMAC\Models\Role;
 
 /**
  * LandlordUser Model (Platform Admin)
@@ -205,6 +205,7 @@ class LandlordUser extends Authenticatable
                 if (is_object($role) && isset($role->id)) {
                     return $role->id;
                 }
+
                 return is_numeric($role) ? (int) $role : null;
             })
             ->filter()
@@ -238,6 +239,7 @@ class LandlordUser extends Authenticatable
                 if (is_object($role) && isset($role->id)) {
                     return $role->id;
                 }
+
                 return is_numeric($role) ? (int) $role : null;
             })
             ->filter()
@@ -273,7 +275,6 @@ class LandlordUser extends Authenticatable
     // HELPER METHODS
     // =========================================================================
 
-   
     /**
      * Check if the user is a super admin (has Platform Super Admin role).
      */

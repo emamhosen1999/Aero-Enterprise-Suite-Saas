@@ -2,8 +2,8 @@
 
 namespace Aero\Platform\Services\Tenant;
 
-use Carbon\Carbon;
 use Aero\Core\Support\TenantCache;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -20,17 +20,24 @@ class TenantBackupService
      * Backup statuses.
      */
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_IN_PROGRESS = 'in_progress';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_FAILED = 'failed';
+
     public const STATUS_EXPIRED = 'expired';
 
     /**
      * Backup types.
      */
     public const TYPE_FULL = 'full';
+
     public const TYPE_DATABASE = 'database';
+
     public const TYPE_FILES = 'files';
+
     public const TYPE_INCREMENTAL = 'incremental';
 
     /**
@@ -111,7 +118,7 @@ class TenantBackupService
                     $totalSize += $dbResult['size'];
                     $backup['metadata']['database'] = $dbResult;
                 } else {
-                    $errors[] = 'Database backup failed: ' . $dbResult['error'];
+                    $errors[] = 'Database backup failed: '.$dbResult['error'];
                 }
             }
 
@@ -123,7 +130,7 @@ class TenantBackupService
                     $totalSize += $filesResult['size'];
                     $backup['metadata']['files'] = $filesResult;
                 } else {
-                    $errors[] = 'Files backup failed: ' . $filesResult['error'];
+                    $errors[] = 'Files backup failed: '.$filesResult['error'];
                 }
             }
 
@@ -167,7 +174,7 @@ class TenantBackupService
     protected function backupDatabase(array $backup): array
     {
         $tenantId = $backup['tenant_id'];
-        $filename = "tenant_{$tenantId}_db_" . now()->format('Y-m-d_His') . '.sql';
+        $filename = "tenant_{$tenantId}_db_".now()->format('Y-m-d_His').'.sql';
 
         if ($backup['compression'] === 'gzip') {
             $filename .= '.gz';
@@ -195,7 +202,7 @@ class TenantBackupService
     protected function backupFiles(array $backup): array
     {
         $tenantId = $backup['tenant_id'];
-        $filename = "tenant_{$tenantId}_files_" . now()->format('Y-m-d_His') . '.tar';
+        $filename = "tenant_{$tenantId}_files_".now()->format('Y-m-d_His').'.tar';
 
         if ($backup['compression'] === 'gzip') {
             $filename .= '.gz';
@@ -227,7 +234,7 @@ class TenantBackupService
     ): array {
         $backup = $this->getBackup($tenantId, $backupId);
 
-        if (!$backup) {
+        if (! $backup) {
             return [
                 'success' => false,
                 'error' => 'Backup not found',
@@ -374,21 +381,21 @@ class TenantBackupService
         $backups = $this->getAllBackups($tenantId);
 
         // Apply filters
-        if (!empty($filters['status'])) {
-            $backups = array_filter($backups, fn($b) => $b['status'] === $filters['status']);
+        if (! empty($filters['status'])) {
+            $backups = array_filter($backups, fn ($b) => $b['status'] === $filters['status']);
         }
 
-        if (!empty($filters['type'])) {
-            $backups = array_filter($backups, fn($b) => $b['type'] === $filters['type']);
+        if (! empty($filters['type'])) {
+            $backups = array_filter($backups, fn ($b) => $b['type'] === $filters['type']);
         }
 
-        if (!empty($filters['from_date'])) {
+        if (! empty($filters['from_date'])) {
             $fromDate = Carbon::parse($filters['from_date']);
-            $backups = array_filter($backups, fn($b) => Carbon::parse($b['created_at'])->gte($fromDate));
+            $backups = array_filter($backups, fn ($b) => Carbon::parse($b['created_at'])->gte($fromDate));
         }
 
         // Sort by created_at descending
-        usort($backups, fn($a, $b) => strcmp($b['created_at'], $a['created_at']));
+        usort($backups, fn ($a, $b) => strcmp($b['created_at'], $a['created_at']));
 
         // Pagination
         $page = $filters['page'] ?? 1;
@@ -413,6 +420,7 @@ class TenantBackupService
     public function getBackup(string $tenantId, string $backupId): ?array
     {
         $cacheKey = "backup:{$tenantId}:{$backupId}";
+
         return TenantCache::get($cacheKey);
     }
 
@@ -423,7 +431,7 @@ class TenantBackupService
     {
         $backup = $this->getBackup($tenantId, $backupId);
 
-        if (!$backup) {
+        if (! $backup) {
             return [
                 'success' => false,
                 'error' => 'Backup not found',
@@ -508,7 +516,7 @@ class TenantBackupService
     {
         $backup = $this->getBackup($tenantId, $backupId);
 
-        if (!$backup) {
+        if (! $backup) {
             return [
                 'success' => false,
                 'error' => 'Backup not found',
@@ -563,7 +571,7 @@ class TenantBackupService
     protected function calculateChecksum(array $files): string
     {
         // In production, calculate actual checksums
-        return hash('sha256', implode(',', $files) . now()->timestamp);
+        return hash('sha256', implode(',', $files).now()->timestamp);
     }
 
     /**
@@ -579,7 +587,7 @@ class TenantBackupService
      */
     protected function getBackupPath(string $tenantId, string $filename): string
     {
-        return "tenants/{$tenantId}/backups/" . now()->format('Y/m') . "/{$filename}";
+        return "tenants/{$tenantId}/backups/".now()->format('Y/m')."/{$filename}";
     }
 
     /**
@@ -593,7 +601,8 @@ class TenantBackupService
             $bytes /= 1024;
             $i++;
         }
-        return round($bytes, 2) . ' ' . $units[$i];
+
+        return round($bytes, 2).' '.$units[$i];
     }
 
     /**
@@ -607,7 +616,7 @@ class TenantBackupService
         // Update backup list index
         $indexKey = "backup_index:{$tenantId}";
         $index = TenantCache::get($indexKey, []);
-        if (!in_array($backup['id'], $index)) {
+        if (! in_array($backup['id'], $index)) {
             $index[] = $backup['id'];
             TenantCache::put($indexKey, $index, now()->addYear());
         }
@@ -647,6 +656,7 @@ class TenantBackupService
     protected function getBackupSchedule(string $tenantId): ?array
     {
         $cacheKey = "backup_schedule:{$tenantId}";
+
         return TenantCache::get($cacheKey);
     }
 }

@@ -3,8 +3,8 @@
 namespace Aero\Platform\Console\Commands;
 
 use Aero\Core\Models\User;
-use Illuminate\Console\Command;
 use Aero\HRMAC\Models\Role;
+use Illuminate\Console\Command;
 
 class AssignUserRoles extends Command
 {

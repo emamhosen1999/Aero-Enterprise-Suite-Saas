@@ -33,8 +33,6 @@ const AssetCategoriesIndex = ({ title }) => {
     const [categories, setCategories] = useState([]);
     const [search, setSearch] = useState('');
 
-    const canCreate = auth.permissions?.includes('hrm.assets.categories.create') || false;
-
     const fetchCategories = useCallback(async () => {
         setLoading(true);
         try {

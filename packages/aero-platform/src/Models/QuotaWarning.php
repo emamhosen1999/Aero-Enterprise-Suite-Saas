@@ -60,7 +60,7 @@ class QuotaWarning extends Model
             'is_dismissed' => false,
         ]);
 
-        if (!$warning->exists) {
+        if (! $warning->exists) {
             $warning->first_warned_at = now();
             $warning->warning_count = 0;
         }
@@ -93,7 +93,7 @@ class QuotaWarning extends Model
      */
     public function isInGracePeriod(int $gracePeriodDays = 10): bool
     {
-        if (!$this->first_warned_at) {
+        if (! $this->first_warned_at) {
             return false;
         }
 

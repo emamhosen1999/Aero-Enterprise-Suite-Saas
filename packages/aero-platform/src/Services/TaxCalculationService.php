@@ -12,7 +12,7 @@ class TaxCalculationService
         'IT' => 22.0, 'LT' => 21.0, 'LU' => 17.0, 'LV' => 21.0, 'MT' => 18.0,
         'NL' => 21.0, 'PL' => 23.0, 'PT' => 23.0, 'RO' => 19.0, 'SE' => 25.0,
         'SI' => 22.0, 'SK' => 20.0,
-        
+
         // Other countries
         'GB' => 20.0, // UK VAT
         'AU' => 10.0, // Australian GST
@@ -53,7 +53,7 @@ class TaxCalculationService
 
         $rate = $this->getTaxRate($countryCode);
         $tax = ($amount * $rate) / 100;
-        
+
         return [
             'amount' => round($amount, 2),
             'tax' => round($tax, 2),
@@ -79,19 +79,19 @@ class TaxCalculationService
     protected function getTaxType(string $countryCode): string
     {
         $code = strtoupper($countryCode);
-        
+
         if ($this->isEuCountry($code) || $code === 'GB') {
             return 'VAT';
         }
-        
+
         if (in_array($code, ['AU', 'NZ', 'CA', 'SG'])) {
             return 'GST';
         }
-        
+
         if ($code === 'US') {
             return 'Sales Tax';
         }
-        
+
         return 'Tax';
     }
 
@@ -144,10 +144,10 @@ class TaxCalculationService
         foreach ($items as $item) {
             $amount = $item['amount'] ?? 0;
             $taxCalc = $this->calculateTax($amount, $countryCode, $isBusinessCustomer);
-            
+
             $subtotal += $taxCalc['amount'];
             $totalTax += $taxCalc['tax'];
-            
+
             $itemsWithTax[] = array_merge($item, $taxCalc);
         }
 

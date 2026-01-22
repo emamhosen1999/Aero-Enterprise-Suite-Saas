@@ -4,28 +4,23 @@ namespace Aero\Platform\Services;
 
 use Aero\Platform\Models\Webhook;
 use Aero\Platform\Models\WebhookLog;
+use Exception;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Exception;
 
 /**
  * Webhook Delivery Service
- * 
+ *
  * Handles webhook delivery with retry logic, timeout, and logging
  */
 class WebhookDeliveryService
 {
     /**
      * Deliver webhook payload
-     *
-     * @param Webhook $webhook
-     * @param array $payload
-     * @param string $event
-     * @return array
      */
     public function deliver(Webhook $webhook, array $payload, string $event): array
     {
-        if (!$webhook->is_active) {
+        if (! $webhook->is_active) {
             return [
                 'success' => false,
                 'message' => 'Webhook is not active',
@@ -45,7 +40,7 @@ class WebhookDeliveryService
                 if ($response['success']) {
                     $this->logDelivery($webhook, $event, $payload, $response, $attempt, $duration, true);
                     $this->updateWebhookStats($webhook, true);
-                    
+
                     return [
                         'success' => true,
                         'status_code' => $response['status_code'],
@@ -59,6 +54,7 @@ class WebhookDeliveryService
                 if ($attempt < $maxAttempts && $this->shouldRetry($response)) {
                     $this->sleep($attempt);
                     $attempt++;
+
                     continue;
                 }
 
@@ -108,11 +104,6 @@ class WebhookDeliveryService
 
     /**
      * Send HTTP request to webhook URL
-     *
-     * @param Webhook $webhook
-     * @param array $payload
-     * @param int $timeout
-     * @return array
      */
     protected function sendRequest(Webhook $webhook, array $payload, int $timeout): array
     {
@@ -147,14 +138,10 @@ class WebhookDeliveryService
 
     /**
      * Generate HMAC signature for webhook payload
-     *
-     * @param string|null $secret
-     * @param array $payload
-     * @return string
      */
     protected function generateSignature(?string $secret, array $payload): string
     {
-        if (!$secret) {
+        if (! $secret) {
             return '';
         }
 
@@ -163,23 +150,17 @@ class WebhookDeliveryService
 
     /**
      * Determine if request should be retried
-     *
-     * @param array $response
-     * @return bool
      */
     protected function shouldRetry(array $response): bool
     {
         $statusCode = $response['status_code'] ?? 0;
-        
+
         // Retry on 5xx errors or network issues
         return $statusCode === 0 || $statusCode >= 500;
     }
 
     /**
      * Exponential backoff sleep
-     *
-     * @param int $attempt
-     * @return void
      */
     protected function sleep(int $attempt): void
     {
@@ -190,15 +171,6 @@ class WebhookDeliveryService
 
     /**
      * Log webhook delivery attempt
-     *
-     * @param Webhook $webhook
-     * @param string $event
-     * @param array $payload
-     * @param array $response
-     * @param int $attempt
-     * @param float $duration
-     * @param bool $success
-     * @return void
      */
     protected function logDelivery(
         Webhook $webhook,
@@ -224,10 +196,6 @@ class WebhookDeliveryService
 
     /**
      * Update webhook statistics
-     *
-     * @param Webhook $webhook
-     * @param bool $success
-     * @return void
      */
     protected function updateWebhookStats(Webhook $webhook, bool $success): void
     {
@@ -242,9 +210,6 @@ class WebhookDeliveryService
 
     /**
      * Test webhook with sample payload
-     *
-     * @param Webhook $webhook
-     * @return array
      */
     public function test(Webhook $webhook): array
     {

@@ -9,7 +9,7 @@ use Illuminate\Console\Command;
 
 /**
  * Process Pending Subscription Changes
- * 
+ *
  * Processes scheduled downgrades and cancellations.
  * Run this command daily via cron/scheduler.
  */
@@ -39,7 +39,7 @@ class ProcessPendingSubscriptionChanges extends Command
 
         $processed = 0;
 
-        if (!$this->option('dry-run')) {
+        if (! $this->option('dry-run')) {
             $processed = $lifecycleService->processPendingDowngrades();
         }
 

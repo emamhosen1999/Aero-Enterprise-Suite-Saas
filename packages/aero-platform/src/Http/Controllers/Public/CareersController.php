@@ -2,9 +2,9 @@
 
 namespace Aero\Platform\Http\Controllers\Public;
 
+use Aero\Platform\Http\Controllers\Controller;
 use Aero\Platform\Models\Tenant\HRM\Job;
 use Aero\Platform\Models\Tenant\HRM\JobApplication;
-use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

@@ -34,9 +34,9 @@ class ModuleAccessMiddleware
         // Determine which guard to use based on domain
         $host = $request->getHost();
         $guard = $this->isHostAdminDomain($host) ? 'landlord' : 'web';
-        
+
         $user = Auth::guard($guard)->user();
-        
+
         if (! $user) {
             return redirect()->route('login');
         }

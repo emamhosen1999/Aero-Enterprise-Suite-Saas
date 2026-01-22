@@ -3,10 +3,13 @@
 namespace Aero\Platform\Http\Controllers\Auth;
 
 use Aero\Core\Models\TenantInvitation;
+use Aero\Core\Models\User;
 use Aero\Core\Notifications\InviteTeamMember;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Designation;
 use Aero\HRM\Models\Employee;
+use Aero\HRMAC\Models\Role;
+use Aero\Platform\Http\Controllers\Controller;
 use Aero\Platform\Http\Requests\SendTeamInvitationRequest;
 use Aero\Platform\Http\Requests\StoreUserRequest;
 use Aero\Platform\Http\Requests\UpdateUserRequest;
@@ -14,14 +17,11 @@ use Aero\Platform\Http\Requests\UpdateUserRoleRequest;
 use Aero\Platform\Http\Requests\UpdateUserStatusRequest;
 use Aero\Platform\Http\Resources\UserCollection;
 use Aero\Platform\Http\Resources\UserResource;
-use Aero\Core\Models\User;
-use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
-use Aero\HRMAC\Models\Role;
 
 /**
  * UserController - Manages User authentication and access control

@@ -2,8 +2,8 @@
 
 namespace Aero\Platform\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
 
 class ExchangeRate extends Model
 {

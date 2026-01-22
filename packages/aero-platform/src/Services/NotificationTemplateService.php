@@ -4,11 +4,10 @@ namespace Aero\Platform\Services;
 
 use Aero\Platform\Models\Tenant;
 use Illuminate\Support\Facades\View;
-use Illuminate\Support\Str;
 
 /**
  * White-Label Notification Template Service
- * 
+ *
  * Renders notifications with per-tenant branding or platform branding.
  * Supports email templates, SMS messages, and in-app notifications.
  */
@@ -21,22 +20,22 @@ class NotificationTemplateService
         'support_email' => 'support@aeroenterprise.com',
         'support_phone' => '+1-800-AERO-365',
     ];
-    
+
     /**
      * Render email notification with branding
      *
-     * @param string $template Template name (e.g., 'quota-warning', 'trial-expiry')
-     * @param array $data Template variables
-     * @param Tenant|null $tenant Tenant for white-label branding, null for platform branding
+     * @param  string  $template  Template name (e.g., 'quota-warning', 'trial-expiry')
+     * @param  array  $data  Template variables
+     * @param  Tenant|null  $tenant  Tenant for white-label branding, null for platform branding
      * @return array ['subject' => string, 'html' => string, 'text' => string]
      */
     public function renderEmail(string $template, array $data, ?Tenant $tenant = null): array
     {
         $branding = $this->getBranding($tenant);
         $mergedData = array_merge($data, ['branding' => $branding]);
-        
+
         $templatePath = "emails.notifications.{$template}";
-        
+
         return [
             'subject' => $this->getEmailSubject($template, $mergedData),
             'html' => View::make($templatePath, $mergedData)->render(),
@@ -44,20 +43,17 @@ class NotificationTemplateService
             'branding' => $branding,
         ];
     }
-    
+
     /**
      * Render SMS message
      *
-     * @param string $template
-     * @param array $data
-     * @param Tenant|null $tenant
      * @return string SMS message (max 160 characters)
      */
     public function renderSms(string $template, array $data, ?Tenant $tenant = null): string
     {
         $branding = $this->getBranding($tenant);
         $companyName = $branding['company_name'];
-        
+
         $messages = [
             'quota-warning' => "{$companyName}: You're at {$data['percentage']}% of your {$data['quota_type']} quota. Upgrade to avoid service interruption.",
             'quota-critical' => "{$companyName}: URGENT - You've exceeded your {$data['quota_type']} quota. Service may be interrupted in {$data['grace_days']} days.",
@@ -65,25 +61,22 @@ class NotificationTemplateService
             'subscription-renewed' => "{$companyName}: Your subscription has been renewed successfully. Thank you!",
             'payment-failed' => "{$companyName}: Payment failed. Please update your payment method to avoid service interruption.",
         ];
-        
+
         return $messages[$template] ?? '';
     }
-    
+
     /**
      * Get branding configuration
-     *
-     * @param Tenant|null $tenant
-     * @return array
      */
     protected function getBranding(?Tenant $tenant): array
     {
-        if (!$tenant) {
+        if (! $tenant) {
             return $this->platformBranding;
         }
-        
+
         // Get tenant custom branding from metadata
         $customBranding = $tenant->metadata['branding'] ?? [];
-        
+
         return array_merge($this->platformBranding, [
             'company_name' => $customBranding['company_name'] ?? $tenant->name,
             'logo_url' => $customBranding['logo_url'] ?? $this->platformBranding['logo_url'],
@@ -92,14 +85,14 @@ class NotificationTemplateService
             'support_phone' => $customBranding['support_phone'] ?? $this->platformBranding['support_phone'],
         ]);
     }
-    
+
     /**
      * Get email subject based on template
      */
     protected function getEmailSubject(string $template, array $data): string
     {
         $companyName = $data['branding']['company_name'];
-        
+
         $subjects = [
             'quota-warning' => "{$companyName} - Quota Usage Warning",
             'quota-critical' => "{$companyName} - URGENT: Quota Limit Reached",
@@ -110,10 +103,10 @@ class NotificationTemplateService
             'plan-upgraded' => "{$companyName} - Plan Upgraded Successfully",
             'plan-downgraded' => "{$companyName} - Plan Changed",
         ];
-        
+
         return $subjects[$template] ?? "{$companyName} - Notification";
     }
-    
+
     /**
      * Generate plain text version from HTML template
      */
@@ -124,13 +117,12 @@ class NotificationTemplateService
         $text = strip_tags($html);
         $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $text = preg_replace('/\s+/', ' ', $text);
+
         return trim($text);
     }
-    
+
     /**
      * Get available notification templates
-     *
-     * @return array
      */
     public function getAvailableTemplates(): array
     {
@@ -145,19 +137,16 @@ class NotificationTemplateService
             'plan-downgraded' => 'Plan Downgrade Notice',
         ];
     }
-    
+
     /**
      * Render in-app notification
      *
-     * @param string $template
-     * @param array $data
-     * @param Tenant|null $tenant
      * @return array ['title' => string, 'body' => string, 'type' => string]
      */
     public function renderInApp(string $template, array $data, ?Tenant $tenant = null): array
     {
         $branding = $this->getBranding($tenant);
-        
+
         $notifications = [
             'quota-warning' => [
                 'title' => 'Quota Usage Warning',
@@ -175,23 +164,21 @@ class NotificationTemplateService
                 'type' => 'info',
             ],
         ];
-        
+
         return $notifications[$template] ?? [
             'title' => 'Notification',
             'body' => 'You have a new notification',
             'type' => 'info',
         ];
     }
-    
+
     /**
      * Set platform branding
-     *
-     * @param array $branding
-     * @return self
      */
     public function setPlatformBranding(array $branding): self
     {
         $this->platformBranding = array_merge($this->platformBranding, $branding);
+
         return $this;
     }
 }

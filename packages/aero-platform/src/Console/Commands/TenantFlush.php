@@ -2,10 +2,10 @@
 
 namespace Aero\Platform\Console\Commands;
 
+use Aero\Core\Support\TenantCache;
 use Aero\Platform\Models\Tenant;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
-use Aero\Core\Support\TenantCache;
 
 class TenantFlush extends Command
 {

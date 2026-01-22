@@ -18,8 +18,6 @@ class ProcessSubscriptionRenewalsJob implements ShouldQueue
 
     /**
      * Execute the job.
-     *
-     * @return void
      */
     public function handle(): void
     {
@@ -38,9 +36,6 @@ class ProcessSubscriptionRenewalsJob implements ShouldQueue
 
     /**
      * Send renewal reminders for subscriptions expiring in X days
-     *
-     * @param int $days
-     * @return void
      */
     protected function sendRenewalReminders(int $days): void
     {
@@ -48,7 +43,7 @@ class ProcessSubscriptionRenewalsJob implements ShouldQueue
 
         $subscriptions = DB::table('subscriptions')
             ->where('status', 'active')
-            ->where('next_billing_date', 'like', $targetDate . '%')
+            ->where('next_billing_date', 'like', $targetDate.'%')
             ->whereNull('deleted_at')
             ->get();
 
@@ -68,16 +63,14 @@ class ProcessSubscriptionRenewalsJob implements ShouldQueue
     /**
      * Send renewal reminder to tenant
      *
-     * @param object $subscription
-     * @param int $days
-     * @return void
+     * @param  object  $subscription
      */
     protected function sendRenewalReminder($subscription, int $days): void
     {
         $tenant = DB::table('tenants')->find($subscription->tenant_id);
         $plan = DB::table('plans')->find($subscription->plan_id);
 
-        if (!$tenant || !$plan) {
+        if (! $tenant || ! $plan) {
             return;
         }
 
@@ -86,11 +79,11 @@ class ProcessSubscriptionRenewalsJob implements ShouldQueue
             ->where('is_owner', true)
             ->first();
 
-        if (!$adminUser) {
+        if (! $adminUser) {
             return;
         }
 
-        $amount = '$' . number_format($subscription->amount / 100, 2);
+        $amount = '$'.number_format($subscription->amount / 100, 2);
         $nextBillingDate = \Carbon\Carbon::parse($subscription->next_billing_date)->format('F j, Y');
 
         // Send email reminder only for 7 and 3 day reminders
@@ -98,19 +91,19 @@ class ProcessSubscriptionRenewalsJob implements ShouldQueue
             $variables = [
                 'tenant_name' => $tenant->name,
                 'status' => 'Active',
-                'message' => "Your subscription will renew in {$days} " . ($days == 1 ? 'day' : 'days') . ". We'll charge {$amount} to your payment method on file.",
+                'message' => "Your subscription will renew in {$days} ".($days == 1 ? 'day' : 'days').". We'll charge {$amount} to your payment method on file.",
                 'billing_cycle' => ucfirst($subscription->billing_cycle ?? 'monthly'),
                 'next_billing_date' => $nextBillingDate,
                 'show_cta' => true,
-                'dashboard_url' => config('app.url') . '/dashboard',
-                'billing_url' => config('app.url') . '/billing',
-                'support_url' => config('app.url') . '/support',
+                'dashboard_url' => config('app.url').'/dashboard',
+                'billing_url' => config('app.url').'/billing',
+                'support_url' => config('app.url').'/support',
             ];
 
             MailService::make()
                 ->template('notifications/subscription-status', $variables)
                 ->to($adminUser->email)
-                ->subject("Subscription Renewal in {$days} " . ($days == 1 ? 'Day' : 'Days'))
+                ->subject("Subscription Renewal in {$days} ".($days == 1 ? 'Day' : 'Days'))
                 ->queue('notifications')
                 ->send();
         }
@@ -131,8 +124,6 @@ class ProcessSubscriptionRenewalsJob implements ShouldQueue
 
     /**
      * Process subscriptions renewing today
-     *
-     * @return void
      */
     protected function processRenewalsToday(): void
     {
@@ -140,7 +131,7 @@ class ProcessSubscriptionRenewalsJob implements ShouldQueue
 
         $subscriptions = DB::table('subscriptions')
             ->where('status', 'active')
-            ->where('next_billing_date', 'like', $today . '%')
+            ->where('next_billing_date', 'like', $today.'%')
             ->whereNull('deleted_at')
             ->get();
 
@@ -160,20 +151,19 @@ class ProcessSubscriptionRenewalsJob implements ShouldQueue
     /**
      * Process a single subscription renewal
      *
-     * @param object $subscription
-     * @return void
+     * @param  object  $subscription
      */
     protected function processRenewal($subscription): void
     {
         // TODO: Integrate with payment gateway to charge customer
         // For now, we'll simulate the renewal
-        
+
         $paymentSuccessful = $this->attemptRenewalCharge($subscription);
 
         if ($paymentSuccessful) {
             // Calculate next billing date
             $currentBillingDate = \Carbon\Carbon::parse($subscription->next_billing_date);
-            $nextBillingDate = $subscription->billing_cycle === 'yearly' 
+            $nextBillingDate = $subscription->billing_cycle === 'yearly'
                 ? $currentBillingDate->addYear()
                 : $currentBillingDate->addMonth();
 
@@ -213,8 +203,7 @@ class ProcessSubscriptionRenewalsJob implements ShouldQueue
     /**
      * Attempt to charge for renewal
      *
-     * @param object $subscription
-     * @return bool
+     * @param  object  $subscription
      */
     protected function attemptRenewalCharge($subscription): bool
     {
@@ -226,8 +215,7 @@ class ProcessSubscriptionRenewalsJob implements ShouldQueue
     /**
      * Send renewal success notification
      *
-     * @param object $subscription
-     * @return void
+     * @param  object  $subscription
      */
     protected function sendRenewalSuccessNotification($subscription): void
     {
@@ -245,8 +233,8 @@ class ProcessSubscriptionRenewalsJob implements ShouldQueue
                 'next_billing_date' => \Carbon\Carbon::parse($subscription->next_billing_date)->format('F j, Y'),
                 'billing_cycle' => ucfirst($subscription->billing_cycle ?? 'monthly'),
                 'show_cta' => true,
-                'dashboard_url' => config('app.url') . '/dashboard',
-                'billing_url' => config('app.url') . '/billing',
+                'dashboard_url' => config('app.url').'/dashboard',
+                'billing_url' => config('app.url').'/billing',
             ];
 
             MailService::make()
@@ -261,8 +249,7 @@ class ProcessSubscriptionRenewalsJob implements ShouldQueue
     /**
      * Send renewal failure notification
      *
-     * @param object $subscription
-     * @return void
+     * @param  object  $subscription
      */
     protected function sendRenewalFailureNotification($subscription): void
     {
@@ -275,14 +262,14 @@ class ProcessSubscriptionRenewalsJob implements ShouldQueue
         if ($adminUser && $adminUser->email) {
             $variables = [
                 'tenant_name' => $tenant->name ?? 'there',
-                'amount' => '$' . number_format($subscription->amount / 100, 2),
+                'amount' => '$'.number_format($subscription->amount / 100, 2),
                 'payment_method' => 'Card',
                 'last_four' => $subscription->payment_method_last_four ?? '****',
                 'attempt_date' => now()->format('M d, Y'),
                 'next_retry' => now()->addDay()->format('M d, Y'),
                 'grace_period' => 10,
-                'billing_url' => config('app.url') . '/billing',
-                'support_url' => config('app.url') . '/support',
+                'billing_url' => config('app.url').'/billing',
+                'support_url' => config('app.url').'/support',
             ];
 
             MailService::make()

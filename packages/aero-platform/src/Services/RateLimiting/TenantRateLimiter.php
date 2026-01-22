@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Services\RateLimiting;
 
+use Aero\Core\Support\TenantCache;
 use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\Tenant;
-use Illuminate\Cache\RateLimiter;
-use Aero\Core\Support\TenantCache;
 use Illuminate\Http\Request;
 
 /**
@@ -64,8 +63,8 @@ class TenantRateLimiter
     /**
      * Check if the tenant can make a request for a given action.
      *
-     * @param Tenant|string $tenant The tenant instance or ID
-     * @param string $action The action type (api, export, import, etc.)
+     * @param  Tenant|string  $tenant  The tenant instance or ID
+     * @param  string  $action  The action type (api, export, import, etc.)
      * @return bool True if allowed, false if rate limited
      */
     public function attempt(Tenant|string $tenant, string $action = 'api'): bool
@@ -88,8 +87,6 @@ class TenantRateLimiter
     /**
      * Check if rate limit is exceeded without incrementing.
      *
-     * @param Tenant|string $tenant
-     * @param string $action
      * @return bool True if would be rate limited
      */
     public function tooManyAttempts(Tenant|string $tenant, string $action = 'api'): bool
@@ -103,10 +100,6 @@ class TenantRateLimiter
 
     /**
      * Get remaining attempts for the tenant.
-     *
-     * @param Tenant|string $tenant
-     * @param string $action
-     * @return int
      */
     public function remaining(Tenant|string $tenant, string $action = 'api'): int
     {
@@ -121,10 +114,6 @@ class TenantRateLimiter
 
     /**
      * Get the rate limit for a tenant and action.
-     *
-     * @param Tenant|string $tenant
-     * @param string $action
-     * @return int
      */
     public function getLimit(Tenant|string $tenant, string $action = 'api'): int
     {
@@ -142,9 +131,6 @@ class TenantRateLimiter
 
     /**
      * Get the base rate limit for a tenant's plan.
-     *
-     * @param Tenant|string $tenant
-     * @return int
      */
     protected function getPlanLimit(Tenant|string $tenant): int
     {
@@ -177,23 +163,16 @@ class TenantRateLimiter
 
     /**
      * Get cache key for rate limiting.
-     *
-     * @param string $tenantId
-     * @param string $action
-     * @return string
      */
     protected function getCacheKey(string $tenantId, string $action): string
     {
         $minute = now()->format('Y-m-d-H-i');
+
         return "{$this->cachePrefix}{$tenantId}:{$action}:{$minute}";
     }
 
     /**
      * Get rate limit headers for response.
-     *
-     * @param Tenant|string $tenant
-     * @param string $action
-     * @return array
      */
     public function getHeaders(Tenant|string $tenant, string $action = 'api'): array
     {
@@ -210,8 +189,6 @@ class TenantRateLimiter
 
     /**
      * Get retry-after seconds when rate limited.
-     *
-     * @return int
      */
     public function retryAfter(): int
     {
@@ -221,8 +198,7 @@ class TenantRateLimiter
     /**
      * Clear rate limit for a tenant.
      *
-     * @param Tenant|string $tenant
-     * @param string|null $action If null, clears all actions
+     * @param  string|null  $action  If null, clears all actions
      */
     public function clear(Tenant|string $tenant, ?string $action = null): void
     {
@@ -241,8 +217,7 @@ class TenantRateLimiter
     /**
      * Set custom rate limits for a tenant (override plan limits).
      *
-     * @param Tenant $tenant
-     * @param array $limits ['api' => 5000, 'export' => 100]
+     * @param  array  $limits  ['api' => 5000, 'export' => 100]
      */
     public function setCustomLimits(Tenant $tenant, array $limits): void
     {
@@ -253,9 +228,6 @@ class TenantRateLimiter
 
     /**
      * Get usage statistics for a tenant.
-     *
-     * @param Tenant|string $tenant
-     * @return array
      */
     public function getUsageStats(Tenant|string $tenant): array
     {

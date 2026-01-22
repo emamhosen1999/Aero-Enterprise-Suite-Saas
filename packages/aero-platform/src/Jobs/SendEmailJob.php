@@ -26,9 +26,6 @@ class SendEmailJob implements ShouldQueue
 
     /**
      * Create a new job instance.
-     *
-     * @param array $emailData
-     * @param int $tries
      */
     public function __construct(array $emailData, int $tries = 3)
     {
@@ -38,15 +35,13 @@ class SendEmailJob implements ShouldQueue
 
     /**
      * Execute the job.
-     *
-     * @return void
      */
     public function handle(): void
     {
         try {
             $result = MailService::sendDirectly($this->emailData);
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 throw new \Exception($result['message'] ?? 'Email sending failed');
             }
 
@@ -68,9 +63,6 @@ class SendEmailJob implements ShouldQueue
 
     /**
      * Handle a job failure.
-     *
-     * @param \Throwable $exception
-     * @return void
      */
     public function failed(\Throwable $exception): void
     {

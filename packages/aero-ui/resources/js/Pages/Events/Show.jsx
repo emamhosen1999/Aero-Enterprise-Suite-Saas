@@ -103,19 +103,6 @@ const ShowEvent = ({ event, analytics }) => {
         if (radiusValue <= 16) return 'lg';
         return 'full';
     };
-
-    const [isMobile, setIsMobile] = useState(false);
-    const [isTablet, setIsTablet] = useState(false);
-
-    useEffect(() => {
-        const checkScreenSize = () => {
-            setIsMobile(window.innerWidth < 640);
-            setIsTablet(window.innerWidth < 768);
-        };
-        checkScreenSize();
-        window.addEventListener('resize', checkScreenSize);
-        return () => window.removeEventListener('resize', checkScreenSize);
-    }, []);
     
     const handleTogglePublish = async () => {
         try {

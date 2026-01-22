@@ -3,8 +3,8 @@
 namespace Aero\Platform\Http\Controllers\Auth;
 
 use Aero\Core\Models\User;
-use Aero\Platform\Services\Shared\Auth\ModernAuthenticationService;
 use Aero\Platform\Http\Controllers\Controller;
+use Aero\Platform\Services\Shared\Auth\ModernAuthenticationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;

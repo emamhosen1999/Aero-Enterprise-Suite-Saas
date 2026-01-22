@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Services\Billing;
 
-use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\Subscription;
 use Aero\Platform\Models\Tenant;
 use Aero\Platform\Models\UsageRecord;
@@ -12,10 +11,8 @@ use Aero\Platform\Services\Monitoring\Billing\InvoiceBrandingService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 /**
  * Invoice Service
@@ -81,9 +78,6 @@ class InvoiceService
     /**
      * Generate a subscription invoice for a tenant.
      *
-     * @param Tenant $tenant
-     * @param Carbon|null $billingPeriodStart
-     * @param Carbon|null $billingPeriodEnd
      * @return array Invoice data
      */
     public function generateSubscriptionInvoice(
@@ -176,9 +170,6 @@ class InvoiceService
     /**
      * Generate a usage-based invoice for additional usage charges.
      *
-     * @param Tenant $tenant
-     * @param Carbon|null $billingPeriodStart
-     * @param Carbon|null $billingPeriodEnd
      * @return array|null Invoice data or null if no usage charges
      */
     public function generateUsageInvoice(
@@ -262,10 +253,6 @@ class InvoiceService
 
     /**
      * Generate PDF for an invoice.
-     *
-     * @param array $invoice
-     * @param Tenant|null $tenant
-     * @return \Barryvdh\DomPDF\PDF
      */
     public function generatePdf(array $invoice, ?Tenant $tenant = null): \Barryvdh\DomPDF\PDF
     {
@@ -294,8 +281,6 @@ class InvoiceService
     /**
      * Download invoice as PDF.
      *
-     * @param array $invoice
-     * @param Tenant|null $tenant
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function downloadPdf(array $invoice, ?Tenant $tenant = null)
@@ -309,8 +294,6 @@ class InvoiceService
     /**
      * Store PDF to storage.
      *
-     * @param array $invoice
-     * @param Tenant|null $tenant
      * @return string Path to stored PDF
      */
     public function storePdf(array $invoice, ?Tenant $tenant = null): string
@@ -326,10 +309,6 @@ class InvoiceService
 
     /**
      * Get invoice by number.
-     *
-     * @param Tenant $tenant
-     * @param string $invoiceNumber
-     * @return array|null
      */
     public function getInvoice(Tenant $tenant, string $invoiceNumber): ?array
     {
@@ -340,10 +319,6 @@ class InvoiceService
 
     /**
      * Get all invoices for a tenant.
-     *
-     * @param Tenant $tenant
-     * @param array $filters
-     * @return Collection
      */
     public function getInvoices(Tenant $tenant, array $filters = []): Collection
     {
@@ -376,9 +351,6 @@ class InvoiceService
     /**
      * Mark invoice as paid.
      *
-     * @param Tenant $tenant
-     * @param string $invoiceNumber
-     * @param array $paymentDetails
      * @return array Updated invoice
      */
     public function markAsPaid(
@@ -409,11 +381,6 @@ class InvoiceService
 
     /**
      * Cancel an invoice.
-     *
-     * @param Tenant $tenant
-     * @param string $invoiceNumber
-     * @param string $reason
-     * @return array
      */
     public function cancelInvoice(Tenant $tenant, string $invoiceNumber, string $reason = ''): array
     {
@@ -450,10 +417,6 @@ class InvoiceService
     /**
      * Issue a refund/credit note.
      *
-     * @param Tenant $tenant
-     * @param string $originalInvoiceNumber
-     * @param float $amount
-     * @param string $reason
      * @return array Credit note invoice
      */
     public function issueRefund(
@@ -560,9 +523,6 @@ class InvoiceService
 
     /**
      * Get invoice summary/statistics for a tenant.
-     *
-     * @param Tenant $tenant
-     * @return array
      */
     public function getInvoiceSummary(Tenant $tenant): array
     {
@@ -585,10 +545,6 @@ class InvoiceService
 
     /**
      * Generate a unique invoice number.
-     *
-     * @param Tenant $tenant
-     * @param string $prefix
-     * @return string
      */
     protected function generateInvoiceNumber(Tenant $tenant, string $prefix = 'INV'): string
     {
@@ -605,10 +561,6 @@ class InvoiceService
 
     /**
      * Store invoice in tenant data.
-     *
-     * @param Tenant $tenant
-     * @param array $invoice
-     * @return void
      */
     protected function storeInvoice(Tenant $tenant, array $invoice): void
     {
@@ -623,9 +575,6 @@ class InvoiceService
 
     /**
      * Get active add-ons for a tenant.
-     *
-     * @param Tenant $tenant
-     * @return array
      */
     protected function getActiveAddOns(Tenant $tenant): array
     {
@@ -634,9 +583,6 @@ class InvoiceService
 
     /**
      * Get tax rate for a tenant.
-     *
-     * @param Tenant $tenant
-     * @return float
      */
     protected function getTaxRate(Tenant $tenant): float
     {
@@ -666,9 +612,6 @@ class InvoiceService
 
     /**
      * Get available credits for a tenant.
-     *
-     * @param Tenant $tenant
-     * @return float
      */
     protected function getAvailableCredits(Tenant $tenant): float
     {
@@ -677,11 +620,6 @@ class InvoiceService
 
     /**
      * Deduct credits from tenant.
-     *
-     * @param Tenant $tenant
-     * @param float $amount
-     * @param string $reference
-     * @return void
      */
     protected function deductCredits(Tenant $tenant, float $amount, string $reference): void
     {
@@ -701,11 +639,6 @@ class InvoiceService
 
     /**
      * Add credits to tenant.
-     *
-     * @param Tenant $tenant
-     * @param float $amount
-     * @param string $reason
-     * @return void
      */
     public function addCredits(Tenant $tenant, float $amount, string $reason): void
     {
@@ -725,9 +658,6 @@ class InvoiceService
 
     /**
      * Get customer info for invoice.
-     *
-     * @param Tenant|null $tenant
-     * @return array
      */
     protected function getCustomerInfo(?Tenant $tenant): array
     {
@@ -751,9 +681,6 @@ class InvoiceService
 
     /**
      * Get usage unit price.
-     *
-     * @param string $usageType
-     * @return float
      */
     protected function getUsageUnitPrice(string $usageType): float
     {
@@ -771,9 +698,6 @@ class InvoiceService
 
     /**
      * Get human-readable description for usage type.
-     *
-     * @param string $usageType
-     * @return string
      */
     protected function getUsageDescription(string $usageType): string
     {

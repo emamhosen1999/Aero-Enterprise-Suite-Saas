@@ -24,6 +24,7 @@ import {
   CheckIcon,
   EyeIcon,
   ArrowDownTrayIcon,
+  CloudArrowUpIcon,
   ArrowUpIcon,
   ArrowDownIcon,
   DocumentDuplicateIcon,
@@ -201,7 +202,8 @@ const Edit = ({ title, page, blocks: initialBlocks, blockTypes, blockCategories,
               color="primary"
               variant="shadow"
               size="sm"
-              startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
+             
+              startContent={<CloudArrowUpIcon className="w-4 h-4" />}
               isLoading={processing}
               onPress={handleSave}
             >

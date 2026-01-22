@@ -16,16 +16,16 @@ class VerifySecretRequest extends FormRequest
 
     public function authenticate(): void
     {
-        $key = 'install_attempts:' . $this->ip();
+        $key = 'install_attempts:'.$this->ip();
         if (RateLimiter::tooManyAttempts($key, 5)) {
             $seconds = RateLimiter::availableIn($key);
             throw ValidationException::withMessages([
-                'secret_code' => "Too many attempts. Try again in {$seconds} seconds."
+                'secret_code' => "Too many attempts. Try again in {$seconds} seconds.",
             ]);
         }
 
         $hash = config('app.installation_secret_hash');
-        if (!$hash || !Hash::check($this->input('secret_code'), $hash)) {
+        if (! $hash || ! Hash::check($this->input('secret_code'), $hash)) {
             RateLimiter::hit($key, 900);
             throw ValidationException::withMessages(['secret_code' => 'Invalid secret code.']);
         }

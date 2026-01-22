@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Services\Quotas;
 
+use Aero\Core\Support\TenantCache;
 use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\Tenant;
 use Aero\Platform\Models\UsageRecord;
-use Aero\Core\Support\TenantCache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -101,9 +100,7 @@ class QuotaEnforcementService
     /**
      * Check if tenant can create a new resource of the given type.
      *
-     * @param Tenant|string $tenant
-     * @param string $quotaType users, employees, projects, etc.
-     * @return bool
+     * @param  string  $quotaType  users, employees, projects, etc.
      */
     public function canCreate(Tenant|string $tenant, string $quotaType): bool
     {
@@ -122,9 +119,7 @@ class QuotaEnforcementService
     /**
      * Check storage quota.
      *
-     * @param Tenant|string $tenant
-     * @param int $additionalBytes Additional bytes to be added
-     * @return bool
+     * @param  int  $additionalBytes  Additional bytes to be added
      */
     public function canUseStorage(Tenant|string $tenant, int $additionalBytes = 0): bool
     {
@@ -143,9 +138,6 @@ class QuotaEnforcementService
 
     /**
      * Check monthly API call quota.
-     *
-     * @param Tenant|string $tenant
-     * @return bool
      */
     public function canMakeApiCall(Tenant|string $tenant): bool
     {
@@ -163,8 +155,6 @@ class QuotaEnforcementService
 
     /**
      * Increment API call count for the current month.
-     *
-     * @param Tenant|string $tenant
      */
     public function incrementApiCalls(Tenant|string $tenant): void
     {
@@ -183,8 +173,6 @@ class QuotaEnforcementService
     /**
      * Get quota limit for a tenant and type.
      *
-     * @param Tenant|string $tenant
-     * @param string $quotaType
      * @return int -1 for unlimited
      */
     public function getQuotaLimit(Tenant|string $tenant, string $quotaType): int
@@ -223,10 +211,6 @@ class QuotaEnforcementService
 
     /**
      * Get current usage for a quota type.
-     *
-     * @param Tenant|string $tenant
-     * @param string $quotaType
-     * @return int
      */
     public function getCurrentUsage(Tenant|string $tenant, string $quotaType): int
     {
@@ -246,9 +230,6 @@ class QuotaEnforcementService
 
     /**
      * Get storage usage in bytes.
-     *
-     * @param Tenant|string $tenant
-     * @return int
      */
     public function getStorageUsage(Tenant|string $tenant): int
     {
@@ -269,9 +250,6 @@ class QuotaEnforcementService
 
     /**
      * Get monthly API calls count.
-     *
-     * @param Tenant|string $tenant
-     * @return int
      */
     public function getMonthlyApiCalls(Tenant|string $tenant): int
     {
@@ -284,9 +262,6 @@ class QuotaEnforcementService
 
     /**
      * Get all quotas and usage for a tenant.
-     *
-     * @param Tenant|string $tenant
-     * @return array
      */
     public function getQuotaSummary(Tenant|string $tenant): array
     {
@@ -337,8 +312,7 @@ class QuotaEnforcementService
     /**
      * Clear cached quota usage for a tenant.
      *
-     * @param Tenant|string $tenant
-     * @param string|null $quotaType If null, clears all
+     * @param  string|null  $quotaType  If null, clears all
      */
     public function clearCache(Tenant|string $tenant, ?string $quotaType = null): void
     {
@@ -357,9 +331,7 @@ class QuotaEnforcementService
     /**
      * Set custom quota for a tenant (overrides plan limits).
      *
-     * @param Tenant $tenant
-     * @param string $quotaType
-     * @param int $limit -1 for unlimited
+     * @param  int  $limit  -1 for unlimited
      */
     public function setCustomQuota(Tenant $tenant, string $quotaType, int $limit): void
     {
@@ -371,10 +343,7 @@ class QuotaEnforcementService
     /**
      * Record usage for audit/billing purposes.
      *
-     * @param Tenant $tenant
-     * @param string $quotaType
-     * @param string $action increment|decrement
-     * @param int $amount
+     * @param  string  $action  increment|decrement
      */
     public function recordUsage(Tenant $tenant, string $quotaType, string $action, int $amount = 1): void
     {
@@ -393,7 +362,6 @@ class QuotaEnforcementService
     /**
      * Calculate directory size recursively.
      *
-     * @param string $path
      * @return int Size in bytes
      */
     protected function calculateDirectorySize(string $path): int
@@ -409,10 +377,6 @@ class QuotaEnforcementService
 
     /**
      * Check if tenant is approaching quota limit (80% threshold).
-     *
-     * @param Tenant|string $tenant
-     * @param string $quotaType
-     * @return bool
      */
     public function isApproachingLimit(Tenant|string $tenant, string $quotaType): bool
     {
@@ -431,8 +395,6 @@ class QuotaEnforcementService
 
     /**
      * Get tenants that are approaching or exceeding quotas.
-     *
-     * @return array
      */
     public function getTenantsNearingQuotas(): array
     {

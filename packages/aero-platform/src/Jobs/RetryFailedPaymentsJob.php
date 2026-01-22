@@ -23,8 +23,6 @@ class RetryFailedPaymentsJob implements ShouldQueue
 
     /**
      * Execute the job.
-     *
-     * @return void
      */
     public function handle(): void
     {
@@ -57,8 +55,7 @@ class RetryFailedPaymentsJob implements ShouldQueue
     /**
      * Retry payment for a specific subscription
      *
-     * @param object $subscription
-     * @return void
+     * @param  object  $subscription
      */
     protected function retryPayment($subscription): void
     {
@@ -69,8 +66,9 @@ class RetryFailedPaymentsJob implements ShouldQueue
         $tenant = DB::table('tenants')->find($subscription->tenant_id);
         $plan = DB::table('plans')->find($subscription->plan_id);
 
-        if (!$tenant || !$plan) {
+        if (! $tenant || ! $plan) {
             Log::warning("RetryFailedPaymentsJob: Tenant or plan not found for subscription {$subscription->id}");
+
             return;
         }
 
@@ -90,12 +88,12 @@ class RetryFailedPaymentsJob implements ShouldQueue
                 ]);
 
             $this->sendPaymentSuccessNotification($tenant, $subscription);
-            
+
             Log::info("RetryFailedPaymentsJob: Payment retry successful for subscription {$subscription->id}");
         } else {
             // Payment failed - update retry info
             $nextRetryDelay = $this->calculateNextRetryDelay($retryCount);
-            
+
             DB::table('subscriptions')
                 ->where('id', $subscription->id)
                 ->update([
@@ -119,14 +117,13 @@ class RetryFailedPaymentsJob implements ShouldQueue
     /**
      * Attempt to charge the payment method
      *
-     * @param object $subscription
-     * @return bool
+     * @param  object  $subscription
      */
     protected function attemptPaymentCharge($subscription): bool
     {
         // TODO: Integrate with payment gateway
         // This is a placeholder that should be replaced with actual payment gateway integration
-        
+
         // Simulate random success/failure for demonstration
         return rand(0, 100) > 60; // 40% success rate for demo
     }
@@ -134,7 +131,6 @@ class RetryFailedPaymentsJob implements ShouldQueue
     /**
      * Calculate exponential backoff for next retry
      *
-     * @param int $retryCount
      * @return int Seconds until next retry
      */
     protected function calculateNextRetryDelay(int $retryCount): int
@@ -146,10 +142,9 @@ class RetryFailedPaymentsJob implements ShouldQueue
     /**
      * Handle final retry failure - suspend or downgrade
      *
-     * @param object $tenant
-     * @param object $subscription
-     * @param object $plan
-     * @return void
+     * @param  object  $tenant
+     * @param  object  $subscription
+     * @param  object  $plan
      */
     protected function handleFinalRetryFailure($tenant, $subscription, $plan): void
     {
@@ -174,13 +169,13 @@ class RetryFailedPaymentsJob implements ShouldQueue
         if ($adminUser) {
             $variables = [
                 'tenant_name' => $tenant->name,
-                'amount' => '$' . number_format($subscription->amount / 100, 2),
+                'amount' => '$'.number_format($subscription->amount / 100, 2),
                 'payment_method' => 'Card',
                 'last_four' => $subscription->payment_method_last_four ?? '****',
                 'attempt_date' => now()->format('M d, Y'),
                 'grace_period' => $gracePeriod,
-                'billing_url' => config('app.url') . '/billing',
-                'support_url' => config('app.url') . '/support',
+                'billing_url' => config('app.url').'/billing',
+                'support_url' => config('app.url').'/support',
             ];
 
             // Send final failure notification
@@ -196,8 +191,8 @@ class RetryFailedPaymentsJob implements ShouldQueue
                 SmsService::make()
                     ->template('payment_failed', [
                         'app_name' => config('app.name'),
-                        'amount' => '$' . number_format($subscription->amount / 100, 2),
-                        'billing_url' => config('app.url') . '/billing',
+                        'amount' => '$'.number_format($subscription->amount / 100, 2),
+                        'billing_url' => config('app.url').'/billing',
                     ])
                     ->send($adminUser->phone, '');
             }
@@ -209,10 +204,8 @@ class RetryFailedPaymentsJob implements ShouldQueue
     /**
      * Send payment retry notification
      *
-     * @param object $tenant
-     * @param object $subscription
-     * @param int $retryCount
-     * @return void
+     * @param  object  $tenant
+     * @param  object  $subscription
      */
     protected function sendPaymentRetryNotification($tenant, $subscription, int $retryCount): void
     {
@@ -224,14 +217,14 @@ class RetryFailedPaymentsJob implements ShouldQueue
         if ($adminUser && $adminUser->email) {
             $variables = [
                 'tenant_name' => $tenant->name,
-                'amount' => '$' . number_format($subscription->amount / 100, 2),
+                'amount' => '$'.number_format($subscription->amount / 100, 2),
                 'payment_method' => 'Card',
                 'last_four' => $subscription->payment_method_last_four ?? '****',
                 'attempt_date' => now()->format('M d, Y'),
                 'next_retry' => $subscription->next_retry_at ? \Carbon\Carbon::parse($subscription->next_retry_at)->format('M d, Y') : 'Soon',
                 'grace_period' => 10,
-                'billing_url' => config('app.url') . '/billing',
-                'support_url' => config('app.url') . '/support',
+                'billing_url' => config('app.url').'/billing',
+                'support_url' => config('app.url').'/support',
             ];
 
             MailService::make()
@@ -246,9 +239,8 @@ class RetryFailedPaymentsJob implements ShouldQueue
     /**
      * Send payment success notification
      *
-     * @param object $tenant
-     * @param object $subscription
-     * @return void
+     * @param  object  $tenant
+     * @param  object  $subscription
      */
     protected function sendPaymentSuccessNotification($tenant, $subscription): void
     {
@@ -263,9 +255,9 @@ class RetryFailedPaymentsJob implements ShouldQueue
                 'status' => 'Active',
                 'message' => 'Your payment has been processed successfully and your subscription is now active.',
                 'show_cta' => true,
-                'dashboard_url' => config('app.url') . '/dashboard',
-                'support_url' => config('app.url') . '/support',
-                'billing_url' => config('app.url') . '/billing',
+                'dashboard_url' => config('app.url').'/dashboard',
+                'support_url' => config('app.url').'/support',
+                'billing_url' => config('app.url').'/billing',
             ];
 
             MailService::make()

@@ -3,10 +3,10 @@
 namespace Aero\Platform\Console\Commands;
 
 use Aero\Core\Models\User;
+use Aero\HRMAC\Models\Role;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Aero\HRMAC\Models\Role;
 
 class EnsureSuperAdmin extends Command
 {

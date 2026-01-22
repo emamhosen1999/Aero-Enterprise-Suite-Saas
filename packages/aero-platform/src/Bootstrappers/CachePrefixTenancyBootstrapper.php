@@ -49,7 +49,7 @@ class CachePrefixTenancyBootstrapper implements TenancyBootstrapper
 
         // Create tenant-scoped prefix
         // Format: {original_prefix}tenant_{tenant_id}_
-        $tenantPrefix = $this->originalPrefix . 'tenant_' . $tenant->getTenantKey() . '_';
+        $tenantPrefix = $this->originalPrefix.'tenant_'.$tenant->getTenantKey().'_';
 
         // Apply to cache config
         Config::set('cache.prefix', $tenantPrefix);

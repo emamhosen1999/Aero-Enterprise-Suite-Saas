@@ -3,9 +3,7 @@
 namespace Aero\Platform\Services\Observability;
 
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 /**
  * Distributed Tracing Service
@@ -19,25 +17,35 @@ class DistributedTracingService
      * Span kinds.
      */
     public const SPAN_KIND_INTERNAL = 'internal';
+
     public const SPAN_KIND_SERVER = 'server';
+
     public const SPAN_KIND_CLIENT = 'client';
+
     public const SPAN_KIND_PRODUCER = 'producer';
+
     public const SPAN_KIND_CONSUMER = 'consumer';
 
     /**
      * Span statuses.
      */
     public const STATUS_UNSET = 'unset';
+
     public const STATUS_OK = 'ok';
+
     public const STATUS_ERROR = 'error';
 
     /**
      * Sampling strategies.
      */
     public const SAMPLING_ALWAYS = 'always';
+
     public const SAMPLING_NEVER = 'never';
+
     public const SAMPLING_PROBABILISTIC = 'probabilistic';
+
     public const SAMPLING_RATE_LIMITING = 'rate_limiting';
+
     public const SAMPLING_PARENT_BASED = 'parent_based';
 
     /**
@@ -113,7 +121,7 @@ class DistributedTracingService
      */
     public function startSpan(string $name, array $options = []): array
     {
-        if (!$this->currentContext) {
+        if (! $this->currentContext) {
             $this->startTrace();
         }
 
@@ -246,7 +254,7 @@ class DistributedTracingService
         }
 
         // Update context to parent span
-        if (!empty($this->spanStack)) {
+        if (! empty($this->spanStack)) {
             $this->currentContext['span_id'] = $this->spanStack[count($this->spanStack) - 1]['span_id'];
         }
 
@@ -259,12 +267,12 @@ class DistributedTracingService
     public function endTrace(): void
     {
         // End all remaining spans
-        while (!empty($this->spanStack)) {
+        while (! empty($this->spanStack)) {
             $this->endSpan();
         }
 
         // Export remaining spans
-        if (!empty($this->collectedSpans)) {
+        if (! empty($this->collectedSpans)) {
             $this->exportSpans();
         }
 
@@ -276,7 +284,7 @@ class DistributedTracingService
      */
     public function createChildContext(): array
     {
-        if (!$this->currentContext) {
+        if (! $this->currentContext) {
             return [];
         }
 
@@ -293,7 +301,7 @@ class DistributedTracingService
      */
     public function inject(array &$headers): void
     {
-        if (!$this->currentContext) {
+        if (! $this->currentContext) {
             return;
         }
 
@@ -308,7 +316,7 @@ class DistributedTracingService
                 $this->currentContext['sampled'] ? '01' : '00'
             );
 
-            if (!empty($this->currentContext['baggage'])) {
+            if (! empty($this->currentContext['baggage'])) {
                 $headers['tracestate'] = $this->encodeBaggage($this->currentContext['baggage']);
             }
         } elseif ($format === 'b3') {
@@ -419,7 +427,7 @@ class DistributedTracingService
         $exported = false;
 
         foreach ($this->config['exporters'] as $name => $exporter) {
-            if (!($exporter['enabled'] ?? false)) {
+            if (! ($exporter['enabled'] ?? false)) {
                 continue;
             }
 
@@ -522,6 +530,7 @@ class DistributedTracingService
     {
         // Use last 4 chars of trace ID for deterministic sampling
         $hash = hexdec(substr($traceId, -4)) / 0xFFFF;
+
         return $hash < $this->config['sampling_probability'];
     }
 
@@ -542,8 +551,9 @@ class DistributedTracingService
     {
         $items = [];
         foreach ($baggage as $key => $value) {
-            $items[] = urlencode($key) . '=' . urlencode($value);
+            $items[] = urlencode($key).'='.urlencode($value);
         }
+
         return implode(',', $items);
     }
 
@@ -640,6 +650,7 @@ class DistributedTracingService
             'endpoint' => $config['endpoint'],
             'span_count' => count($spans),
         ]);
+
         return true;
     }
 
@@ -675,6 +686,7 @@ class DistributedTracingService
             'endpoint' => $config['endpoint'],
             'span_count' => count($spans),
         ]);
+
         return true;
     }
 
@@ -688,6 +700,7 @@ class DistributedTracingService
             'endpoint' => $config['endpoint'],
             'span_count' => count($spans),
         ]);
+
         return true;
     }
 }

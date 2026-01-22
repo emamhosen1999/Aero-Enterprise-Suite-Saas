@@ -35,9 +35,10 @@ class CleanupFailedInstallation extends Command
         // Check if actually installed
         if (File::exists(storage_path('app/aeos.installed'))) {
             $this->warn('⚠️  Platform appears to be successfully installed.');
-            
-            if (!$this->option('force') && !$this->confirm('Are you sure you want to cleanup? This may break the installation.', false)) {
+
+            if (! $this->option('force') && ! $this->confirm('Are you sure you want to cleanup? This may break the installation.', false)) {
                 $this->info('Cleanup cancelled.');
+
                 return 0;
             }
         }
@@ -99,16 +100,18 @@ class CleanupFailedInstallation extends Command
     private function cleanupLock(): bool
     {
         $lockFile = storage_path('installation.lock');
-        
+
         if (File::exists($lockFile)) {
             try {
                 $lockData = json_decode(File::get($lockFile), true);
                 $this->line("Found lock from: {$lockData['user']} at {$lockData['created_at']}");
-                
+
                 File::delete($lockFile);
+
                 return true;
             } catch (\Exception $e) {
                 $this->error("Failed to remove lock: {$e->getMessage()}");
+
                 return false;
             }
         }
@@ -145,9 +148,10 @@ class CleanupFailedInstallation extends Command
     private function cleanupProgressTracking(): bool
     {
         $progressFile = storage_path('installation_progress.json');
-        
+
         if (File::exists($progressFile)) {
             File::delete($progressFile);
+
             return true;
         }
 
@@ -160,7 +164,7 @@ class CleanupFailedInstallation extends Command
     private function cleanupEnvBackup(): bool
     {
         $backupFile = storage_path('.env.backup');
-        
+
         if (File::exists($backupFile)) {
             if ($this->confirm('Found .env backup. Do you want to restore it?', true)) {
                 try {
@@ -170,8 +174,9 @@ class CleanupFailedInstallation extends Command
                     $this->error("Failed to restore .env: {$e->getMessage()}");
                 }
             }
-            
+
             File::delete($backupFile);
+
             return true;
         }
 
@@ -189,12 +194,12 @@ class CleanupFailedInstallation extends Command
 
         try {
             // Check if migrations table exists
-            if (!Schema::hasTable('migrations')) {
+            if (! Schema::hasTable('migrations')) {
                 return false;
             }
 
             $migrationCount = DB::table('migrations')->count();
-            
+
             if ($migrationCount > 0) {
                 return $this->confirm(
                     "Found {$migrationCount} migrations in database. Rollback migrations?",
@@ -219,9 +224,11 @@ class CleanupFailedInstallation extends Command
             Artisan::call('migrate:rollback', ['--force' => true]);
             $output = Artisan::output();
             $this->line($output);
+
             return true;
         } catch (\Exception $e) {
             $this->error("Failed to rollback migrations: {$e->getMessage()}");
+
             return false;
         }
     }
@@ -232,10 +239,11 @@ class CleanupFailedInstallation extends Command
     private function removeInstalledMarker(): bool
     {
         $installedFile = storage_path('app/aeos.installed');
-        
+
         if (File::exists($installedFile)) {
             if ($this->option('force') || $this->confirm('Remove installation marker?', true)) {
                 File::delete($installedFile);
+
                 return true;
             }
         }

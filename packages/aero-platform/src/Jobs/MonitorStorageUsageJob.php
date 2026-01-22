@@ -61,7 +61,7 @@ class MonitorStorageUsageJob implements ShouldQueue
                 $limit = $quotaService->getQuotaLimit($tenant, 'storage');
                 if ($limit > 0) {
                     $percentage = ($storageUsedGb / $limit) * 100;
-                    
+
                     if ($percentage >= 80) {
                         Log::warning("Tenant {$tenant->id} storage at {$percentage}% ({$storageUsedGb}GB / {$limit}GB)");
                     }
@@ -103,7 +103,7 @@ class MonitorStorageUsageJob implements ShouldQueue
     protected function getTenantStoragePaths(Tenant $tenant): array
     {
         $tenantId = $tenant->id;
-        
+
         return [
             "tenants/{$tenantId}/uploads",
             "tenants/{$tenantId}/documents",
@@ -123,7 +123,7 @@ class MonitorStorageUsageJob implements ShouldQueue
 
         try {
             $files = Storage::allFiles($path);
-            
+
             foreach ($files as $file) {
                 $size += Storage::size($file);
             }

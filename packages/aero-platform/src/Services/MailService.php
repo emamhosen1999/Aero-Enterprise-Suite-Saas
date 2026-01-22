@@ -2,8 +2,8 @@
 
 namespace Aero\Platform\Services;
 
-use Aero\Platform\Models\PlatformSetting;
 use Aero\Core\Models\SystemSetting;
+use Aero\Platform\Models\PlatformSetting;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\Transport;
@@ -307,9 +307,10 @@ class MailService
 
         // Load template
         $templatePath = resource_path("views/emails/{$templateName}.blade.php");
-        
-        if (!file_exists($templatePath)) {
+
+        if (! file_exists($templatePath)) {
             Log::warning("MailService: Template not found: {$templateName}");
+
             return [
                 'html' => $variables['message'] ?? '',
                 'text' => null,
@@ -319,7 +320,7 @@ class MailService
 
         try {
             $html = view("emails.{$templateName}", $variables)->render();
-            
+
             // Extract plain text version if exists
             $textPath = resource_path("views/emails/{$templateName}-text.blade.php");
             $text = file_exists($textPath) ? view("emails.{$templateName}-text", $variables)->render() : null;

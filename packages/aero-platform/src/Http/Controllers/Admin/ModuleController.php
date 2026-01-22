@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aero\Platform\Http\Controllers\Admin;
 
 use Aero\Core\Services\Module\ModuleDiscoveryService;
+use Aero\HRMAC\Contracts\RoleModuleAccessInterface;
 use Aero\Platform\Http\Controllers\Controller;
 use Aero\Platform\Models\LandlordUser;
 use Aero\Platform\Models\Module;
@@ -11,7 +14,6 @@ use Aero\Platform\Models\ModuleComponentAction;
 use Aero\Platform\Models\Role;
 use Aero\Platform\Models\RoleModuleAccess;
 use Aero\Platform\Models\SubModule;
-use Aero\Platform\Services\Module\RoleModuleAccessService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -30,12 +32,12 @@ use Inertia\Inertia;
  */
 class ModuleController extends Controller
 {
-    private RoleModuleAccessService $roleModuleAccessService;
+    private RoleModuleAccessInterface $roleModuleAccessService;
 
     private ModuleDiscoveryService $moduleDiscovery;
 
     public function __construct(
-        RoleModuleAccessService $roleModuleAccessService,
+        RoleModuleAccessInterface $roleModuleAccessService,
         ModuleDiscoveryService $moduleDiscovery
     ) {
         $this->roleModuleAccessService = $roleModuleAccessService;

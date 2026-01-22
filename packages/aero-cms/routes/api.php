@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware(['auth:landlord', 'verified'])->prefix('cms')->name('cms.api.')->group(function () {
+Route::middleware(['auth:landlord', 'verified'])->name('api.')->group(function () {
 
     // Page builder API
     Route::prefix('builder')->name('builder.')->group(function () {

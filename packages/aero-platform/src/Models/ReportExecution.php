@@ -77,7 +77,7 @@ class ReportExecution extends Model
      */
     public function markCompleted(string $filePath, int $recordCount, int $fileSizeKb): void
     {
-        $executionTime = $this->started_at 
+        $executionTime = $this->started_at
             ? now()->diffInMilliseconds($this->started_at)
             : null;
 
@@ -96,7 +96,7 @@ class ReportExecution extends Model
      */
     public function markFailed(string $errorMessage): void
     {
-        $executionTime = $this->started_at 
+        $executionTime = $this->started_at
             ? now()->diffInMilliseconds($this->started_at)
             : null;
 
@@ -130,14 +130,14 @@ class ReportExecution extends Model
      */
     public function getFormattedFileSize(): ?string
     {
-        if (!$this->file_size_kb) {
+        if (! $this->file_size_kb) {
             return null;
         }
 
         if ($this->file_size_kb < 1024) {
-            return $this->file_size_kb . ' KB';
+            return $this->file_size_kb.' KB';
         }
 
-        return round($this->file_size_kb / 1024, 2) . ' MB';
+        return round($this->file_size_kb / 1024, 2).' MB';
     }
 }

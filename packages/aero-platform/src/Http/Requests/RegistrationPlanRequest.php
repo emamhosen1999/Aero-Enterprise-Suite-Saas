@@ -57,6 +57,7 @@ class RegistrationPlanRequest extends FormRequest
 
                 if (! $plan) {
                     $validator->errors()->add('plan_id', 'Selected plan is invalid.');
+
                     return;
                 }
 

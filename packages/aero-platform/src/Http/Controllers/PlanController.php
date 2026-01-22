@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Http\Controllers;
 
-use Aero\Platform\Http\Controllers\Controller;
 use Aero\Platform\Http\Requests\StorePlanRequest;
 use Aero\Platform\Http\Requests\UpdatePlanRequest;
 use Aero\Platform\Models\Plan;
@@ -282,7 +281,7 @@ class PlanController extends Controller
 
     /**
      * Archive/Unarchive a plan.
-     * 
+     *
      * Archived plans are hidden from public pricing pages but still available
      * for existing subscribers. Uses is_active field to toggle visibility.
      */
@@ -294,7 +293,7 @@ class PlanController extends Controller
 
         // Toggle is_active (archived = !is_active)
         $plan->update([
-            'is_active' => !$validated['archived'],
+            'is_active' => ! $validated['archived'],
         ]);
 
         $status = $validated['archived'] ? 'archived' : 'activated';

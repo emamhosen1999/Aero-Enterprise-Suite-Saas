@@ -41,10 +41,14 @@ use Inertia\Inertia;
 
 Route::middleware('platform.domain')->group(function () {
     // =========================================================================
-    // LANDING & ROOT ROUTES
+    // LANDING PAGE - MANAGED BY CMS
     // =========================================================================
-
-    Route::get('/', fn () => Inertia::render('Platform/Public/Landing'))->name('landing');
+    // NOTE: The landing page (/) is now managed by the CMS package.
+    // Create a page with slug "" or mark it as homepage in CMS admin.
+    // The CMS catch-all route (/{slug?}) handles rendering the homepage.
+    //
+    // If no CMS homepage exists, the CMS controller will return a 404.
+    // Make sure to create a Landing page in CMS after installation!
 
     // Redirect /login to /register (no login on platform domain - login is on tenant/admin domains)
     Route::redirect('login', '/register', 302);
@@ -108,33 +112,28 @@ Route::middleware('platform.domain')->group(function () {
     });
 
     // =========================================================================
-    // PUBLIC INFORMATION PAGES
+    // PUBLIC CONTENT PAGES - MANAGED BY CMS
     // =========================================================================
-
-    Route::get('/product', fn () => Inertia::render('Platform/Public/Product'))->name('product');
-    Route::get('/pricing', fn () => Inertia::render('Platform/Public/Pricing'))->name('pricing');
-    Route::get('/about', fn () => Inertia::render('Platform/Public/About'))->name('about');
-    Route::get('/resources', fn () => Inertia::render('Platform/Public/Resources'))->name('resources');
-    Route::get('/support', fn () => Inertia::render('Platform/Public/Support'))->name('support');
-    Route::get('/status', fn () => Inertia::render('Platform/Public/Status'))->name('status');
-    Route::get('/demo', fn () => Inertia::render('Platform/Public/Demo'))->name('demo');
-    Route::get('/contact', fn () => Inertia::render('Platform/Public/Contact'))->name('contact');
-    Route::get('/features', fn () => Inertia::render('Platform/Public/Features'))->name('features');
-    Route::get('/careers', fn () => Inertia::render('Platform/Public/Careers'))->name('careers');
-    Route::get('/blog', fn () => Inertia::render('Platform/Public/Blog'))->name('blog');
-    Route::get('/docs', fn () => Inertia::render('Platform/Public/Docs'))->name('docs');
-
+    // NOTE: All public content pages (landing, pricing, about, features, blog,
+    // legal, etc.) are now managed dynamically through the CMS package.
+    //
+    // Admins can create and edit these pages at: admin.domain.com/cms
+    //
+    // The CMS catch-all route (/{slug?}) handles rendering published pages.
+    // This provides:
+    // - Full content control without code changes
+    // - SEO-friendly meta tag management
+    // - Visual page builder with block components
+    // - Version history and publishing workflow
+    //
+    // Default pages to create in CMS:
+    // - / (homepage/landing) - set as homepage
+    // - /pricing - use Pricing block component
+    // - /features - use Features block component
+    // - /about, /contact, /blog, /docs, /careers
+    // - /legal, /legal/privacy, /legal/terms, /legal/cookies
+    //
     // =========================================================================
-    // LEGAL PAGES
-    // =========================================================================
-
-    Route::get('/legal', fn () => Inertia::render('Platform/Public/Legal/Index'))->name('legal');
-    Route::get('/legal/privacy', fn () => Inertia::render('Platform/Public/Legal/Privacy'))->name('legal.privacy');
-    Route::get('/legal/terms', fn () => Inertia::render('Platform/Public/Legal/Terms'))->name('legal.terms');
-    Route::get('/legal/cookies', fn () => Inertia::render('Platform/Public/Legal/Cookies'))->name('legal.cookies');
-    Route::get('/legal/security', fn () => Inertia::render('Platform/Public/Legal/Security'))->name('legal.security');
-    Route::get('/privacy', fn () => redirect('/legal/privacy'));
-    Route::get('/terms', fn () => redirect('/legal/terms'));
 
     // =========================================================================
     // INSTALLATION WIZARD

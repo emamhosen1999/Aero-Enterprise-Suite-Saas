@@ -7,26 +7,23 @@ namespace Aero\Platform\Http\Middleware;
 use Aero\Core\Http\Resources\SystemSettingResource;
 use Aero\Core\Services\NavigationRegistry;
 use Aero\Core\Support\TenantCache;
+use Aero\HRMAC\Contracts\RoleModuleAccessInterface;
+use Aero\HRMAC\Models\Module;
+use Aero\HRMAC\Models\SubModule;
 use Aero\Platform\Http\Resources\PlatformSettingResource;
-use Aero\Platform\Models\Module;
 use Aero\Platform\Models\PlatformSetting;
 use Aero\Platform\Models\SystemSetting;
-use Aero\Platform\Models\SubModule;
-use Aero\Platform\Services\Module\RoleModuleAccessService;
-use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Inertia\Middleware;
 use Throwable;
 
 // Ensure this matches your actual class location
-use Aero\Platform\Http\Middleware\IdentifyDomainContext; 
 
 class HandleInertiaRequests extends Middleware
 {
@@ -39,6 +36,7 @@ class HandleInertiaRequests extends Middleware
      * Cache for settings to prevent multiple DB queries per request.
      */
     protected ?SystemSetting $cachedSystemSetting = null;
+
     protected ?PlatformSetting $cachedPlatformSetting = null;
 
     /**
@@ -136,7 +134,7 @@ class HandleInertiaRequests extends Middleware
 
         $settings = $this->resolvePlatformSettings($request);
         $this->shareBrandingWithBlade($settings['branding'] ?? [], null);
-        
+
         $maintenance = PlatformSetting::getMaintenanceStatus();
         $isDebug = config('app.debug', false);
 
@@ -151,8 +149,8 @@ class HandleInertiaRequests extends Middleware
             ],
             'platformSettings' => $settings,
             'platform' => [
-                'modules' => fn() => $this->getAvailableModules(),
-                'plans' => fn() => $this->getSubscriptionPlans(),
+                'modules' => fn () => $this->getAvailableModules(),
+                'plans' => fn () => $this->getSubscriptionPlans(),
             ],
             'maintenance' => [
                 'enabled' => $maintenance['enabled'],
@@ -179,12 +177,12 @@ class HandleInertiaRequests extends Middleware
         $settings = $this->resolveSystemSettings($request);
         $branding = $settings['branding'] ?? [];
         $companyName = $settings['organization']['company_name'] ?? config('app.name', 'aeos365');
-        
+
         $this->shareBrandingWithBlade($branding, $companyName);
 
         // 3. Determine User Roles & Access
         $isTenantSuperAdmin = $user?->hasRole('tenant_super_administrator') ?? false;
-        
+
         $authData = [
             'user' => $user ? $this->mapTenantUser($user, $isTenantSuperAdmin) : null,
             'isAuthenticated' => (bool) $user,
@@ -273,6 +271,7 @@ class HandleInertiaRequests extends Middleware
     private function getInstallationProps(): array
     {
         View::share(['logoUrl' => null, 'siteName' => config('app.name', 'aeos365')]);
+
         return [
             'context' => 'installation',
             'auth' => ['user' => null],
@@ -315,7 +314,7 @@ class HandleInertiaRequests extends Middleware
     {
         $userData = $user->toArray();
         $designation = $user->designation?->title ?? null;
-        
+
         return array_merge($userData, [
             'attendance_type' => $user->attendanceType ? [
                 'id' => $user->attendanceType->id,
@@ -348,17 +347,19 @@ class HandleInertiaRequests extends Middleware
             }
             Log::warning('Tenant user load skipped: Tables missing.');
         }
+
         return null;
     }
 
     private function resolvePlatformSettings(Request $request): ?array
     {
         try {
-            if (!$this->cachedPlatformSetting) {
+            if (! $this->cachedPlatformSetting) {
                 $this->cachedPlatformSetting = PlatformSetting::current();
             }
-            return $this->cachedPlatformSetting 
-                ? PlatformSettingResource::make($this->cachedPlatformSetting)->resolve($request) 
+
+            return $this->cachedPlatformSetting
+                ? PlatformSettingResource::make($this->cachedPlatformSetting)->resolve($request)
                 : null;
         } catch (Throwable $e) {
             return null;
@@ -368,9 +369,10 @@ class HandleInertiaRequests extends Middleware
     private function resolveSystemSettings(Request $request): ?array
     {
         try {
-            if (!$this->cachedSystemSetting) {
+            if (! $this->cachedSystemSetting) {
                 $this->cachedSystemSetting = SystemSetting::current();
             }
+
             return $this->cachedSystemSetting
                 ? SystemSettingResource::make($this->cachedSystemSetting)->resolve($request)
                 : null;
@@ -389,14 +391,18 @@ class HandleInertiaRequests extends Middleware
         $translations = [];
 
         $namespaces = ['common', 'navigation', 'validation'];
-        
+
         // Intelligent namespace loading based on route
         $routeName = request()->route()?->getName() ?? '';
-        if (str_contains($routeName, 'dashboard')) $namespaces[] = 'dashboard';
+        if (str_contains($routeName, 'dashboard')) {
+            $namespaces[] = 'dashboard';
+        }
         if (str_contains($routeName, 'hr') || str_contains($routeName, 'employee') || str_contains($routeName, 'department') || str_contains($routeName, 'leave') || str_contains($routeName, 'attendance')) {
             $namespaces[] = 'hr';
         }
-        if (str_contains($routeName, 'device')) $namespaces[] = 'device';
+        if (str_contains($routeName, 'device')) {
+            $namespaces[] = 'device';
+        }
 
         foreach ($namespaces as $namespace) {
             $path = lang_path("{$locale}/{$namespace}.php");
@@ -404,7 +410,7 @@ class HandleInertiaRequests extends Middleware
                 $translations[$namespace] = require $path;
             }
         }
-        
+
         // Load main JSON file
         $jsonPath = lang_path("{$locale}.json");
         if (file_exists($jsonPath)) {
@@ -416,7 +422,10 @@ class HandleInertiaRequests extends Middleware
 
     protected function getNavigationProps($user): array
     {
-        if (!$user || !app()->bound(NavigationRegistry::class)) return [];
+        if (! $user || ! app()->bound(NavigationRegistry::class)) {
+            return [];
+        }
+
         return app(NavigationRegistry::class)->toFrontend('platform');
     }
 
@@ -424,6 +433,7 @@ class HandleInertiaRequests extends Middleware
     {
         $status = PlatformSetting::getMaintenanceStatus();
         $enabled = $status['enabled'] ?? false;
+
         return [
             'enabled' => $enabled,
             'message' => $status['message'] ?? null,
@@ -437,14 +447,14 @@ class HandleInertiaRequests extends Middleware
         $tenant = tenant();
         $platformStatus = PlatformSetting::getMaintenanceStatus();
         $tenantEnabled = $tenant && method_exists($tenant, 'isInMaintenanceMode') && $tenant->isInMaintenanceMode();
-        
+
         $enabled = $platformStatus['enabled'] || $tenantEnabled;
 
         return [
             'enabled' => $enabled,
             'platformEnabled' => $platformStatus['enabled'],
             'tenantEnabled' => $tenantEnabled,
-            'message' => $enabled 
+            'message' => $enabled
                 ? ($tenantEnabled ? 'Workspace is in maintenance mode' : $platformStatus['message'])
                 : null,
             'skipVerification' => $enabled || config('app.debug'),
@@ -453,7 +463,9 @@ class HandleInertiaRequests extends Middleware
 
     protected function formatLegacyCompanySettings(array $organization): array
     {
-        if (empty($organization)) return [];
+        if (empty($organization)) {
+            return [];
+        }
 
         $address = trim(implode(' ', array_filter([
             $organization['address_line1'] ?? null,
@@ -484,9 +496,9 @@ class HandleInertiaRequests extends Middleware
     {
         return TenantCache::remember('frontend_module_hierarchy', 600, function () {
             return Module::active()->ordered()
-                ->with(['subModules' => fn($q) => $q->active()->ordered()->with(['components' => fn($q) => $q->active()->with('actions')])])
+                ->with(['subModules' => fn ($q) => $q->active()->ordered()->with(['components' => fn ($q) => $q->active()->with('actions')])])
                 ->get()
-                ->map(fn($m) => $this->transformModuleForHierarchy($m))
+                ->map(fn ($m) => $this->transformModuleForHierarchy($m))
                 ->toArray();
         });
     }
@@ -502,138 +514,232 @@ class HandleInertiaRequests extends Middleware
             'category' => $module->category,
             'is_core' => $module->is_core,
             'route_prefix' => $module->route_prefix,
-            'submodules' => $module->subModules->map(fn($sm) => [
+            'submodules' => $module->subModules->map(fn ($sm) => [
                 'id' => $sm->id,
                 'code' => $sm->code,
                 'name' => $sm->name,
                 'description' => $sm->description,
                 'icon' => $sm->icon,
                 'route' => $sm->route,
-                'components' => $sm->components->map(fn($c) => [
+                'components' => $sm->components->map(fn ($c) => [
                     'id' => $c->id,
                     'code' => $c->code,
                     'name' => $c->name,
                     'description' => $c->description,
                     'type' => $c->type,
                     'route' => $c->route,
-                    'actions' => $c->actions->map(fn($a) => [
-                        'id' => $a->id, 
+                    'actions' => $c->actions->map(fn ($a) => [
+                        'id' => $a->id,
                         'code' => $a->code,
                         'name' => $a->name,
-                        'description' => $a->description
-                    ])->values()->toArray()
-                ])->values()->toArray()
-            ])->values()->toArray()
+                        'description' => $a->description,
+                    ])->values()->toArray(),
+                ])->values()->toArray(),
+            ])->values()->toArray(),
         ];
     }
 
     protected function getAllModules(): array
     {
-        return TenantCache::remember('all_modules', 3600, fn() => 
-            Module::active()->ordered()->get(['id', 'code', 'name', 'description', 'icon', 'category', 'is_core'])->toArray()
+        return TenantCache::remember('all_modules', 3600, fn () => Module::active()->ordered()->get(['id', 'code', 'name', 'description', 'icon', 'category', 'is_core'])->toArray()
         );
     }
 
     protected function getTenantSubscribedModules(): array
     {
-        if (!tenant()) return [];
-        return TenantCache::remember("tenant_subscribed_modules:".tenant('id'), 300, function () {
+        if (! tenant()) {
+            return [];
+        }
+
+        return TenantCache::remember('tenant_subscribed_modules:'.tenant('id'), 300, function () {
             $modules = Module::where('is_core', true)->where('is_active', true)->pluck('code')->toArray();
-            
+
             $subscription = tenant()->currentSubscription;
             if ($subscription && $subscription->plan) {
                 $planModules = $subscription->plan->modules()->where('is_active', true)->pluck('modules.code')->toArray();
                 $modules = array_merge($modules, $planModules);
             }
-            
+
             // Legacy/Direct plan check
             if (tenant()->plan) {
                 $directPlanModules = tenant()->plan->modules()->where('is_active', true)->pluck('modules.code')->toArray();
                 $modules = array_merge($modules, $directPlanModules);
             }
 
-            if (!empty(tenant()->modules) && is_array(tenant()->modules)) {
+            if (! empty(tenant()->modules) && is_array(tenant()->modules)) {
                 $modules = array_merge($modules, tenant()->modules);
             }
+
             return array_unique($modules);
         });
     }
 
     // --- Access Helpers ---
 
+    /**
+     * Get user's module access tree from HRMAC.
+     *
+     * @return array{modules: int[], sub_modules: int[], components: int[], actions: array<array{id: int, scope: string}>}
+     */
     protected function getUserModuleAccess($user): array
     {
-        if (!$user) return [];
-        
-        return TenantCache::remember("landlord_user_module_access:{$user->id}", 600, function () use ($user) {
-            $service = app(RoleModuleAccessService::class);
-            $access = ['modules' => [], 'sub_modules' => [], 'components' => [], 'actions' => []];
-            
-            if (empty($user->roles)) return $access;
+        if (! $user) {
+            return [];
+        }
 
-            foreach ($user->roles as $role) {
-                $tree = $service->getRoleAccessTree($role);
-                $access['modules'] = array_merge($access['modules'], $tree['modules'] ?? []);
-                $access['sub_modules'] = array_merge($access['sub_modules'], $tree['sub_modules'] ?? []);
-                $access['components'] = array_merge($access['components'], $tree['components'] ?? []);
-                $access['actions'] = array_merge($access['actions'], $tree['actions'] ?? []);
+        return TenantCache::remember("landlord_user_module_access:{$user->id}", 600, function () use ($user) {
+            try {
+                if (! app()->bound(RoleModuleAccessInterface::class)) {
+                    return [];
+                }
+
+                $service = app(RoleModuleAccessInterface::class);
+                $access = ['modules' => [], 'sub_modules' => [], 'components' => [], 'actions' => []];
+
+                if (empty($user->roles)) {
+                    return $access;
+                }
+
+                foreach ($user->roles as $role) {
+                    $tree = $service->getRoleAccessTree($role);
+                    $access['modules'] = array_merge($access['modules'], $tree['modules'] ?? []);
+                    $access['sub_modules'] = array_merge($access['sub_modules'], $tree['sub_modules'] ?? []);
+                    $access['components'] = array_merge($access['components'], $tree['components'] ?? []);
+                    $access['actions'] = array_merge($access['actions'], $tree['actions'] ?? []);
+                }
+
+                return array_map(fn ($arr) => array_values(array_unique($arr, SORT_REGULAR)), $access);
+            } catch (Throwable $e) {
+                Log::warning('Failed to get user module access', ['error' => $e->getMessage()]);
+
+                return [];
             }
-            
-            return array_map(fn($arr) => array_values(array_unique($arr, SORT_REGULAR)), $access);
         });
     }
 
     protected function getTenantUserModuleAccess($user): array
     {
-        if (!$user) return [];
+        if (! $user) {
+            return [];
+        }
 
         return TenantCache::remember("tenant_user_module_access:{$user->id}", 600, function () use ($user) {
             $access = $this->getUserModuleAccess($user);
             $tenantActiveIds = $this->getTenantActiveModuleIds();
-            
+
             // Filter modules by what the tenant actually owns
             $access['modules'] = array_values(array_intersect($access['modules'], $tenantActiveIds));
+
             return $access;
         });
     }
 
     protected function getTenantActiveModuleIds(): array
     {
-        if (!tenant()) return [];
+        if (! tenant()) {
+            return [];
+        }
+
         return TenantCache::remember('tenant_active_module_ids:'.tenant('id'), 1800, function () {
-            // Get module objects based on subscribed codes
-            $subscribedCodes = $this->getTenantSubscribedModules();
-            return Module::whereIn('code', $subscribedCodes)->pluck('id')->toArray();
+            try {
+                // Get module objects based on subscribed codes
+                $subscribedCodes = $this->getTenantSubscribedModules();
+
+                return Module::whereIn('code', $subscribedCodes)->pluck('id')->toArray();
+            } catch (Throwable $e) {
+                return [];
+            }
         });
     }
 
+    /**
+     * Get user's accessible modules as array of module objects.
+     *
+     * @return array<array{id: int, code: string, name: string}>
+     */
     protected function getUserAccessibleModules($user): array
     {
         $access = $this->getUserModuleAccess($user);
-        if (empty($access['modules'])) return [];
-        
-        return Module::whereIn('id', $access['modules'])->where('is_active', true)->get(['id', 'code', 'name'])->toArray();
+        if (empty($access['modules'])) {
+            return [];
+        }
+
+        try {
+            if (! class_exists(Module::class)) {
+                return [];
+            }
+
+            return Module::whereIn('id', $access['modules'])
+                ->where('is_active', true)
+                ->get(['id', 'code', 'name'])
+                ->toArray();
+        } catch (Throwable $e) {
+            return [];
+        }
     }
 
     protected function getTenantUserAccessibleModules($user): array
     {
         $access = $this->getTenantUserModuleAccess($user);
-        if (empty($access['modules'])) return [];
+        if (empty($access['modules'])) {
+            return [];
+        }
 
-        return Module::whereIn('id', $access['modules'])->where('is_active', true)->get(['id', 'code', 'name'])->toArray();
+        try {
+            if (! class_exists(Module::class)) {
+                return [];
+            }
+
+            return Module::whereIn('id', $access['modules'])
+                ->where('is_active', true)
+                ->get(['id', 'code', 'name'])
+                ->toArray();
+        } catch (Throwable $e) {
+            return [];
+        }
     }
 
+    /**
+     * Get modules lookup table (id => code).
+     *
+     * @return array<int, string>
+     */
     protected function getModulesLookup(): array
     {
-        return TenantCache::remember('modules_lookup', 3600, fn() => Module::where('is_active', true)->pluck('code', 'id')->toArray());
+        return TenantCache::remember('modules_lookup', 3600, function () {
+            try {
+                if (! class_exists(Module::class)) {
+                    return [];
+                }
+
+                return Module::where('is_active', true)->pluck('code', 'id')->toArray();
+            } catch (Throwable $e) {
+                return [];
+            }
+        });
     }
 
+    /**
+     * Get sub-modules lookup table (id => 'module.submodule').
+     *
+     * @return array<int, string>
+     */
     protected function getSubModulesLookup(): array
     {
         return TenantCache::remember('sub_modules_lookup', 3600, function () {
-            return SubModule::with('module')->where('is_active', true)->get()
-                ->mapWithKeys(fn($sm) => [$sm->id => $sm->module->code.'.'.$sm->code])
-                ->toArray();
+            try {
+                if (! class_exists(SubModule::class)) {
+                    return [];
+                }
+
+                return SubModule::with('module')
+                    ->where('is_active', true)
+                    ->get()
+                    ->mapWithKeys(fn ($sm) => [$sm->id => $sm->module->code.'.'.$sm->code])
+                    ->toArray();
+            } catch (Throwable $e) {
+                return [];
+            }
         });
     }
 

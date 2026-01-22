@@ -15,7 +15,7 @@ use Aero\Platform\Services\Module\ModuleAccessService;
  *
  * For platform modules (like tenant_management), the structure is:
  * - module (e.g., 'tenant_management')
- * - component (e.g., 'tenant_list') 
+ * - component (e.g., 'tenant_list')
  * - action (e.g., 'view', 'create', 'edit', 'delete', 'suspend', 'activate', 'impersonate')
  *
  * Note: Platform modules don't have submodules - they go directly from module to component.
@@ -118,7 +118,7 @@ trait ChecksLandlordModuleAccess
         // We need to map this to the service's expected structure
         // The ModuleAccessService expects: module → submodule → component → action
         // But platform modules use: module → component → action (no submodule)
-        
+
         // Try calling with component as both submodule and component for compatibility
         $result = $this->getModuleAccessService()->canPerformAction(
             $user,

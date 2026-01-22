@@ -2,9 +2,9 @@
 
 namespace Aero\Platform\Console\Commands;
 
+use Aero\Core\Support\TenantCache;
 use Aero\Platform\Models\Tenant;
 use Illuminate\Console\Command;
-use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 

@@ -109,9 +109,6 @@ class AlertingService
     /**
      * Send an info-level alert.
      *
-     * @param string $source
-     * @param string $message
-     * @param array $context
      * @return string|null Alert ID
      */
     public function info(string $source, string $message, array $context = []): ?string
@@ -122,9 +119,6 @@ class AlertingService
     /**
      * Send a warning-level alert.
      *
-     * @param string $source
-     * @param string $message
-     * @param array $context
      * @return string|null Alert ID
      */
     public function warning(string $source, string $message, array $context = []): ?string
@@ -135,9 +129,6 @@ class AlertingService
     /**
      * Send a critical-level alert.
      *
-     * @param string $source
-     * @param string $message
-     * @param array $context
      * @return string|null Alert ID
      */
     public function critical(string $source, string $message, array $context = []): ?string
@@ -148,9 +139,6 @@ class AlertingService
     /**
      * Send an emergency-level alert.
      *
-     * @param string $source
-     * @param string $message
-     * @param array $context
      * @return string|null Alert ID
      */
     public function emergency(string $source, string $message, array $context = []): ?string
@@ -161,10 +149,6 @@ class AlertingService
     /**
      * Send an alert.
      *
-     * @param string $level
-     * @param string $source
-     * @param string $message
-     * @param array $context
      * @return string|null Alert ID if sent, null if rate limited
      */
     public function sendAlert(string $level, string $source, string $message, array $context = []): ?string
@@ -209,11 +193,6 @@ class AlertingService
 
     /**
      * Acknowledge an alert.
-     *
-     * @param string $alertId
-     * @param string|null $acknowledgedBy
-     * @param string|null $comment
-     * @return bool
      */
     public function acknowledge(string $alertId, ?string $acknowledgedBy = null, ?string $comment = null): bool
     {
@@ -237,11 +216,6 @@ class AlertingService
 
     /**
      * Resolve an alert.
-     *
-     * @param string $alertId
-     * @param string|null $resolvedBy
-     * @param string|null $resolution
-     * @return bool
      */
     public function resolve(string $alertId, ?string $resolvedBy = null, ?string $resolution = null): bool
     {
@@ -266,8 +240,6 @@ class AlertingService
 
     /**
      * Get active (firing) alerts.
-     *
-     * @return array
      */
     public function getActiveAlerts(): array
     {
@@ -278,9 +250,6 @@ class AlertingService
 
     /**
      * Get all alerts.
-     *
-     * @param array $filters
-     * @return array
      */
     public function getAlerts(array $filters = []): array
     {
@@ -303,9 +272,6 @@ class AlertingService
 
     /**
      * Get alert by ID.
-     *
-     * @param string $alertId
-     * @return array|null
      */
     public function getAlert(string $alertId): ?array
     {
@@ -314,9 +280,6 @@ class AlertingService
 
     /**
      * Set enabled channels.
-     *
-     * @param array $channels
-     * @return self
      */
     public function setChannels(array $channels): self
     {
@@ -327,10 +290,6 @@ class AlertingService
 
     /**
      * Configure a specific channel.
-     *
-     * @param string $channel
-     * @param array $config
-     * @return self
      */
     public function configureChannel(string $channel, array $config): self
     {
@@ -342,8 +301,7 @@ class AlertingService
     /**
      * Get alert statistics.
      *
-     * @param string $period 'day', 'week', 'month'
-     * @return array
+     * @param  string  $period  'day', 'week', 'month'
      */
     public function getStatistics(string $period = 'day'): array
     {
@@ -379,9 +337,6 @@ class AlertingService
 
     /**
      * Dispatch alert to all enabled channels.
-     *
-     * @param array $alert
-     * @return void
      */
     protected function dispatchToChannels(array $alert): void
     {
@@ -411,9 +366,6 @@ class AlertingService
 
     /**
      * Send email alert.
-     *
-     * @param array $alert
-     * @return void
      */
     protected function sendEmailAlert(array $alert): void
     {
@@ -434,9 +386,6 @@ class AlertingService
 
     /**
      * Send Slack alert.
-     *
-     * @param array $alert
-     * @return void
      */
     protected function sendSlackAlert(array $alert): void
     {
@@ -488,9 +437,6 @@ class AlertingService
 
     /**
      * Send SMS alert.
-     *
-     * @param array $alert
-     * @return void
      */
     protected function sendSmsAlert(array $alert): void
     {
@@ -514,9 +460,6 @@ class AlertingService
 
     /**
      * Send webhook alert.
-     *
-     * @param array $alert
-     * @return void
      */
     protected function sendWebhookAlert(array $alert): void
     {
@@ -530,9 +473,6 @@ class AlertingService
 
     /**
      * Send Microsoft Teams alert.
-     *
-     * @param array $alert
-     * @return void
      */
     protected function sendTeamsAlert(array $alert): void
     {
@@ -573,9 +513,6 @@ class AlertingService
 
     /**
      * Send Discord alert.
-     *
-     * @param array $alert
-     * @return void
      */
     protected function sendDiscordAlert(array $alert): void
     {
@@ -614,9 +551,6 @@ class AlertingService
 
     /**
      * Send PagerDuty alert.
-     *
-     * @param array $alert
-     * @return void
      */
     protected function sendPagerDutyAlert(array $alert): void
     {
@@ -652,9 +586,6 @@ class AlertingService
 
     /**
      * Send resolution notification.
-     *
-     * @param array $alert
-     * @return void
      */
     protected function sendResolutionNotification(array $alert): void
     {
@@ -683,9 +614,6 @@ class AlertingService
 
     /**
      * Get channels for alert level.
-     *
-     * @param string $level
-     * @return array
      */
     protected function getChannelsForLevel(string $level): array
     {
@@ -705,10 +633,6 @@ class AlertingService
 
     /**
      * Check if alert is rate limited.
-     *
-     * @param string $alertKey
-     * @param string $level
-     * @return bool
      */
     protected function isRateLimited(string $alertKey, string $level): bool
     {
@@ -717,15 +641,11 @@ class AlertingService
             return false;
         }
 
-        return TenantCache::has($this->rateLimitPrefix . $alertKey);
+        return TenantCache::has($this->rateLimitPrefix.$alertKey);
     }
 
     /**
      * Set rate limit for alert.
-     *
-     * @param string $alertKey
-     * @param string $level
-     * @return void
      */
     protected function setRateLimit(string $alertKey, string $level): void
     {
@@ -736,7 +656,7 @@ class AlertingService
         };
 
         TenantCache::put(
-            $this->rateLimitPrefix . $alertKey,
+            $this->rateLimitPrefix.$alertKey,
             true,
             now()->addSeconds($interval)
         );
@@ -744,31 +664,22 @@ class AlertingService
 
     /**
      * Generate alert key for deduplication.
-     *
-     * @param string $source
-     * @param string $message
-     * @return string
      */
     protected function generateAlertKey(string $source, string $message): string
     {
-        return md5($source . ':' . $message);
+        return md5($source.':'.$message);
     }
 
     /**
      * Generate unique alert ID.
-     *
-     * @return string
      */
     protected function generateAlertId(): string
     {
-        return 'ALT-' . strtoupper(bin2hex(random_bytes(6)));
+        return 'ALT-'.strtoupper(bin2hex(random_bytes(6)));
     }
 
     /**
      * Log alert.
-     *
-     * @param array $alert
-     * @return void
      */
     protected function logAlert(array $alert): void
     {
@@ -788,9 +699,6 @@ class AlertingService
 
     /**
      * Store alert in cache.
-     *
-     * @param array $alert
-     * @return void
      */
     protected function storeAlert(array $alert): void
     {
@@ -807,8 +715,6 @@ class AlertingService
 
     /**
      * Get stored alerts.
-     *
-     * @return array
      */
     protected function getStoredAlerts(): array
     {
@@ -817,8 +723,6 @@ class AlertingService
 
     /**
      * Load configuration.
-     *
-     * @return void
      */
     protected function loadConfiguration(): void
     {
@@ -828,9 +732,6 @@ class AlertingService
 
     /**
      * Format email subject.
-     *
-     * @param array $alert
-     * @return string
      */
     protected function formatEmailSubject(array $alert): string
     {
@@ -846,9 +747,6 @@ class AlertingService
 
     /**
      * Format email body.
-     *
-     * @param array $alert
-     * @return string
      */
     protected function formatEmailBody(array $alert): string
     {
@@ -875,10 +773,6 @@ class AlertingService
 
     /**
      * Group alerts by field.
-     *
-     * @param array $alerts
-     * @param string $field
-     * @return array
      */
     protected function groupBy(array $alerts, string $field): array
     {
@@ -894,9 +788,6 @@ class AlertingService
 
     /**
      * Calculate Mean Time To Resolution.
-     *
-     * @param array $alerts
-     * @return float|null
      */
     protected function calculateMTTR(array $alerts): ?float
     {
