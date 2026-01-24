@@ -9,7 +9,6 @@ import {
 } from '@heroicons/react/24/outline';
 import { router } from '@inertiajs/react';
 import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
-import { route } from 'ziggy-js';
 import axios from 'axios';
 
 export default function PendingApprovalsWidget() {
@@ -23,7 +22,7 @@ export default function PendingApprovalsWidget() {
 
     const fetchPendingApprovals = async () => {
         try {
-            const response = await axios.get(route('leaves.pending-approvals'));
+            const response = await axios.get(safeRoute('leaves.pending-approvals', {}, '/hrm/leaves/pending-approvals'));
             if (response.data.success) {
                 setPendingLeaves(response.data.pending_leaves || []);
                 setStats(response.data.stats || { pending: 0, approved: 0, rejected: 0, total: 0 });

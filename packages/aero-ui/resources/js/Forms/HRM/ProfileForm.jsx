@@ -13,6 +13,7 @@ import {
 import React, {useEffect, useState} from "react";
 import {Camera, X} from 'lucide-react';
 import {showToast} from "@/utils/toastUtils";
+import { safeRoute } from "@/utils/routeUtils";
 import ProfileAvatar from '@/Components/ProfileAvatar';
 
 const ProfileForm = ({user, allUsers, departments, designations,setUser, open, closeModal }) => {
@@ -78,7 +79,7 @@ const ProfileForm = ({user, allUsers, departments, designations,setUser, open, c
                     formData.append('profile_image', file);
                     formData.append('ruleSet', 'profile_image');
 
-                    const response = await axios.post(route('profile.update'), formData, {
+                    const response = await axios.post(safeRoute('profile.update', {}, '/hrm/profile/update'), formData, {
                         headers: {
                             'Content-Type': 'multipart/form-data',
                         }
@@ -253,7 +254,7 @@ const ProfileForm = ({user, allUsers, departments, designations,setUser, open, c
         setProcessing(true);
 
         try {
-            const response = await axios.post(route('profile.update'), {
+            const response = await axios.post(safeRoute('profile.update', {}, '/hrm/profile/update'), {
                 ruleSet: 'profile',
                 ...initialUserData,
             });

@@ -97,7 +97,7 @@ class PendingLeaveApprovalsWidget extends AbstractDashboardWidget
                 'count' => $pendingCount,
                 'urgent' => $urgentCount,
                 'items' => $recentPending->toArray(),
-                'link' => route('hrm.leaves.admin'), // Link to full list
+                'link' => route('hrm.leaves'), // Link to full list
             ];
         }, ['count' => 0, 'urgent' => 0, 'items' => []]);
     }

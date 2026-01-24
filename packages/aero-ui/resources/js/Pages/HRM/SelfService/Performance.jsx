@@ -4,6 +4,7 @@ import { Chip, Progress, Table, TableHeader, TableColumn, TableBody, TableRow, T
 import { ChartBarIcon, StarIcon, TrophyIcon, ArrowTrendingUpIcon } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
+import StatsCards from '@/Components/StatsCards.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
 import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
 
@@ -83,7 +84,7 @@ const Performance = ({ title, reviews = [] }) => {
             icon={ChartBarIcon}
             iconColorClass="text-warning"
             iconBgClass="bg-warning/20"
-            stats={statsData}
+            stats={<StatsCards stats={statsData} />}
             ariaLabel="My Performance Reviews"
         >
             {reviews.length > 0 ? (

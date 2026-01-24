@@ -12,6 +12,7 @@ import {
 import React, {useEffect, useState} from "react";
 import {User} from 'lucide-react';
 import {showToast} from "@/utils/toastUtils";
+import { safeRoute } from "@/utils/routeUtils";
 
 const PersonalInformationForm = ({user,setUser, open, closeModal }) => {
     // Helper function to convert theme borderRadius to HeroUI radius values
@@ -105,7 +106,7 @@ const PersonalInformationForm = ({user,setUser, open, closeModal }) => {
         setProcessing(true);
 
         try {
-            const response = await axios.post(route('profile.update'), {
+            const response = await axios.post(safeRoute('profile.update', {}, '/hrm/profile/update'), {
                 ruleSet: 'personal',
                 ...initialUserData,
             });

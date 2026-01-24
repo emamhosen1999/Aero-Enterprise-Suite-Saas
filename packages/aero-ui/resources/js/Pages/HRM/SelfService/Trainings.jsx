@@ -4,6 +4,7 @@ import { Button, Chip, Progress, Table, TableHeader, TableColumn, TableBody, Tab
 import { AcademicCapIcon, BookOpenIcon, CheckBadgeIcon, ClockIcon } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
+import StatsCards from '@/Components/StatsCards.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
 import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
 
@@ -80,7 +81,7 @@ const Trainings = ({ title, trainings = [] }) => {
             icon={AcademicCapIcon}
             iconColorClass="text-secondary"
             iconBgClass="bg-secondary/20"
-            stats={statsData}
+            stats={<StatsCards stats={statsData} />}
             ariaLabel="My Trainings"
         >
             {trainings.length > 0 ? (

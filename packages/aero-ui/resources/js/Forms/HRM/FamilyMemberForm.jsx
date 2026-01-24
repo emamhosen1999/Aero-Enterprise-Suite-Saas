@@ -2,6 +2,7 @@ import React, {useEffect, useState} from "react";
 import {Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader,} from "@heroui/react";
 import {Users} from "lucide-react";
 import {showToast} from "@/utils/toastUtils";
+import { safeRoute } from "@/utils/routeUtils";
 
 const FamilyMemberForm = ({ user, open, closeModal, handleDelete, setUser }) => {
     // Helper function to convert theme borderRadius to HeroUI radius values
@@ -78,7 +79,7 @@ const FamilyMemberForm = ({ user, open, closeModal, handleDelete, setUser }) => 
         setProcessing(true);
 
         try {
-            const response = await axios.post(route('profile.update'), {
+            const response = await axios.post(safeRoute('profile.update', {}, '/hrm/profile/update'), {
                 ruleSet: 'family',
                 ...initialUserData,
             });

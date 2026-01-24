@@ -103,11 +103,10 @@ class HolidayController extends Controller
             // Validate the incoming request
             $request->validate([
                 'id' => 'required|exists:holidays,id',
-                'route' => 'required',
             ]);
 
-            // Find the daily work by ID
-            $holiday = Holiday::find($request->query('id'));
+            // Find the holiday by ID (from JSON body, not query string)
+            $holiday = Holiday::find($request->input('id'));
 
             if (! $holiday) {
                 return response()->json(['error' => 'Holiday not found'], 404);

@@ -4,6 +4,7 @@ import { Button, Chip, Table, TableHeader, TableColumn, TableBody, TableRow, Tab
 import { DocumentTextIcon, ArrowDownTrayIcon, FolderIcon, DocumentIcon } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
+import StatsCards from '@/Components/StatsCards.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
 import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
 
@@ -72,7 +73,7 @@ const Documents = ({ title, documents = [] }) => {
             icon={DocumentTextIcon}
             iconColorClass="text-primary"
             iconBgClass="bg-primary/20"
-            stats={statsData}
+            stats={<StatsCards stats={statsData} />}
             ariaLabel="My Documents"
         >
             {documents.length > 0 ? (

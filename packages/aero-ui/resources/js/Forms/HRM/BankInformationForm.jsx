@@ -2,6 +2,7 @@ import React, {useEffect, useState} from "react";
 import {Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader} from "@heroui/react";
 import {CreditCard} from 'lucide-react';
 import {showToast} from "@/utils/toastUtils";
+import { safeRoute } from "@/utils/routeUtils";
 
 const BankInformationForm = ({ user, setUser, open, closeModal }) => {
     // Helper function to convert theme borderRadius to HeroUI radius values
@@ -78,7 +79,7 @@ const BankInformationForm = ({ user, setUser, open, closeModal }) => {
 
         const promise = new Promise(async (resolve, reject) => {
             try {
-                const response = await axios.post(route('profile.update'), {
+                const response = await axios.post(safeRoute('profile.update', {}, '/hrm/profile/update'), {
                     ruleSet: 'bank',
                     ...initialUserData,
                 });

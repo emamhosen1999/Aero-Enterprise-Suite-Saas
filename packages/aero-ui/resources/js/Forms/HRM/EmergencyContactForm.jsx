@@ -2,6 +2,7 @@ import {Button, Card, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalH
 import React, {useEffect, useState} from "react";
 import {Phone} from 'lucide-react';
 import {showToast} from "@/utils/toastUtils";
+import { safeRoute } from "@/utils/routeUtils";
 
 const EmergencyContactForm = ({user,setUser, open, closeModal }) => {
     // Helper function to convert theme borderRadius to HeroUI radius values
@@ -84,7 +85,7 @@ const EmergencyContactForm = ({user,setUser, open, closeModal }) => {
         setProcessing(true);
 
         try {
-            const response = await axios.post(route('profile.update'), {
+            const response = await axios.post(safeRoute('profile.update', {}, '/hrm/profile/update'), {
                 ruleSet: 'emergency',
                 ...initialUserData,
             });

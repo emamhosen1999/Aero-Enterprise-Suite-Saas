@@ -12,6 +12,7 @@ use Aero\HRM\Events\Leave\LeaveCancelled;
 use Aero\HRM\Events\Leave\LeaveRejected;
 use Aero\HRM\Events\Leave\LeaveRequested;
 use Aero\HRM\Http\Controllers\Controller;
+use Aero\HRM\Services\EmployeeResolutionService;
 use Aero\HRM\Services\LeaveApprovalService;
 use Aero\HRM\Services\LeaveBalanceService;
 use Aero\HRM\Services\LeaveCrudService;
@@ -43,6 +44,8 @@ class LeaveController extends Controller
 
     protected LeaveBalanceService $balanceService;
 
+    protected EmployeeResolutionService $employeeResolver;
+
     /**
      * Resolve configured user model to avoid cross-package coupling.
      */
@@ -58,7 +61,8 @@ class LeaveController extends Controller
         LeaveQueryService $queryService,
         LeaveSummaryService $summaryService,
         LeaveApprovalService $approvalService,
-        LeaveBalanceService $balanceService
+        LeaveBalanceService $balanceService,
+        EmployeeResolutionService $employeeResolver
     ) {
         $this->validationService = $validationService;
         $this->overlapService = $overlapService;
@@ -67,6 +71,7 @@ class LeaveController extends Controller
         $this->summaryService = $summaryService;
         $this->approvalService = $approvalService;
         $this->balanceService = $balanceService;
+        $this->employeeResolver = $employeeResolver;
     }
 
     public function index1(): \Inertia\Response
@@ -518,13 +523,27 @@ class LeaveController extends Controller
     {
         try {
             $user = Auth::user();
-            $pendingLeaves = $this->approvalService->getPendingApprovalsForUser($user);
-            $stats = $this->approvalService->getApprovalStats($user);
+            $employee = $this->employeeResolver->resolveFromUserId($user->id);
+            $pendingLeaves = $this->approvalService->getPendingApprovalsForEmployee($employee);
+            $stats = $this->approvalService->getApprovalStats($employee);
 
             return response()->json([
                 'success' => true,
                 'pending_leaves' => $pendingLeaves,
                 'stats' => $stats,
+            ], 200);
+        } catch (\Aero\HRM\Exceptions\UserNotOnboardedException $e) {
+            // User is not onboarded as employee - return empty data gracefully
+            return response()->json([
+                'success' => true,
+                'pending_leaves' => [],
+                'stats' => [
+                    'pending' => 0,
+                    'approved' => 0,
+                    'rejected' => 0,
+                    'total' => 0,
+                ],
+                'message' => 'User is not onboarded as an employee.',
             ], 200);
         } catch (\Throwable $e) {
             report($e);

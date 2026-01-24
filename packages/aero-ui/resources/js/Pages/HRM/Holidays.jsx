@@ -91,20 +91,43 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
   });
   const [loading, setLoading] = useState(false);
 
-  // Enhanced statistics
+  // Compute dynamic stats from current holidays state
+  const dynamicStats = useMemo(() => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    
+    const totalHolidays = holidays.length;
+    // Upcoming = all holidays with date > today (not limited to 90 days)
+    const upcomingHolidays = holidays.filter(h => new Date(h.date) > now).length;
+    const thisMonthHolidays = holidays.filter(h => {
+      const d = new Date(h.date);
+      return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
+    }).length;
+    const thisYearHolidays = holidays.filter(h => new Date(h.date).getFullYear() === currentYear).length;
+    
+    return {
+      total_holidays: totalHolidays,
+      upcoming_holidays: upcomingHolidays,
+      this_month_holidays: thisMonthHolidays,
+      this_year_holidays: thisYearHolidays
+    };
+  }, [holidays]);
+
+  // Enhanced statistics - use dynamic stats computed from current holidays state
   const enhancedStats = useMemo(() => [
     {
       title: "Total Holidays",
-      value: stats.total_holidays,
+      value: dynamicStats.total_holidays,
       icon: <GlobeAltIcon />,
       color: "text-blue-400",
       iconBg: "bg-blue-500/20",
       description: "All company holidays",
-      trend: `${stats.this_year_holidays} this year`
+      trend: `${dynamicStats.this_year_holidays} this year`
     },
     {
       title: "Upcoming",
-      value: stats.upcoming_holidays,
+      value: dynamicStats.upcoming_holidays,
       icon: <ClockIcon />,
       color: "text-green-400",
       iconBg: "bg-green-500/20",
@@ -113,7 +136,7 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
     },
     {
       title: "This Month",
-      value: stats.this_month_holidays,
+      value: dynamicStats.this_month_holidays,
       icon: <CalendarDaysIcon />,
       color: "text-purple-400",
       iconBg: "bg-purple-500/20",
@@ -122,21 +145,21 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
     },
     {
       title: "Working Days",
-      value: 365 - stats.total_holidays,
+      value: 365 - dynamicStats.total_holidays,
       icon: <BuildingOfficeIcon />,
       color: "text-orange-400",
       iconBg: "bg-orange-500/20",
       description: "Business days",
-      trend: `${Math.round(((365 - stats.total_holidays) / 365) * 100)}% of year`
+      trend: `${Math.round(((365 - dynamicStats.total_holidays) / 365) * 100)}% of year`
     }
-  ], [stats]);
+  ], [dynamicStats]);
 
   // Filtered holidays
   const filteredHolidays = useMemo(() => {
     return holidays.filter(holiday => {
       const matchesSearch = holiday.title.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesYear = selectedYear === 'all' || 
-        new Date(holiday.from_date).getFullYear().toString() === selectedYear;
+        new Date(holiday.date).getFullYear().toString() === selectedYear;
       
       return matchesSearch && matchesYear;
     });
@@ -144,7 +167,7 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
 
   // Get available years
   const availableYears = useMemo(() => {
-    const years = [...new Set(holidays.map(h => new Date(h.from_date).getFullYear()))];
+    const years = [...new Set(holidays.map(h => new Date(h.date).getFullYear()))];
     return years.sort((a, b) => b - a);
   }, [holidays]);
 
@@ -161,25 +184,37 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const response = selectedHoliday 
-        ? await axios.put(route('holiday.update', selectedHoliday.id), formData)
-        : await axios.post(route('holiday.store'), formData);
+      // Build submission data matching backend expectations
+      const submitData = {
+        title: formData.title,
+        description: formData.description,
+        fromDate: formData.from_date,
+        toDate: formData.to_date,
+        type: formData.type,
+        is_recurring: formData.is_recurring,
+        is_active: true
+      };
       
-      if (response.data.success) {
-        // Update holidays list
-        if (selectedHoliday) {
-          setHolidays(prev => prev.map(h => 
-            h.id === selectedHoliday.id ? response.data.holiday : h
-          ));
-        } else {
-          setHolidays(prev => [...prev, response.data.holiday]);
-        }
-        
-        showToast.success(selectedHoliday ? 'Holiday updated successfully!' : 'Holiday created successfully!');
+      // Add ID for update operations
+      if (selectedHoliday) {
+        submitData.id = selectedHoliday.id;
+      }
+      
+      // Both create and update use the same endpoint (POST holidays-add)
+      const response = await axios.post(route('hrm.holidays-add'), submitData);
+      
+      if (response.status === 200 && response.data.holidays) {
+        // Update holidays list with response data
+        setHolidays(response.data.holidays);
+        showToast.success(response.data.message || (selectedHoliday ? 'Holiday updated successfully!' : 'Holiday created successfully!'));
         handleModalClose();
       }
     } catch (error) {
-      showToast.error('Failed to save holiday. Please try again.');
+      if (error.response?.status === 422) {
+        showToast.error('Please check the form for validation errors.');
+      } else {
+        showToast.error(error.response?.data?.message || 'Failed to save holiday. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -191,13 +226,21 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
     
     setLoading(true);
     try {
-      await axios.delete(route('holiday.destroy', selectedHoliday.id));
-      setHolidays(prev => prev.filter(h => h.id !== selectedHoliday.id));
-      showToast.success('Holiday deleted successfully!');
+      const response = await axios.delete(route('hrm.holidays-delete'), {
+        data: { id: selectedHoliday.id }
+      });
+      
+      if (response.status === 200 && response.data.holidays) {
+        setHolidays(response.data.holidays);
+      } else {
+        setHolidays(prev => prev.filter(h => h.id !== selectedHoliday.id));
+      }
+      
+      showToast.success(response.data?.message || 'Holiday deleted successfully!');
       onDeleteClose();
       setSelectedHoliday(null);
     } catch (error) {
-      showToast.error('Failed to delete holiday. Please try again.');
+      showToast.error(error.response?.data?.message || 'Failed to delete holiday. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -220,10 +263,16 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
 
   const handleEdit = (holiday) => {
     setSelectedHoliday(holiday);
+    // Format dates for input fields (YYYY-MM-DD format)
+    const formatDate = (dateStr) => {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      return d.toISOString().split('T')[0];
+    };
     setFormData({
       title: holiday.title,
-      from_date: holiday.from_date,
-      to_date: holiday.to_date,
+      from_date: formatDate(holiday.date),
+      to_date: formatDate(holiday.end_date),
       description: holiday.description || '',
       type: holiday.type || 'public',
       is_recurring: holiday.is_recurring || false
@@ -249,8 +298,9 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
   // Render table cell
   const renderCell = useCallback((holiday, columnKey) => {
     const cellValue = holiday[columnKey];
-    const fromDate = new Date(holiday.from_date);
-    const toDate = new Date(holiday.to_date);
+    // Use 'date' and 'end_date' from Holiday model (not from_date/to_date)
+    const fromDate = new Date(holiday.date);
+    const toDate = new Date(holiday.end_date);
     const duration = Math.ceil((toDate - fromDate) / (1000 * 60 * 60 * 24)) + 1;
     const isUpcoming = fromDate > new Date();
     const isOngoing = fromDate <= new Date() && toDate >= new Date();
@@ -277,7 +327,7 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
                 year: fromDate.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
               })}
             </span>
-            {holiday.from_date !== holiday.to_date && (
+            {holiday.date !== holiday.end_date && (
               <span className="text-tiny text-default-400">
                 to {toDate.toLocaleDateString('en-US', { 
                   month: 'short', 

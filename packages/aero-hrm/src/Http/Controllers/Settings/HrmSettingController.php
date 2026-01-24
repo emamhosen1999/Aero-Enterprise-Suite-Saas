@@ -2,7 +2,6 @@
 
 namespace Aero\HRM\Http\Controllers\Settings;
 
-use Aero\Core\Models\Tenant\DMS\DocumentCategory;
 use Aero\HRM\Models\Benefit;
 use Aero\HRM\Models\Checklist;
 use Aero\HRM\Models\Competency;
@@ -12,6 +11,7 @@ use Aero\HRM\Models\SafetyTraining;
 use Aero\HRM\Models\Skill;
 use Aero\HRM\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 
 class HrmSettingController extends Controller
@@ -37,8 +37,14 @@ class HrmSettingController extends Controller
             $activeTab = 4;
         }
 
+        // Get document categories if DMS module is available
+        $documentCategories = [];
+        if (class_exists(\Aero\Dms\Models\DocumentCategory::class) && Schema::hasTable('document_categories')) {
+            $documentCategories = \Aero\Dms\Models\DocumentCategory::all();
+        }
+
         // Load settings data for all tabs
-        return Inertia::render('HRM/Settings/HRMSettings', [
+        return Inertia::render('Settings/HRMSettings', [
             'title' => 'HR Module Settings',
             'activeTab' => $activeTab,
             'onboardingSettings' => [
@@ -57,7 +63,7 @@ class HrmSettingController extends Controller
                 'incidentTypes' => SafetyIncident::select('type')->distinct()->get(),
             ],
             'documentSettings' => [
-                'categories' => DocumentCategory::all(),
+                'categories' => $documentCategories,
             ],
         ]);
     }

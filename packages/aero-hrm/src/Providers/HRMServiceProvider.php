@@ -13,9 +13,9 @@ use Aero\HRM\Models\Attendance;
 use Aero\HRM\Models\AttendanceType;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Designation;
+use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\EmployeeEducation;
 use Aero\HRM\Models\EmployeeWorkExperience;
-use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Leave;
 use Aero\HRM\Services\HrmNotificationChannelResolver;
 use Illuminate\Console\Scheduling\Schedule;
@@ -366,6 +366,7 @@ class HRMServiceProvider extends AbstractModuleProvider
             \Aero\HRM\Models\Employee::class => \Aero\HRM\Policies\EmployeePolicy::class,
             \Aero\HRM\Models\Leave::class => \Aero\HRM\Policies\LeavePolicy::class,
             \Aero\HRM\Models\Attendance::class => \Aero\HRM\Policies\AttendancePolicy::class,
+            \Aero\HRM\Models\SafetyInspection::class => \Aero\HRM\Policies\SafetyInspectionPolicy::class,
         ];
 
         foreach ($policies as $model => $policy) {

@@ -67,7 +67,7 @@ const TimeOff = ({ title, requests = [] }) => {
             icon={<CalendarDaysIcon className="w-6 h-6" />}
             iconColorClass="text-primary"
             iconBgClass="bg-primary/20"
-            stats={statsData}
+            stats={<StatsCards stats={statsData} />}
             actions={
                 <Button color="primary" variant="shadow" startContent={<PlusIcon className="w-4 h-4" />} size={isMobile ? "sm" : "md"}>
                     Request Time-Off

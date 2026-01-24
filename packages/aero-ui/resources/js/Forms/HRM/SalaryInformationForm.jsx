@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Card, CardHeader, Divider, Select} from '@heroui/react';
 import {showToast} from "@/utils/toastUtils"; // Using consistent toast utility
+import { safeRoute } from "@/utils/routeUtils";
 
 
 const SalaryInformationForm = ({user, setUser}) => {
@@ -108,7 +109,7 @@ const SalaryInformationForm = ({user, setUser}) => {
         setProcessing(true);
 
         try {
-            const response = await axios.post(route('profile.update'), {
+            const response = await axios.post(safeRoute('profile.update', {}, '/hrm/profile/update'), {
                 ruleSet: 'salary',
                 ...initialUserData,
             });

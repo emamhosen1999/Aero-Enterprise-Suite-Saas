@@ -4,6 +4,7 @@ import { Button, Chip, Table, TableHeader, TableColumn, TableBody, TableRow, Tab
 import { BanknotesIcon, ArrowDownTrayIcon, CalendarIcon, CurrencyDollarIcon } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
+import StatsCards from '@/Components/StatsCards.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
 import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
 
@@ -73,7 +74,7 @@ const Payslips = ({ title, payslips = [] }) => {
             icon={BanknotesIcon}
             iconColorClass="text-success"
             iconBgClass="bg-success/20"
-            stats={statsData}
+            stats={<StatsCards stats={statsData} />}
             ariaLabel="My Payslips"
         >
             {payslips.length > 0 ? (

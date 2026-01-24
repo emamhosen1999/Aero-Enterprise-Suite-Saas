@@ -76,7 +76,7 @@ const Benefits = ({ title, benefits = [] }) => {
             icon={<GiftIcon className="w-6 h-6" />}
             iconColorClass="text-primary"
             iconBgClass="bg-primary/20"
-            stats={statsData}
+            stats={<StatsCards stats={statsData} />}
             ariaLabel="My Benefits"
         >
             {benefits.length > 0 ? (

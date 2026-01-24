@@ -69,7 +69,7 @@ const Designations = ({ title, initialDesignations, departments, managers, paren
     const [filters, setFilters] = useState({
         search: initialFilters?.search || '',
         status: initialFilters?.status || 'all',
-        department: initialFilters?.department || defaultDepartment,
+        department: initialFilters?.department || 'all',
         parentDesignation: initialFilters?.parentDesignation || 'all'
     });
     const [showFilters, setShowFilters] = useState(false);

@@ -83,4 +83,12 @@ class EmployeeSelfServiceController extends Controller
             'reviews' => [],
         ]);
     }
+
+    public function careerPath()
+    {
+        return Inertia::render('HRM/SelfService/CareerPath', [
+            'title' => 'My Career Path',
+            'careerPaths' => [],
+        ]);
+    }
 }
