@@ -11,6 +11,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
+import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import TrainingSessionsTable from '@/Tables/HRM/TrainingSessionsTable.jsx';
 import TrainingForm from '@/Forms/HRM/TrainingForm.jsx';
@@ -362,4 +363,5 @@ const TrainingIndex = ({ title, categories: initialCategories, trainers: initial
     );
 };
 
+TrainingIndex.layout = (page) => <App children={page} />;
 export default TrainingIndex;

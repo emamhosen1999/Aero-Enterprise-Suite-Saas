@@ -34,6 +34,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
+import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
 import { showToast } from '@/utils/toastUtils.jsx';
@@ -416,4 +417,5 @@ const OffboardingIndex = ({ title }) => {
     );
 };
 
+OffboardingIndex.layout = (page) => <App children={page} />;
 export default OffboardingIndex;

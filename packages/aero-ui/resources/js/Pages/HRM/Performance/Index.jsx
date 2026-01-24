@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
-import { motion } from 'framer-motion';
 import { Button, Input, Select, SelectItem, Pagination, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Textarea } from "@heroui/react";
 import { 
     ChartBarIcon,
@@ -13,6 +12,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
+import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import PerformanceReviewsTable from '@/Tables/HRM/PerformanceReviewsTable.jsx';
 import axios from 'axios';
@@ -382,4 +382,5 @@ const PerformanceIndex = ({ title, employees: initialEmployees, templates: initi
     );
 };
 
+PerformanceIndex.layout = (page) => <App children={page} />;
 export default PerformanceIndex;

@@ -40,6 +40,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
+import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
@@ -650,4 +651,5 @@ const RecruitmentIndex = ({ title, jobs: initialJobs, departments: initialDepart
     );
 };
 
+RecruitmentIndex.layout = (page) => <App children={page} />;
 export default RecruitmentIndex;

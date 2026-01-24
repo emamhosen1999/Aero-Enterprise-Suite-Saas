@@ -26,6 +26,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
+import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import GoalsTable from '@/Tables/HRM/GoalsTable.jsx';
 import GoalForm from '@/Forms/HRM/GoalForm.jsx';
@@ -485,4 +486,5 @@ const GoalsIndex = ({ title, employees: initialEmployees, categories: initialCat
     );
 };
 
+GoalsIndex.layout = (page) => <App children={page} />;
 export default GoalsIndex;

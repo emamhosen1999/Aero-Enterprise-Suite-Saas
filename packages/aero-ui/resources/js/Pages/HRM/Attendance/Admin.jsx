@@ -30,26 +30,9 @@ import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import AttendanceAdminTable from '@/Tables/HRM/AttendanceAdminTable.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
 import { useThemeRadius } from '@/Hooks/useThemeRadius';
-import { motion } from 'framer-motion';
 import axios from "axios";
 import { showToast } from "@/utils/toastUtils";
 import dayjs from "dayjs";
-
-// Theme utility function
-const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 12) return 'lg';
-    return 'xl';
-};
-
 
 const AttendanceAdmin = React.memo(({title}) => {
     const themeRadius = useThemeRadius();

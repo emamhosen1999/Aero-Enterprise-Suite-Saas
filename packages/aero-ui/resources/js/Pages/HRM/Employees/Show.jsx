@@ -246,7 +246,7 @@ const AttendanceEmployee = React.memo(({ title, totalWorkingDays, presentDays, a
                                                     onChange={(e) => handleFilterChange('currentMonth', e.target.value)}
                                                     variant="bordered"
                                                     size="sm"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     startContent={<CalendarDaysIcon className="w-4 h-4 text-default-400" />}
                                                     classNames={{ input: "text-sm" }}
                                                     style={{ fontFamily: `var(--fontFamily, "Inter")` }}

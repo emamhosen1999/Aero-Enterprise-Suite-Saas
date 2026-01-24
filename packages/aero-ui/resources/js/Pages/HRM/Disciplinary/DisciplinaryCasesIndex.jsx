@@ -11,6 +11,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
+import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import DisciplinaryCasesTable from '@/Tables/HRM/DisciplinaryCasesTable.jsx';
 import DisciplinaryCaseForm from '@/Forms/HRM/DisciplinaryCaseForm.jsx';
@@ -399,4 +400,5 @@ const DisciplinaryCasesIndex = ({ title, actionTypes: initialActionTypes, employ
     );
 };
 
+DisciplinaryCasesIndex.layout = (page) => <App children={page} />;
 export default DisciplinaryCasesIndex;

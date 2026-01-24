@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
-import { motion } from 'framer-motion';
 import { Button, Card, CardBody, CardHeader, Select, SelectItem, Skeleton, Progress, Chip } from "@heroui/react";
 import { 
     ArrowPathIcon,
@@ -16,6 +15,7 @@ import {
     ExclamationTriangleIcon
 } from "@heroicons/react/24/outline";
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
+import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
@@ -474,4 +474,5 @@ const AnalyticsIndex = ({ title }) => {
     );
 };
 
+AnalyticsIndex.layout = (page) => <App children={page} />;
 export default AnalyticsIndex;

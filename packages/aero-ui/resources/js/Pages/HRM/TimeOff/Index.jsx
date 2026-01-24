@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
-import { motion } from 'framer-motion';
 import { 
     Button, 
     Card, 

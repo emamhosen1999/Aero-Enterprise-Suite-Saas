@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
-import { motion } from 'framer-motion';
 import { 
     Button, 
     Input, 
@@ -28,6 +27,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
+import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import SkillsTable from '@/Tables/HRM/SkillsTable.jsx';
 import SkillForm from '@/Forms/HRM/SkillForm.jsx';
@@ -529,4 +529,5 @@ const SkillsIndex = ({ title, employees: initialEmployees, categories: initialCa
     );
 };
 
+SkillsIndex.layout = (page) => <App children={page} />;
 export default SkillsIndex;

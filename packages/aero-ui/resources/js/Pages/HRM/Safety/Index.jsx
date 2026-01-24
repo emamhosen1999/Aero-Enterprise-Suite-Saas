@@ -27,6 +27,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
+import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import SafetyIncidentsTable from '@/Tables/HRM/SafetyIncidentsTable.jsx';
 import SafetyIncidentForm from '@/Forms/HRM/SafetyIncidentForm.jsx';
@@ -537,4 +538,5 @@ const SafetyIndex = ({ title, employees: initialEmployees, locations: initialLoc
     );
 };
 
+SafetyIndex.layout = (page) => <App children={page} />;
 export default SafetyIndex;

@@ -27,6 +27,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
+import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import BenefitsTable from '@/Tables/HRM/BenefitsTable.jsx';
 import BenefitForm from '@/Forms/HRM/BenefitForm.jsx';
@@ -509,4 +510,5 @@ const BenefitsIndex = ({ title, employees: initialEmployees, benefitTypes: initi
     );
 };
 
+BenefitsIndex.layout = (page) => <App children={page} />;
 export default BenefitsIndex;

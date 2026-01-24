@@ -110,6 +110,7 @@ const DepartmentNode = ({ department, allDepartments, level = 0, expandedNodes, 
 
 const OrgChart = ({ title, departments, rootDepartments, stats }) => {
     const { auth } = usePage().props;
+    const themeRadius = useThemeRadius();
     
     // HRMAC permissions
     const { hasAccess, canUpdate, isSuperAdmin } = useHRMAC();
@@ -312,7 +313,7 @@ const OrgChart = ({ title, departments, rootDepartments, stats }) => {
                                                 inputWrapper: "bg-default-100"
                                             }}
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             className="max-w-md"
                                         />
                                     </div>
