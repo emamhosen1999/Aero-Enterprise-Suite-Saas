@@ -299,8 +299,9 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
   const renderCell = useCallback((holiday, columnKey) => {
     const cellValue = holiday[columnKey];
     // Use 'date' and 'end_date' from Holiday model (not from_date/to_date)
+    // Fall back to 'date' if 'end_date' is null/empty
     const fromDate = new Date(holiday.date);
-    const toDate = new Date(holiday.end_date);
+    const toDate = holiday.end_date ? new Date(holiday.end_date) : fromDate;
     const duration = Math.ceil((toDate - fromDate) / (1000 * 60 * 60 * 24)) + 1;
     const isUpcoming = fromDate > new Date();
     const isOngoing = fromDate <= new Date() && toDate >= new Date();
@@ -327,7 +328,7 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
                 year: fromDate.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
               })}
             </span>
-            {holiday.date !== holiday.end_date && (
+            {holiday.end_date && holiday.date !== holiday.end_date && (
               <span className="text-tiny text-default-400">
                 to {toDate.toLocaleDateString('en-US', { 
                   month: 'short', 

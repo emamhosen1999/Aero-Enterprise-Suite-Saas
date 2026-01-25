@@ -4,6 +4,7 @@ namespace Aero\HRM\Services;
 
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Leave;
+use Aero\HRM\Models\LeaveSetting;
 use App\Notifications\LeaveApprovalNotification;
 use App\Notifications\LeaveApprovedNotification;
 use App\Notifications\LeaveRejectedNotification;
@@ -357,7 +358,7 @@ class LeaveApprovalService
     protected function getSpecialLeaveTypes(): array
     {
         // Get IDs for maternity, paternity, unpaid leave, etc.
-        return \App\Models\LeaveSetting::whereIn('leave_type', [
+        return LeaveSetting::whereIn('name', [
             'Maternity Leave',
             'Paternity Leave',
             'Unpaid Leave',

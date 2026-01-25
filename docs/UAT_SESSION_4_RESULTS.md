@@ -13,12 +13,12 @@
 
 | Metric | Count |
 |--------|-------|
-| **Tests Passed** | 77 |
+| **Tests Passed** | 80 |
 | **Tests Failed** | 0 |
-| **Tests Not Started** | ~79 |
-| **New Scenarios Added** | 16 |
-| **Bugs Fixed** | 13 |
-| **CRUD Tests Passed** | 7 |
+| **Tests Not Started** | ~104 |
+| **New Scenarios Added** | 18 |
+| **Bugs Fixed** | 20 |
+| **CRUD Tests Passed** | 12 |
 
 ### Additional Tests Completed (Session 4 Continued)
 
@@ -61,6 +61,12 @@
 | **CRUD-HOL-001** | **Holidays** | **Create** | **✅ Created "Test UAT Holiday" (2026-01-15), success toast "Holiday added successfully", count 4→5** |
 | **CRUD-HOL-002** | **Holidays** | **Update** | **✅ Updated to "Test UAT Holiday - UPDATED", success toast "Holiday updated successfully"** |
 | **CRUD-HOL-003** | **Holidays** | **Delete** | **✅ Deleted "Test UAT Holiday - UPDATED", confirmation modal, success toast "Holiday deleted successfully"** |
+| **CRUD-DES-001** | **Designations** | **Create** | **✅ Created "Test UAT Designation" in UAT Test Department, success toast shown** |
+| **CRUD-DES-002** | **Designations** | **Update** | **✅ Updated to "Test UAT Designation - UPDATED", success toast shown** |
+| **CRUD-DES-003** | **Designations** | **Delete** | **✅ Deleted test designation, confirmation modal, success toast shown** |
+| **CRUD-LEAVE-001** | **Leave Management** | **Create** | **✅ Created leave for Admin User: Apr 1-5 2026, 5 days. Fixed Bugs #20-#24 (schema mismatches)** |
+| **CRUD-LEAVE-002** | **Leave Management** | **Update** | **✅ Extended leave to Apr 5, updated reason. Success toast displayed** |
+| **CRUD-LEAVE-003** | **Leave Management** | **Delete** | **✅ Deleted leave ID 1. Fixed Bug #25 (route prefix), Bug #26 (paginator return type)** |
 
 ### Bug Fixes Applied This Session (All Complete)
 
@@ -73,6 +79,13 @@
 | SAFE-001 | 403 → 500 DB error | Created SafetyInspectionPolicy + Migration for deleted_at column | ✅ Fixed |
 | SELF-007 | /self-service/career-path 404 | Added route + controller method + CareerPath.jsx component | ✅ Fixed |
 | SETTINGS-001 | /settings 404 | Added redirect route to /settings/hr/onboarding | ✅ Fixed |
+| **BUG-020** | **LeaveController using User model for balance** | **Changed to use Employee model** | **✅ Fixed** |
+| **BUG-021** | **LeaveCrudService using leave_settings.type** | **Changed to use leave_settings.name column** | **✅ Fixed** |
+| **BUG-022** | **LeaveApprovalService namespace/column errors** | **Fixed namespace and column reference** | **✅ Fixed** |
+| **BUG-023** | **LeaveSummaryService using leave_settings.type** | **Changed to use leave_settings.name column** | **✅ Fixed** |
+| **BUG-024** | **LeaveQueryService using designations.name** | **Changed to use designations.title column** | **✅ Fixed** |
+| **BUG-025** | **DeleteLeaveForm.jsx missing route prefix** | **Changed route('leave-delete') to route('hrm.leave-delete')** | **✅ Fixed** |
+| **BUG-026** | **LeaveQueryService returning collect() not paginator** | **Changed to LengthAwarePaginator for ->total() compatibility** | **✅ Fixed** |
 | SETTINGS-002 | safety_incidents missing 'type' column | Created migration to add 'type' column | ✅ Fixed |
 | SETTINGS-003 | HRMSettings.jsx Box/MUI component errors | Rewrote component with HeroUI components | ✅ Fixed |
 | **HOL-ROUTES** | **Holidays CRUD using wrong routes** | **Fixed Holidays.jsx to use `hrm.holidays-add` and `hrm.holidays-delete`** | **✅ Fixed** |

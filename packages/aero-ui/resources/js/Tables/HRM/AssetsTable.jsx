@@ -32,6 +32,13 @@ const statusColorMap = {
     lost: "danger",
 };
 
+const formatDate = (dateValue) => {
+    if (!dateValue) return '-';
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) return '-';
+    return date.toLocaleDateString();
+};
+
 const AssetsTable = ({
     assets = [],
     loading = false,
@@ -100,7 +107,7 @@ const AssetsTable = ({
                             <>
                                 <p className="text-sm font-semibold">{asset.current_allocation.employee?.name}</p>
                                 <p className="text-xs text-default-400">
-                                    Since {new Date(asset.current_allocation.allocated_at).toLocaleDateString()}
+                                    Since {formatDate(asset.current_allocation.allocated_at)}
                                 </p>
                             </>
                         ) : (

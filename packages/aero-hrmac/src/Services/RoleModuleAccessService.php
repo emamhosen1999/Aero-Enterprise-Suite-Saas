@@ -195,6 +195,68 @@ class RoleModuleAccessService implements RoleModuleAccessInterface
     }
 
     /**
+     * Check if a user (through their roles) can perform a specific action by codes.
+     *
+     * @param mixed $user The user to check
+     * @param string $moduleCode The module code (e.g., 'hrm')
+     * @param string $subModuleCode The sub-module code (e.g., 'leaves')
+     * @param string $actionCode The action code (e.g., 'view_all', 'approve', 'manage')
+     * @return bool
+     */
+    public function userCanAccessAction(mixed $user, string $moduleCode, string $subModuleCode, string $actionCode): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        // Super admin bypasses all checks
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // First check if user has sub-module level access (which grants all actions)
+        if ($this->userCanAccessSubModule($user, $moduleCode, $subModuleCode)) {
+            return true;
+        }
+
+        // Get the module hierarchy
+        $module = Module::where('code', $moduleCode)->where('is_active', true)->first();
+        if (! $module) {
+            return false;
+        }
+
+        $subModule = SubModule::where('module_id', $module->id)
+            ->where('code', $subModuleCode)
+            ->where('is_active', true)
+            ->first();
+        if (! $subModule) {
+            return false;
+        }
+
+        // Find action by code in any component of this sub-module
+        $action = Action::where('code', $actionCode)
+            ->where('is_active', true)
+            ->whereHas('component', function ($q) use ($subModule) {
+                $q->where('sub_module_id', $subModule->id)->where('is_active', true);
+            })
+            ->first();
+
+        if (! $action) {
+            // Action doesn't exist in the system - return false (no access)
+            return false;
+        }
+
+        // Check each of user's roles for action access
+        foreach ($user->roles as $role) {
+            if ($this->canAccessAction($role, $action->id)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Get the first accessible route for a user.
      * Used for smart landing page redirects.
      */

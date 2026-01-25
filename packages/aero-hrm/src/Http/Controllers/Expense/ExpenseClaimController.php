@@ -47,15 +47,31 @@ class ExpenseClaimController extends Controller
             'amount' => 'required|numeric|min:0',
             'expense_date' => 'required|date',
             'description' => 'required|string',
+            'employee_id' => 'nullable|exists:employees,id',
         ]);
 
-        $employee = Employee::where('user_id', $request->user()->id)->firstOrFail();
+        // Try to get employee from form data first, then from user association
+        $employeeId = $validated['employee_id'] ?? null;
+        if (! $employeeId) {
+            $employee = Employee::where('user_id', $request->user()->id)->first();
+            if (! $employee) {
+                return response()->json([
+                    'message' => 'No employee record associated with your account. Please contact HR.',
+                    'errors' => ['employee_id' => ['No employee record found for current user.']],
+                ], 422);
+            }
+            $employeeId = $employee->id;
+        }
 
-        $claim = ExpenseClaim::create(array_merge($validated, [
-            'employee_id' => $employee->id,
+        $claim = ExpenseClaim::create([
+            'category_id' => $validated['category_id'],
+            'amount' => $validated['amount'],
+            'expense_date' => $validated['expense_date'],
+            'description' => $validated['description'],
+            'employee_id' => $employeeId,
             'claim_number' => ExpenseClaim::generateClaimNumber(),
             'status' => 'draft',
-        ]));
+        ]);
 
         return response()->json(['message' => 'Expense claim created', 'claim' => $claim], 201);
     }

@@ -6,6 +6,7 @@ use Aero\HRM\Models\Payroll;
 use Aero\HRM\Models\PayrollAllowance;
 use Aero\HRM\Models\PayrollDeduction;
 use Aero\HRM\Models\Payslip;
+use Aero\HRM\Models\Employee;
 use Aero\HRM\Services\PayrollCalculationService;
 use Aero\HRM\Services\PayrollReportService;
 use Aero\HRM\Services\PayslipService;
@@ -34,7 +35,13 @@ class PayrollController extends Controller
 
     public function create()
     {
-        $employees = User::role('Employee')->select('id', 'name', 'employee_id', 'email')->get();
+        $employees = Employee::active()->with('user:id,name,email')->get()
+            ->map(fn ($emp) => [
+                'id' => $emp->user_id,
+                'name' => $emp->user->name ?? '',
+                'employee_id' => $emp->employee_code,
+                'email' => $emp->user->email ?? '',
+            ]);
 
         return Inertia::render('HRM/Payroll/Create', [
             'title' => 'Generate Payroll',
@@ -384,7 +391,13 @@ class PayrollController extends Controller
 
     public function bulk()
     {
-        $employees = User::role('Employee')->select('id', 'name', 'employee_id', 'email')->get();
+        $employees = Employee::active()->with('user:id,name,email')->get()
+            ->map(fn ($emp) => [
+                'id' => $emp->user_id,
+                'name' => $emp->user->name ?? '',
+                'employee_id' => $emp->employee_code,
+                'email' => $emp->user->email ?? '',
+            ]);
 
         return Inertia::render('HRM/Payroll/Bulk', [
             'title' => 'Bulk Payroll Generation',

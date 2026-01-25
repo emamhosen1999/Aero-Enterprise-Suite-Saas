@@ -173,7 +173,7 @@ const EnhancedProfileCard = ({
               </div>
               <div>
                 <p className="text-xs text-default-500">Employee ID</p>
-                <p className="text-sm font-medium text-foreground">{user.employee_id || 'N/A'}</p>
+                <p className="text-sm font-medium text-foreground">{user.employee_code || user.employee_id || 'N/A'}</p>
               </div>
             </div>
 

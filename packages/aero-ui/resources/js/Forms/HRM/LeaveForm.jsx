@@ -148,14 +148,16 @@ const LeaveForm = ({
             
             // Set initial leave type if not set and we have leave types (only for new leaves)
             if (newLeaveTypes.length > 0 && !leaveType && !currentLeave) {
-                setLeaveType(newLeaveTypes[0].type);
+                // Support both 'type' (legacy) and 'name' (current) field names
+                setLeaveType(newLeaveTypes[0].type || newLeaveTypes[0].name);
             }
             
             // For edit mode, ensure leave type is set from current leave
             if (currentLeave && !leaveType) {
                 const leaveTypeFromSettings = newLeaveTypes?.find(lt => lt.id === currentLeave.leave_type);
                 if (leaveTypeFromSettings) {
-                    setLeaveType(leaveTypeFromSettings.type);
+                    // Support both 'type' (legacy) and 'name' (current) field names
+                    setLeaveType(leaveTypeFromSettings.type || leaveTypeFromSettings.name);
                 }
             }
         }
@@ -183,10 +185,12 @@ const LeaveForm = ({
         const daysUsed = leaveCount?.days_used || 0;
         setDaysUsed(daysUsed);
 
-        // Find the leave type definition
-        const selectedLeaveType = leaveTypes.find(lt => lt.type === leaveType);
+        // Find the leave type definition (support both 'type' and 'name' field names)
+        const selectedLeaveType = leaveTypes.find(lt => (lt.type || lt.name) === leaveType);
         if (selectedLeaveType) {
-            const remaining = selectedLeaveType.days - daysUsed;
+            // Support both 'days' (legacy) and 'annual_quota' (current) field names
+            const totalDays = selectedLeaveType.days || selectedLeaveType.annual_quota || 0;
+            const remaining = totalDays - daysUsed;
             setRemainingLeaves(remaining);
             
             // If editing and days exceed remaining, adjust the days count
@@ -235,7 +239,7 @@ const LeaveForm = ({
                     month: selectedMonth,
                 };
 
-                const apiRoute = currentLeave ? route('leave-update') : route('leave-add');
+                const apiRoute = currentLeave ? route('hrm.leave-update') : route('hrm.leave-add');
 
                 if (currentLeave) {
                     data.id = currentLeave.id;
@@ -401,24 +405,28 @@ const LeaveForm = ({
                                             }}
                                         >
                                             {leaveTypes.map((type) => {
-                                                const leaveCount = leaveCounts?.find(lc => lc.leave_type === type.type);
-                                                const remaining = leaveCount ? (type.days - leaveCount.days_used) : type.days;
+                                                // Support both 'type' (legacy) and 'name' (current) field names
+                                                const typeName = type.type || type.name || 'Unknown';
+                                                // Support both 'days' (legacy) and 'annual_quota' (current) field names
+                                                const totalDays = type.days || type.annual_quota || 0;
+                                                const leaveCount = leaveCounts?.find(lc => lc.leave_type === typeName);
+                                                const remaining = leaveCount ? (totalDays - leaveCount.days_used) : totalDays;
                                                 const isDisabled = remaining <= 0;
                                                 
                                                 return (
                                                     <SelectItem 
-                                                        key={type.type} 
-                                                        value={type.type}
+                                                        key={typeName} 
+                                                        value={typeName}
                                                         isDisabled={isDisabled}
                                                         title={isDisabled ? 'No remaining leaves available' : ''}
-                                                        textValue={type.type}
+                                                        textValue={typeName}
                                                     >
                                                         <div className="flex justify-between w-full">
-                                                            <span>{type.type}</span>
+                                                            <span>{typeName}</span>
                                                             <span className="text-small text-default-500">
                                                                 {leaveCount ? 
-                                                                    `${leaveCount.days_used} / ${type.days} days` : 
-                                                                    `${type.days} days`}
+                                                                    `${leaveCount.days_used} / ${totalDays} days` : 
+                                                                    `${totalDays} days`}
                                                             </span>
                                                         </div>
                                                     </SelectItem>
@@ -499,7 +507,10 @@ const LeaveForm = ({
                                     <div className="col-span-1">
                                         <Input
                                             label="Remaining Leaves"
-                                            value={`${remainingLeaves} day${remainingLeaves !== 1 ? 's' : ''} of ${leaveTypes.find(lt => lt.type === leaveType)?.days || 0} total`}
+                                            value={`${remainingLeaves} day${remainingLeaves !== 1 ? 's' : ''} of ${(() => {
+                                                const lt = leaveTypes.find(lt => (lt.type || lt.name) === leaveType);
+                                                return lt?.days || lt?.annual_quota || 0;
+                                            })()} total`}
                                             isReadOnly
                                             isInvalid={Boolean(errors.remainingLeaves)}
                                             errorMessage={errors.remainingLeaves}

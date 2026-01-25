@@ -33,15 +33,15 @@ class LeaveSummaryService
         $employees = $employeesQuery->get();
 
         // Get leave types (exclude Weekend)
-        $leaveTypes = LeaveSetting::where('type', '!=', 'Weekend')
+        $leaveTypes = LeaveSetting::where('name', '!=', 'Weekend')
             ->when($leaveTypeFilter, fn ($q) => $q->where('id', $leaveTypeFilter))
-            ->orderBy('type')
+            ->orderBy('name')
             ->get();
 
         // Get leaves with optimized query - filter by employee_id when available
         $leavesQuery = Leave::with(['leaveSetting', 'employee.department'])
             ->whereYear('from_date', $year)
-            ->whereHas('leaveSetting', fn ($q) => $q->where('type', '!=', 'Weekend'))
+            ->whereHas('leaveSetting', fn ($q) => $q->where('name', '!=', 'Weekend'))
             ->when($departmentId, fn ($q) => $q->whereHas('employee', fn ($eq) => $eq->where('department_id', $departmentId)))
             ->when($employeeId, fn ($q) => $q->whereHas('employee', fn ($eq) => $eq->where('id', $employeeId)))
             ->when($statusFilter, fn ($q) => $q->where('status', $statusFilter))

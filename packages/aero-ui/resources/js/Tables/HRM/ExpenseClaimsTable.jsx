@@ -34,6 +34,13 @@ const statusColorMap = {
     cancelled: "default",
 };
 
+const formatDate = (dateValue) => {
+    if (!dateValue) return '-';
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) return '-';
+    return date.toLocaleDateString();
+};
+
 const ExpenseClaimsTable = ({
     claims = [],
     loading = false,
@@ -86,7 +93,7 @@ const ExpenseClaimsTable = ({
             case "claim_date":
                 return (
                     <div className="flex flex-col">
-                        <p className="text-sm">{new Date(claim.claim_date).toLocaleDateString()}</p>
+                        <p className="text-sm">{formatDate(claim.claim_date)}</p>
                     </div>
                 );
             case "status":

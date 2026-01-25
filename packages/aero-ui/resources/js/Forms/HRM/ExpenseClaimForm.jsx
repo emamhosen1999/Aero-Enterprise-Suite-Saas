@@ -31,10 +31,19 @@ const ExpenseClaimForm = ({ claim, categories, open, closeModal, onSuccess, edit
     const themeRadius = getThemeRadius();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const form = useForm('post', editMode ? route('hrm.expenses.update', claim?.id) : route('hrm.expenses.store'), {
+    // Format expense_date properly for HTML date input (YYYY-MM-DD)
+    const formatDateForInput = (dateValue) => {
+        if (!dateValue) return new Date().toISOString().split('T')[0];
+        // Handle ISO string or date object
+        const date = new Date(dateValue);
+        if (isNaN(date.getTime())) return new Date().toISOString().split('T')[0];
+        return date.toISOString().split('T')[0];
+    };
+
+    const form = useForm(editMode ? 'put' : 'post', editMode ? route('hrm.expenses.update', claim?.id) : route('hrm.expenses.store'), {
         category_id: claim?.category_id || '',
         amount: claim?.amount || '',
-        expense_date: claim?.expense_date || new Date().toISOString().split('T')[0],
+        expense_date: formatDateForInput(claim?.expense_date),
         description: claim?.description || '',
     });
 

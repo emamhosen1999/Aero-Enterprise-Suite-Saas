@@ -37,7 +37,7 @@ class AttendanceController extends Controller
     public function index1(): \Inertia\Response
     {
         return Inertia::render('HRM/Attendance/Admin', [
-            'allUsers' => User::role('Employee')->get(),
+            'allUsers' => Employee::active()->with('user')->get(),
             'title' => 'Attendances of Employees',
         ]);
     }
@@ -703,21 +703,25 @@ class AttendanceController extends Controller
         $page = $request->get('employee') != '' ? 1 : (int) $request->get('page', 1);
         $employee = $request->get('employee', '');
         try {
-            // Get all users with Employee role
-            $allUsersQuery = User::role('Employee');
+            // Get all active employees with their user data
+            $allEmployeesQuery = Employee::active()->with('user');
 
-            // Apply employee search filter to all users if provided
+            // Apply employee search filter to all employees if provided
             if ($employee !== '') {
-                $allUsersQuery->where(function ($query) use ($employee) {
-                    $query->where('name', 'like', '%'.$employee.'%')
-                        ->orWhere('employee_id', 'like', '%'.$employee.'%');
+                $allEmployeesQuery->where(function ($query) use ($employee) {
+                    $query->where('employee_code', 'like', '%'.$employee.'%')
+                        ->orWhereHas('user', function ($q) use ($employee) {
+                            $q->where('name', 'like', '%'.$employee.'%');
+                        });
                 });
             }
 
-            $allUsers = $allUsersQuery->get();
+            $allEmployees = $allEmployeesQuery->get();
+            $allUsers = $allEmployees->map(fn ($emp) => $emp->user)->filter();
 
-            // Get users who have attendance for the selected date
-            $usersWithAttendanceQuery = User::role('Employee')
+            // Get user IDs of active employees who have attendance for the selected date
+            $employeeUserIds = $allEmployees->pluck('user_id');
+            $usersWithAttendanceQuery = User::whereIn('id', $employeeUserIds)
                 ->whereHas('attendances', function ($query) use ($selectedDate) {
                     $query->whereNotNull('punchin')
                         ->whereDate('date', $selectedDate);
@@ -1000,8 +1004,11 @@ class AttendanceController extends Controller
         $employee = $request->get('employee', '');
 
         try {
+            // Get all active employees' user IDs
+            $employeeUserIds = Employee::active()->pluck('user_id');
+
             // Get users who have attendance for the selected date
-            $usersWithAttendanceQuery = User::role('Employee')
+            $usersWithAttendanceQuery = User::whereIn('id', $employeeUserIds)
                 ->whereHas('attendances', function ($query) use ($selectedDate) {
                     $query->whereNotNull('punchin')
                         ->whereDate('date', $selectedDate);
@@ -1010,8 +1017,7 @@ class AttendanceController extends Controller
             // Apply employee search filter if provided
             if ($employee !== '') {
                 $usersWithAttendanceQuery->where(function ($query) use ($employee) {
-                    $query->where('name', 'like', '%'.$employee.'%')
-                        ->orWhere('employee_id', 'like', '%'.$employee.'%');
+                    $query->where('name', 'like', '%'.$employee.'%');
                 });
             }
 
@@ -1128,12 +1134,13 @@ class AttendanceController extends Controller
         $selectedDate = Carbon::parse($request->query('date'))->format('Y-m-d');
 
         try {
-
-            // When not searching, get all users with Employee role
-            $allUsers = User::role('Employee')->get();
+            // Get all active employees with their user data
+            $allEmployees = Employee::active()->with('user')->get();
+            $allUsers = $allEmployees->map(fn ($emp) => $emp->user)->filter();
+            $employeeUserIds = $allEmployees->pluck('user_id');
 
             // Get IDs of users who have attendance for the selected date
-            $presentUserIds = User::role('Employee')
+            $presentUserIds = User::whereIn('id', $employeeUserIds)
                 ->whereHas('attendances', function ($query) use ($selectedDate) {
                     $query->whereNotNull('punchin')
                         ->whereDate('date', $selectedDate);
@@ -1211,9 +1218,9 @@ class AttendanceController extends Controller
             $calendarWorkingDays = max(0, $totalDaysInMonth - $holidaysCount - $weekendCount);
 
             // 4. EMPLOYEE COUNT
-            // If Global: 17 employees. If Single: 1 employee.
+            // If Global: Count all active employees. If Single: 1 employee.
             $totalEmployees = $isGlobalScope
-                ? User::role('Employee')->where('active', 1)->count()
+                ? Employee::where('status', 'active')->count()
                 : 1;
 
             // 5. FETCH DATA (Scoped)
@@ -1950,7 +1957,9 @@ class AttendanceController extends Controller
         $to = $from->copy()->endOfMonth();
         $monthName = $from->format('F Y');
 
-        $users = User::with(['attendances', 'leaves'])->role('Employee')->where('active', 1)->get();
+        // Get all active employees with their user and related data
+        $employeeUserIds = Employee::active()->pluck('user_id');
+        $users = User::with(['attendances', 'leaves'])->whereIn('id', $employeeUserIds)->get();
         $leaveTypes = LeaveSetting::all();
         $holidays = Holiday::all();
 

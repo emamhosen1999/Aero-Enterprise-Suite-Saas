@@ -5,6 +5,7 @@ namespace Aero\HRM\Http\Controllers\Leave;
 use Aero\HRM\Http\Resources\LeaveResource;
 use Aero\HRM\Http\Resources\LeaveResourceCollection;
 use Aero\HRM\Models\Department;
+use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Leave;
 use Aero\HRM\Models\LeaveSetting;
 use Aero\HRM\Events\Leave\LeaveApproved;
@@ -164,8 +165,8 @@ class LeaveController extends Controller
             $daysCount = $request->input('daysCount');
             $leaveTypeString = $request->input('leaveType');
 
-            // Get leave type ID
-            $leaveTypeId = LeaveSetting::where('type', $leaveTypeString)->value('id');
+            // Get leave type ID (support both 'name' and 'type' columns for compatibility)
+            $leaveTypeId = LeaveSetting::where('name', $leaveTypeString)->value('id');
             if (! $leaveTypeId) {
                 return response()->json([
                     'success' => false,
@@ -174,8 +175,9 @@ class LeaveController extends Controller
             }
 
             // Check for sufficient leave balance
-            $user = $this->userModel()::findOrFail($userId);
-            if (! $this->balanceService->hasSufficientBalance($user, $leaveTypeId, $daysCount, $fromDate->year)) {
+            // Get the Employee record for balance checking (LeaveBalanceService requires Employee model)
+            $employee = Employee::where('user_id', $userId)->first();
+            if ($employee && ! $this->balanceService->hasSufficientBalance($employee, $leaveTypeId, $daysCount, $fromDate->year)) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Insufficient leave balance. Please check your available leave days.',

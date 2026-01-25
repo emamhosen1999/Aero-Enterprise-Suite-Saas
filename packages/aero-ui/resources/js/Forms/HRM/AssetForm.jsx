@@ -27,17 +27,24 @@ const getThemeRadius = () => {
     return 'full';
 };
 
+const formatDateForInput = (dateValue) => {
+    if (!dateValue) return '';
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) return '';
+    return date.toISOString().split('T')[0];
+};
+
 const AssetForm = ({ asset, categories, open, closeModal, onSuccess, editMode = false }) => {
     const themeRadius = getThemeRadius();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const form = useForm('post', editMode ? route('hrm.assets.update', asset?.id) : route('hrm.assets.store'), {
+    const form = useForm(editMode ? 'put' : 'post', editMode ? route('hrm.assets.update', asset?.id) : route('hrm.assets.store'), {
         category_id: asset?.category_id || '',
         name: asset?.name || '',
         serial_number: asset?.serial_number || '',
         manufacturer: asset?.manufacturer || '',
         model: asset?.model || '',
-        purchase_date: asset?.purchase_date || '',
+        purchase_date: formatDateForInput(asset?.purchase_date),
         purchase_price: asset?.purchase_price || '',
         description: asset?.description || '',
     });

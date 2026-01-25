@@ -14,6 +14,7 @@ use Aero\HRM\Exceptions\UserNotOnboardedException;
 use Aero\HRMAC\Services\RoleModuleAccessService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -91,7 +92,7 @@ class LeaveQueryService
             ->leftJoin('employees', 'leaves.user_id', '=', 'employees.user_id')
             ->leftJoin('departments', 'employees.department_id', '=', 'departments.id')
             ->leftJoin('designations', 'employees.designation_id', '=', 'designations.id')
-            ->select('leaves.*', 'leave_settings.name as leave_type_name', 'employees.id as employee_id', 'departments.name as department_name', 'designations.name as designation_name');
+            ->select('leaves.*', 'leave_settings.name as leave_type_name', 'employees.id as employee_id', 'departments.name as department_name', 'designations.title as designation_name');
 
         // If a specific user_id is provided, filter by that user
         if ($specificUserId) {
@@ -102,7 +103,7 @@ class LeaveQueryService
             // Non-admin users must have an employee record to view their own leaves
             if (! $currentEmployee) {
                 return [
-                    'leaveRecords' => collect(),
+                    'leaveRecords' => new LengthAwarePaginator([], 0, $perPage, $page),
                     'leavesData' => [
                         'leaveTypes' => [],
                         'leaveCountsWithRemainingByUser' => [],

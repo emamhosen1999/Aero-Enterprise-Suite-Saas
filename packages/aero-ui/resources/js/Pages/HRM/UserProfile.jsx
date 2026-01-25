@@ -80,8 +80,8 @@ const projects = [
     // Add other projects similarly...
 ];
 
-const UserProfile = ({ title, allUsers, report_to, departments, designations }) => {
-    const { auth } = usePage().props;
+const UserProfile = ({ title, allEmployees, report_to, departments, designations }) => {
+    const { auth, employee: employeeProp, user: userProp } = usePage().props;
     
     // Custom media queries
     const [isMobile, setIsMobile] = useState(false);
@@ -98,9 +98,16 @@ const UserProfile = ({ title, allUsers, report_to, departments, designations }) 
         return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
     
-    const [user, setUser] = useState(usePage().props.user);
+    // Use employee data which now contains user fields through the relationship
+    // Maintain backward compatibility with old 'user' prop
+    const initialData = employeeProp || userProp || usePage().props.user;
+    const [user, setUser] = useState(initialData);
     const [selectedTab, setSelectedTab] = useState("overview");
     const [loading, setLoading] = useState(false);
+    
+    // For ProfileForm - we need to pass user_id for updates
+    // When using employee prop, the id should be user_id for the update endpoint
+    const userIdForUpdate = employeeProp ? employeeProp.user_id : initialData?.id;
     
     // HRMAC permissions
     const { canUpdate, hasAccess, isSuperAdmin } = useHRMAC();
@@ -1154,7 +1161,7 @@ const UserProfile = ({ title, allUsers, report_to, departments, designations }) 
                         <div className="space-y-1">
                             <InfoRow 
                                 label="Employee ID" 
-                                value={user.employee_id} 
+                                value={user.employee_code || user.employee_id} 
                                 icon={<IdentificationIcon />}
                             />
                             <InfoRow 
@@ -1746,8 +1753,8 @@ const UserProfile = ({ title, allUsers, report_to, departments, designations }) 
             <AnimatePresence>
                 {modals.profile && (
                     <ProfileForm
-                        user={user}
-                        allUsers={allUsers}
+                        user={{...user, id: userIdForUpdate || user.id}}
+                        allUsers={allEmployees}
                         departments={departments}
                         designations={designations}
                         open={modals.profile}

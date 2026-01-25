@@ -43,6 +43,17 @@ interface RoleModuleAccessInterface
     public function userCanAccessSubModule(mixed $user, string $moduleCode, string $subModuleCode): bool;
 
     /**
+     * Check if a user (through their roles) can perform a specific action by codes.
+     *
+     * @param mixed $user The user to check
+     * @param string $moduleCode The module code (e.g., 'hrm')
+     * @param string $subModuleCode The sub-module code (e.g., 'leaves')
+     * @param string $actionCode The action code (e.g., 'view_all', 'approve', 'manage')
+     * @return bool
+     */
+    public function userCanAccessAction(mixed $user, string $moduleCode, string $subModuleCode, string $actionCode): bool;
+
+    /**
      * Get the first accessible route for a user.
      */
     public function getFirstAccessibleRoute(mixed $user): ?string;

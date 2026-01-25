@@ -25,7 +25,7 @@ class LeaveBalanceService
         foreach ($leaveTypes as $leaveType) {
             LeaveBalance::firstOrCreate(
                 [
-                    'employee_id' => $employee->id,
+                    'user_id' => $employee->user_id,
                     'leave_setting_id' => $leaveType->id,
                     'year' => $year,
                 ],
@@ -66,7 +66,7 @@ class LeaveBalanceService
     {
         $year = $year ?? now()->year;
 
-        return LeaveBalance::where('employee_id', $employee->id)
+        return LeaveBalance::where('user_id', $employee->user_id)
             ->where('leave_setting_id', $leaveSettingId)
             ->where('year', $year)
             ->first();
@@ -80,7 +80,7 @@ class LeaveBalanceService
         $year = $year ?? now()->year;
 
         return LeaveBalance::with('leaveSetting')
-            ->where('employee_id', $employee->id)
+            ->where('user_id', $employee->user_id)
             ->where('year', $year)
             ->get();
     }
@@ -222,7 +222,7 @@ class LeaveBalanceService
                     // Create or update next year's balance
                     $newBalance = LeaveBalance::firstOrCreate(
                         [
-                            'employee_id' => $oldBalance->employee_id,
+                            'user_id' => $oldBalance->user_id,
                             'leave_setting_id' => $leaveType->id,
                             'year' => $toYear,
                         ],

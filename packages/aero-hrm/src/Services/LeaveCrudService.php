@@ -23,7 +23,7 @@ class LeaveCrudService
         $fromDate = Carbon::parse($data['fromDate']);
         $toDate = Carbon::parse($data['toDate']);
         
-        $leaveTypeId = LeaveSetting::where('type', $data['leaveType'])->value('id');
+        $leaveTypeId = LeaveSetting::where('name', $data['leaveType'])->value('id');
         $leaveSetting = LeaveSetting::find($leaveTypeId);
 
         $leave = Leave::create([
@@ -63,7 +63,7 @@ class LeaveCrudService
         $toDate = Carbon::parse($data['toDate']);
 
         // Get leave type ID
-        $leaveTypeId = LeaveSetting::where('type', $data['leaveType'])->value('id');
+        $leaveTypeId = LeaveSetting::where('name', $data['leaveType'])->value('id');
         if (! $leaveTypeId) {
             // Fallback to current leave_type if not found
             $leaveTypeId = $leave->leave_type;

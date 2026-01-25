@@ -268,7 +268,7 @@ const AttendanceAdmin = React.memo(({title}) => {
         },
         { 
             title: "Absent Days", 
-            value: stats.attendance.absent,
+            value: Math.round(stats.attendance.absent || 0),
             icon: <XCircleIcon />, 
             color: "text-danger", 
             iconBg: "bg-danger/20",

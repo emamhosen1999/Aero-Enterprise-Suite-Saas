@@ -32,7 +32,7 @@ const DeleteLeaveForm = ({ open, closeModal, leaveId, setLeavesData, setLeaves, 
         
         const promise = new Promise(async (resolve, reject) => {
             try {
-                const response = await axios.delete(route('leave-delete', { id: leaveId, route: route().current() }));
+                const response = await axios.delete(route('hrm.leave-delete', { id: leaveId, route: route().current() }));
 
                 if (response.status === 200) {
                     // Optimistic update approach
