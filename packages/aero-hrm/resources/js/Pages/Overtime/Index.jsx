@@ -180,6 +180,48 @@ const OvertimeIndex = ({ title, stats: initialStats }) => {
         setRejectModalOpen(true);
     };
 
+    const handleSubmitRequest = async () => {
+        if (!formData.date || !formData.hours || !formData.reason || !formData.overtime_type) {
+            showToast.error('Please fill in all required fields');
+            return;
+        }
+
+        setFormLoading(true);
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post(route('hrm.overtime.store'), {
+                    ...formData,
+                    employee_id: auth.user.employee?.id || auth.user.id
+                });
+                if (response.status === 200) {
+                    resolve([response.data.message || 'Overtime request submitted successfully']);
+                    setModalOpen(false);
+                    setFormData({
+                        employee_id: '',
+                        date: '',
+                        start_time: '',
+                        end_time: '',
+                        hours: '',
+                        overtime_type: 'weekday',
+                        reason: '',
+                        task_description: '',
+                    });
+                    fetchData();
+                    fetchStats();
+                }
+            } catch (error) {
+                reject(error.response?.data?.errors || error.response?.data?.message || ['Failed to submit request']);
+            } finally {
+                setFormLoading(false);
+            }
+        });
+        showToast.promise(promise, { 
+            loading: 'Submitting request...', 
+            success: (d) => Array.isArray(d) ? d.join(', ') : d,
+            error: (d) => Array.isArray(d) ? d.join(', ') : d 
+        });
+    };
+
     const statusColorMap = { pending: 'warning', approved: 'success', rejected: 'danger' };
     const typeColorMap = { weekday: 'primary', weekend: 'secondary', holiday: 'success', night: 'warning', emergency: 'danger' };
 
@@ -237,6 +279,85 @@ const OvertimeIndex = ({ title, stats: initialStats }) => {
     return (
         <>
             <Head title={title} />
+
+            {/* Request Overtime Modal */}
+            <Modal isOpen={modalOpen} onOpenChange={setModalOpen} size="2xl" scrollBehavior="inside">
+                <ModalContent>
+                    <ModalHeader>Request Overtime</ModalHeader>
+                    <ModalBody className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Input
+                                type="date"
+                                label="Date"
+                                value={formData.date}
+                                onValueChange={(value) => setFormData(prev => ({ ...prev, date: value }))}
+                                isRequired
+                                radius={getThemeRadius()}
+                            />
+                            <Select
+                                label="Overtime Type"
+                                selectedKeys={formData.overtime_type ? [formData.overtime_type] : []}
+                                onSelectionChange={(keys) => setFormData(prev => ({ ...prev, overtime_type: Array.from(keys)[0] || 'weekday' }))}
+                                isRequired
+                                radius={getThemeRadius()}
+                            >
+                                <SelectItem key="weekday">Weekday</SelectItem>
+                                <SelectItem key="weekend">Weekend</SelectItem>
+                                <SelectItem key="holiday">Holiday</SelectItem>
+                                <SelectItem key="night">Night</SelectItem>
+                                <SelectItem key="emergency">Emergency</SelectItem>
+                            </Select>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <Input
+                                type="time"
+                                label="Start Time"
+                                value={formData.start_time}
+                                onValueChange={(value) => setFormData(prev => ({ ...prev, start_time: value }))}
+                                radius={getThemeRadius()}
+                            />
+                            <Input
+                                type="time"
+                                label="End Time"
+                                value={formData.end_time}
+                                onValueChange={(value) => setFormData(prev => ({ ...prev, end_time: value }))}
+                                radius={getThemeRadius()}
+                            />
+                            <Input
+                                type="number"
+                                label="Hours"
+                                placeholder="0.5"
+                                step="0.5"
+                                min="0.5"
+                                max="24"
+                                value={formData.hours}
+                                onValueChange={(value) => setFormData(prev => ({ ...prev, hours: value }))}
+                                isRequired
+                                radius={getThemeRadius()}
+                            />
+                        </div>
+                        <Textarea
+                            label="Reason"
+                            placeholder="Enter reason for overtime request"
+                            value={formData.reason}
+                            onValueChange={(value) => setFormData(prev => ({ ...prev, reason: value }))}
+                            isRequired
+                            radius={getThemeRadius()}
+                        />
+                        <Textarea
+                            label="Task Description"
+                            placeholder="Describe the tasks performed during overtime (optional)"
+                            value={formData.task_description}
+                            onValueChange={(value) => setFormData(prev => ({ ...prev, task_description: value }))}
+                            radius={getThemeRadius()}
+                        />
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button variant="flat" onPress={() => setModalOpen(false)}>Cancel</Button>
+                        <Button color="primary" onPress={handleSubmitRequest} isLoading={formLoading}>Submit Request</Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
 
             {/* Reject Modal */}
             <Modal isOpen={rejectModalOpen} onOpenChange={setRejectModalOpen} size="md">

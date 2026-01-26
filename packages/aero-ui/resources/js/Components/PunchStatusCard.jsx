@@ -501,7 +501,7 @@ const PunchStatusCard = React.memo(() => {
     const fetchCurrentStatus = useCallback(async () => {
         try {
             // Add timestamp to prevent caching
-            const response = await axios.get(route('attendance.current-user-punch'), {
+            const response = await axios.get(route('hrm.attendance.current-user-punch'), {
                 params: { t: Date.now() }
             });
             const data = response.data;
@@ -712,7 +712,7 @@ const PunchStatusCard = React.memo(() => {
             };
 
             // Submit punch
-            const response = await axios.post(route('attendance.punch'), punchDataWithPhoto);
+            const response = await axios.post(route('hrm.attendance.punch'), punchDataWithPhoto);
 
             if (response.data.status === 'success') {
                 setUiState(prev => ({
@@ -814,7 +814,7 @@ const PunchStatusCard = React.memo(() => {
             }
 
             // Submit punch directly (no photo required)
-            const response = await axios.post(route('attendance.punch'), punchData);
+            const response = await axios.post(route('hrm.attendance.punch'), punchData);
 
             if (response.data.status === 'success') {
                 

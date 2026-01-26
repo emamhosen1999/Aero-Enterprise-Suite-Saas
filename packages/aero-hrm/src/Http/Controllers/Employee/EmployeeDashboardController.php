@@ -11,6 +11,7 @@ use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Leave;
 use Aero\HRM\Services\LeaveBalanceService;
 use Aero\Core\Services\DashboardWidgetRegistry;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -49,25 +50,25 @@ class EmployeeDashboardController extends Controller
         
         if ($employee) {
             try {
-                $leaveBalances = $this->leaveBalanceService->getEmployeeBalances($employee->id);
+                $leaveBalances = $this->leaveBalanceService->getAllBalances($employee);
             } catch (\Exception $e) {
                 $leaveBalances = [];
             }
 
             // Pending leave requests
-            $pendingLeaves = Leave::where('employee_id', $employee->id)
+            $pendingLeaves = Leave::where('user_id', $employee->user_id)
                 ->whereIn('status', ['pending', 'submitted'])
-                ->with('leaveType')
+                ->with('leaveSetting')
                 ->orderBy('created_at', 'desc')
                 ->take(5)
                 ->get()
                 ->map(function ($leave) {
                     return [
                         'id' => $leave->id,
-                        'type' => $leave->leaveType?->name ?? 'Unknown',
-                        'start_date' => $leave->start_date?->format('Y-m-d'),
-                        'end_date' => $leave->end_date?->format('Y-m-d'),
-                        'days' => $leave->days ?? 1,
+                        'type' => $leave->leaveSetting?->name ?? 'Unknown',
+                        'start_date' => $leave->from_date ? Carbon::parse($leave->from_date)->format('Y-m-d') : null,
+                        'end_date' => $leave->to_date ? Carbon::parse($leave->to_date)->format('Y-m-d') : null,
+                        'days' => $leave->no_of_days ?? 1,
                         'status' => $leave->status,
                         'reason' => $leave->reason,
                         'created_at' => $leave->created_at?->format('Y-m-d'),
@@ -75,18 +76,18 @@ class EmployeeDashboardController extends Controller
                 });
 
             // Recent leave history
-            $recentLeaves = Leave::where('employee_id', $employee->id)
-                ->with('leaveType')
+            $recentLeaves = Leave::where('user_id', $employee->user_id)
+                ->with('leaveSetting')
                 ->orderBy('created_at', 'desc')
                 ->take(10)
                 ->get()
                 ->map(function ($leave) {
                     return [
                         'id' => $leave->id,
-                        'type' => $leave->leaveType?->name ?? 'Unknown',
-                        'start_date' => $leave->start_date?->format('Y-m-d'),
-                        'end_date' => $leave->end_date?->format('Y-m-d'),
-                        'days' => $leave->days ?? 1,
+                        'type' => $leave->leaveSetting?->name ?? 'Unknown',
+                        'start_date' => $leave->from_date ? Carbon::parse($leave->from_date)->format('Y-m-d') : null,
+                        'end_date' => $leave->to_date ? Carbon::parse($leave->to_date)->format('Y-m-d') : null,
+                        'days' => $leave->no_of_days ?? 1,
                         'status' => $leave->status,
                     ];
                 });
@@ -95,7 +96,7 @@ class EmployeeDashboardController extends Controller
         // Attendance today
         $todayAttendance = null;
         if ($employee) {
-            $todayAttendance = Attendance::where('employee_id', $employee->id)
+            $todayAttendance = Attendance::where('user_id', $employee->user_id)
                 ->whereDate('date', today())
                 ->first();
         }
@@ -112,7 +113,7 @@ class EmployeeDashboardController extends Controller
             $monthStart = now()->startOfMonth();
             $monthEnd = now()->endOfMonth();
 
-            $monthAttendance = Attendance::where('employee_id', $employee->id)
+            $monthAttendance = Attendance::where('user_id', $employee->user_id)
                 ->whereBetween('date', [$monthStart, $monthEnd])
                 ->get();
 

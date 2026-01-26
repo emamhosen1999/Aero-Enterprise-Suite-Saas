@@ -51,8 +51,10 @@ class LeaveResource extends JsonResource
             'leave_setting' => $this->when($this->relationLoaded('leaveSetting') && $this->leaveSetting, function () {
                 return [
                     'id' => $this->leaveSetting->id,
-                    'type' => $this->leaveSetting->type,
-                    'days' => $this->leaveSetting->days,
+                    'type' => $this->leaveSetting->name,
+                    'name' => $this->leaveSetting->name,
+                    'code' => $this->leaveSetting->code,
+                    'days' => $this->leaveSetting->annual_quota,
                 ];
             }),
         ];

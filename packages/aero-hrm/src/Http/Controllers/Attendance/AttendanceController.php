@@ -1315,13 +1315,13 @@ class AttendanceController extends Controller
             // Calculate "Potential Man-Days Passed" to determine Absents
             $daysPassed = $startOfMonth->diffInDays($analysisEndDate) + 1;
             // Estimate working days passed (simplified)
-            $workingDaysPassed = max(0, $daysPassed - ($daysPassed * 2 / 7)); // Rough estimate of weekends passed
+            $workingDaysPassed = (int) round(max(0, $daysPassed - ($daysPassed * 2 / 7))); // Rough estimate of weekends passed
 
             $totalPotentialManDays = $calendarWorkingDays * $totalEmployees; // For the whole month
             $potentialManDaysPassed = $workingDaysPassed * $totalEmployees; // So far
 
             // Absent = Potential (So Far) - Present - Leaves
-            $totalAbsentManDays = max(0, $potentialManDaysPassed - $totalPresentManDays - $totalLeaveManDays);
+            $totalAbsentManDays = (int) max(0, $potentialManDaysPassed - $totalPresentManDays - $totalLeaveManDays);
 
             // Percentages
             $attendancePercentage = $totalPotentialManDays > 0

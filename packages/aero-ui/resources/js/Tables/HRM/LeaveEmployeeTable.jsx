@@ -219,7 +219,7 @@ const LeaveEmployeeTable = React.forwardRef(({
 
     const promise = new Promise(async (resolve, reject) => {
         try {
-            const response = await axios.post(route("leave-update-status"), {
+            const response = await axios.post(route("hrm.leave-update-status"), {
                 id: leave.id,
                 status: newStatus
             });
@@ -436,7 +436,7 @@ const LeaveEmployeeTable = React.forwardRef(({
                         <div className="flex items-center gap-2">
                             <DocumentTextIcon className="w-4 h-4 text-primary" />
                             <span className="text-sm font-medium">
-                                {leave.leave_type}
+                                {leave.leave_setting?.type || 'Unknown'}
                             </span>
                         </div>
 
@@ -563,9 +563,9 @@ const LeaveEmployeeTable = React.forwardRef(({
                 return (
                     <TableCell>
                         <div className="flex items-center gap-1">
-                            {getLeaveTypeIcon(leave.leave_type)}
+                            {getLeaveTypeIcon(leave.leave_setting?.type)}
                             <span className="text-sm font-medium capitalize">
-                                {leave.leave_type}
+                                {leave.leave_setting?.type || 'Unknown'}
                             </span>
                         </div>
                     </TableCell>

@@ -109,6 +109,7 @@ const PayrollIndex = ({ title, payrolls, stats }) => {
                     variant="shadow"
                     startContent={<PlusIcon className="w-4 h-4" />}
                     size={isMobile ? "sm" : "md"}
+                    onPress={() => window.location.href = route('payroll.create')}
                 >
                     Create Payroll
                 </Button>

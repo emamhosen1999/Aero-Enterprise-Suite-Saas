@@ -78,11 +78,13 @@ const RecruitmentIndex = ({ title, jobs: initialJobs, departments: initialDepart
         description: '',
         requirements: '',
         location: '',
-        employment_type: 'full_time',
+        type: 'full_time',
         salary_min: '',
         salary_max: '',
+        salary_currency: 'PHP',
         positions: 1,
-        deadline: '',
+        closing_date: '',
+        status: 'draft',
     });
 
     // Permissions using HRMAC with proper path
@@ -100,11 +102,11 @@ const RecruitmentIndex = ({ title, jobs: initialJobs, departments: initialDepart
     const columns = [
         { uid: 'title', name: 'Job Title' },
         { uid: 'department', name: 'Department' },
-        { uid: 'employment_type', name: 'Type' },
+        { uid: 'type', name: 'Type' },
         { uid: 'positions', name: 'Positions' },
         { uid: 'applications_count', name: 'Applications' },
         { uid: 'status', name: 'Status' },
-        { uid: 'deadline', name: 'Deadline' },
+        { uid: 'closing_date', name: 'Deadline' },
         { uid: 'actions', name: 'Actions' },
     ];
 
@@ -165,11 +167,13 @@ const RecruitmentIndex = ({ title, jobs: initialJobs, departments: initialDepart
             description: '',
             requirements: '',
             location: '',
-            employment_type: 'full_time',
+            type: 'full_time',
             salary_min: '',
             salary_max: '',
+            salary_currency: 'PHP',
             positions: 1,
-            deadline: '',
+            closing_date: '',
+            status: 'draft',
         });
         setIsModalOpen(true);
     };
@@ -180,13 +184,15 @@ const RecruitmentIndex = ({ title, jobs: initialJobs, departments: initialDepart
             title: job.title || '',
             department_id: job.department_id ? String(job.department_id) : '',
             description: job.description || '',
-            requirements: job.requirements || '',
+            requirements: Array.isArray(job.requirements) ? job.requirements.join('\n') : (job.requirements || ''),
             location: job.location || '',
-            employment_type: job.employment_type || 'full_time',
+            type: job.type || job.employment_type || 'full_time',
             salary_min: job.salary_min || '',
             salary_max: job.salary_max || '',
+            salary_currency: job.salary_currency || 'PHP',
             positions: job.positions || 1,
-            deadline: job.deadline ? dayjs(job.deadline).format('YYYY-MM-DD') : '',
+            closing_date: job.closing_date ? dayjs(job.closing_date).format('YYYY-MM-DD') : '',
+            status: job.status || 'draft',
         });
         setIsModalOpen(true);
     };
@@ -197,10 +203,19 @@ const RecruitmentIndex = ({ title, jobs: initialJobs, departments: initialDepart
             ? route(routeName, editingJob.id) 
             : route(routeName);
 
+        // Transform data for backend
+        const payload = {
+            ...formData,
+            // Convert requirements string to array (split by newlines or commas)
+            requirements: formData.requirements 
+                ? formData.requirements.split(/[\n,]+/).map(r => r.trim()).filter(r => r)
+                : [],
+        };
+
         const promise = new Promise(async (resolve, reject) => {
             try {
                 const method = editingJob ? 'put' : 'post';
-                await axios[method](url, formData);
+                await axios[method](url, payload);
                 setIsModalOpen(false);
                 fetchJobs();
                 fetchStats();
@@ -304,8 +319,9 @@ const RecruitmentIndex = ({ title, jobs: initialJobs, departments: initialDepart
             full_time: 'Full Time',
             part_time: 'Part Time',
             contract: 'Contract',
+            temporary: 'Temporary',
             internship: 'Internship',
-            freelance: 'Freelance',
+            remote: 'Remote',
         };
         return types[type] || type;
     };
@@ -321,8 +337,8 @@ const RecruitmentIndex = ({ title, jobs: initialJobs, departments: initialDepart
                 );
             case 'department':
                 return <span className="text-sm">{item.department?.name || '-'}</span>;
-            case 'employment_type':
-                return <Chip size="sm" variant="flat">{getEmploymentTypeLabel(item.employment_type)}</Chip>;
+            case 'type':
+                return <Chip size="sm" variant="flat">{getEmploymentTypeLabel(item.type)}</Chip>;
             case 'positions':
                 return <span className="text-sm">{item.positions || 1}</span>;
             case 'applications_count':
@@ -333,9 +349,9 @@ const RecruitmentIndex = ({ title, jobs: initialJobs, departments: initialDepart
                 );
             case 'status':
                 return getStatusChip(item.status);
-            case 'deadline':
-                return item.deadline ? (
-                    <span className="text-sm">{dayjs(item.deadline).format('MMM D, YYYY')}</span>
+            case 'closing_date':
+                return item.closing_date ? (
+                    <span className="text-sm">{dayjs(item.closing_date).format('MMM D, YYYY')}</span>
                 ) : '-';
             case 'actions':
                 return (
@@ -542,15 +558,16 @@ const RecruitmentIndex = ({ title, jobs: initialJobs, departments: initialDepart
                             <Select
                                 label="Employment Type"
                                 placeholder="Select type"
-                                selectedKeys={[formData.employment_type]}
-                                onSelectionChange={(keys) => setFormData(prev => ({ ...prev, employment_type: Array.from(keys)[0] }))}
+                                selectedKeys={[formData.type]}
+                                onSelectionChange={(keys) => setFormData(prev => ({ ...prev, type: Array.from(keys)[0] }))}
                                 radius={themeRadius}
                             >
                                 <SelectItem key="full_time">Full Time</SelectItem>
                                 <SelectItem key="part_time">Part Time</SelectItem>
                                 <SelectItem key="contract">Contract</SelectItem>
+                                <SelectItem key="temporary">Temporary</SelectItem>
                                 <SelectItem key="internship">Internship</SelectItem>
-                                <SelectItem key="freelance">Freelance</SelectItem>
+                                <SelectItem key="remote">Remote</SelectItem>
                             </Select>
                             <Input
                                 label="Location"
@@ -584,13 +601,38 @@ const RecruitmentIndex = ({ title, jobs: initialJobs, departments: initialDepart
                                 onValueChange={(value) => setFormData(prev => ({ ...prev, salary_max: value }))}
                                 radius={themeRadius}
                             />
+                            <Select
+                                label="Currency"
+                                placeholder="Select currency"
+                                selectedKeys={[formData.salary_currency]}
+                                onSelectionChange={(keys) => setFormData(prev => ({ ...prev, salary_currency: Array.from(keys)[0] }))}
+                                radius={themeRadius}
+                            >
+                                <SelectItem key="PHP">PHP</SelectItem>
+                                <SelectItem key="USD">USD</SelectItem>
+                                <SelectItem key="EUR">EUR</SelectItem>
+                                <SelectItem key="GBP">GBP</SelectItem>
+                            </Select>
                             <Input
                                 type="date"
-                                label="Application Deadline"
-                                value={formData.deadline}
-                                onChange={(e) => setFormData(prev => ({ ...prev, deadline: e.target.value }))}
+                                label="Closing Date"
+                                value={formData.closing_date}
+                                onChange={(e) => setFormData(prev => ({ ...prev, closing_date: e.target.value }))}
                                 radius={themeRadius}
                             />
+                            <Select
+                                label="Status"
+                                placeholder="Select status"
+                                selectedKeys={[formData.status]}
+                                onSelectionChange={(keys) => setFormData(prev => ({ ...prev, status: Array.from(keys)[0] }))}
+                                radius={themeRadius}
+                            >
+                                <SelectItem key="draft">Draft</SelectItem>
+                                <SelectItem key="open">Open</SelectItem>
+                                <SelectItem key="on_hold">On Hold</SelectItem>
+                                <SelectItem key="closed">Closed</SelectItem>
+                                <SelectItem key="cancelled">Cancelled</SelectItem>
+                            </Select>
                             <Textarea
                                 label="Description"
                                 placeholder="Job description..."
@@ -602,7 +644,8 @@ const RecruitmentIndex = ({ title, jobs: initialJobs, departments: initialDepart
                             />
                             <Textarea
                                 label="Requirements"
-                                placeholder="Job requirements..."
+                                placeholder="Enter each requirement on a new line..."
+                                description="Separate requirements by new lines or commas"
                                 value={formData.requirements}
                                 onValueChange={(value) => setFormData(prev => ({ ...prev, requirements: value }))}
                                 radius={themeRadius}

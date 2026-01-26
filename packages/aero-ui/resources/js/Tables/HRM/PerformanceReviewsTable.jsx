@@ -156,7 +156,7 @@ const PerformanceReviewsTable = ({ data, loading, permissions, onView, onEdit, o
                                 </Button>
                             </DropdownTrigger>
                             <DropdownMenu aria-label="Actions">
-                                {permissions.includes('performance-reviews.view') && (
+                                {permissions.canEdit && (
                                     <DropdownItem
                                         key="view"
                                         startContent={<EyeIcon className="w-4 h-4" />}
@@ -166,7 +166,7 @@ const PerformanceReviewsTable = ({ data, loading, permissions, onView, onEdit, o
                                     </DropdownItem>
                                 )}
                                 
-                                {permissions.includes('performance-reviews.update') && item.status !== 'completed' && (
+                                {permissions.canEdit && item.status !== 'completed' && (
                                     <DropdownItem
                                         key="edit"
                                         startContent={<PencilIcon className="w-4 h-4" />}
@@ -176,7 +176,7 @@ const PerformanceReviewsTable = ({ data, loading, permissions, onView, onEdit, o
                                     </DropdownItem>
                                 )}
                                 
-                                {permissions.includes('performance-reviews.approve') && item.status === 'pending' && (
+                                {permissions.canApprove && item.status === 'scheduled' && (
                                     <DropdownItem
                                         key="approve"
                                         startContent={<CheckCircleIcon className="w-4 h-4" />}
@@ -186,7 +186,7 @@ const PerformanceReviewsTable = ({ data, loading, permissions, onView, onEdit, o
                                     </DropdownItem>
                                 )}
                                 
-                                {permissions.includes('performance-reviews.delete') && item.status !== 'completed' && (
+                                {permissions.canDelete && item.status !== 'completed' && (
                                     <DropdownItem
                                         key="delete"
                                         className="text-danger"

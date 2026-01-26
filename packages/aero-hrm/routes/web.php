@@ -95,6 +95,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Performance Management
     Route::middleware(['module:hrm,performance'])->group(function () {
         Route::get('/performance', [PerformanceReviewController::class, 'index'])->name('performance.index');
+        Route::get('/performance/stats', [PerformanceReviewController::class, 'stats'])->name('performance.stats');
         Route::get('/performance/create', [PerformanceReviewController::class, 'create'])->name('performance.create');
         Route::post('/performance', [PerformanceReviewController::class, 'store'])->name('performance.store');
         Route::get('/performance/{id}', [PerformanceReviewController::class, 'show'])->name('performance.show');
@@ -451,11 +452,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Payroll Management System
     Route::middleware(['module:hrm,payroll'])->group(function () {
         Route::get('/payroll', [PayrollController::class, 'index'])->name('payroll.index');
-        Route::get('/payroll/structures', [PayrollController::class, 'index'])->name('payroll.structures'); // Salary structures
-        Route::get('/payroll/components', [PayrollController::class, 'index'])->name('payroll.components'); // Salary components
-        Route::get('/payroll/run', [PayrollController::class, 'index'])->name('payroll.run'); // Payroll run
-        Route::get('/payroll/payslips', [PayrollController::class, 'index'])->name('payroll.payslips'); // Payslips list
-        Route::get('/payroll/tax', [PayrollController::class, 'index'])->name('payroll.tax'); // Tax setup
+        Route::post('/payroll', [PayrollController::class, 'store'])->name('payroll.store');
+        Route::get('/payroll/structures', [PayrollController::class, 'structures'])->name('payroll.structures'); // Salary structures
+        Route::get('/payroll/components', [PayrollController::class, 'components'])->name('payroll.components'); // Salary components
+        Route::get('/payroll/run', [PayrollController::class, 'run'])->name('payroll.run'); // Payroll run
+        Route::get('/payroll/payslips', [PayrollController::class, 'payslips'])->name('payroll.payslips'); // Payslips list
+        Route::get('/payroll/tax', [PayrollController::class, 'taxSetup'])->name('payroll.tax'); // Tax setup
         Route::get('/payroll/declarations', [PayrollController::class, 'index'])->name('payroll.declarations'); // IT/Tax declarations
         Route::get('/payroll/loans', [PayrollController::class, 'index'])->name('payroll.loans'); // Loan & Advance management
         Route::get('/payroll/bank-file', [PayrollController::class, 'index'])->name('payroll.bank-file'); // Bank file generator

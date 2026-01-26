@@ -737,4 +737,53 @@ class PayrollController extends Controller
             'average_salary' => Payroll::where('status', 'processed')->avg('net_salary'),
         ];
     }
+
+    /**
+     * Show salary structures management page
+     */
+    public function structures()
+    {
+        return Inertia::render('HRM/Payroll/Structures', [
+            'title' => 'Salary Structures',
+        ]);
+    }
+
+    /**
+     * Show salary components management page
+     */
+    public function components()
+    {
+        return Inertia::render('HRM/Payroll/Components', [
+            'title' => 'Salary Components',
+        ]);
+    }
+
+    /**
+     * Show payroll run page
+     */
+    public function run()
+    {
+        $employees = Employee::active()->with('user:id,name,email')->get()
+            ->map(fn ($emp) => [
+                'id' => $emp->user_id,
+                'name' => $emp->user->name ?? '',
+                'employee_id' => $emp->employee_code,
+                'email' => $emp->user->email ?? '',
+            ]);
+
+        return Inertia::render('HRM/Payroll/Run', [
+            'title' => 'Payroll Run',
+            'employees' => $employees,
+        ]);
+    }
+
+    /**
+     * Show tax setup page
+     */
+    public function taxSetup()
+    {
+        return Inertia::render('HRM/Payroll/TaxSetup', [
+            'title' => 'Tax Setup',
+        ]);
+    }
 }

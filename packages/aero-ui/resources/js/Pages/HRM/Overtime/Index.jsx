@@ -99,6 +99,54 @@ const OvertimeIndex = ({ title, stats: initialStats }) => {
     // Permissions using HRMAC
     const canApproveOvertime = canUpdate('hrm.overtime') || isSuperAdmin();
     const canCreateOvertime = canCreate('hrm.overtime') || isSuperAdmin();
+
+    // Handle Request Overtime form submission
+    const handleOvertimeSubmit = async () => {
+        if (!formData.date || !formData.hours || !formData.overtime_type || !formData.reason) {
+            showToast.promise(
+                Promise.reject(['Please fill in all required fields']),
+                {
+                    loading: 'Validating form...',
+                    success: () => 'Form validated',
+                    error: (data) => Array.isArray(data) ? data.join(', ') : data,
+                }
+            );
+            return;
+        }
+
+        setFormLoading(true);
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post(route('hrm.overtime.store'), formData);
+                if (response.status === 200) {
+                    setModalOpen(false);
+                    setFormData({
+                        employee_id: '',
+                        date: '',
+                        start_time: '',
+                        end_time: '',
+                        hours: '',
+                        overtime_type: 'weekday',
+                        reason: '',
+                        task_description: '',
+                    });
+                    fetchRecords();
+                    fetchStats();
+                    resolve([response.data.message || 'Overtime request submitted successfully']);
+                }
+            } catch (error) {
+                reject(error.response?.data?.errors || ['Failed to submit overtime request']);
+            } finally {
+                setFormLoading(false);
+            }
+        });
+
+        showToast.promise(promise, {
+            loading: 'Submitting overtime request...',
+            success: (data) => data.join(', '),
+            error: (data) => Array.isArray(data) ? data.join(', ') : data,
+        });
+    };
     const canDeleteOvertime = canDelete('hrm.overtime') || isSuperAdmin();
 
     const fetchData = useCallback(async () => {
@@ -253,6 +301,114 @@ const OvertimeIndex = ({ title, stats: initialStats }) => {
                     <ModalFooter>
                         <Button variant="flat" onPress={() => setRejectModalOpen(false)}>Cancel</Button>
                         <Button color="danger" onPress={handleReject} isLoading={formLoading}>Reject</Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+
+            {/* Request Overtime Modal */}
+            <Modal isOpen={modalOpen} onOpenChange={setModalOpen} size="2xl" scrollBehavior="inside">
+                <ModalContent>
+                    <ModalHeader className="flex flex-col gap-1">
+                        <h2 className="text-lg font-semibold">Request Overtime</h2>
+                        <p className="text-sm text-default-500">Submit a new overtime request for approval</p>
+                    </ModalHeader>
+                    <ModalBody className="py-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Input
+                                type="date"
+                                label="Date"
+                                placeholder="Select date"
+                                value={formData.date}
+                                onValueChange={(value) => setFormData(prev => ({ ...prev, date: value }))}
+                                isRequired
+                                radius={themeRadius}
+                                classNames={{ inputWrapper: "bg-default-100" }}
+                            />
+                            
+                            <Select
+                                label="Overtime Type"
+                                placeholder="Select overtime type"
+                                selectedKeys={formData.overtime_type ? [formData.overtime_type] : []}
+                                onSelectionChange={(keys) => setFormData(prev => ({ ...prev, overtime_type: Array.from(keys)[0] }))}
+                                isRequired
+                                radius={themeRadius}
+                            >
+                                <SelectItem key="weekday">Weekday</SelectItem>
+                                <SelectItem key="weekend">Weekend</SelectItem>
+                                <SelectItem key="holiday">Holiday</SelectItem>
+                                <SelectItem key="night">Night</SelectItem>
+                                <SelectItem key="emergency">Emergency</SelectItem>
+                            </Select>
+                            
+                            <Input
+                                type="time"
+                                label="Start Time"
+                                placeholder="Select start time"
+                                value={formData.start_time}
+                                onValueChange={(value) => setFormData(prev => ({ ...prev, start_time: value }))}
+                                radius={themeRadius}
+                                classNames={{ inputWrapper: "bg-default-100" }}
+                            />
+                            
+                            <Input
+                                type="time"
+                                label="End Time"
+                                placeholder="Select end time"
+                                value={formData.end_time}
+                                onValueChange={(value) => setFormData(prev => ({ ...prev, end_time: value }))}
+                                radius={themeRadius}
+                                classNames={{ inputWrapper: "bg-default-100" }}
+                            />
+                            
+                            <Input
+                                type="number"
+                                label="Hours"
+                                placeholder="Enter hours worked"
+                                value={formData.hours}
+                                onValueChange={(value) => setFormData(prev => ({ ...prev, hours: value }))}
+                                isRequired
+                                min="0"
+                                step="0.5"
+                                radius={themeRadius}
+                                classNames={{ inputWrapper: "bg-default-100" }}
+                            />
+                        </div>
+                        
+                        <div className="mt-4 space-y-4">
+                            <Textarea
+                                label="Reason"
+                                placeholder="Please provide a reason for this overtime request"
+                                value={formData.reason}
+                                onValueChange={(value) => setFormData(prev => ({ ...prev, reason: value }))}
+                                isRequired
+                                rows={3}
+                                radius={themeRadius}
+                                classNames={{ inputWrapper: "bg-default-100" }}
+                            />
+                            
+                            <Textarea
+                                label="Task Description"
+                                placeholder="Describe the tasks to be performed during overtime (optional)"
+                                value={formData.task_description}
+                                onValueChange={(value) => setFormData(prev => ({ ...prev, task_description: value }))}
+                                rows={2}
+                                radius={themeRadius}
+                                classNames={{ inputWrapper: "bg-default-100" }}
+                            />
+                        </div>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button variant="flat" onPress={() => setModalOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button 
+                            color="primary" 
+                            onPress={handleOvertimeSubmit}
+                            isLoading={formLoading}
+                            startContent={!formLoading && <PlusIcon className="w-4 h-4" />}
+                        >
+                            {formLoading ? 'Submitting...' : 'Submit Request'}
+                        </Button>
                     </ModalFooter>
                 </ModalContent>
             </Modal>

@@ -20,7 +20,7 @@ import { showToast } from '@/utils/toastUtils.jsx';
 import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
 import { useHRMAC } from '@/Hooks/useHRMAC';
 
-const PerformanceIndex = ({ title, employees: initialEmployees, templates: initialTemplates }) => {
+const PerformanceIndex = ({ title, employees: initialEmployees, templates: initialTemplates, departments: initialDepartments }) => {
     const { auth } = usePage().props;
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
@@ -45,6 +45,7 @@ const PerformanceIndex = ({ title, employees: initialEmployees, templates: initi
     const [reviews, setReviews] = useState([]);
     const [employees, setEmployees] = useState(initialEmployees || []);
     const [templates, setTemplates] = useState(initialTemplates || []);
+    const [departments, setDepartments] = useState(initialDepartments || []);
     const [stats, setStats] = useState({ total: 0, pending: 0, in_progress: 0, completed: 0 });
     
     // Filter state
@@ -55,8 +56,13 @@ const PerformanceIndex = ({ title, employees: initialEmployees, templates: initi
     const [createModalOpen, setCreateModalOpen] = useState(false);
     const [formData, setFormData] = useState({
         employee_id: '',
+        reviewer_id: auth?.user?.id?.toString() || '', // Default to current user as reviewer
         template_id: '',
-        review_period: '',
+        review_period_start: '',
+        review_period_end: '',
+        review_date: new Date().toISOString().split('T')[0], // Default to today
+        department_id: '',
+        status: 'scheduled',
         notes: ''
     });
 
@@ -126,11 +132,45 @@ const PerformanceIndex = ({ title, employees: initialEmployees, templates: initi
         }
     }, [employees.length]);
 
+    // Fetch departments if not provided
+    const fetchDepartments = useCallback(async () => {
+        if (departments.length > 0) return;
+        try {
+            const response = await axios.get(route('hrm.departments.index'), {
+                headers: { 'Accept': 'application/json' }
+            });
+            if (response.status === 200) {
+                const data = response.data.departments || response.data.data || response.data;
+                setDepartments(Array.isArray(data) ? data : []);
+            }
+        } catch (error) {
+            console.error('Failed to fetch departments:', error);
+        }
+    }, [departments.length]);
+
+    // Fetch templates if not provided
+    const fetchTemplates = useCallback(async () => {
+        if (templates.length > 0) return;
+        try {
+            const response = await axios.get(route('hrm.performance.templates.index'), {
+                headers: { 'Accept': 'application/json' }
+            });
+            if (response.status === 200) {
+                const data = response.data.templates || response.data.data || response.data;
+                setTemplates(Array.isArray(data) ? data : []);
+            }
+        } catch (error) {
+            console.error('Failed to fetch templates:', error);
+        }
+    }, [templates.length]);
+
     useEffect(() => {
         fetchReviews();
         fetchStats();
         fetchEmployees();
-    }, [fetchReviews, fetchStats, fetchEmployees]);
+        fetchDepartments();
+        fetchTemplates();
+    }, [fetchReviews, fetchStats, fetchEmployees, fetchDepartments, fetchTemplates]);
 
     // CRUD handlers
     const handleView = (review) => {
@@ -187,13 +227,43 @@ const PerformanceIndex = ({ title, employees: initialEmployees, templates: initi
             showToast.error('Please select an employee');
             return;
         }
+        if (!formData.reviewer_id) {
+            showToast.error('Please select a reviewer');
+            return;
+        }
+        if (!formData.department_id) {
+            showToast.error('Please select a department');
+            return;
+        }
+        if (!formData.template_id) {
+            showToast.error('Please select a review template');
+            return;
+        }
+        if (!formData.review_period_start || !formData.review_period_end) {
+            showToast.error('Please specify the review period');
+            return;
+        }
+        if (!formData.review_date) {
+            showToast.error('Please specify the review date');
+            return;
+        }
         
         const promise = new Promise(async (resolve, reject) => {
             try {
                 await axios.post(route('hrm.performance.store'), formData);
                 resolve(['Performance review created successfully']);
                 setCreateModalOpen(false);
-                setFormData({ employee_id: '', template_id: '', review_period: '', notes: '' });
+                setFormData({ 
+                    employee_id: '', 
+                    reviewer_id: auth?.user?.id?.toString() || '',
+                    template_id: '', 
+                    review_period_start: '',
+                    review_period_end: '',
+                    review_date: new Date().toISOString().split('T')[0],
+                    department_id: '',
+                    status: 'scheduled',
+                    notes: '' 
+                });
                 fetchReviews();
                 fetchStats();
             } catch (error) {
@@ -231,11 +301,11 @@ const PerformanceIndex = ({ title, employees: initialEmployees, templates: initi
             <Head title={title || "Performance Management"} />
             
             {/* Create Modal */}
-            <Modal isOpen={createModalOpen} onOpenChange={setCreateModalOpen} size="lg">
+            <Modal isOpen={createModalOpen} onOpenChange={setCreateModalOpen} size="2xl" scrollBehavior="inside">
                 <ModalContent>
                     <ModalHeader>Create Performance Review</ModalHeader>
                     <ModalBody>
-                        <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <Select
                                 label="Employee"
                                 placeholder="Select employee"
@@ -251,38 +321,104 @@ const PerformanceIndex = ({ title, employees: initialEmployees, templates: initi
                                 ))}
                             </Select>
                             
-                            {templates.length > 0 && (
-                                <Select
-                                    label="Review Template"
-                                    placeholder="Select template (optional)"
-                                    selectedKeys={formData.template_id ? [formData.template_id] : []}
-                                    onSelectionChange={(keys) => setFormData(prev => ({ ...prev, template_id: Array.from(keys)[0] }))}
-                                    radius={themeRadius}
-                                >
-                                    {templates.map(template => (
-                                        <SelectItem key={String(template.id)} value={String(template.id)}>
-                                            {template.name}
-                                        </SelectItem>
-                                    ))}
-                                </Select>
-                            )}
+                            <Select
+                                label="Reviewer"
+                                placeholder="Select reviewer"
+                                selectedKeys={formData.reviewer_id ? [formData.reviewer_id] : []}
+                                onSelectionChange={(keys) => setFormData(prev => ({ ...prev, reviewer_id: Array.from(keys)[0] }))}
+                                radius={themeRadius}
+                                isRequired
+                            >
+                                {employees.map(emp => (
+                                    <SelectItem key={String(emp.id)} value={String(emp.id)}>
+                                        {emp.name}
+                                    </SelectItem>
+                                ))}
+                            </Select>
+                            
+                            <Select
+                                label="Department"
+                                placeholder="Select department"
+                                selectedKeys={formData.department_id ? [formData.department_id] : []}
+                                onSelectionChange={(keys) => setFormData(prev => ({ ...prev, department_id: Array.from(keys)[0] }))}
+                                radius={themeRadius}
+                                isRequired
+                            >
+                                {departments.map(dept => (
+                                    <SelectItem key={String(dept.id)} value={String(dept.id)}>
+                                        {dept.name}
+                                    </SelectItem>
+                                ))}
+                            </Select>
+                            
+                            <Select
+                                label="Review Template"
+                                placeholder="Select template"
+                                selectedKeys={formData.template_id ? [formData.template_id] : []}
+                                onSelectionChange={(keys) => setFormData(prev => ({ ...prev, template_id: Array.from(keys)[0] }))}
+                                radius={themeRadius}
+                                isRequired
+                            >
+                                {templates.map(template => (
+                                    <SelectItem key={String(template.id)} value={String(template.id)}>
+                                        {template.name}
+                                    </SelectItem>
+                                ))}
+                            </Select>
                             
                             <Input
-                                type="month"
-                                label="Review Period"
-                                value={formData.review_period}
-                                onChange={(e) => setFormData(prev => ({ ...prev, review_period: e.target.value }))}
+                                type="date"
+                                label="Review Period Start"
+                                value={formData.review_period_start}
+                                onChange={(e) => setFormData(prev => ({ ...prev, review_period_start: e.target.value }))}
                                 radius={themeRadius}
+                                isRequired
                             />
                             
-                            <Textarea
-                                label="Notes"
-                                placeholder="Additional notes..."
-                                value={formData.notes}
-                                onValueChange={(value) => setFormData(prev => ({ ...prev, notes: value }))}
+                            <Input
+                                type="date"
+                                label="Review Period End"
+                                value={formData.review_period_end}
+                                onChange={(e) => setFormData(prev => ({ ...prev, review_period_end: e.target.value }))}
                                 radius={themeRadius}
-                                minRows={3}
+                                isRequired
                             />
+                            
+                            <Input
+                                type="date"
+                                label="Review Date"
+                                description="Scheduled date for the review"
+                                value={formData.review_date}
+                                onChange={(e) => setFormData(prev => ({ ...prev, review_date: e.target.value }))}
+                                radius={themeRadius}
+                                isRequired
+                            />
+                            
+                            <Select
+                                label="Status"
+                                placeholder="Select status"
+                                selectedKeys={formData.status ? [formData.status] : ['scheduled']}
+                                onSelectionChange={(keys) => setFormData(prev => ({ ...prev, status: Array.from(keys)[0] }))}
+                                radius={themeRadius}
+                                isRequired
+                            >
+                                <SelectItem key="scheduled">Scheduled</SelectItem>
+                                <SelectItem key="in_progress">In Progress</SelectItem>
+                                <SelectItem key="pending_acknowledgment">Pending Acknowledgment</SelectItem>
+                                <SelectItem key="completed">Completed</SelectItem>
+                                <SelectItem key="cancelled">Cancelled</SelectItem>
+                            </Select>
+                            
+                            <div className="md:col-span-2">
+                                <Textarea
+                                    label="Notes"
+                                    placeholder="Additional notes about this review..."
+                                    value={formData.notes}
+                                    onValueChange={(value) => setFormData(prev => ({ ...prev, notes: value }))}
+                                    radius={themeRadius}
+                                    minRows={3}
+                                />
+                            </div>
                         </div>
                     </ModalBody>
                     <ModalFooter>
