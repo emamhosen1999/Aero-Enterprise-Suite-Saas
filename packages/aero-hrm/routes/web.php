@@ -811,6 +811,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/my-claims', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'myExpensesPaginate'])->name('my-claims');
         Route::get('/categories', [ExpenseCategoryController::class, 'index'])->name('categories.index');
         Route::get('/categories/list', [ExpenseCategoryController::class, 'list'])->name('categories.list');
+        Route::get('/categories/paginate', [ExpenseCategoryController::class, 'paginate'])->name('categories.paginate');
+        Route::get('/categories/stats', [ExpenseCategoryController::class, 'stats'])->name('categories.stats');
+        Route::post('/categories', [ExpenseCategoryController::class, 'store'])->name('categories.store');
+        Route::put('/categories/{id}', [ExpenseCategoryController::class, 'update'])->name('categories.update');
+        Route::delete('/categories/{id}', [ExpenseCategoryController::class, 'destroy'])->name('categories.destroy');
         // API endpoints for data fetching
         Route::get('/paginate', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'paginate'])->name('paginate');
         Route::get('/stats', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'stats'])->name('stats');
