@@ -49,7 +49,7 @@ class GoalController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'type' => 'required|string|in:'.implode(',', GoalSettingService::TYPES),
+            'type' => 'required|string|in:'.implode(',', array_column(GoalSettingService::TYPES, 'value')),
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'priority' => 'nullable|string',

@@ -12,7 +12,7 @@ use Aero\HRM\Events\Attendance\AttendancePunchedOut;
 use Aero\HRM\Events\Attendance\LateArrivalDetected;
 use Aero\HRM\Services\HRMAuthorizationService;
 use App\Exports\AttendanceAdminExport;
-use App\Exports\AttendanceExport;
+use Aero\HRM\Exports\AttendanceExport;
 use Aero\HRM\Http\Controllers\Controller;
 use Aero\Core\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
@@ -1927,20 +1927,61 @@ class AttendanceController extends Controller
     {
         $date = $request->input('date');
 
-        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\AttendanceExport($date), 'Daily_Timesheet_'.date('Y_m_d', strtotime($date)).'.xlsx');
+        return \Maatwebsite\Excel\Facades\Excel::download(new AttendanceExport($date), 'Daily_Timesheet_'.date('Y_m_d', strtotime($date)).'.xlsx');
     }
 
     public function exportPdf(Request $request)
     {
-        $date = $request->input('date');
-        $rows = (new AttendanceExport($date))->collection();
-        $pdf = PDF::loadView('attendance_pdf', [
-            'title' => 'Daily Timesheet - '.date('F d, Y', strtotime($date)),
-            'generatedOn' => now()->format('F d, Y h:i A'),
-            'rows' => $rows,
-        ])->setPaper('a4', 'landscape');
+        try {
+            $date = $request->input('date');
+            
+            // Validate date input
+            if (!$date) {
+                return response()->json(['error' => 'Date parameter is required'], 400);
+            }
+            
+            // Get the data collection
+            $rows = (new AttendanceExport($date))->collection();
+            
+            // Check if we have any data
+            if ($rows->isEmpty()) {
+                // Create a minimal row with message indicating no data
+                $rows = collect([[
+                    'No.' => 1,
+                    'Date' => date('M d, Y', strtotime($date)),
+                    'Employee Name' => 'No employees found',
+                    'Employee ID' => 'N/A',
+                    'Designation' => 'N/A',
+                    'Phone' => 'N/A',
+                    'Clock In' => 'No data',
+                    'Clock Out' => 'No data',
+                    'Work Hours' => '0h 0m',
+                    'Total Punches' => 0,
+                    'Complete Punches' => 0,
+                    'Status' => 'No data',
+                    'Remarks' => 'No attendance data available for this date',
+                ]]);
+            }
+            
+            // Generate PDF
+            $pdf = PDF::loadView('attendance_pdf', [
+                'title' => 'Daily Timesheet - '.date('F d, Y', strtotime($date)),
+                'generatedOn' => now()->format('F d, Y h:i A'),
+                'rows' => $rows,
+            ])->setPaper('a4', 'landscape');
 
-        return $pdf->download('Daily_Timesheet_'.date('Y_m_d', strtotime($date)).'.pdf');
+            return $pdf->download('Daily_Timesheet_'.date('Y_m_d', strtotime($date)).'.pdf');
+            
+        } catch (\Exception $e) {
+            \Log::error('PDF Export Error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'error' => 'Failed to generate PDF: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function exportAdminExcel(Request $request)
