@@ -805,16 +805,30 @@ const UsersTable = ({
         );
         
       case "roles":
-        // Get simple role names for display
-        const roleNames = user.roles?.map(role => 
-          typeof role === 'object' && role !== null ? role.name : role
-        ) || [];
+        // Get simple role names for display - handle multiple role data formats
+        const roleNames = user.roles?.map(role => {
+          if (typeof role === 'object' && role !== null) {
+            // Handle object format { id, name, ... }
+            return role.name || role.role_name || role.display_name;
+          }
+          // Handle string format
+          return role;
+        }).filter(Boolean) || [];
+        
+        // Also check for single role field (for backward compatibility)
+        if (roleNames.length === 0 && user.role) {
+          if (typeof user.role === 'string') {
+            roleNames.push(user.role);
+          } else if (typeof user.role === 'object' && user.role.name) {
+            roleNames.push(user.role.name);
+          }
+        }
         
         // Convert the role names to a Set for selection
         const roleSet = new Set(roleNames);
         
-        // Create a simple string representation of roles
-        const selectedValue = Array.from(roleSet).join(", ") || "No Roles";
+        // Create a simple string representation of roles - show placeholder only if truly no roles
+        const selectedValue = roleNames.length > 0 ? Array.from(roleSet).join(", ") : "Select Roles";
         
         // Check if this user is a Super Admin - only Super Admins can change Super Admin roles
         const targetIsSuperAdmin = isSuperAdmin(user);
@@ -860,8 +874,10 @@ const UsersTable = ({
                   radius={getThemeRadius()}
                   startContent={isLoading(user.id, 'role') ? <Spinner size="sm" /> : null}
                   style={{
-                    background: `var(--theme-primary, #3B82F6)`,
-                    color: 'white',
+                    background: roleNames.length > 0 
+                      ? `var(--theme-primary, #3B82F6)` 
+                      : `var(--theme-default-300, #D1D5DB)`,
+                    color: roleNames.length > 0 ? 'white' : `var(--theme-default-600, #4B5563)`,
                     fontFamily: `var(--fontFamily, "Inter")`,
                     borderRadius: getThemeRadius(),
                     cursor: 'pointer',

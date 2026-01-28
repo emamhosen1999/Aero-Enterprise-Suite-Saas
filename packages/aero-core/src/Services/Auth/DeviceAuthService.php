@@ -20,44 +20,47 @@ class DeviceAuthService
     }
 
     /**
-     * Generate secure device token using HMAC-SHA256.
+     * Generate secure device token using HMAC-SHA256 with random salt.
      *
      * @param  string  $deviceId  UUIDv4 from frontend
      * @param  int  $userId  User ID
-     * @return string 64-character hex string
+     * @return array ['token' => string, 'salt' => string]
      */
-    public function generateDeviceToken(string $deviceId, int $userId): string
+    public function generateDeviceToken(string $deviceId, int $userId): array
     {
-        // Generate random salt for additional security
-        $salt = Str::random(32);
+        // Generate cryptographically secure random salt
+        $salt = random_bytes(32);
+        $saltBase64 = base64_encode($salt);
 
-        // Create data to sign
-        $data = $deviceId.$userId.$salt.config('app.key');
+        // Create data to sign with timestamp for additional entropy
+        $timestamp = microtime(true);
+        $data = $deviceId . $userId . $saltBase64 . $timestamp . config('app.key');
 
         // Generate HMAC-SHA256 token
         $token = hash_hmac('sha256', $data, config('app.key'));
 
-        // Store salt with the device record (we'll add it to the token or store separately)
-        // For simplicity, we're using a deterministic approach with APP_KEY
-        // In production, you might want to store the salt separately
-
-        return $token;
+        return [
+            'token' => $token,
+            'salt' => $saltBase64
+        ];
     }
 
     /**
-     * Verify device token matches the stored one.
+     * Verify device token matches the stored one using stored salt.
      *
      * @param  string  $deviceId  UUIDv4 from frontend
      * @param  int  $userId  User ID
      * @param  string  $storedToken  Token from database
+     * @param  string  $storedSalt  Salt from database
+     * @param  float  $tokenTimestamp  Original token generation timestamp
      */
-    public function verifyDeviceToken(string $deviceId, int $userId, string $storedToken): bool
+    public function verifyDeviceToken(string $deviceId, int $userId, string $storedToken, string $storedSalt, float $tokenTimestamp): bool
     {
-        // For deterministic verification, regenerate and compare
-        // Note: This simple version doesn't use salt - see production notes below
-        $data = $deviceId.$userId.config('app.key');
+        // Recreate the original data that was signed
+        $data = $deviceId . $userId . $storedSalt . $tokenTimestamp . config('app.key');
         $calculatedToken = hash_hmac('sha256', $data, config('app.key'));
 
+        // Use hash_equals for timing-safe comparison
         return hash_equals($storedToken, $calculatedToken);
     }
 
@@ -78,8 +81,9 @@ class DeviceAuthService
             return null;
         }
 
-        // Generate secure device token
-        $deviceToken = $this->generateDeviceToken($deviceId, $user->id);
+        // Generate secure device token with salt
+        $tokenData = $this->generateDeviceToken($deviceId, $user->id);
+        $tokenTimestamp = microtime(true);
 
         // Get device information
         $deviceInfo = $this->getDeviceInfo($request);
@@ -90,9 +94,11 @@ class DeviceAuthService
             ->first();
 
         if ($existingDevice) {
-            // Update existing device
+            // Update existing device with new token and salt
             $existingDevice->update([
-                'device_token' => $deviceToken,
+                'device_token' => $tokenData['token'],
+                'device_salt' => $tokenData['salt'],
+                'token_timestamp' => $tokenTimestamp,
                 'is_active' => true,
                 'last_used_at' => Carbon::now(),
                 'ip_address' => $deviceInfo['ip_address'],
@@ -102,11 +108,13 @@ class DeviceAuthService
             return $existingDevice;
         }
 
-        // Create new device
+        // Create new device with salt storage
         return UserDevice::create([
             'user_id' => $user->id,
             'device_id' => $deviceId,
-            'device_token' => $deviceToken,
+            'device_token' => $tokenData['token'],
+            'device_salt' => $tokenData['salt'],
+            'token_timestamp' => $tokenTimestamp,
             'device_name' => $deviceInfo['device_name'],
             'device_type' => $deviceInfo['device_type'],
             'browser' => $deviceInfo['browser'],

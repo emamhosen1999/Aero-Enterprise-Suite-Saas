@@ -349,7 +349,7 @@ class RoleController extends Controller
         DB::beginTransaction();
 
         try {
-            $role = Role::findById($id);
+            $role = Role::find($id);
 
             if (! $role) {
                 return response()->json(['error' => 'Role not found'], 404);
@@ -439,7 +439,7 @@ class RoleController extends Controller
         DB::beginTransaction();
 
         try {
-            $role = Role::findById($id);
+            $role = Role::find($id);
 
             if (! $role) {
                 return response()->json(['error' => 'Role not found'], 404);
@@ -628,7 +628,7 @@ class RoleController extends Controller
         DB::beginTransaction();
 
         try {
-            $role = Role::findById($id);
+            $role = Role::find($id);
 
             if (! $role) {
                 return response()->json(['error' => 'Role not found'], 404);

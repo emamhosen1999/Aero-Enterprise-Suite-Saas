@@ -142,6 +142,7 @@ export const applyBackground = (backgroundConfig, opacity = 1) => {
   if (typeof window === 'undefined' || !window.document) return;
   
   const body = document.body;
+  const root = document.documentElement;
   
   // Clear existing background
   body.style.backgroundImage = '';
@@ -156,10 +157,14 @@ export const applyBackground = (backgroundConfig, opacity = 1) => {
   switch (backgroundConfig.type) {
     case BACKGROUND_TYPES.color:
       body.style.backgroundColor = backgroundConfig.value;
+      // Also set CSS variable for App.jsx layout
+      root.style.setProperty('--theme-background', backgroundConfig.value);
       break;
       
     case BACKGROUND_TYPES.gradient:
       body.style.backgroundImage = backgroundConfig.value;
+      // Also set CSS variable for App.jsx layout
+      root.style.setProperty('--theme-background', backgroundConfig.value);
       break;
       
     case BACKGROUND_TYPES.pattern:

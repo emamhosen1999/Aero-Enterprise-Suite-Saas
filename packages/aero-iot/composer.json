@@ -1,0 +1,23 @@
+{
+    "name": "aero/iot",
+    "description": "IoT Device Management System - Device Monitoring, Sensor Data Collection, Edge Computing",
+    "type": "library",
+    "keywords": ["iot", "internet-of-things", "device-management", "sensor-data", "telemetry", "edge-computing", "mqtt", "industrial-iot", "smart-devices", "monitoring"],
+    "require": {
+        "php": "^8.2|^8.3",
+        "laravel/framework": "^11.0|^12.0",
+        "aero/core": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Aero\\IoT\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Aero\\IoT\\Providers\\IoTServiceProvider"
+            ]
+        }
+    }
+}

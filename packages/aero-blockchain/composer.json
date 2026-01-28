@@ -1,0 +1,61 @@
+{
+    "name": "aero/blockchain",
+    "description": "Aero Blockchain Module - Distributed ledger technology integration for enterprise applications with smart contracts, transaction verification, and consensus mechanisms",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "aero",
+        "blockchain",
+        "distributed-ledger",
+        "smart-contracts",
+        "cryptocurrency",
+        "consensus",
+        "web3",
+        "laravel",
+        "enterprise"
+    ],
+    "authors": [
+        {
+            "name": "Aero Development Team",
+            "email": "developers@aerosuite.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^11.0|^12.0",
+        "aero/core": "*",
+        "guzzlehttp/guzzle": "^7.8",
+        "web3p/web3.php": "^0.1",
+        "kornrunner/keccak": "^1.1",
+        "simplito/elliptic-php": "^1.0",
+        "brick/math": "^0.11"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0",
+        "orchestra/testbench": "^9.0",
+        "laravel/pint": "^1.13"
+    },
+    "autoload": {
+        "psr-4": {
+            "Aero\\Blockchain\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Aero\\Blockchain\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Aero\\Blockchain\\Providers\\BlockchainServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

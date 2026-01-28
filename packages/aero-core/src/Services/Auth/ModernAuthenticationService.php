@@ -162,26 +162,32 @@ class ModernAuthenticationService
     }
 
     /**
-     * Generate secure password reset token with OTP
+     * Generate secure password reset token with OTP and progressive delays
      */
     public function generatePasswordResetToken(string $email, Request $request): array
     {
+        // Implement progressive delays based on recent attempts
+        $this->applyPasswordResetRateLimit($email, $request->ip());
+
         // Clean up old tokens
         DB::table('password_reset_tokens_secure')
             ->where('email', $email)
             ->where('expires_at', '<', now())
             ->delete();
 
+        // Generate cryptographically secure token and code
         $token = Str::random(64);
-        $verificationCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $verificationCode = $this->generateCryptoSecureCode(8); // 8-digit instead of 6
+        $hmacToken = hash_hmac('sha256', $token . $email, config('app.key'));
 
         DB::table('password_reset_tokens_secure')->insert([
             'email' => $email,
             'token' => Hash::make($token),
-            'verification_code' => $verificationCode,
+            'hmac_token' => $hmacToken,
+            'verification_code' => Hash::make($verificationCode), // Hash the verification code
             'is_verified' => false,
             'attempts' => 0,
-            'expires_at' => now()->addHours(1),
+            'expires_at' => now()->addMinutes(30), // Shorter expiry (30 minutes instead of 60)
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
             'created_at' => now(),
@@ -191,32 +197,43 @@ class ModernAuthenticationService
         return [
             'token' => $token,
             'verification_code' => $verificationCode,
-            'expires_at' => now()->addHours(1),
+            'expires_at' => now()->addMinutes(30),
+            'hmac_token' => $hmacToken,
         ];
     }
 
     /**
-     * Verify password reset token and code
+     * Verify password reset token and code with enhanced security
      */
-    public function verifyPasswordResetToken(string $email, string $token, string $verificationCode): bool
+    public function verifyPasswordResetToken(string $email, string $token, string $verificationCode, ?string $hmacToken = null): bool
     {
         $record = DB::table('password_reset_tokens_secure')
             ->where('email', $email)
-            ->where('verification_code', $verificationCode)
             ->where('expires_at', '>', now())
-            ->where('attempts', '<', 5)
+            ->where('attempts', '<', 3) // Reduced from 5 to 3 attempts
             ->first();
 
         if (! $record) {
             return false;
         }
 
-        if (! Hash::check($token, $record->token)) {
-            // Increment attempts
-            DB::table('password_reset_tokens_secure')
-                ->where('id', $record->id)
-                ->increment('attempts');
+        // Verify HMAC token if provided (backwards compatibility)
+        if ($hmacToken && isset($record->hmac_token)) {
+            $expectedHmac = hash_hmac('sha256', $token . $email, config('app.key'));
+            if (! hash_equals($expectedHmac, $hmacToken)) {
+                $this->incrementPasswordResetAttempts($record->id);
+                return false;
+            }
+        }
 
+        // Verify verification code (now hashed)
+        if (! Hash::check($verificationCode, $record->verification_code)) {
+            $this->incrementPasswordResetAttempts($record->id);
+            return false;
+        }
+
+        if (! Hash::check($token, $record->token)) {
+            $this->incrementPasswordResetAttempts($record->id);
             return false;
         }
 
@@ -292,26 +309,35 @@ class ModernAuthenticationService
     }
 
     /**
-     * Get location information from IP address
+     * Get location information from IP address using IpGeolocationService
      */
     protected function getLocationInfo(string $ip): array
     {
-        // For localhost/development
-        if (in_array($ip, ['127.0.0.1', '::1', 'localhost'])) {
+        try {
+            $geolocationService = app(\Aero\Core\Services\Auth\IpGeolocationService::class);
+            return $geolocationService->getLocation($ip);
+        } catch (\Exception $e) {
+            Log::error('Geolocation service failed', [
+                'ip' => $ip,
+                'error' => $e->getMessage()
+            ]);
+
+            // For localhost/development
+            if (in_array($ip, ['127.0.0.1', '::1', 'localhost'])) {
+                return [
+                    'country' => 'Local',
+                    'city' => 'Development',
+                    'timezone' => config('app.timezone'),
+                ];
+            }
+
+            // Fallback for unknown IPs
             return [
-                'country' => 'Local',
-                'city' => 'Development',
+                'country' => 'Unknown',
+                'city' => 'Unknown',
                 'timezone' => config('app.timezone'),
             ];
         }
-
-        // In production, you might use a service like MaxMind GeoIP2
-        // For now, return basic info
-        return [
-            'country' => 'Unknown',
-            'city' => 'Unknown',
-            'timezone' => config('app.timezone'),
-        ];
     }
 
     /**
@@ -449,5 +475,49 @@ class ModernAuthenticationService
         }
 
         return 'desktop';
+    }
+
+    /**
+     * Apply progressive rate limiting for password reset requests
+     */
+    protected function applyPasswordResetRateLimit(string $email, string $ip): void
+    {
+        $cacheKey = "password_reset_attempts:{$email}:{$ip}";
+        $attempts = cache()->get($cacheKey, 0);
+        
+        if ($attempts > 0) {
+            // Progressive delay: 2^attempts seconds, max 5 minutes (300 seconds)
+            $delay = min(pow(2, $attempts), 300);
+            sleep($delay);
+        }
+        
+        // Increment attempts and cache for 1 hour
+        cache()->put($cacheKey, $attempts + 1, now()->addHour());
+    }
+
+    /**
+     * Generate cryptographically secure verification code
+     */
+    protected function generateCryptoSecureCode(int $length = 8): string
+    {
+        $max = str_repeat('9', $length);
+        return str_pad(random_int(0, (int)$max), $length, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Increment password reset attempts with exponential backoff
+     */
+    protected function incrementPasswordResetAttempts(int $recordId): void
+    {
+        DB::table('password_reset_tokens_secure')
+            ->where('id', $recordId)
+            ->increment('attempts');
+            
+        // Add exponential delay based on attempts
+        $record = DB::table('password_reset_tokens_secure')->find($recordId);
+        if ($record && $record->attempts > 1) {
+            $delay = min(pow(2, $record->attempts - 1), 30); // Max 30 seconds delay
+            sleep($delay);
+        }
     }
 }

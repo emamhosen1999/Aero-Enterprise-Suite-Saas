@@ -75,6 +75,7 @@ class AeroCoreServiceProvider extends ServiceProvider
             // Merge configuration
             $this->mergeConfigFrom(__DIR__.'/../config/aero.php', 'aero');
             $this->mergeConfigFrom(__DIR__.'/../config/marketplace.php', 'marketplace');
+            $this->mergeConfigFrom(__DIR__.'/../config/security.php', 'security');
             // Module definitions are in config/module.php and loaded by ModuleDiscoveryService
             $this->mergeConfigFrom(__DIR__.'/../config/core.php', 'aero.core');
             $this->mergeConfigFrom(__DIR__.'/../config/permission.php', 'permission');
@@ -88,6 +89,29 @@ class AeroCoreServiceProvider extends ServiceProvider
             $this->app->singleton(UserRelationshipRegistry::class);
             $this->app->singleton(DashboardWidgetRegistry::class);
             $this->app->singleton(DashboardRegistry::class);
+
+            // Register Session Encryption Services
+            $this->app->singleton(\Aero\Core\Services\Auth\SessionEncryptionService::class);
+            
+            // Register Encrypted Session Handler if encryption is enabled
+            if (config('session.encrypt', false)) {
+                $this->app->extend('session', function ($manager) {
+                    $manager->extend('encrypted_database', function ($app) {
+                        $connection = $app['db']->connection($app['config']['session.connection']);
+                        $encryptionService = $app[\Aero\Core\Services\Auth\SessionEncryptionService::class];
+                        
+                        return new \Aero\Core\Services\Auth\EncryptedSessionHandler(
+                            $connection,
+                            $app['config']['session.table'],
+                            $app['config']['session.lifetime'],
+                            $app,
+                            $encryptionService
+                        );
+                    });
+                    
+                    return $manager;
+                });
+            }
 
             // Register Module Access Services (with error handling for missing tables)
             // These services are lazy-loaded, so they won't cause issues pre-install

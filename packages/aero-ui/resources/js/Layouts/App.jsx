@@ -247,11 +247,13 @@ const App = React.memo(({ children }) => {
     return () => { mounted = false; };
   }, [authData?.user?.id]);
 
-  // Theme background
+  // Initialize theme background from theme system
   useEffect(() => {
-    const savedBackground = localStorage.getItem('aero-hr-background');
-    const backgroundPattern = savedBackground || 'pattern-glass-1';
-    document.documentElement.setAttribute('data-background', backgroundPattern);
+    // The ThemeProvider will handle background initialization
+    // This effect is just to ensure CSS variable fallback is available
+    if (typeof window !== 'undefined' && !document.documentElement.style.getPropertyValue('--theme-background')) {
+      document.documentElement.style.setProperty('--theme-background', '#F4F4F5');
+    }
   }, []);
 
   // Command Palette keyboard shortcut (⌘K / Ctrl+K)
@@ -409,7 +411,7 @@ const App = React.memo(({ children }) => {
                 <div 
                   className="flex h-full overflow-hidden"
                   style={{
-                    background: `var(--theme-background, #F4F4F5)`,
+                    background: `var(--theme-background, var(--background, #F4F4F5))`,
                   }}
                 >
                   {/* Sidebar - Desktop visible, Mobile drawer */}
