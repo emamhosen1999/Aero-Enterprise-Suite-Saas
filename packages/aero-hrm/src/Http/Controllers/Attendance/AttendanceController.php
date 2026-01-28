@@ -44,8 +44,8 @@ class AttendanceController extends Controller
 
     public function index2(): \Inertia\Response
     {
-        return Inertia::render('HRM/Attendance/Employee', [
-            'title' => 'Attendances',
+        return Inertia::render('HRM/MyAttendance', [
+            'title' => 'My Attendance',
         ]);
     }
 

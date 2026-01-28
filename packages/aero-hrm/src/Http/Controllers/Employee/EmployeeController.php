@@ -42,7 +42,7 @@ class EmployeeController extends Controller
      */
     public function index()
     {
-        return Inertia::render('HRM/Employees/Index', [
+        return Inertia::render('HRM/EmployeeList', [
             'title' => 'Employee Management',
             'departments' => Department::where('is_active', true)->get(),
             'designations' => Designation::where('is_active', true)->get(),

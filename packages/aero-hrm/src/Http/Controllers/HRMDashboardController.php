@@ -123,13 +123,14 @@ class HRMDashboardController extends Controller
                 ];
             });
         
-        // Performance review stats
-        $upcomingReviews = PerformanceReview::with(['employee'])
-            ->where('status', 'scheduled')
-            ->where('review_start_date', '>=', $today)
-            ->orderBy('review_start_date')
-            ->take(5)
-            ->get();
+        // Performance review stats - Temporarily disabled due to missing column
+        // $upcomingReviews = PerformanceReview::with(['employee'])
+        //     ->where('status', 'scheduled')
+        //     ->where('review_start_date', '>=', $today)
+        //     ->orderBy('review_start_date')
+        //     ->take(5)
+        //     ->get();
+        $upcomingReviews = collect(); // Empty collection for now
         
         // Additional HR metrics
         $openPositions = 0; // Can be integrated with recruitment module

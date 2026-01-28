@@ -16,7 +16,7 @@ use Aero\Core\Contracts\CoreWidgetCategory;
  */
 class MyGoalsWidget extends AbstractDashboardWidget
 {
-    protected string $position = 'main_left';
+    protected string $position = 'main_right';
     protected int $order = 85;
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ACTION;

@@ -115,13 +115,28 @@ const HRMDashboard = ({ title, dynamicWidgets = [] }) => {
                     {(hasMainContent || hasSidebar) && (
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                             {/* LEFT COLUMN - Main Content (2/3 width) */}
-                            <div className="lg:col-span-2 space-y-4">
-                                {widgetsByPosition.main_left.map((widget) => (
-                                    <DynamicWidgetRenderer 
-                                        key={widget.key} 
-                                        widgets={[widget]} 
-                                    />
-                                ))}
+                            <div className="lg:col-span-2">
+                                {widgetsByPosition.main_left.length <= 2 ? (
+                                    /* Side by side layout for 1-2 widgets */
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {widgetsByPosition.main_left.map((widget) => (
+                                            <DynamicWidgetRenderer 
+                                                key={widget.key} 
+                                                widgets={[widget]} 
+                                            />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    /* Vertical layout for 3+ widgets */
+                                    <div className="space-y-4">
+                                        {widgetsByPosition.main_left.map((widget) => (
+                                            <DynamicWidgetRenderer 
+                                                key={widget.key} 
+                                                widgets={[widget]} 
+                                            />
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             {/* RIGHT COLUMN - Sidebar (1/3 width) */}

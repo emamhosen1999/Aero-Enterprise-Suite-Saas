@@ -1,0 +1,23 @@
+{
+    "name": "aero/integration",
+    "description": "Enterprise Integration Platform - API Gateway, ETL, Workflow Automation",
+    "type": "library",
+    "keywords": ["integration", "api-gateway", "etl", "workflow", "automation", "enterprise", "middleware", "sync", "data-pipeline", "webhook"],
+    "require": {
+        "php": "^8.2|^8.3",
+        "laravel/framework": "^11.0|^12.0",
+        "aero/core": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Aero\\Integration\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Aero\\Integration\\Providers\\IntegrationServiceProvider"
+            ]
+        }
+    }
+}

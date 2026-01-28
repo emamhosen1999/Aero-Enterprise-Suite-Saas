@@ -158,7 +158,7 @@ class EmployeeDashboardController extends Controller
         // Get widgets for Employee Dashboard
         $widgets = $this->widgetRegistry->getWidgetsForFrontend('hrm.employee');
 
-        return Inertia::render('HRM/Employee/Dashboard', [
+        return Inertia::render('HRM/AIAnalytics/Dashboard', [
             'title' => 'My Dashboard',
             'dynamicWidgets' => $widgets,
             'employee' => $employee ? [

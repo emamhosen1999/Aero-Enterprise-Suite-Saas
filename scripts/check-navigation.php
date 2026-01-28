@@ -5,9 +5,46 @@
  * Verifies if Core and HRM navigations are registered
  */
 
-require __DIR__ . '/../apps/standalone-host/vendor/autoload.php';
+// Try multiple vendor paths
+$vendorPaths = [
+    __DIR__ . '/../apps/standalone-host/vendor/autoload.php',
+    __DIR__ . '/../../dbedc-erp/vendor/autoload.php',
+    __DIR__ . '/../../../dbedc-erp/vendor/autoload.php'
+];
 
-$app = require_once __DIR__ . '/../apps/standalone-host/bootstrap/app.php';
+$vendorLoaded = false;
+foreach ($vendorPaths as $vendorPath) {
+    if (file_exists($vendorPath)) {
+        require $vendorPath;
+        $vendorLoaded = true;
+        echo "Using vendor path: $vendorPath\n";
+        break;
+    }
+}
+
+if (!$vendorLoaded) {
+    die("Could not find vendor/autoload.php in any expected location\n");
+}
+
+// Try multiple app paths  
+$appPaths = [
+    __DIR__ . '/../apps/standalone-host/bootstrap/app.php',
+    __DIR__ . '/../../dbedc-erp/bootstrap/app.php'
+];
+
+$appLoaded = false;
+foreach ($appPaths as $appPath) {
+    if (file_exists($appPath)) {
+        $app = require_once $appPath;
+        $appLoaded = true;
+        echo "Using app path: $appPath\n";
+        break;
+    }
+}
+
+if (!$appLoaded) {
+    die("Could not find bootstrap/app.php in any expected location\n");
+}
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
