@@ -285,18 +285,27 @@ class CoreUserController extends Controller
             DB::rollBack();
             
             // Determine which field caused the constraint violation
+            // Check constraint name first (more reliable), then fall back to field name in "Duplicate entry" message
             $errorMessage = $e->getMessage();
             $errors = [];
             
-            if (stripos($errorMessage, 'email') !== false || stripos($errorMessage, 'users_email_unique') !== false) {
-                $errors['email'] = ['This email address is already registered.'];
-            } elseif (stripos($errorMessage, 'phone') !== false || stripos($errorMessage, 'users_phone_unique') !== false) {
+            // Check for specific constraint names first (most reliable)
+            if (stripos($errorMessage, 'users_phone_unique') !== false || stripos($errorMessage, "'phone'") !== false) {
                 $errors['phone'] = ['This phone number is already in use.'];
-            } elseif (stripos($errorMessage, 'employee_id') !== false || stripos($errorMessage, 'users_employee_id_unique') !== false) {
+            } elseif (stripos($errorMessage, 'users_email_unique') !== false || stripos($errorMessage, "'email'") !== false) {
+                $errors['email'] = ['This email address is already registered.'];
+            } elseif (stripos($errorMessage, 'users_employee_id_unique') !== false || stripos($errorMessage, "'employee_id'") !== false) {
                 $errors['employee_id'] = ['This employee ID already exists.'];
+            } elseif (stripos($errorMessage, 'users_user_name_unique') !== false || stripos($errorMessage, "'user_name'") !== false) {
+                $errors['user_name'] = ['This username is already taken.'];
             } else {
-                // Generic fallback
-                $errors['email'] = ['A user with this information already exists.'];
+                // Generic fallback - extract field from "for key 'users.FIELD'" pattern
+                if (preg_match("/for key ['\"]?users\.users_(\w+)_unique['\"]?/i", $errorMessage, $matches)) {
+                    $field = $matches[1];
+                    $errors[$field] = ["This {$field} is already in use."];
+                } else {
+                    $errors['email'] = ['A user with this information already exists.'];
+                }
             }
             
             return response()->json([

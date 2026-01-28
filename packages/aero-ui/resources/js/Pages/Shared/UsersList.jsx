@@ -91,6 +91,7 @@ const getRoutes = (context) => {
       store: 'admin.users.store',
       update: 'admin.users.update',
       destroy: 'admin.users.destroy',
+      forceDelete: 'admin.users.force-delete',
       toggleStatus: 'admin.users.toggle-status',
       updateRoles: 'admin.users.update-roles',
       
@@ -112,6 +113,7 @@ const getRoutes = (context) => {
       store: 'core.users.store',
       update: 'core.users.update',
       destroy: 'core.users.destroy',
+      forceDelete: 'core.users.forceDelete',
       toggleStatus: 'core.users.toggleStatus',
       updateRoles: 'core.users.updateRole',
       
@@ -133,6 +135,7 @@ const getRoutes = (context) => {
     store: 'users.store',
     update: 'users.update',
     destroy: 'users.destroy',
+    forceDelete: 'users.forceDelete',
     toggleStatus: 'users.toggleStatus',
     updateRoles: 'users.updateRole',
     
@@ -187,6 +190,12 @@ const UsersList = ({
 
   // Modal states
   const [openModalType, setOpenModalType] = useState(null);
+  
+  // Deactivated users sidebar state
+  const [showDeactivatedSidebar, setShowDeactivatedSidebar] = useState(false);
+  const [deactivatedUsers, setDeactivatedUsers] = useState([]);
+  const [deactivatedLoading, setDeactivatedLoading] = useState(false);
+  const [deletingUserId, setDeletingUserId] = useState(null);
   
   // Filters
   const [filters, setFilters] = useState({
@@ -475,7 +484,7 @@ const UsersList = ({
     
     const promise = new Promise(async (resolve, reject) => {
       try {
-        const response = await axios.post(route(routes.toggleStatus, { id: userId, user: userId }), {
+        const response = await axios.put(route(routes.toggleStatus, { id: userId, user: userId }), {
           active: newStatus
         });
         
@@ -596,6 +605,121 @@ const UsersList = ({
       showToast.error('Failed to fetch device information');
     }
   }, [routes.devices]);
+
+  // Fetch deactivated users for sidebar
+  const fetchDeactivatedUsers = useCallback(async () => {
+    setDeactivatedLoading(true);
+    try {
+      const response = await axios.get(route(routes.paginate), {
+        params: {
+          perPage: 100,
+          status: 'inactive'
+        },
+      });
+
+      if (response.status === 200) {
+        const { users } = response.data;
+        if (users.data && Array.isArray(users.data)) {
+          setDeactivatedUsers(users.data);
+        } else if (Array.isArray(users)) {
+          setDeactivatedUsers(users);
+        } else {
+          setDeactivatedUsers([]);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching deactivated users:', error);
+      setDeactivatedUsers([]);
+    } finally {
+      setDeactivatedLoading(false);
+    }
+  }, [routes.paginate]);
+
+  // Load deactivated users when sidebar opens
+  useEffect(() => {
+    if (showDeactivatedSidebar) {
+      fetchDeactivatedUsers();
+    }
+  }, [showDeactivatedSidebar, fetchDeactivatedUsers]);
+
+  // Permanent delete user function
+  const permanentDeleteUser = useCallback(async (userId) => {
+    if (!confirm('Are you sure you want to permanently delete this user? This action cannot be undone.')) {
+      return;
+    }
+
+    setDeletingUserId(userId);
+    
+    const promise = new Promise(async (resolve, reject) => {
+      try {
+        const response = await axios.delete(route(routes.destroy, { id: userId, user: userId }), {
+          data: { force: true }
+        });
+        
+        if (response.status === 200) {
+          // Remove from deactivated users list
+          setDeactivatedUsers(prev => prev.filter(u => u.id !== userId));
+          fetchStats();
+          resolve([response.data.message || 'User permanently deleted']);
+        } else {
+          reject(['Failed to delete user']);
+        }
+      } catch (error) {
+        console.error('Error permanently deleting user:', error);
+        
+        if (error.response?.status === 403) {
+          reject([error.response.data.error || 'You do not have permission to delete this user']);
+        } else if (error.response?.status === 404) {
+          reject(['User not found']);
+        } else {
+          reject([error.response?.data?.error || error.response?.data?.message || 'Failed to delete user']);
+        }
+      } finally {
+        setDeletingUserId(null);
+      }
+    });
+    
+    showToast.promise(promise, {
+      loading: 'Permanently deleting user...',
+      success: (data) => data.join(', '),
+      error: (data) => Array.isArray(data) ? data.join(', ') : data,
+    });
+  }, [routes.destroy, fetchStats]);
+
+  // Reactivate user from sidebar
+  const reactivateUser = useCallback(async (userId) => {
+    setDeletingUserId(userId); // Reuse loading state
+    
+    const promise = new Promise(async (resolve, reject) => {
+      try {
+        const response = await axios.put(route(routes.toggleStatus, { id: userId, user: userId }), {
+          active: true
+        });
+        
+        if (response.status === 200) {
+          // Remove from deactivated users list
+          setDeactivatedUsers(prev => prev.filter(u => u.id !== userId));
+          // Refresh main users list
+          fetchUsers();
+          fetchStats();
+          resolve([response.data.message || 'User reactivated successfully']);
+        } else {
+          reject(['Failed to reactivate user']);
+        }
+      } catch (error) {
+        console.error('Error reactivating user:', error);
+        reject([error.response?.data?.error || error.response?.data?.message || 'Failed to reactivate user']);
+      } finally {
+        setDeletingUserId(null);
+      }
+    });
+    
+    showToast.promise(promise, {
+      loading: 'Reactivating user...',
+      success: (data) => data.join(', '),
+      error: (data) => Array.isArray(data) ? data.join(', ') : data,
+    });
+  }, [routes.toggleStatus, fetchUsers, fetchStats]);
 
   // Device detection utility functions
   const getDeviceIcon = (userAgent, className = "w-4 h-4") => {
@@ -1069,6 +1193,31 @@ const UsersList = ({
             >
               {isMobile ? "Export" : "Export Users"}
             </Button>
+            
+            {/* Deactivated Users Toggle Button */}
+            <Badge 
+              content={stats?.overview?.inactive_users || 0} 
+              color="danger" 
+              size="sm"
+              isInvisible={(stats?.overview?.inactive_users || 0) === 0}
+            >
+              <Button
+                size={isMobile ? "sm" : "md"}
+                variant="bordered"
+                startContent={<XCircleIcon className="w-4 h-4" />}
+                onPress={() => setShowDeactivatedSidebar(true)}
+                radius={themeRadius}
+                style={{
+                  background: `color-mix(in srgb, var(--theme-danger) 10%, transparent)` ,
+                  border: `1px solid color-mix(in srgb, var(--theme-danger) 30%, transparent)` ,
+                  color: 'var(--theme-danger)',
+                  fontFamily: `var(--fontFamily, "Inter")`,
+                }}
+                className="min-w-0"
+              >
+                {isMobile ? "Inactive" : "Deactivated Users"}
+              </Button>
+            </Badge>
           </>
         }
         stats={

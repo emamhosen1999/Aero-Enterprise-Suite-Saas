@@ -629,7 +629,7 @@ const UsersTable = ({
         
         const promise = new Promise(async (resolve, reject) => {
           try {
-            const response = await axios.post(route(routes.toggleStatus, { id: userId, user: userId }), {
+            const response = await axios.put(route(routes.toggleStatus, { id: userId, user: userId }), {
               active: newStatus
             });
             
