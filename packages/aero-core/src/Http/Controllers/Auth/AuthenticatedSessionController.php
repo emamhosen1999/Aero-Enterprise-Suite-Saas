@@ -42,7 +42,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return SafeRedirect::intended('dashboard', true);
+        return SafeRedirect::intended('core.dashboard', true);
     }
 
     /**

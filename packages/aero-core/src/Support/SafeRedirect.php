@@ -83,7 +83,7 @@ class SafeRedirect
      * @example
      * return SafeRedirect::toRoute('employees.index', [], 'dashboard');
      */
-    public static function toRoute(string $routeName, array $parameters = [], string $fallbackRoute = 'dashboard')
+    public static function toRoute(string $routeName, array $parameters = [], string $fallbackRoute = 'core.dashboard')
     {
         // Check if route exists
         if (! Route::has($routeName)) {

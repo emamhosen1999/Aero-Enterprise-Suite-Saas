@@ -474,6 +474,9 @@ const ModuleManagement = (props) => {
     // Toggle module access (and all children)
     // For promoted Core sub-modules, use sub_modules array instead
     const toggleModuleAccess = (moduleId, checked, isCoreSubmodule = false, parentModuleId = null) => {
+        // DEBUG: Log what's being toggled
+        console.log('DEBUG toggleModuleAccess:', { moduleId, checked, isCoreSubmodule, parentModuleId });
+        
         setRoleAccess(prev => {
             const newAccess = { ...prev };
             
@@ -525,6 +528,9 @@ const ModuleManagement = (props) => {
 
     // Toggle sub-module access
     const toggleSubModuleAccess = (subModuleId, moduleId, checked) => {
+        // DEBUG: Log what's being toggled
+        console.log('DEBUG toggleSubModuleAccess:', { subModuleId, moduleId, checked });
+        
         setRoleAccess(prev => {
             const newAccess = { ...prev };
             
@@ -632,6 +638,11 @@ const ModuleManagement = (props) => {
             return;
         }
 
+        // DEBUG: Log what's being sent
+        console.log('DEBUG: roleAccess being sent:', JSON.stringify(roleAccess, null, 2));
+        console.log('DEBUG: modules array contains:', roleAccess.modules);
+        console.log('DEBUG: sub_modules array contains:', roleAccess.sub_modules);
+        
         setRoleAccessSaving(true);
         const promise = new Promise(async (resolve, reject) => {
             try {

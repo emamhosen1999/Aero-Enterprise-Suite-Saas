@@ -908,6 +908,12 @@ class ModuleController extends Controller
             return response()->json(['error' => 'Insufficient permissions'], 403);
         }
 
+        // Debug: Log incoming request data
+        Log::debug('syncRoleAccess request received', [
+            'roleId' => $roleId,
+            'request_data' => $request->all(),
+        ]);
+
         $validator = Validator::make($request->all(), [
             'modules' => 'nullable|array',
             'modules.*' => 'integer|exists:modules,id',
@@ -921,6 +927,11 @@ class ModuleController extends Controller
         ]);
 
         if ($validator->fails()) {
+            Log::error('syncRoleAccess validation failed', [
+                'roleId' => $roleId,
+                'errors' => $validator->errors()->toArray(),
+                'request_data' => $request->all(),
+            ]);
             return response()->json(['errors' => $validator->errors()], 422);
         }
 

@@ -19,7 +19,7 @@ class VerificationController extends Controller
     public function notice(Request $request): Response|RedirectResponse
     {
         return $request->user()->hasVerifiedEmail()
-            ? SafeRedirect::intended('dashboard')
+            ? SafeRedirect::intended('core.dashboard')
             : Inertia::render('Shared/Auth/VerifyEmail', ['status' => session('status')]);
     }
 
@@ -52,11 +52,11 @@ class VerificationController extends Controller
     public function resend(Request $request): RedirectResponse
     {
         if ($request->user()->hasVerifiedEmail()) {
-            return SafeRedirect::intended('dashboard');
+            return SafeRedirect::intended('core.dashboard');
         }
 
         $request->user()->sendEmailVerificationNotification();
 
-        return SafeRedirect::back('dashboard')->with('status', 'verification-link-sent');
+        return SafeRedirect::back('core.dashboard')->with('status', 'verification-link-sent');
     }
 }

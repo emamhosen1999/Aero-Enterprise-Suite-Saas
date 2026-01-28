@@ -121,6 +121,143 @@ return [
     ],
 
     'submodules' => [
+        // Self Service (My Workspace items for HRM)
+        [
+            'code' => 'employee-self-service',
+            'name' => 'Self Service',
+            'description' => 'Employee self-service features (My Workspace HRM items)',
+            'icon' => 'UserCircleIcon',
+            'route' => '/hrm/employee/dashboard',
+            'priority' => 0,
+            'components' => [
+                [
+                    'code' => 'my-dashboard',
+                    'name' => 'My Dashboard',
+                    'type' => 'page',
+                    'route' => '/hrm/employee/dashboard',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Dashboard'],
+                    ],
+                ],
+                [
+                    'code' => 'my-attendance',
+                    'name' => 'My Attendance',
+                    'type' => 'page',
+                    'route' => '/hrm/attendance-employee',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Attendance'],
+                        ['code' => 'clock-in-out', 'name' => 'Clock In/Out'],
+                    ],
+                ],
+                [
+                    'code' => 'my-leaves',
+                    'name' => 'My Leaves',
+                    'type' => 'page',
+                    'route' => '/hrm/leaves-employee',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Leaves'],
+                        ['code' => 'apply', 'name' => 'Apply Leave'],
+                    ],
+                ],
+                [
+                    'code' => 'my-time-off',
+                    'name' => 'My Time-Off',
+                    'type' => 'page',
+                    'route' => '/hrm/self-service/time-off',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Time-Off'],
+                        ['code' => 'request', 'name' => 'Request Time-Off'],
+                    ],
+                ],
+                [
+                    'code' => 'my-payslips',
+                    'name' => 'My Payslips',
+                    'type' => 'page',
+                    'route' => '/hrm/self-service/payslips',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Payslips'],
+                        ['code' => 'download', 'name' => 'Download Payslip'],
+                    ],
+                ],
+                [
+                    'code' => 'my-expenses',
+                    'name' => 'My Expenses',
+                    'type' => 'page',
+                    'route' => '/hrm/my-expenses',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Expenses'],
+                        ['code' => 'submit', 'name' => 'Submit Expense'],
+                    ],
+                ],
+                [
+                    'code' => 'my-documents',
+                    'name' => 'My Documents',
+                    'type' => 'page',
+                    'route' => '/hrm/self-service/documents',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Documents'],
+                        ['code' => 'upload', 'name' => 'Upload Document'],
+                    ],
+                ],
+                [
+                    'code' => 'my-benefits',
+                    'name' => 'My Benefits',
+                    'type' => 'page',
+                    'route' => '/hrm/self-service/benefits',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Benefits'],
+                    ],
+                ],
+                [
+                    'code' => 'my-trainings',
+                    'name' => 'My Trainings',
+                    'type' => 'page',
+                    'route' => '/hrm/self-service/trainings',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Trainings'],
+                        ['code' => 'enroll', 'name' => 'Enroll Training'],
+                    ],
+                ],
+                [
+                    'code' => 'my-performance',
+                    'name' => 'My Performance',
+                    'type' => 'page',
+                    'route' => '/hrm/self-service/performance',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Performance'],
+                    ],
+                ],
+                [
+                    'code' => 'my-goals',
+                    'name' => 'My Goals',
+                    'type' => 'page',
+                    'route' => '/hrm/goals',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Goals'],
+                        ['code' => 'update', 'name' => 'Update Goals'],
+                    ],
+                ],
+                [
+                    'code' => 'my-career-path',
+                    'name' => 'My Career Path',
+                    'type' => 'page',
+                    'route' => '/hrm/self-service/career-path',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Career Path'],
+                    ],
+                ],
+                [
+                    'code' => 'my-feedback',
+                    'name' => 'My 360° Feedback',
+                    'type' => 'page',
+                    'route' => '/hrm/feedback-360',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Feedback'],
+                        ['code' => 'submit', 'name' => 'Submit Feedback'],
+                    ],
+                ],
+            ],
+        ],
         // 2.1 Employees (Original + Org Chart)
         [
             'code' => 'employees',
