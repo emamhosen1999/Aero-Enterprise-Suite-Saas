@@ -13,15 +13,18 @@ import {
   Cog6ToothIcon,
   QuestionMarkCircleIcon,
   ChatBubbleLeftRightIcon,
-  ArrowRightOnRectangleIcon
+  ArrowRightOnRectangleIcon,
+  SwatchIcon
 } from '@heroicons/react/24/outline';
 import ProfileAvatar from '@/Components/ProfileAvatar';
+import ThemeSettingDrawer from '@/Components/ThemeSettingDrawer';
 import { showToast } from '@/utils/toastUtils';
 
 // Simple Profile Menu with HeroUI Dropdown
 const ProfileMenu = ({ children }) => {
   const { auth } = usePage().props;
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [themeDrawerOpen, setThemeDrawerOpen] = useState(false);
 
   // Guard: Don't render menu if no authenticated user
   if (!auth?.user) {
@@ -270,6 +273,59 @@ const ProfileMenu = ({ children }) => {
         </div>
       </DropdownItem>
 
+      <DropdownItem
+        key="theme-settings"
+        startContent={
+          <div 
+            className="w-7 h-7 flex items-center justify-center"
+            style={{
+              backgroundColor: `var(--theme-content2, #F4F4F5)`,
+              borderRadius: `var(--borderRadius, 8px)`,
+              transform: `scale(var(--scale, 1))`,
+              borderWidth: `var(--borderWidth, 1px)`,
+              borderColor: `var(--theme-divider, #E4E4E7)`,
+            }}
+          >
+            <SwatchIcon 
+              className="w-4 h-4"
+              style={{ color: `var(--theme-foreground, #11181C)` }}
+            />
+          </div>
+        }
+        onPress={() => setThemeDrawerOpen(true)}
+        className="px-3 py-2 transition-colors duration-200"
+        textValue="Theme Settings"
+        style={{
+          fontFamily: `var(--fontFamily, 'Inter')`,
+          borderRadius: `var(--borderRadius, 8px)`,
+          transform: `scale(var(--scale, 1))`,
+          color: `var(--theme-foreground, #11181C)`,
+          border: `var(--borderWidth, 2px) solid transparent`,
+        }}
+        onMouseEnter={(e) => {
+          e.target.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`;
+          e.target.style.borderRadius = `var(--borderRadius, 8px)`;
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.border = `var(--borderWidth, 2px) solid transparent`;
+        }}
+      >
+        <div className="flex flex-col gap-0.5">
+          <span 
+            className="text-sm font-medium"
+            style={{ color: `var(--theme-foreground, #11181C)` }}
+          >
+            Theme Settings
+          </span>
+          <span 
+            className="text-xs"
+            style={{ color: `color-mix(in srgb, var(--theme-foreground, #11181C) 60%, transparent)` }}
+          >
+            Customize appearance and colors
+          </span>
+        </div>
+      </DropdownItem>
+
       {/* Help & Support Section */}
       <DropdownItem 
         key="divider-3" 
@@ -470,6 +526,12 @@ const ProfileMenu = ({ children }) => {
       
       </DropdownMenu>
     </Dropdown>
+    
+    {/* Theme Settings Drawer */}
+    <ThemeSettingDrawer 
+      isOpen={themeDrawerOpen} 
+      onClose={() => setThemeDrawerOpen(false)} 
+    />
   );
 };
 

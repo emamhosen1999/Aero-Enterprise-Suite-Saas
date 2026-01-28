@@ -61,12 +61,47 @@
 }
 
 /* ============================================
-   GLOBAL HEROUI CARD STYLING (NO 3D EFFECTS ON MAIN CARDS)
-   Applies consistent theming to all Cards
+   STANDARDIZED AERO CARD STYLING
+   Single .aero-card class for consistent theming
    EXCEPTION: Navigation cards and nested cards keep 3D effects
    ============================================ */
 
-/* Target HeroUI Card components */
+/* Primary card styling - flat design for main content cards */
+.aero-card {
+    background: linear-gradient(135deg, 
+        var(--theme-content1, #FAFAFA) 20%, 
+        var(--theme-content2, #F4F4F5) 10%, 
+        var(--theme-content3, #E4E4E7) 20%) !important;
+    border: var(--borderWidth, 2px) solid transparent !important;
+    border-radius: var(--borderRadius, 12px) !important;
+    font-family: var(--fontFamily, "Inter") !important;
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: var(--shadow-sm);
+}
+
+/* Dark mode card styling */
+.dark .aero-card {
+    background: linear-gradient(135deg, 
+        var(--theme-content1, #18181b) 20%, 
+        var(--theme-content2, #27272a) 10%, 
+        var(--theme-content3, #3f3f46) 20%) !important;
+}
+
+/* Card hover effect - subtle shadow only */
+.aero-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+/* Card header styling */
+.aero-card-header {
+    border-color: var(--theme-divider, #E4E4E7) !important;
+    background: linear-gradient(135deg, 
+        color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
+        color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%) !important;
+    font-family: var(--fontFamily, "Inter") !important;
+}
+
+/* Backwards compatibility - keep existing selectors for gradual migration */
 .bg-content1.rounded-large,
 .bg-content1.rounded-medium,
 .bg-content1.rounded-small {
@@ -77,13 +112,10 @@
     border: var(--borderWidth, 2px) solid transparent !important;
     border-radius: var(--borderRadius, 12px) !important;
     font-family: var(--fontFamily, "Inter") !important;
-    
-    /* No 3D effects on cards - flat design */
     transition: box-shadow var(--motion-duration) var(--motion-gentle);
     box-shadow: var(--shadow-sm);
 }
 
-/* Dark mode Card styling */
 .dark .bg-content1.rounded-large,
 .dark .bg-content1.rounded-medium,
 .dark .bg-content1.rounded-small {
@@ -93,20 +125,21 @@
         var(--theme-content3, var(--heroui-content3, #3f3f46)) 100%) !important;
 }
 
-/* Hover effect for cards - subtle shadow only */
 .bg-content1.rounded-large:hover,
 .bg-content1.rounded-medium:hover,
 .bg-content1.rounded-small:hover {
     box-shadow: var(--shadow-md);
 }
 
+.dark .aero-card:hover,
 .dark .bg-content1.rounded-large:hover,
 .dark .bg-content1.rounded-medium:hover,
 .dark .bg-content1.rounded-small:hover {
     box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.35);
 }
 
-/* Active/pressed card state - no change */
+/* Active/pressed card state */
+.aero-card:active,
 .bg-content1.rounded-large:active,
 .bg-content1.rounded-medium:active,
 .bg-content1.rounded-small:active {
@@ -119,21 +152,29 @@
    ============================================ */
 
 /* Nested cards inside other cards */
+.aero-card .aero-card,
 .bg-content1 .bg-content1.rounded-large,
 .bg-content1 .bg-content1.rounded-medium,
 .bg-content1 .bg-content1.rounded-small,
 /* Navigation cards (in sidebar, menus, etc) */
+[data-slot="navigation"] .aero-card,
 [data-slot="navigation"] .bg-content1,
+[role="navigation"] .aero-card,
 [role="navigation"] .bg-content1,
+nav .aero-card,
 nav .bg-content1,
+.sidebar-menu .aero-card,
 .sidebar-menu .bg-content1,
+.nav-card .aero-card,
 .nav-card .bg-content1,
 /* Widget cards (dashboard widgets) */
 .widget-card,
+.dashboard-widget .aero-card,
 .dashboard-widget .bg-content1,
 /* Stats cards */
 .stats-card,
 /* Card inside CardBody (nested pattern) */
+[data-slot="body"] .aero-card,
 [data-slot="body"] .bg-content1 {
     /* 3D depth effects restored for nested/navigation cards */
     transform-style: preserve-3d;

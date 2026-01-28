@@ -1,17 +1,22 @@
 /**
- * HeroUI Theme System - v2.0
- * Simplified theme application utilities
+ * HeroUI Theme System - v2.1
+ * Enhanced theme application with background presets and utilities
  * 
- * ARCHITECTURAL CHANGE:
- * - heroUIThemes object REMOVED (was 400+ lines of redundant theme definitions)
- * - Use CARD_STYLES from cardStyles.js instead
- * - This file now only contains applyThemeToDocument() for CSS variable application
+ * ARCHITECTURAL IMPROVEMENTS:
+ * - Integrated background preset system
+ * - Centralized theme utilities
+ * - Enhanced pattern and image support
  * 
- * @see cardStyles.js for theme definitions
+ * @see cardStyles.js for card theme definitions
+ * @see backgroundPresets.js for background options
+ * @see themePresets.js for complete theme presets
+ * @see themeUtils.js for centralized utilities
  * @see ThemeContext.jsx for theme state management
  */
 
 import { getCardStyle } from './cardStyles';
+import { applyBackground } from './backgroundPresets';
+import { getStandardCardStyle } from '../utils/themeUtils';
 
 /**
  * Get the current theme's primary color from CSS variable or fallback
@@ -101,39 +106,9 @@ export const applyThemeToDocument = (theme) => {
     });
   }
   
-  // Apply background settings
+  // Apply background settings using enhanced background system
   if (theme.background) {
-    const body = document.body;
-    
-    // Clean up any existing overlays
-    const overlay = document.getElementById('background-overlay');
-    if (overlay) overlay.remove();
-    
-    if (theme.background.type === 'color' && theme.background.value) {
-      // Reset image properties
-      body.style.setProperty('background-image', '', 'important');
-      body.style.setProperty('background-size', '', 'important');
-      body.style.setProperty('background-position', '', 'important');
-      body.style.setProperty('background-repeat', '', 'important');
-      body.style.setProperty('background-attachment', '', 'important');
-      
-      // Apply color/gradient
-      if (theme.background.value.includes('gradient')) {
-        body.style.setProperty('background-image', theme.background.value, 'important');
-        body.style.setProperty('background-color', '', 'important');
-      } else {
-        body.style.setProperty('background-color', theme.background.value, 'important');
-        body.style.setProperty('background-image', '', 'important');
-      }
-    } else {
-      // Reset to default
-      body.style.setProperty('background-image', '', 'important');
-      body.style.setProperty('background-size', '', 'important');
-      body.style.setProperty('background-position', '', 'important');
-      body.style.setProperty('background-repeat', '', 'important');
-      body.style.setProperty('background-attachment', '', 'important');
-      body.style.setProperty('background-color', '', 'important');
-    }
+    applyBackground(theme.background, theme.backgroundOpacity || 1);
   }
 
   // Set font family on root
@@ -151,5 +126,6 @@ export const applyThemeToDocument = (theme) => {
 
 export default {
   applyThemeToDocument,
-  getThemePrimaryColor
+  getThemePrimaryColor,
+  getStandardCardStyle
 };

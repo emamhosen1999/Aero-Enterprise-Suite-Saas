@@ -39,39 +39,16 @@ import {
 } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
-import { getThemedCardStyle } from '@/Components/UI/ThemedCard';
+import { ThemedCard, ThemedCardHeader, ThemedCardBody } from '@/Components/UI/ThemedCard';
+import { getThemeRadius, getStatusColor, useResponsiveBreakpoints } from '@/utils/themeUtils';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
 
 const CmsIndex = ({ title }) => {
     const { auth } = usePage().props;
 
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-
-    // Responsive breakpoints
-    const [isMobile, setIsMobile] = useState(false);
-    const [isTablet, setIsTablet] = useState(false);
-
-    useEffect(() => {
-        const checkScreenSize = () => {
-            setIsMobile(window.innerWidth < 640);
-            setIsTablet(window.innerWidth < 768);
-        };
-        checkScreenSize();
-        window.addEventListener('resize', checkScreenSize);
-        return () => window.removeEventListener('resize', checkScreenSize);
-    }, []);
+    // Responsive breakpoints using centralized utility
+    const { isMobile, isTablet } = useResponsiveBreakpoints();
 
     // State
     const [loading, setLoading] = useState(true);

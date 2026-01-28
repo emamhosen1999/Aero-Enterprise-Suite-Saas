@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
-import { motion } from 'framer-motion';
-import { Button, Card, CardBody, CardHeader, Input, Select, SelectItem, Chip, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Pagination, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Avatar, Tabs, Tab, Switch, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Badge } from "@heroui/react";
+import { Button, Input, Select, SelectItem, Chip, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Pagination, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Avatar, Tabs, Tab, Switch, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Badge, Accordion, AccordionItem } from "@heroui/react";
 import { 
     UserGroupIcon,
     PlusIcon,
@@ -28,43 +27,22 @@ import {
     FunnelIcon
 } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
+import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
+import { ThemedCard } from '@/Components/UI/ThemedCard';
+import { getThemeRadius, getStatusColor, useResponsiveBreakpoints } from '@/utils/themeUtils';
+import { useTheme } from '@/Context/ThemeContext';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
 import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const EmployeeList = ({ title, departments = [], designations = [], roles = [] }) => {
     const { auth } = usePage().props;
-    const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete, canView } = useHRMAC();
+    const { getThemeRadius: themeRadius } = useTheme();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
-    // Responsive breakpoints
-    const [isMobile, setIsMobile] = useState(false);
-    const [isTablet, setIsTablet] = useState(false);
-    
-    useEffect(() => {
-        const checkScreenSize = () => {
-            setIsMobile(window.innerWidth < 640);
-            setIsTablet(window.innerWidth < 768);
-        };
-        checkScreenSize();
-        window.addEventListener('resize', checkScreenSize);
-        return () => window.removeEventListener('resize', checkScreenSize);
-    }, []);
+    // Use centralized responsive breakpoints
+    const { isMobile, isTablet } = useResponsiveBreakpoints();
 
     // State management
     const [loading, setLoading] = useState(false);
@@ -184,16 +162,8 @@ const EmployeeList = ({ title, departments = [], designations = [], roles = [] }
         { key: 'generate_reports', label: 'Generate Reports' },
     ];
 
-    const getStatusColor = (status) => {
-        const statusColors = {
-            active: 'success',
-            inactive: 'default',
-            on_leave: 'warning',
-            terminated: 'danger',
-            retired: 'secondary',
-            probation: 'primary'
-        };
-        return statusColors[status] || 'default';
+    const getEmployeeStatusColor = (status) => {
+        return getStatusColor(status);
     };
 
     const getPerformanceColor = (rating) => {
@@ -708,295 +678,239 @@ const EmployeeList = ({ title, departments = [], designations = [], roles = [] }
                 </Modal>
             )}
             
-            {/* Main content wrapper */}
-            <div className="flex flex-col w-full h-full p-4" role="main" aria-label="Employee Management">
-                <div className="space-y-4">
-                    <div className="w-full">
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ duration: 0.5 }}
+            {/* Main content using StandardPageLayout */}
+            <StandardPageLayout
+                title="Employee Directory"
+                subtitle="Comprehensive employee management and directory"
+                icon={<UserGroupIcon />}
+                actions={
+                    <div className="flex gap-2 flex-wrap">
+                        <Button 
+                            color="secondary" 
+                            variant="flat"
+                            startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
+                            onPress={() => openModal('export')}
+                            size={isMobile ? "sm" : "md"}
                         >
-                            <Card 
-                                className="transition-all duration-200"
-                                style={{
-                                    border: `var(--borderWidth, 2px) solid transparent`,
-                                    borderRadius: `var(--borderRadius, 12px)`,
-                                    fontFamily: `var(--fontFamily, "Inter")`,
-                                    transform: `scale(var(--scale, 1))`,
-                                    background: `linear-gradient(135deg, 
-                                        var(--theme-content1, #FAFAFA) 20%, 
-                                        var(--theme-content2, #F4F4F5) 10%, 
-                                        var(--theme-content3, #F1F3F4) 20%)`,
-                                }}
+                            Export
+                        </Button>
+                        {selectedEmployees.size > 0 && (
+                            <Button 
+                                color="warning" 
+                                variant="flat"
+                                startContent={<Badge content={selectedEmployees.size} size="sm"><UserGroupIcon className="w-4 h-4" /></Badge>}
+                                onPress={() => openModal('bulk_action')}
+                                size={isMobile ? "sm" : "md"}
                             >
-                                <CardHeader 
-                                    className="border-b p-0"
-                                    style={{
-                                        borderColor: `var(--theme-divider, #E4E4E7)`,
-                                        background: `linear-gradient(135deg, 
-                                            color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
-                                            color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
-                                    }}
-                                >
-                                    <div className={`${!isMobile ? 'p-6' : 'p-4'} w-full`}>
-                                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                                            <div className="flex items-center gap-3 lg:gap-4">
-                                                <div className={`${!isMobile ? 'p-3' : 'p-2'} rounded-xl`}
-                                                    style={{
-                                                        background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,
-                                                        borderRadius: `var(--borderRadius, 12px)`,
-                                                    }}
-                                                >
-                                                    <UserGroupIcon className={`${!isMobile ? 'w-8 h-8' : 'w-6 h-6'}`} 
-                                                        style={{ color: 'var(--theme-primary)' }} />
-                                                </div>
-                                                <div>
-                                                    <h4 className={`${!isMobile ? 'text-2xl' : 'text-xl'} font-bold`}>
-                                                        Employee Directory
-                                                    </h4>
-                                                    <p className={`${!isMobile ? 'text-sm' : 'text-xs'} text-default-500`}>
-                                                        Comprehensive employee management and directory
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="flex gap-2 flex-wrap">
-                                                <Button 
-                                                    color="secondary" 
-                                                    variant="flat"
-                                                    startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
-                                                    onPress={() => openModal('export')}
-                                                    size={isMobile ? "sm" : "md"}
-                                                >
-                                                    Export
-                                                </Button>
-                                                {selectedEmployees.size > 0 && (
-                                                    <Button 
-                                                        color="warning" 
-                                                        variant="flat"
-                                                        startContent={<Badge content={selectedEmployees.size} size="sm"><UserGroupIcon className="w-4 h-4" /></Badge>}
-                                                        onPress={() => openModal('bulk_action')}
-                                                        size={isMobile ? "sm" : "md"}
-                                                    >
-                                                        Bulk Actions
-                                                    </Button>
-                                                )}
-                                                {canCreateEmployees && (
-                                                    <Button 
-                                                        color="primary" 
-                                                        variant="shadow"
-                                                        startContent={<PlusIcon className="w-4 h-4" />}
-                                                        onPress={() => window.location.href = route('hrm.employees.create')}
-                                                        size={isMobile ? "sm" : "md"}
-                                                    >
-                                                        Add Employee
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </CardHeader>
-
-                                <CardBody className="p-6">
-                                    <StatsCards stats={statsData} isLoading={statsLoading} className="mb-6" />
-                                    
-                                    {/* Advanced Filters */}
-                                    <Card className="mb-6">
-                                        <CardHeader className="pb-3">
-                                            <div className="flex items-center justify-between w-full">
-                                                <h5 className="text-lg font-semibold">Filters & Search</h5>
-                                                <Button
-                                                    size="sm"
-                                                    variant="flat"
-                                                    onPress={clearFilters}
-                                                    startContent={<XMarkIcon className="w-4 h-4" />}
-                                                >
-                                                    Clear
-                                                </Button>
-                                            </div>
-                                        </CardHeader>
-                                        <CardBody>
-                                            <div className="space-y-4">
-                                                {/* Primary Filters */}
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                                    <Input
-                                                        label="Search"
-                                                        placeholder="Name, email, ID..."
-                                                        value={filters.search}
-                                                        onChange={(e) => handleFilterChange('search', e.target.value)}
-                                                        startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
-                                                        variant="bordered"
-                                                        size="sm"
-                                                        radius={getThemeRadius()}
-                                                    />
-                                                    
-                                                    <Select
-                                                        placeholder="All Departments"
-                                                        selectedKeys={filters.department_id !== 'all' ? [filters.department_id] : []}
-                                                        onSelectionChange={(keys) => handleFilterChange('department_id', Array.from(keys)[0] || 'all')}
-                                                        size="sm"
-                                                    >
-                                                        <SelectItem key="all">All Departments</SelectItem>
-                                                        {departments.map(department => (
-                                                            <SelectItem key={department.id}>{department.name}</SelectItem>
-                                                        ))}
-                                                    </Select>
-
-                                                    <Select
-                                                        placeholder="All Positions"
-                                                        selectedKeys={filters.designation_id !== 'all' ? [filters.designation_id] : []}
-                                                        onSelectionChange={(keys) => handleFilterChange('designation_id', Array.from(keys)[0] || 'all')}
-                                                        size="sm"
-                                                    >
-                                                        <SelectItem key="all">All Positions</SelectItem>
-                                                        {designations.map(designation => (
-                                                            <SelectItem key={designation.id}>{designation.title}</SelectItem>
-                                                        ))}
-                                                    </Select>
-
-                                                    <Select
-                                                        placeholder="All Status"
-                                                        selectedKeys={filters.employment_status !== 'all' ? [filters.employment_status] : []}
-                                                        onSelectionChange={(keys) => handleFilterChange('employment_status', Array.from(keys)[0] || 'all')}
-                                                        size="sm"
-                                                    >
-                                                        <SelectItem key="all">All Status</SelectItem>
-                                                        {employmentStatuses.map(status => (
-                                                            <SelectItem key={status.key}>{status.label}</SelectItem>
-                                                        ))}
-                                                    </Select>
-                                                </div>
-
-                                                {/* Secondary Filters */}
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                                    <Select
-                                                        placeholder="All Salary Ranges"
-                                                        selectedKeys={filters.salary_range !== 'all' ? [filters.salary_range] : []}
-                                                        onSelectionChange={(keys) => handleFilterChange('salary_range', Array.from(keys)[0] || 'all')}
-                                                        size="sm"
-                                                    >
-                                                        <SelectItem key="all">All Salary Ranges</SelectItem>
-                                                        {salaryRanges.map(range => (
-                                                            <SelectItem key={range.key}>{range.label}</SelectItem>
-                                                        ))}
-                                                    </Select>
-
-                                                    <Select
-                                                        placeholder="All Performance"
-                                                        selectedKeys={filters.performance_rating !== 'all' ? [filters.performance_rating] : []}
-                                                        onSelectionChange={(keys) => handleFilterChange('performance_rating', Array.from(keys)[0] || 'all')}
-                                                        size="sm"
-                                                    >
-                                                        <SelectItem key="all">All Performance</SelectItem>
-                                                        {performanceRatings.map(rating => (
-                                                            <SelectItem key={rating.key}>{rating.label}</SelectItem>
-                                                        ))}
-                                                    </Select>
-
-                                                    <div className="flex gap-2">
-                                                        <Input
-                                                            label="Hired After"
-                                                            type="date"
-                                                            value={filters.hire_date_from}
-                                                            onChange={(e) => handleFilterChange('hire_date_from', e.target.value)}
-                                                            size="sm"
-                                                            radius={getThemeRadius()}
-                                                        />
-                                                        <Input
-                                                            label="Hired Before"
-                                                            type="date"
-                                                            value={filters.hire_date_to}
-                                                            onChange={(e) => handleFilterChange('hire_date_to', e.target.value)}
-                                                            size="sm"
-                                                            radius={getThemeRadius()}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </CardBody>
-                                    </Card>
-
-                                    {/* Selection Summary */}
-                                    {selectedEmployees.size > 0 && (
-                                        <div className="mb-4 p-3 bg-primary/10 rounded-lg flex items-center justify-between">
-                                            <span className="text-sm font-medium">
-                                                {selectedEmployees.size} employee{selectedEmployees.size !== 1 ? 's' : ''} selected
-                                            </span>
-                                            <Button
-                                                size="sm"
-                                                variant="flat"
-                                                onPress={() => setSelectedEmployees(new Set())}
-                                            >
-                                                Clear Selection
-                                            </Button>
-                                        </div>
-                                    )}
-                                    
-                                    <Table 
-                                        aria-label="Employee Directory" 
-                                        classNames={{
-                                            wrapper: "shadow-none border border-divider rounded-lg",
-                                            th: "bg-default-100 text-default-600 font-semibold",
-                                            td: "py-3"
-                                        }}
-                                        sortDescriptor={{
-                                            column: sortConfig.key,
-                                            direction: sortConfig.direction
-                                        }}
-                                        onSortChange={(sort) => {
-                                            handleSort(sort.column);
-                                        }}
-                                    >
-                                        <TableHeader columns={columns}>
-                                            {(column) => (
-                                                <TableColumn 
-                                                    key={column.uid} 
-                                                    allowsSorting={column.uid !== 'select' && column.uid !== 'actions'}
-                                                >
-                                                    {column.uid === 'select' ? (
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={employees.length > 0 && selectedEmployees.size === employees.length}
-                                                            onChange={(e) => handleSelectAll(e.target.checked)}
-                                                            className="w-4 h-4 rounded"
-                                                        />
-                                                    ) : column.name}
-                                                </TableColumn>
-                                            )}
-                                        </TableHeader>
-                                        <TableBody 
-                                            items={employees} 
-                                            emptyContent={loading ? "Loading..." : "No employees found"}
-                                            isLoading={loading}
-                                        >
-                                            {(item) => (
-                                                <TableRow key={item.id}>
-                                                    {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
-                                                </TableRow>
-                                            )}
-                                        </TableBody>
-                                    </Table>
-                                    
-                                    {pagination.total > pagination.perPage && (
-                                        <div className="flex justify-center mt-6">
-                                            <Pagination
-                                                total={pagination.lastPage}
-                                                page={pagination.currentPage}
-                                                onChange={(page) => setPagination(prev => ({ ...prev, currentPage: page }))}
-                                                showControls
-                                                showShadow
-                                                color="primary"
-                                                size={isMobile ? "sm" : "md"}
-                                            />
-                                        </div>
-                                    )}
-                                </CardBody>
-                            </Card>
-                        </motion.div>
+                                Bulk Actions
+                            </Button>
+                        )}
+                        {canCreateEmployees && (
+                            <Button 
+                                color="primary" 
+                                variant="shadow"
+                                startContent={<PlusIcon className="w-4 h-4" />}
+                                onPress={() => window.location.href = route('hrm.employees.create')}
+                                size={isMobile ? "sm" : "md"}
+                            >
+                                Add Employee
+                            </Button>
+                        )}
                     </div>
-                </div>
-            </div>
+                }
+                stats={<StatsCards stats={statsData} isLoading={statsLoading} />}
+                filters={
+                    <ThemedCard>
+                        <div className="p-4">
+                            <div className="flex items-center justify-between w-full mb-4">
+                                <h5 className="text-lg font-semibold">Filters & Search</h5>
+                                <Button
+                                    size="sm"
+                                    variant="flat"
+                                    onPress={clearFilters}
+                                    startContent={<XMarkIcon className="w-4 h-4" />}
+                                >
+                                    Clear
+                                </Button>
+                            </div>
+                            <div className="space-y-4">
+                                {/* Primary Filters */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    <Input
+                                        label="Search"
+                                        placeholder="Name, email, ID..."
+                                        value={filters.search}
+                                        onChange={(e) => handleFilterChange('search', e.target.value)}
+                                        startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
+                                        variant="bordered"
+                                        size="sm"
+                                        radius={getThemeRadius()}
+                                    />
+                                    
+                                    <Select
+                                        placeholder="All Departments"
+                                        selectedKeys={filters.department_id !== 'all' ? [filters.department_id] : []}
+                                        onSelectionChange={(keys) => handleFilterChange('department_id', Array.from(keys)[0] || 'all')}
+                                        size="sm"
+                                    >
+                                        <SelectItem key="all">All Departments</SelectItem>
+                                        {departments.map(department => (
+                                            <SelectItem key={department.id}>{department.name}</SelectItem>
+                                        ))}
+                                    </Select>
+
+                                    <Select
+                                        placeholder="All Positions"
+                                        selectedKeys={filters.designation_id !== 'all' ? [filters.designation_id] : []}
+                                        onSelectionChange={(keys) => handleFilterChange('designation_id', Array.from(keys)[0] || 'all')}
+                                        size="sm"
+                                    >
+                                        <SelectItem key="all">All Positions</SelectItem>
+                                        {designations.map(designation => (
+                                            <SelectItem key={designation.id}>{designation.title}</SelectItem>
+                                        ))}
+                                    </Select>
+
+                                    <Select
+                                        placeholder="All Status"
+                                        selectedKeys={filters.employment_status !== 'all' ? [filters.employment_status] : []}
+                                        onSelectionChange={(keys) => handleFilterChange('employment_status', Array.from(keys)[0] || 'all')}
+                                        size="sm"
+                                    >
+                                        <SelectItem key="all">All Status</SelectItem>
+                                        {employmentStatuses.map(status => (
+                                            <SelectItem key={status.key}>{status.label}</SelectItem>
+                                        ))}
+                                    </Select>
+                                </div>
+
+                                {/* Secondary Filters */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <Select
+                                        placeholder="All Salary Ranges"
+                                        selectedKeys={filters.salary_range !== 'all' ? [filters.salary_range] : []}
+                                        onSelectionChange={(keys) => handleFilterChange('salary_range', Array.from(keys)[0] || 'all')}
+                                        size="sm"
+                                    >
+                                        <SelectItem key="all">All Salary Ranges</SelectItem>
+                                        {salaryRanges.map(range => (
+                                            <SelectItem key={range.key}>{range.label}</SelectItem>
+                                        ))}
+                                    </Select>
+
+                                    <Select
+                                        placeholder="All Performance"
+                                        selectedKeys={filters.performance_rating !== 'all' ? [filters.performance_rating] : []}
+                                        onSelectionChange={(keys) => handleFilterChange('performance_rating', Array.from(keys)[0] || 'all')}
+                                        size="sm"
+                                    >
+                                        <SelectItem key="all">All Performance</SelectItem>
+                                        {performanceRatings.map(rating => (
+                                            <SelectItem key={rating.key}>{rating.label}</SelectItem>
+                                        ))}
+                                    </Select>
+
+                                    <div className="flex gap-2">
+                                        <Input
+                                            label="Hired After"
+                                            type="date"
+                                            value={filters.hire_date_from}
+                                            onChange={(e) => handleFilterChange('hire_date_from', e.target.value)}
+                                            size="sm"
+                                            radius={getThemeRadius()}
+                                        />
+                                        <Input
+                                            label="Hired Before"
+                                            type="date"
+                                            value={filters.hire_date_to}
+                                            onChange={(e) => handleFilterChange('hire_date_to', e.target.value)}
+                                            size="sm"
+                                            radius={getThemeRadius()}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </ThemedCard>
+                }
+                pagination={
+                    pagination.total > pagination.perPage ? (
+                        <div className="flex justify-center">
+                            <Pagination
+                                total={pagination.lastPage}
+                                page={pagination.currentPage}
+                                onChange={(page) => setPagination(prev => ({ ...prev, currentPage: page }))}
+                                showControls
+                                showShadow
+                                color="primary"
+                                size={isMobile ? "sm" : "md"}
+                            />
+                        </div>
+                    ) : null
+                }
+                ariaLabel="Employee Management"
+            >
+                {/* Selection Summary */}
+                {selectedEmployees.size > 0 && (
+                    <div className="mb-4 p-3 bg-primary/10 rounded-lg flex items-center justify-between">
+                        <span className="text-sm font-medium">
+                            {selectedEmployees.size} employee{selectedEmployees.size !== 1 ? 's' : ''} selected
+                        </span>
+                        <Button
+                            size="sm"
+                            variant="flat"
+                            onPress={() => setSelectedEmployees(new Set())}
+                        >
+                            Clear Selection
+                        </Button>
+                    </div>
+                )}
+                
+                <Table 
+                    aria-label="Employee Directory" 
+                    classNames={{
+                        wrapper: "shadow-none border border-divider rounded-lg",
+                        th: "bg-default-100 text-default-600 font-semibold",
+                        td: "py-3"
+                    }}
+                    sortDescriptor={{
+                        column: sortConfig.key,
+                        direction: sortConfig.direction
+                    }}
+                    onSortChange={(sort) => {
+                        handleSort(sort.column);
+                    }}
+                >
+                    <TableHeader columns={columns}>
+                        {(column) => (
+                            <TableColumn 
+                                key={column.uid} 
+                                allowsSorting={column.uid !== 'select' && column.uid !== 'actions'}
+                            >
+                                {column.uid === 'select' ? (
+                                    <input
+                                        type="checkbox"
+                                        checked={employees.length > 0 && selectedEmployees.size === employees.length}
+                                        onChange={(e) => handleSelectAll(e.target.checked)}
+                                        className="w-4 h-4 rounded"
+                                    />
+                                ) : column.name}
+                            </TableColumn>
+                        )}
+                    </TableHeader>
+                    <TableBody 
+                        items={employees} 
+                        emptyContent={loading ? "Loading..." : "No employees found"}
+                        isLoading={loading}
+                    >
+                        {(item) => (
+                            <TableRow key={item.id}>
+                                {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </StandardPageLayout>
         </>
     );
 };

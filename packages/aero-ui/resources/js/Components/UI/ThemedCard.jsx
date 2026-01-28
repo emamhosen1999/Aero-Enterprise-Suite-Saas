@@ -1,34 +1,59 @@
 import React from 'react';
-import { CardBody, CardHeader } from '@heroui/react';
+import { Card, CardBody, CardHeader } from '@heroui/react';
+import { getStandardCardStyle, getStandardCardHeaderStyle } from '../../utils/themeUtils';
 
-export const getThemedCardStyle = () => ({
-    border: 'var(--borderWidth, 2px) solid transparent',
-    borderRadius: 'var(--borderRadius, 12px)',
-    fontFamily: 'var(--fontFamily, "Inter")',
-    transform: 'scale(var(--scale, 1))',
-    background: `linear-gradient(135deg,
-        var(--theme-content1, #FAFAFA) 20%,
-        var(--theme-content2, #F4F4F5) 10%,
-        var(--theme-content3, #F1F3F4) 20%)`,
-});
+/**
+ * Get themed card style - USE getStandardCardStyle() instead
+ * @deprecated - Use getStandardCardStyle() from themeUtils
+ */
+export const getThemedCardStyle = () => getStandardCardStyle();
 
-export const ThemedCardHeader = ({ children, ...props }) => (
+/**
+ * Standardized themed card header component
+ * Uses new centralized theme utilities
+ */
+export const ThemedCardHeader = ({ children, className = '', ...props }) => (
     <CardHeader
-        className="border-b p-0"
-        style={{
-            borderColor: 'var(--theme-divider, #E4E4E7)',
-            background: `linear-gradient(135deg,
-                color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%,
-                color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
-        }}
+        className={`aero-card-header border-b p-0 ${className}`}
+        style={getStandardCardHeaderStyle()}
         {...props}
     >
         {children}
     </CardHeader>
 );
 
+/**
+ * Standardized themed card body component
+ */
 export const ThemedCardBody = ({ children, className = 'p-6', ...props }) => (
     <CardBody className={className} {...props}>
         {children}
     </CardBody>
 );
+
+/**
+ * Complete themed card component with standardized styling
+ * Automatically applies .aero-card class
+ */
+export const ThemedCard = ({ children, className = '', ...props }) => (
+    <Card 
+        className={`aero-card transition-all duration-200 ${className}`}
+        {...props}
+    >
+        {children}
+    </Card>
+);
+
+/**
+ * Legacy compatibility - use ThemedCard instead
+ * @deprecated
+ */
+export const StandardCard = ThemedCard;
+
+export default {
+    ThemedCard,
+    ThemedCardHeader,
+    ThemedCardBody,
+    getThemedCardStyle,
+    StandardCard
+};

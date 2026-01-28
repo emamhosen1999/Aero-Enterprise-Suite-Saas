@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, useLayoutEffect } from 'react';
 import { applyThemeToDocument } from '../theme/index';
 import { getCardStyle, getCardStyleOptions, CARD_STYLES, validateThemeContrast } from '../theme/cardStyles';
+import { getThemePresetOptions, applyThemePreset } from '../theme/themePresets';
+import { BACKGROUND_PRESETS } from '../theme/backgroundPresets';
+import { getThemeRadius, getStatusColor, STATUS_COLORS } from '../utils/themeUtils';
 import { 
   normalizeTheme, 
   validateTheme, 
@@ -25,6 +28,8 @@ export const useTheme = () => {
 // ====================
 
 export const CARD_STYLE_OPTIONS = getCardStyleOptions();
+export const THEME_PRESET_OPTIONS = getThemePresetOptions();
+export const BACKGROUND_PRESET_OPTIONS = BACKGROUND_PRESETS;
 
 export const FONT_OPTIONS = [
   { key: 'inter', name: 'Inter', value: 'Inter' },
@@ -41,6 +46,9 @@ export const FONT_SIZE_OPTIONS = [
   { key: 'md', name: 'Medium', value: 'md' },
   { key: 'lg', name: 'Large', value: 'lg' },
 ];
+
+// Export utility functions for components
+export { getThemeRadius, getStatusColor, STATUS_COLORS };
 
 // ====================
 // STORAGE UTILITIES
@@ -129,6 +137,14 @@ export const ThemeProvider = ({ children }) => {
   // ====================
   // PUBLIC API
   // ====================
+
+  /**
+   * Apply a complete theme preset
+   */
+  const applyPreset = (presetKey) => {
+    const preset = applyThemePreset(presetKey, updateTheme);
+    return preset;
+  };
 
   /**
    * Update theme settings (partial update with normalization)
@@ -244,6 +260,7 @@ export const ThemeProvider = ({ children }) => {
   const value = {
     // Current settings (mutable)
     themeSettings,
+    isHydrated,
     
     // Shorthand accessors (read-only)
     mode: themeSettings.mode,
@@ -262,15 +279,23 @@ export const ThemeProvider = ({ children }) => {
     toggleMode,
     setMode,
     resetTheme,
+    applyPreset,
+    
+    // Utility functions
+    getThemeRadius: () => getThemeRadius(),
+    getStatusColor,
     
     // Metadata (for selectors and drawers)
     cardStyleOptions: CARD_STYLE_OPTIONS,
+    themePresetOptions: THEME_PRESET_OPTIONS,
+    backgroundPresetOptions: BACKGROUND_PRESET_OPTIONS,
     fontOptions: FONT_OPTIONS,
     modeOptions: MODE_OPTIONS,
     fontSizeOptions: FONT_SIZE_OPTIONS,
     
     // Direct access to registry
     CARD_STYLES,
+    STATUS_COLORS,
   };
 
   return (
