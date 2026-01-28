@@ -1098,7 +1098,9 @@ const UsersTable = ({
               key="deactivate"
               onPress={() => {
                 if (window.confirm(`Are you sure you want to deactivate ${user.name}? They will be moved to the Deactivated Users section.`)) {
-                  toggleUserStatus(user.id, true);
+                  if (deactivateUser) {
+                    deactivateUser(user.id);
+                  }
                 }
               }}
               className="text-danger"

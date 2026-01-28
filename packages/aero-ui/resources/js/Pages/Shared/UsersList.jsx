@@ -480,38 +480,41 @@ const UsersList = ({
     fetchStats();
   }, [fetchStats]);
 
-  // Deactivate user - soft delete the user
+  // Deactivate user - soft delete the user (instant update, no skeleton)
   const deactivateUser = useCallback(async (userId) => {
     // Get the user data before deactivation
     const userToDeactivate = users.find(u => u.id === userId);
     
-    // Optimistically update UI
+    if (!userToDeactivate) return;
+    
+    // Optimistically update UI instantly - add deleted_at and sort by name
+    const deactivatedUser = { ...userToDeactivate, deleted_at: new Date().toISOString() };
+    
     setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
-    if (userToDeactivate) {
-      setDeactivatedUsers(prev => [...prev, { ...userToDeactivate, deleted_at: new Date().toISOString() }]);
-    }
+    setDeactivatedUsers(prev => {
+      const updated = [...prev, deactivatedUser];
+      // Sort alphabetically by name for instant visibility
+      return updated.sort((a, b) => a.name.localeCompare(b.name));
+    });
     
     const promise = new Promise(async (resolve, reject) => {
       try {
         const response = await axios.delete(route(routes.destroy, { id: userId, user: userId }));
         
         if (response.status === 200) {
+          // Silently update stats in background
           fetchStats();
           resolve([response.data.message || 'User deactivated successfully']);
         } else {
           // Revert optimistic update
-          if (userToDeactivate) {
-            setUsers(prevUsers => [...prevUsers, userToDeactivate]);
-            setDeactivatedUsers(prev => prev.filter(u => u.id !== userId));
-          }
+          setUsers(prevUsers => [...prevUsers, userToDeactivate]);
+          setDeactivatedUsers(prev => prev.filter(u => u.id !== userId));
           reject(['Failed to deactivate user']);
         }
       } catch (error) {
         // Revert optimistic update
-        if (userToDeactivate) {
-          setUsers(prevUsers => [...prevUsers, userToDeactivate]);
-          setDeactivatedUsers(prev => prev.filter(u => u.id !== userId));
-        }
+        setUsers(prevUsers => [...prevUsers, userToDeactivate]);
+        setDeactivatedUsers(prev => prev.filter(u => u.id !== userId));
         
         console.error('Error deactivating user:', error);
         
@@ -530,41 +533,44 @@ const UsersList = ({
     });
   }, [fetchStats, routes.destroy, users]);
 
-  // Restore/Reactivate user - restore soft-deleted user
+  // Restore/Reactivate user - restore soft-deleted user (instant update, no skeleton)
   const restoreUser = useCallback(async (userId) => {
     // Get the user data before restoration
     const userToRestore = deactivatedUsers.find(u => u.id === userId);
     
-    // Set loading state
-    setDeletingUserId(userId);
+    if (!userToRestore) return;
     
-    // Optimistically update UI
+    // Optimistically update UI instantly - clear deleted_at
+    const restoredUser = { ...userToRestore, deleted_at: null };
+    
+    // Remove from deactivated immediately (no loading state for instant feel)
     setDeactivatedUsers(prev => prev.filter(u => u.id !== userId));
-    if (userToRestore) {
-      setUsers(prevUsers => [...prevUsers, { ...userToRestore, deleted_at: null }]);
-    }
+    
+    // Add to active users - will be filtered/searched automatically by useMemo
+    setUsers(prevUsers => {
+      const updated = [...prevUsers, restoredUser];
+      // Sort alphabetically by name so restored user appears in right position
+      return updated.sort((a, b) => a.name.localeCompare(b.name));
+    });
     
     const promise = new Promise(async (resolve, reject) => {
       try {
         const response = await axios.post(route(routes.restore, { id: userId, user: userId }));
         
         if (response.status === 200) {
+          // Silently update stats in background
           fetchStats();
           resolve([response.data.message || 'User restored successfully']);
         } else {
           // Revert optimistic update
-          if (userToRestore) {
-            setDeactivatedUsers(prev => [...prev, userToRestore]);
-            setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
-          }
+          setDeactivatedUsers(prev => [...prev, userToRestore].sort((a, b) => a.name.localeCompare(b.name)));
+          setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
           reject(['Failed to restore user']);
         }
       } catch (error) {
         // Revert optimistic update
-        if (userToRestore) {
-          setDeactivatedUsers(prev => [...prev, userToRestore]);
-          setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
-        }
+        setDeactivatedUsers(prev => [...prev, userToRestore].sort((a, b) => a.name.localeCompare(b.name)));
+        setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
         
         console.error('Error restoring user:', error);
         
@@ -573,8 +579,6 @@ const UsersList = ({
         } else {
           reject([error.response?.data?.error || error.response?.data?.message || 'Failed to restore user. Please try again.']);
         }
-      } finally {
-        setDeletingUserId(null);
       }
     });
     
@@ -584,6 +588,18 @@ const UsersList = ({
       error: (data) => Array.isArray(data) ? data.join(', ') : data,
     });
   }, [fetchStats, routes.restore, deactivatedUsers]);
+
+  // Legacy compatibility - toggleUserStatusOptimized now redirects to deactivateUser
+  // This is kept for backward compatibility with UsersTable component
+  const toggleUserStatusOptimized = useCallback(async (userId, newStatus) => {
+    // If deactivating (newStatus = false), use soft delete
+    if (!newStatus) {
+      return deactivateUser(userId);
+    }
+    // If activating, this shouldn't happen as user should already be active
+    // Users are restored via the deactivated sidebar, not through this function
+    console.warn('Attempted to activate user through toggleUserStatusOptimized - this should use restoreUser instead');
+  }, [deactivateUser]);
 
   // Optimized roles update
   const updateUserRolesOptimized = useCallback((userId, newRoles) => {
@@ -759,58 +775,6 @@ const UsersList = ({
     });
   }, [routes.destroy, fetchStats]);
 
-  // Reactivate user from sidebar
-  const reactivateUser = useCallback(async (userId) => {
-    // Get user data for optimistic update
-    const userToReactivate = deactivatedUsers.find(u => u.id === userId);
-    
-    setDeletingUserId(userId); // Reuse loading state
-    
-    // Optimistic update: immediately move user from deactivated to main list
-    setDeactivatedUsers(prev => prev.filter(u => u.id !== userId));
-    if (userToReactivate) {
-      setUsers(prevUsers => [...prevUsers, { ...userToReactivate, active: true, deleted_at: null }]);
-    }
-    
-    const promise = new Promise(async (resolve, reject) => {
-      try {
-        const response = await axios.put(route(routes.toggleStatus, { id: userId, user: userId }), {
-          active: true
-        });
-        
-        if (response.status === 200) {
-          // Refresh to ensure consistency with server
-          fetchUsers();
-          fetchStats();
-          resolve([response.data.message || 'User reactivated successfully']);
-        } else {
-          // Revert optimistic update
-          if (userToReactivate) {
-            setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
-            setDeactivatedUsers(prev => [...prev, userToReactivate]);
-          }
-          reject(['Failed to reactivate user']);
-        }
-      } catch (error) {
-        // Revert optimistic update
-        if (userToReactivate) {
-          setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
-          setDeactivatedUsers(prev => [...prev, userToReactivate]);
-        }
-        console.error('Error reactivating user:', error);
-        reject([error.response?.data?.error || error.response?.data?.message || 'Failed to reactivate user']);
-      } finally {
-        setDeletingUserId(null);
-      }
-    });
-    
-    showToast.promise(promise, {
-      loading: 'Reactivating user...',
-      success: (data) => data.join(', '),
-      error: (data) => Array.isArray(data) ? data.join(', ') : data,
-    });
-  }, [routes.toggleStatus, fetchUsers, fetchStats, deactivatedUsers]);
-
   // Device detection utility functions
   const getDeviceIcon = (userAgent, className = "w-4 h-4") => {
     const ua = userAgent?.toLowerCase() || '';
@@ -964,6 +928,23 @@ const UsersList = ({
                 >
                   View Profile
                 </DropdownItem>
+
+                {/* Deactivate User */}
+                {user.id !== auth?.user?.id && (
+                  <DropdownItem
+                    key="deactivate"
+                    startContent={<XCircleIcon className="w-3 h-3" />}
+                    onPress={() => {
+                      if (window.confirm(`Are you sure you want to deactivate ${user.name}? They will be moved to the Deactivated Users section.`)) {
+                        deactivateUser(user.id);
+                      }
+                    }}
+                    className="text-xs text-danger"
+                    color="danger"
+                  >
+                    Deactivate User
+                  </DropdownItem>
+                )}
               </DropdownMenu>
             </Dropdown>
           </div>
@@ -1045,26 +1026,8 @@ const UsersList = ({
           </Chip>
         </div>
 
-        {/* Status and Roles */}
+        {/* Roles */}
         <div className="mt-auto space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-default-700">Status</span>
-            <div className="flex items-center gap-2">
-              <Switch
-                size="sm"
-                isSelected={user.active}
-                onValueChange={(checked) => toggleUserStatusOptimized(user.id, checked)}
-                color={user.active ? "success" : "danger"}
-                classNames={{
-                  wrapper: "group-data-[selected=true]:bg-success",
-                  thumb: "group-data-[selected=true]:ml-4",
-                }}
-              />
-              <span className={`text-xs font-medium ${user.active ? 'text-success' : 'text-danger'}`}>
-                {user.active ? 'Active' : 'Inactive'}
-              </span>
-            </div>
-          </div>
           
           <div>
             <span className="text-xs font-medium text-default-700 mb-1 block">Roles</span>
@@ -1429,6 +1392,7 @@ const UsersList = ({
               updateUserOptimized={updateUserOptimized}
               deleteUserOptimized={deleteUserOptimized}
               toggleUserStatusOptimized={toggleUserStatusOptimized}
+              deactivateUser={deactivateUser}
               updateUserRolesOptimized={updateUserRolesOptimized}
               toggleSingleDeviceLogin={toggleSingleDeviceLogin}
               resetUserDevice={resetUserDevice}
@@ -1476,7 +1440,7 @@ const UsersList = ({
             deactivatedSearch={deactivatedSearch}
             setDeactivatedSearch={setDeactivatedSearch}
             filteredDeactivatedUsers={filteredDeactivatedUsers}
-            reactivateUser={reactivateUser}
+            restoreUser={restoreUser}
             permanentDeleteUser={permanentDeleteUser}
             deletingUserId={deletingUserId}
             themeRadius={themeRadius}
@@ -1496,7 +1460,7 @@ const DeactivatedUsersSidePanel = ({
   deactivatedSearch,
   setDeactivatedSearch,
   filteredDeactivatedUsers,
-  reactivateUser,
+  restoreUser,
   permanentDeleteUser,
   deletingUserId,
   themeRadius,
@@ -1623,8 +1587,7 @@ const DeactivatedUsersSidePanel = ({
                           size="sm"
                           variant="flat"
                           color="success"
-                          onPress={() => reactivateUser(user.id)}
-                          isDisabled={deletingUserId === user.id}
+                          onPress={() => restoreUser(user.id)}
                           className="min-w-7 w-7 h-7"
                         >
                           <ArrowPathIcon className="w-4 h-4" />
