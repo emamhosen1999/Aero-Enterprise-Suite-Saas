@@ -96,8 +96,21 @@ class CoreUserController extends Controller
             $role = $request->input('role');
             $status = $request->input('status');
 
-            // Base query with relations
+            // Base query with relations - use soft deletes for status filtering
             $query = User::with(['roles']);
+
+            // Status filter using soft deletes
+            if ($status === 'inactive' || $status === 'deactivated') {
+                // Get only soft-deleted (deactivated) users
+                $query->onlyTrashed();
+            } elseif ($status === 'active') {
+                // Get only active (non-deleted) users - this is the default behavior
+                // No need to add anything, withoutTrashed() is default
+            } elseif ($status === 'all') {
+                // Get all users including soft-deleted
+                $query->withTrashed();
+            }
+            // If no status filter, default is active users only (Laravel's default behavior)
 
             // Search filter
             if ($search) {
@@ -117,13 +130,8 @@ class CoreUserController extends Controller
                 $query->whereHas('roles', fn ($q) => $q->where('name', $role));
             }
 
-            // Status filter
-            if ($status && $status !== 'all') {
-                $query->where('active', $status === 'active' ? 1 : 0);
-            }
-
-            // Sort active users first
-            $query->orderByDesc('active')->orderBy('name');
+            // Sort by name
+            $query->orderBy('name');
 
             // Paginate
             $users = $query->paginate($perPage, ['*'], 'page', $page);
@@ -150,30 +158,23 @@ class CoreUserController extends Controller
     public function stats(Request $request)
     {
         try {
-            // Single query with conditional aggregation for all user stats
-            $userStats = User::query()
-                ->selectRaw('COUNT(*) as total_users')
-                ->selectRaw('SUM(CASE WHEN active = 1 THEN 1 ELSE 0 END) as active_users')
-                ->selectRaw('SUM(CASE WHEN active = 0 THEN 1 ELSE 0 END) as inactive_users')
-                ->selectRaw('SUM(CASE WHEN email_verified_at IS NOT NULL THEN 1 ELSE 0 END) as verified_users')
-                ->selectRaw('SUM(CASE WHEN email_verified_at IS NULL THEN 1 ELSE 0 END) as unverified_users')
-                ->selectRaw('SUM(CASE WHEN account_locked_at IS NOT NULL THEN 1 ELSE 0 END) as locked_accounts')
-                ->selectRaw('SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as recent_users', [now()->subDays(30)])
-                ->first();
+            // Use soft deletes for status - active = not deleted, inactive = deleted
+            $totalUsers = User::withTrashed()->count();
+            $activeUsers = User::count(); // Active = not soft-deleted
+            $deactivatedUsers = User::onlyTrashed()->count(); // Deactivated = soft-deleted
+            
+            // Additional stats that don't depend on active column
+            $verifiedUsers = User::where('email_verified_at', '!=', null)->count();
+            $unverifiedUsers = User::whereNull('email_verified_at')->count();
+            $lockedAccounts = User::whereNotNull('account_locked_at')->count();
+            $recentUsers = User::where('created_at', '>=', now()->subDays(30))->count();
 
             // Separate queries for role-related stats (requires join)
             $usersWithRoles = User::has('roles')->count();
             $usersWithoutRoles = User::doesntHave('roles')->count();
-
-            // Soft deleted users count
-            $deletedUsers = User::onlyTrashed()->count();
             
             // Total roles count
             $totalRoles = Role::count();
-
-            $totalUsers = (int) $userStats->total_users;
-            $activeUsers = (int) $userStats->active_users;
-            $verifiedUsers = (int) $userStats->verified_users;
 
             // Calculate percentages
             $activePercentage = $totalUsers > 0 ? round(($activeUsers / $totalUsers) * 100, 1) : 0;
@@ -184,14 +185,14 @@ class CoreUserController extends Controller
                 'stats' => [
                     'total_users' => $totalUsers,
                     'active_users' => $activeUsers,
-                    'inactive_users' => (int) $userStats->inactive_users,
-                    'deleted_users' => $deletedUsers,
+                    'inactive_users' => $deactivatedUsers,
+                    'deleted_users' => $deactivatedUsers,
                     'verified_users' => $verifiedUsers,
-                    'unverified_users' => (int) $userStats->unverified_users,
-                    'locked_accounts' => (int) $userStats->locked_accounts,
+                    'unverified_users' => $unverifiedUsers,
+                    'locked_accounts' => $lockedAccounts,
                     'users_with_roles' => $usersWithRoles,
                     'users_without_roles' => $usersWithoutRoles,
-                    'recent_users_30_days' => (int) $userStats->recent_users,
+                    'recent_users_30_days' => $recentUsers,
                     'active_percentage' => $activePercentage,
                     'verified_percentage' => $verifiedPercentage,
                     'roles_coverage' => $rolesCoverage,
@@ -422,11 +423,11 @@ class CoreUserController extends Controller
     }
 
     /**
-     * Remove the specified user.
+     * Remove the specified user (soft delete or force delete).
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
-        $user = User::findOrFail($id);
+        $user = User::withTrashed()->findOrFail($id);
         
         $this->authorize('delete', $user);
         
@@ -438,15 +439,32 @@ class CoreUserController extends Controller
         }
 
         try {
-            $user->active = false;
-            $user->save();
-            $user->delete(); // Soft delete
+            // Check if force delete is requested
+            if ($request->input('force', false)) {
+                // Permanent delete - only allowed for already soft-deleted users
+                if (!$user->trashed()) {
+                    return response()->json([
+                        'error' => 'User must be deactivated before permanent deletion.',
+                    ], 422);
+                }
+                $user->forceDelete();
+                
+                // Log the action
+                $this->auditService->logUserDeleted($user);
+                
+                return response()->json([
+                    'message' => 'User permanently deleted.'
+                ]);
+            }
+
+            // Soft delete (deactivate)
+            $user->delete();
 
             // Log the action
             $this->auditService->logUserDeleted($user);
 
             return response()->json([
-                'message' => 'User deleted successfully.'
+                'message' => 'User deactivated successfully.'
             ]);
         } catch (\Exception $e) {
             report($e);
@@ -459,11 +477,11 @@ class CoreUserController extends Controller
     }
 
     /**
-     * Toggle user active status.
+     * Toggle user active status using soft deletes.
      */
     public function toggleStatus(Request $request, $id)
     {
-        $user = User::findOrFail($id);
+        $user = User::withTrashed()->findOrFail($id);
         
         $this->authorize('toggleStatus', $user);
         
@@ -475,22 +493,27 @@ class CoreUserController extends Controller
         }
 
         try {
-            $user->active = $request->input('active', ! $user->active);
-            $user->save();
+            $shouldActivate = $request->input('active', $user->trashed());
 
-            $status = $user->active ? 'activated' : 'deactivated';
-
-            // Terminate all sessions when deactivating user
-            if (!$user->active) {
+            if ($shouldActivate) {
+                // Restore the user (reactivate)
+                $user->restore();
+                $status = 'activated';
+            } else {
+                // Soft delete the user (deactivate)
+                $user->delete();
+                $status = 'deactivated';
+                
+                // Terminate all sessions when deactivating user
                 $this->sessionManagementService->terminateAllSessions($user);
             }
 
             // Log the action
-            $this->auditService->logUserStatusChanged($user, $user->active);
+            $this->auditService->logUserStatusChanged($user, $shouldActivate);
 
             return response()->json([
                 'message' => "User {$status} successfully.",
-                'active' => $user->active,
+                'active' => is_null($user->fresh()->deleted_at),
                 'user' => $user->fresh(['roles']),
             ]);
         } catch (\Exception $e) {
@@ -863,7 +886,7 @@ class CoreUserController extends Controller
     /**
      * Restore soft-deleted user
      */
-    public function restoreUser($id)
+    public function restore($id)
     {
         try {
             $user = User::withTrashed()->findOrFail($id);
@@ -875,8 +898,6 @@ class CoreUserController extends Controller
             }
 
             $user->restore();
-            $user->active = true;
-            $user->save();
 
             // Log the action
             $this->auditService->logUserRestored($user);
@@ -890,6 +911,42 @@ class CoreUserController extends Controller
 
             return response()->json([
                 'error' => 'Failed to restore user.',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Force delete a user permanently
+     */
+    public function forceDelete($id)
+    {
+        try {
+            $user = User::onlyTrashed()->findOrFail($id);
+
+            $this->authorize('forceDelete', $user);
+
+            // Prevent deleting current user
+            if ($user->id === auth()->id()) {
+                return response()->json([
+                    'error' => 'You cannot permanently delete your own account.',
+                ], 403);
+            }
+
+            $userName = $user->name;
+            $user->forceDelete();
+
+            // Log the action
+            $this->auditService->logUserDeleted($user);
+
+            return response()->json([
+                'message' => "User '{$userName}' has been permanently deleted.",
+            ]);
+        } catch (\Exception $e) {
+            report($e);
+
+            return response()->json([
+                'error' => 'Failed to permanently delete user.',
                 'message' => $e->getMessage(),
             ], 500);
         }

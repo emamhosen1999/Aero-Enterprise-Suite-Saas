@@ -462,7 +462,7 @@ class AeroCoreServiceProvider extends ServiceProvider
     {
         $reporter = \Aero\Core\Services\PlatformErrorReporter::class;
 
-        // Version check API - available on all domains
+        // Version check API - available on all domains (no CSRF required)
         Route::post('/api/version/check', function (\Illuminate\Http\Request $request) {
             $clientVersion = $request->input('version', '1.0.0');
             $serverVersion = config('app.version', '1.0.0');
@@ -473,9 +473,11 @@ class AeroCoreServiceProvider extends ServiceProvider
                 'server_version' => $serverVersion,
                 'timestamp' => now()->toIso8601String(),
             ]);
-        })->name('api.version.check')->middleware(['web', 'throttle:30,1']);
+        })->name('api.version.check')
+            ->middleware(['web', 'throttle:30,1'])
+            ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
-        // Error logging API - available on all domains
+        // Error logging API - available on all domains (no CSRF required)
         Route::post('/api/error-log', function (\Illuminate\Http\Request $request) use ($reporter) {
             $reporterInstance = app($reporter);
             $traceId = $reporterInstance->reportFrontendError($request->all());
@@ -485,7 +487,9 @@ class AeroCoreServiceProvider extends ServiceProvider
                 'trace_id' => $traceId,
                 'message' => 'Error reported successfully',
             ]);
-        })->name('api.error-log')->middleware(['web', 'throttle:30,1']);
+        })->name('api.error-log')
+            ->middleware(['web', 'throttle:30,1'])
+            ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
         // Health check API - available on all domains
         Route::get('/aero-core/health', function () {

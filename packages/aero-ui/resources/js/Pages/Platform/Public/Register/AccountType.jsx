@@ -2,12 +2,14 @@ import React, { useMemo } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import { Button, Card, CardBody, CardHeader, Chip } from '@heroui/react';
 import AuthCard from '@/Components/UI/AuthCard.jsx'
-import RegisterLayout from '@/Layouts/RegisterLayout.jsx'
+import RegisterLayout, { getUtmParams } from '@/Layouts/RegisterLayout.jsx'
 import { useTheme } from '@/Context/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding';
 import { hasRoute } from '@/utils/routeUtils';
 import { showToast } from '@/utils/toastUtils';
 import ProgressSteps from './components/ProgressSteps.jsx';
+import SocialAuthButtons from '@/Components/Platform/SocialAuthButtons.jsx';
+import { SkipLink } from '@/Components/Platform/KeyboardNavigation.jsx';
 
 const accountOptions = [
   {
@@ -27,6 +29,7 @@ const accountOptions = [
 export default function AccountType({ steps = [], currentStep, savedData = {}, trialDays = 14 }) {
   const { data, setData, post, processing, errors } = useForm({
     type: savedData?.account?.type ?? 'company',
+    utm: getUtmParams(), // Include UTM tracking data
   });
 
   const { themeSettings } = useTheme();
@@ -67,6 +70,7 @@ export default function AccountType({ steps = [], currentStep, savedData = {}, t
 
   return (
     <RegisterLayout>
+      <SkipLink targetId="account-form" />
       <Head title={`Create your workspace - ${siteName || 'aeos365'}`} />
       <section className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-6 sm:space-y-8">
         <div className="space-y-3 sm:space-y-5 text-center">
@@ -78,7 +82,10 @@ export default function AccountType({ steps = [], currentStep, savedData = {}, t
         <ProgressSteps steps={steps} currentStep={currentStep} />
 
         <AuthCard>
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+          {/* Social Auth - Quick Registration */}
+          <SocialAuthButtons mode="register" className="mb-6" />
+
+          <form id="account-form" onSubmit={handleSubmit} className="space-y-4 sm:space-y-6" role="form" aria-label="Account type selection">
             <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
               {accountOptions.map((option) => {
                 const isSelected = data.type === option.type;
@@ -88,6 +95,8 @@ export default function AccountType({ steps = [], currentStep, savedData = {}, t
                     isPressable
                     onPress={() => setData('type', option.type)}
                     className={isSelected ? palette.cardActive : palette.cardIdle}
+                    aria-pressed={isSelected}
+                    role="button"
                   >
                     <CardHeader className="justify-between pb-2">
                       <div>

@@ -93,7 +93,9 @@ Route::post('/api/error-log', function (Request $request) {
         'trace_id' => $traceId,
         'message' => 'Error reported successfully',
     ]);
-})->name('core.api.error-log')->middleware('throttle:30,1')->withoutMiddleware(['auth']);
+})->name('core.api.error-log')
+    ->middleware('throttle:30,1')
+    ->withoutMiddleware(['auth', \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
 // VERSION CHECK API - Public endpoint for frontend version checking (No Auth Required)
 Route::post('/api/version/check', function (Request $request) {
@@ -106,7 +108,9 @@ Route::post('/api/version/check', function (Request $request) {
         'server_version' => $serverVersion,
         'timestamp' => now()->toIso8601String(),
     ]);
-})->name('core.api.version.check')->middleware('throttle:30,1')->withoutMiddleware(['auth']);
+})->name('core.api.version.check')
+    ->middleware('throttle:30,1')
+    ->withoutMiddleware(['auth', \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
 // ============================================================================
 // ROOT ROUTE - Smart redirect to first accessible page
@@ -281,6 +285,12 @@ Route::middleware('auth:web')->group(function () {
         // Delete
         Route::delete('/{id}', [CoreUserController::class, 'destroy'])->name('destroy');
 
+        // Restore soft-deleted user
+        Route::post('/{id}/restore', [CoreUserController::class, 'restore'])->name('restore');
+
+        // Force delete (permanent)
+        Route::delete('/{id}/force', [CoreUserController::class, 'forceDelete'])->name('forceDelete');
+
         // Bulk operations
         Route::post('/bulk/toggle-status', [CoreUserController::class, 'bulkToggleStatus'])->name('bulk.toggleStatus');
         Route::post('/bulk/assign-roles', [CoreUserController::class, 'bulkAssignRoles'])->name('bulk.assignRoles');
@@ -288,9 +298,6 @@ Route::middleware('auth:web')->group(function () {
 
         // Export
         Route::post('/export', [CoreUserController::class, 'exportUsers'])->name('export');
-
-        // Restore
-        Route::post('/{id}/restore', [CoreUserController::class, 'restoreUser'])->name('restore');
 
         // Account Security
         Route::post('/{id}/lock', [CoreUserController::class, 'lockAccount'])->name('lock');

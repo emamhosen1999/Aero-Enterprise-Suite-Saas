@@ -62,4 +62,9 @@ Route::prefix('platform/v1')->name('api.platform.v1.')->group(function () {
     Route::post('/check-subdomain', [\Aero\Platform\Http\Controllers\TenantController::class, 'checkSubdomain'])
         ->middleware('throttle:30,1')
         ->name('check-subdomain');
+
+    // Resume Registration API - save progress and send magic link
+    Route::post('/registration/save-progress', [\Aero\Platform\Http\Controllers\Api\ResumeRegistrationController::class, 'saveProgress'])
+        ->middleware('throttle:5,1')
+        ->name('registration.save-progress');
 });

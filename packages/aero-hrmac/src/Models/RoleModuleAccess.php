@@ -66,6 +66,16 @@ class RoleModuleAccess extends Model
     public const SCOPE_DEPARTMENT = 'department';
 
     /**
+     * All access scopes for dropdown
+     */
+    public const ACCESS_SCOPES = [
+        self::SCOPE_ALL => 'All - Full access to all data',
+        self::SCOPE_DEPARTMENT => 'Department - Access to department data only',
+        self::SCOPE_TEAM => 'Team - Access to team data only',
+        self::SCOPE_OWN => 'Own - Access to own data only',
+    ];
+
+    /**
      * Get the role that owns this access entry.
      */
     public function role(): BelongsTo

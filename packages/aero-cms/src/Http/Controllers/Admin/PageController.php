@@ -292,7 +292,7 @@ class PageController extends Controller
             // Restore blocks from version
             $page->blocks()->delete();
 
-            foreach ($version->content['blocks'] ?? [] as $blockData) {
+            foreach ($version->blocks ?? [] as $blockData) {
                 CmsPageBlock::create([
                     'page_id' => $page->id,
                     'block_type' => $blockData['block_type'],
@@ -302,12 +302,13 @@ class PageController extends Controller
                 ]);
             }
 
-            // Restore page metadata
+            // Restore page metadata from settings
+            $settings = $version->settings ?? [];
             $page->update([
-                'title' => $version->content['title'] ?? $page->title,
-                'meta_title' => $version->content['meta_title'] ?? $page->meta_title,
-                'meta_description' => $version->content['meta_description'] ?? $page->meta_description,
-                'settings' => $version->content['settings'] ?? $page->settings,
+                'title' => $settings['title'] ?? $page->title,
+                'meta_title' => $settings['meta_title'] ?? $page->meta_title,
+                'meta_description' => $settings['meta_description'] ?? $page->meta_description,
+                'settings' => $settings['page_settings'] ?? $page->settings,
                 'updated_by' => Auth::guard('landlord')->id(),
             ]);
         });
@@ -341,11 +342,18 @@ class PageController extends Controller
     protected function syncBlocks(CmsPage $page, array $blocks): void
     {
         $existingIds = $page->blocks->pluck('id')->toArray();
-        $incomingIds = collect($blocks)->pluck('id')->filter()->toArray();
+        
+        // Collect IDs of blocks that exist in the database from incoming data
+        $incomingDbIds = collect($blocks)
+            ->pluck('id')
+            ->filter(fn ($id) => $id && in_array($id, $existingIds))
+            ->toArray();
 
-        // Delete removed blocks
-        $toDelete = array_diff($existingIds, $incomingIds);
-        CmsPageBlock::whereIn('id', $toDelete)->delete();
+        // Delete blocks that are no longer in the incoming data
+        $toDelete = array_diff($existingIds, $incomingDbIds);
+        if (!empty($toDelete)) {
+            CmsPageBlock::whereIn('id', $toDelete)->delete();
+        }
 
         // Update or create blocks
         foreach ($blocks as $index => $blockData) {
@@ -357,8 +365,12 @@ class PageController extends Controller
                 'order_index' => $blockData['order_index'] ?? $index,
             ];
 
-            if (!empty($blockData['id'])) {
-                CmsPageBlock::where('id', $blockData['id'])->update($data);
+            // Check if this is an existing database block
+            $blockId = $blockData['id'] ?? null;
+            $isExistingBlock = $blockId && in_array($blockId, $existingIds);
+
+            if ($isExistingBlock) {
+                CmsPageBlock::where('id', $blockId)->update($data);
             } else {
                 CmsPageBlock::create($data);
             }
@@ -368,24 +380,24 @@ class PageController extends Controller
     /**
      * Create a version snapshot.
      */
-    protected function createVersion(CmsPage $page, ?string $note = null): void
+    protected function createVersion(CmsPage $page, ?string $changeSummary = null): void
     {
         CmsPageVersion::create([
             'page_id' => $page->id,
             'version_number' => CmsPageVersion::where('page_id', $page->id)->max('version_number') + 1,
-            'content' => [
+            'blocks' => $page->blocks->map(fn ($block) => [
+                'block_type' => $block->block_type,
+                'content' => $block->content,
+                'settings' => $block->settings,
+                'order_index' => $block->order_index,
+            ])->toArray(),
+            'settings' => [
                 'title' => $page->title,
                 'meta_title' => $page->meta_title,
                 'meta_description' => $page->meta_description,
-                'settings' => $page->settings,
-                'blocks' => $page->blocks->map(fn ($block) => [
-                    'block_type' => $block->block_type,
-                    'content' => $block->content,
-                    'settings' => $block->settings,
-                    'order_index' => $block->order_index,
-                ])->toArray(),
+                'page_settings' => $page->settings,
             ],
-            'note' => $note,
+            'change_summary' => $changeSummary,
             'created_by' => Auth::guard('landlord')->id(),
         ]);
     }

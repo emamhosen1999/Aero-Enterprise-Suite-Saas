@@ -133,6 +133,7 @@ const UsersTable = ({
   updateUserOptimized,
   deleteUserOptimized,
   toggleUserStatusOptimized,
+  deactivateUser,
   updateUserRolesOptimized,
   // Device management functions
 

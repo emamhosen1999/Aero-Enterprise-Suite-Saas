@@ -109,6 +109,11 @@ Route::middleware('platform.domain')->group(function () {
         Route::post('/trial', [RegistrationController::class, 'activateTrial'])
             ->middleware('throttle:5,60')  // 5 trial activations per hour (stricter)
             ->name('trial.activate');
+
+        // Resume registration from magic link
+        Route::get('/resume/{token}', [\Aero\Platform\Http\Controllers\Api\ResumeRegistrationController::class, 'resume'])
+            ->middleware('throttle:10,1')
+            ->name('resume');
     });
 
     // =========================================================================

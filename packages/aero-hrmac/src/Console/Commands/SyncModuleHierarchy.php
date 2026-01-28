@@ -236,6 +236,93 @@ class SyncModuleHierarchy extends Command
         if (isset($moduleDef['submodules']) && is_array($moduleDef['submodules'])) {
             $this->syncSubModules($module, $moduleDef['submodules']);
         }
+
+        // Sync self-service items as a special "Self Service" submodule
+        if (isset($moduleDef['self_service']) && is_array($moduleDef['self_service']) && !empty($moduleDef['self_service'])) {
+            $this->syncSelfServiceSubModule($module, $moduleDef['self_service']);
+        }
+    }
+
+    /**
+     * Sync self-service items as a "Self Service" submodule.
+     *
+     * Self-service items from config are synced as components under a special
+     * "Self Service" submodule, allowing role-based access control for
+     * employee-facing features like "My Dashboard", "My Leaves", etc.
+     */
+    protected function syncSelfServiceSubModule(Module $module, array $selfServiceItems): void
+    {
+        // Create/update the "Self Service" submodule
+        $subModule = SubModule::updateOrCreate(
+            [
+                'module_id' => $module->id,
+                'code' => 'self_service',
+            ],
+            [
+                'name' => 'Self Service',
+                'description' => 'Employee self-service features (My Workspace items)',
+                'icon' => 'UserCircleIcon',
+                'route' => null,
+                'priority' => 0, // Show first in the module
+                'is_active' => true,
+            ]
+        );
+
+        if ($subModule->wasRecentlyCreated) {
+            $this->stats['submodules_created']++;
+        } else {
+            $this->stats['submodules_updated']++;
+        }
+
+        // Convert each self-service item to a component
+        foreach ($selfServiceItems as $item) {
+            $component = Component::updateOrCreate(
+                [
+                    'module_id' => $module->id,
+                    'sub_module_id' => $subModule->id,
+                    'code' => $item['code'],
+                ],
+                [
+                    'name' => $item['name'],
+                    'description' => $item['description'] ?? 'Self-service feature',
+                    'type' => 'page',
+                    'route' => $item['route'] ?? null,
+                    'is_active' => $item['is_active'] ?? true,
+                ]
+            );
+
+            if ($component->wasRecentlyCreated) {
+                $this->stats['components_created']++;
+            } else {
+                $this->stats['components_updated']++;
+            }
+
+            // Create standard self-service actions for each item
+            $selfServiceActions = [
+                ['code' => 'view', 'name' => 'View'],
+                ['code' => 'access', 'name' => 'Access'],
+            ];
+
+            foreach ($selfServiceActions as $actionDef) {
+                $action = Action::updateOrCreate(
+                    [
+                        'module_component_id' => $component->id,
+                        'code' => $actionDef['code'],
+                    ],
+                    [
+                        'name' => $actionDef['name'],
+                        'description' => $actionDef['name'] . ' ' . $item['name'],
+                        'is_active' => true,
+                    ]
+                );
+
+                if ($action->wasRecentlyCreated) {
+                    $this->stats['actions_created']++;
+                } else {
+                    $this->stats['actions_updated']++;
+                }
+            }
+        }
     }
 
     /**

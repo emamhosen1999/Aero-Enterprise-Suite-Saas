@@ -8,6 +8,7 @@ import { useTheme } from '@/Context/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding.js';
 import { showToast } from '@/utils/toastUtils.jsx';
 import ProgressSteps from './components/ProgressSteps.jsx';
+import ProvisioningTimer from '@/Components/Platform/ProvisioningTimer.jsx';
 
 /**
  * Human-readable step labels for provisioning process
@@ -463,6 +464,13 @@ export default function Provisioning({
                   https://{tenant.subdomain}.{baseDomain}
                 </p>
               </div>
+
+              {/* Timer with Notify Me option */}
+              <ProvisioningTimer 
+                tenantId={tenant.id}
+                currentStep={provisioningStep}
+                className="mt-4"
+              />
             </CardBody>
           </Card>
         </AuthCard>

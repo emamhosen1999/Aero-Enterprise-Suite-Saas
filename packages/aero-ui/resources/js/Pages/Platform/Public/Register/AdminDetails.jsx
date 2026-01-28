@@ -8,6 +8,7 @@ import RegisterLayout from '@/Layouts/RegisterLayout.jsx';
 import { useTheme } from '@/Context/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding.js';
 import ProgressSteps from './components/ProgressSteps.jsx';
+import PasswordStrengthMeter from '@/Components/Platform/PasswordStrengthMeter.jsx';
 
 export default function AdminDetails({ steps = [], currentStep, savedData = {}, companyName = '', subdomain = '', baseDomain = 'platform.test' }) {
   const admin = savedData?.admin ?? {};
@@ -140,6 +141,9 @@ export default function AdminDetails({ steps = [], currentStep, savedData = {}, 
                   }}
                 />
               </div>
+              
+              {/* Password Strength Meter */}
+              <PasswordStrengthMeter password={data.password} showRequirements={true} />
             </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 pt-2">

@@ -192,6 +192,9 @@ class CoreModuleProvider extends AbstractModuleProvider
 
         // Register Core dashboards in the DashboardRegistry
         $this->registerDashboards();
+
+        // Register navigation items (including self-service items)
+        $this->registerNavigation();
     }
 
     /**

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import SafeLink from '@/Components/Common/SafeLink';
 import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
-import { Button, Card, CardBody, CardHeader, Chip, Switch, Textarea, Divider, CheckboxGroup, Checkbox } from '@heroui/react';
+import { Button, Card, CardBody, CardHeader, Chip, Switch, Textarea, Divider, CheckboxGroup, Checkbox, Tabs, Tab } from '@heroui/react';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import AuthCard from '@/Components/AuthCard.jsx';
 import RegisterLayout from '@/Layouts/RegisterLayout.jsx';
@@ -10,11 +10,17 @@ import { useTheme } from '@/Context/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding.js';
 import { showToast } from '@/utils/toastUtils.jsx';
 import ProgressSteps from './components/ProgressSteps.jsx';
+import SocialProof from '@/Components/Platform/SocialProof.jsx';
+import PlanComparison from '@/Components/Platform/PlanComparison.jsx';
+import EnterprisePlanCard from '@/Components/Platform/EnterprisePlanCard.jsx';
 
 export default function SelectPlan({ steps = [], currentStep, savedData = {}, plans = [], modules = [], modulePricing = {} }) {
   const planData = savedData?.plan ?? {};
   const planList = Array.isArray(plans) ? plans : [];
   const moduleList = Array.isArray(modules) ? modules : [];
+  
+  // View mode: 'cards' or 'compare'
+  const [viewMode, setViewMode] = useState('cards');
 
   const { data, setData, post, processing, errors } = useForm({
     billing_cycle: planData.billing_cycle ?? 'monthly',
@@ -113,6 +119,9 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
           <p className={`${palette.copy} text-sm sm:text-base px-2`}>Select a pre-configured plan or customize with individual products.</p>
         </div>
 
+        {/* Social Proof Banner */}
+        <SocialProof variant="compact" className="mb-4" />
+
         <ProgressSteps steps={steps} currentStep={currentStep} />
 
         <div className="grid gap-4 sm:gap-6 lg:grid-cols-[2fr,1fr]">
@@ -204,12 +213,32 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
 
               {/* Section 1: Pre-configured Plans */}
               <div className="space-y-3">
-                <div>
-                  <h3 className={`text-base sm:text-lg font-semibold ${palette.heading}`}>1. Choose a Plan</h3>
-                  <p className={`text-xs sm:text-sm ${palette.copy}`}>Pre-configured bundles with products included</p>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div>
+                    <h3 className={`text-base sm:text-lg font-semibold ${palette.heading}`}>1. Choose a Plan</h3>
+                    <p className={`text-xs sm:text-sm ${palette.copy}`}>Pre-configured bundles with products included</p>
+                  </div>
+                  
+                  {/* View Toggle Tabs */}
+                  <Tabs 
+                    selectedKey={viewMode} 
+                    onSelectionChange={setViewMode}
+                    size="sm"
+                    variant="bordered"
+                    aria-label="Plan view mode"
+                    classNames={{
+                      tabList: "gap-1",
+                      tab: "text-xs sm:text-sm px-3"
+                    }}
+                  >
+                    <Tab key="cards" title="Cards" />
+                    <Tab key="compare" title="Compare" />
+                  </Tabs>
                 </div>
                 
-                <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
+                {viewMode === 'cards' ? (
+                  <>
+                    <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
                   {planList.map((plan) => {
                     const selected = data.plan_id === plan.id;
                     const planPrice = isAnnual ? plan.yearly_price : plan.monthly_price;
@@ -281,6 +310,29 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
                     );
                   })}
                 </div>
+                
+                {/* Enterprise Plan Card */}
+                <EnterprisePlanCard 
+                  className="mt-4"
+                  features={[
+                    'Unlimited users & storage',
+                    'Dedicated account manager',
+                    'Custom integrations & API access',
+                    '99.99% SLA guarantee',
+                    'On-premise deployment option',
+                    'Priority 24/7 support'
+                  ]}
+                />
+                  </>
+                ) : (
+                  /* Compare View */
+                  <PlanComparison 
+                    plans={planList} 
+                    isAnnual={isAnnual}
+                    selectedPlanId={data.plan_id}
+                    onSelectPlan={selectPlan}
+                  />
+                )}
               </div>
 
               <Divider className="my-4" />

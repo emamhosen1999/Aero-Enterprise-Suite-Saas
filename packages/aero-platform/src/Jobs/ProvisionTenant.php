@@ -857,6 +857,84 @@ class ProvisionTenant implements ShouldQueue
                 }
             }
         }
+
+        // Sync self-service items as a special "Self Service" submodule
+        if (isset($moduleDef['self_service']) && is_array($moduleDef['self_service']) && !empty($moduleDef['self_service'])) {
+            $this->syncSelfServiceSubModule($module, $moduleDef['self_service'], $subModuleClass, $componentClass, $actionClass);
+        }
+    }
+
+    /**
+     * Sync self-service items as a "Self Service" submodule.
+     *
+     * Self-service items from config are synced as components under a special
+     * "Self Service" submodule, allowing role-based access control for
+     * employee-facing features like "My Dashboard", "My Leaves", etc.
+     *
+     * @param  mixed  $module  The parent module model
+     * @param  array  $selfServiceItems  Array of self-service item definitions
+     * @param  string  $subModuleClass  The SubModule model class to use
+     * @param  string  $componentClass  The Component model class to use
+     * @param  string  $actionClass  The Action model class to use
+     */
+    protected function syncSelfServiceSubModule($module, array $selfServiceItems, string $subModuleClass, string $componentClass, string $actionClass): void
+    {
+        // Create/update the "Self Service" submodule
+        $subModule = $subModuleClass::updateOrCreate(
+            [
+                'module_id' => $module->id,
+                'code' => 'self_service',
+            ],
+            [
+                'name' => 'Self Service',
+                'description' => 'Employee self-service features (My Workspace items)',
+                'icon' => 'UserCircleIcon',
+                'route' => null,
+                'priority' => 0, // Show first in the module
+                'is_active' => true,
+            ]
+        );
+
+        $this->logStep("      → Synced self-service submodule with ".count($selfServiceItems)." items", []);
+
+        // Convert each self-service item to a component
+        foreach ($selfServiceItems as $item) {
+            $component = $componentClass::updateOrCreate(
+                [
+                    'module_id' => $module->id,
+                    'sub_module_id' => $subModule->id,
+                    'code' => $item['code'],
+                ],
+                [
+                    'name' => $item['name'],
+                    'description' => $item['description'] ?? 'Self-service feature',
+                    'type' => 'page',
+                    'route' => $item['route'] ?? null,
+                    'priority' => $item['priority'] ?? 100,
+                    'is_active' => $item['is_active'] ?? true,
+                ]
+            );
+
+            // Create standard self-service actions for each item
+            $selfServiceActions = [
+                ['code' => 'view', 'name' => 'View'],
+                ['code' => 'access', 'name' => 'Access'],
+            ];
+
+            foreach ($selfServiceActions as $actionDef) {
+                $actionClass::updateOrCreate(
+                    [
+                        'module_component_id' => $component->id,
+                        'code' => $actionDef['code'],
+                    ],
+                    [
+                        'name' => $actionDef['name'],
+                        'description' => $actionDef['name'] . ' ' . $item['name'],
+                        'is_active' => true,
+                    ]
+                );
+            }
+        }
     }
 
     /**

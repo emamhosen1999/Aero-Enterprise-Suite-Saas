@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Link } from '@inertiajs/react';
 import SafeLink from '@/Components/Common/SafeLink';
 import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
@@ -8,11 +8,59 @@ import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import MaintenanceModeBanner from '@/Components/Platform/MaintenanceModeBanner.jsx';
+import { LanguageSelector, LanguageProvider } from '@/Components/Platform/LanguageSelector.jsx';
+
+/**
+ * Captures and stores UTM parameters from URL
+ * Used for marketing attribution and conversion tracking
+ */
+const captureUtmParams = () => {
+  if (typeof window === 'undefined') return;
+  
+  const urlParams = new URLSearchParams(window.location.search);
+  const utmParams = {};
+  const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'ref', 'referral'];
+  
+  utmKeys.forEach(key => {
+    const value = urlParams.get(key);
+    if (value) {
+      utmParams[key] = value;
+    }
+  });
+  
+  // Only store if we have UTM params and haven't stored before
+  if (Object.keys(utmParams).length > 0) {
+    const existingParams = sessionStorage.getItem('registration_utm');
+    if (!existingParams) {
+      utmParams.captured_at = new Date().toISOString();
+      utmParams.landing_url = window.location.href;
+      sessionStorage.setItem('registration_utm', JSON.stringify(utmParams));
+    }
+  }
+};
+
+/**
+ * Returns stored UTM parameters (for use in form submissions)
+ */
+export const getUtmParams = () => {
+  if (typeof window === 'undefined') return {};
+  try {
+    const stored = sessionStorage.getItem('registration_utm');
+    return stored ? JSON.parse(stored) : {};
+  } catch {
+    return {};
+  }
+};
 
 export default function RegisterLayout({ children, mainClassName = 'py-8 sm:py-16' }) {
   const { themeSettings } = useTheme();
   const isDarkMode = themeSettings?.mode === 'dark';
   const { logo, squareLogo, siteName } = useBranding();
+  
+  // Capture UTM params on first render
+  useEffect(() => {
+    captureUtmParams();
+  }, []);
 
   const palette = useMemo(() => ({
     shell: isDarkMode
@@ -58,6 +106,7 @@ export default function RegisterLayout({ children, mainClassName = 'py-8 sm:py-1
             </div>
           </SafeLink>
           <div className="flex items-center gap-4">
+            <LanguageSelector variant="flat" size="sm" />
             <SafeLink route="support" className={`text-sm transition-colors hover:underline ${palette.muted}`}>
               Need help?
             </SafeLink>
@@ -90,9 +139,12 @@ export default function RegisterLayout({ children, mainClassName = 'py-8 sm:py-1
             </div>
           )}
           
-          <SafeLink route="support" className={`text-xs font-medium ${palette.muted} hover:text-blue-500 transition-colors`}>
-            Need help?
-          </SafeLink>
+          <div className="flex items-center gap-2">
+            <LanguageSelector variant="light" size="sm" showLabel={false} />
+            <SafeLink route="support" className={`text-xs font-medium ${palette.muted} hover:text-blue-500 transition-colors`}>
+              Help
+            </SafeLink>
+          </div>
         </div>
       </header>
 

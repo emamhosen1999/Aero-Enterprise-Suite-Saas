@@ -491,6 +491,7 @@ const UsersList = ({
     const deactivatedUser = { ...userToDeactivate, deleted_at: new Date().toISOString() };
     
     setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
+    setTotalRows(prev => Math.max(0, prev - 1)); // Update pagination total instantly
     setDeactivatedUsers(prev => {
       const updated = [...prev, deactivatedUser];
       // Sort alphabetically by name for instant visibility
@@ -508,12 +509,14 @@ const UsersList = ({
         } else {
           // Revert optimistic update
           setUsers(prevUsers => [...prevUsers, userToDeactivate]);
+          setTotalRows(prev => prev + 1); // Restore pagination total
           setDeactivatedUsers(prev => prev.filter(u => u.id !== userId));
           reject(['Failed to deactivate user']);
         }
       } catch (error) {
         // Revert optimistic update
         setUsers(prevUsers => [...prevUsers, userToDeactivate]);
+        setTotalRows(prev => prev + 1); // Restore pagination total
         setDeactivatedUsers(prev => prev.filter(u => u.id !== userId));
         
         console.error('Error deactivating user:', error);
@@ -546,6 +549,9 @@ const UsersList = ({
     // Remove from deactivated immediately (no loading state for instant feel)
     setDeactivatedUsers(prev => prev.filter(u => u.id !== userId));
     
+    // Update pagination total instantly
+    setTotalRows(prev => prev + 1);
+    
     // Add to active users - will be filtered/searched automatically by useMemo
     setUsers(prevUsers => {
       const updated = [...prevUsers, restoredUser];
@@ -565,12 +571,14 @@ const UsersList = ({
           // Revert optimistic update
           setDeactivatedUsers(prev => [...prev, userToRestore].sort((a, b) => a.name.localeCompare(b.name)));
           setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
+          setTotalRows(prev => Math.max(0, prev - 1)); // Restore pagination total
           reject(['Failed to restore user']);
         }
       } catch (error) {
         // Revert optimistic update
         setDeactivatedUsers(prev => [...prev, userToRestore].sort((a, b) => a.name.localeCompare(b.name)));
         setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
+        setTotalRows(prev => Math.max(0, prev - 1)); // Restore pagination total
         
         console.error('Error restoring user:', error);
         
@@ -1386,7 +1394,7 @@ const UsersList = ({
               pagination={pagination}
               onPageChange={handlePageChange}
               onRowsPerPageChange={handleRowsPerPageChange}
-              totalUsers={activeUsersForTable.length}
+              totalUsers={totalRows}
               loading={loading}
               onEdit={(user) => openModal('edit', user)}
               updateUserOptimized={updateUserOptimized}
