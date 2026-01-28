@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Auth;
 class PunchStatusWidget extends AbstractDashboardWidget
 {
     protected string $position = 'main_left';
-    protected int $order = 5; // High priority - show first
+    protected int $order = 1; // Highest priority - show first
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ACTION;
     protected array $requiredPermissions = ['hrm.attendance']; // HRMAC format: module.submodule

@@ -19,8 +19,8 @@ use Illuminate\Support\Facades\DB;
  */
 class MyLeaveBalanceWidget extends AbstractDashboardWidget
 {
-    protected string $position = 'stats_row';
-    protected int $order = 20;
+    protected string $position = 'main_right';
+    protected int $order = 2;
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::SUMMARY;
     protected array $requiredPermissions = ['hrm.leaves']; // HRMAC format: module.submodule

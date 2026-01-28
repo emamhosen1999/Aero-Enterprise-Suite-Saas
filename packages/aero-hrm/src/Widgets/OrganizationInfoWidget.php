@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\Schema;
 class OrganizationInfoWidget extends AbstractDashboardWidget
 {
     protected string $position = 'sidebar';
-    protected int $order = 25;
+    protected int $order = 5;
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::DISPLAY;
     protected array $requiredPermissions = [];

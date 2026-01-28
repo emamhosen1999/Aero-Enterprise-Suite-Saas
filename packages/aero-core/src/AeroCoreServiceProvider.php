@@ -347,7 +347,7 @@ class AeroCoreServiceProvider extends ServiceProvider
         // Route name is 'core.dashboard' which maps to /dashboard
         $registry->register(
             'core.dashboard',
-            'Core Dashboard',
+            'Admin Dashboard',
             'core',
             'System overview for administrators',
             'HomeIcon'

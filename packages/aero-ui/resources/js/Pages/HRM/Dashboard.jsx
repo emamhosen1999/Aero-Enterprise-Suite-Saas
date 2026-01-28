@@ -64,12 +64,11 @@ const HRMDashboard = ({ title, dynamicWidgets = [] }) => {
     // Check for widgets in different positions
     const hasWelcomeWidgets = widgetsByPosition.welcome.length > 0;
     const hasStatsWidgets = widgetsByPosition.stats_row.length > 0;
-    const hasMainContent = widgetsByPosition.main_left.length > 0;
+    const hasMainContent = widgetsByPosition.main_left.length > 0 || widgetsByPosition.main_right.length > 0;
     const hasFullWidth = widgetsByPosition.full_width.length > 0;
     
-    // Sidebar widgets (combine sidebar + main_right positions)
-    const sidebarWidgets = [...widgetsByPosition.sidebar, ...widgetsByPosition.main_right]
-        .sort((a, b) => (a.order || 0) - (b.order || 0));
+    // Sidebar widgets (only sidebar position)
+    const sidebarWidgets = widgetsByPosition.sidebar.sort((a, b) => (a.order || 0) - (b.order || 0));
     const hasSidebar = sidebarWidgets.length > 0;
     
     // Check if there are any widgets at all
@@ -111,35 +110,37 @@ const HRMDashboard = ({ title, dynamicWidgets = [] }) => {
                         </div>
                     )}
 
-                    {/* Main Content Grid - Left: main widgets, Right: sidebar widgets */}
+                    {/* Main Content Grid - Left and Right columns + Sidebar */}
                     {(hasMainContent || hasSidebar) && (
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            {/* LEFT COLUMN - Main Content (2/3 width) */}
-                            <div className="lg:col-span-2">
-                                {widgetsByPosition.main_left.length <= 2 ? (
-                                    /* Side by side layout for 1-2 widgets */
+                        <div className={`grid ${hasSidebar ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-1'} gap-6`}>
+                            {/* Main Content Area (Left and Right widgets) */}
+                            {hasMainContent && (
+                                <div className={hasSidebar ? 'lg:col-span-2' : 'col-span-1'}>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {widgetsByPosition.main_left.map((widget) => (
-                                            <DynamicWidgetRenderer 
-                                                key={widget.key} 
-                                                widgets={[widget]} 
-                                            />
-                                        ))}
+                                        {/* Left Column */}
+                                        <div className="space-y-4">
+                                            {widgetsByPosition.main_left.map((widget) => (
+                                                <DynamicWidgetRenderer 
+                                                    key={widget.key} 
+                                                    widgets={[widget]} 
+                                                />
+                                            ))}
+                                        </div>
+                                        
+                                        {/* Right Column */}
+                                        <div className="space-y-4">
+                                            {widgetsByPosition.main_right.map((widget) => (
+                                                <DynamicWidgetRenderer 
+                                                    key={widget.key} 
+                                                    widgets={[widget]} 
+                                                />
+                                            ))}
+                                        </div>
                                     </div>
-                                ) : (
-                                    /* Vertical layout for 3+ widgets */
-                                    <div className="space-y-4">
-                                        {widgetsByPosition.main_left.map((widget) => (
-                                            <DynamicWidgetRenderer 
-                                                key={widget.key} 
-                                                widgets={[widget]} 
-                                            />
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
+                                </div>
+                            )}
 
-                            {/* RIGHT COLUMN - Sidebar (1/3 width) */}
+                            {/* Sidebar Column */}
                             {hasSidebar && (
                                 <div className="space-y-4">
                                     {sidebarWidgets.map((widget) => (

@@ -22,8 +22,8 @@ use Illuminate\Support\Facades\Schema;
  */
 class UpcomingHolidaysWidget extends AbstractDashboardWidget
 {
-    protected string $position = 'sidebar';
-    protected int $order = 24;
+    protected string $position = 'main_left';
+    protected int $order = 3;
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::DISPLAY;
     protected array $requiredPermissions = [];

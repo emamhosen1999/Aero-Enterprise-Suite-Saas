@@ -17,7 +17,7 @@ use Aero\Core\Contracts\CoreWidgetCategory;
 class MyGoalsWidget extends AbstractDashboardWidget
 {
     protected string $position = 'main_right';
-    protected int $order = 85;
+    protected int $order = 4;
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ACTION;
     protected array $requiredPermissions = ['hrm.performance']; // HRMAC format: module.submodule
