@@ -92,6 +92,7 @@ const getRoutes = (context) => {
       update: 'admin.users.update',
       destroy: 'admin.users.destroy',
       forceDelete: 'admin.users.force-delete',
+      restore: 'admin.users.restore',
       toggleStatus: 'admin.users.toggle-status',
       updateRoles: 'admin.users.update-roles',
       
@@ -114,6 +115,7 @@ const getRoutes = (context) => {
       update: 'core.users.update',
       destroy: 'core.users.destroy',
       forceDelete: 'core.users.forceDelete',
+      restore: 'core.users.restore',
       toggleStatus: 'core.users.toggleStatus',
       updateRoles: 'core.users.updateRole',
       
@@ -136,6 +138,7 @@ const getRoutes = (context) => {
     update: 'users.update',
     destroy: 'users.destroy',
     forceDelete: 'users.forceDelete',
+    restore: 'users.restore',
     toggleStatus: 'users.toggleStatus',
     updateRoles: 'users.updateRole',
     
@@ -192,10 +195,10 @@ const UsersList = ({
   const [openModalType, setOpenModalType] = useState(null);
   
   // Deactivated users sidebar state
-  const [showDeactivatedSidebar, setShowDeactivatedSidebar] = useState(false);
   const [deactivatedUsers, setDeactivatedUsers] = useState([]);
   const [deactivatedLoading, setDeactivatedLoading] = useState(false);
   const [deletingUserId, setDeletingUserId] = useState(null);
+  const [deactivatedSearch, setDeactivatedSearch] = useState('');
   
   // Filters
   const [filters, setFilters] = useState({
@@ -477,54 +480,110 @@ const UsersList = ({
     fetchStats();
   }, [fetchStats]);
 
-  // Optimized status toggle - makes API call with proper toast feedback
-  const toggleUserStatusOptimized = useCallback(async (userId, newStatus) => {
-    // Optimistically update UI first for better UX
-    setUsers(prevUsers => prevUsers.map(user => user.id === userId ? { ...user, active: newStatus } : user));
+  // Deactivate user - soft delete the user
+  const deactivateUser = useCallback(async (userId) => {
+    // Get the user data before deactivation
+    const userToDeactivate = users.find(u => u.id === userId);
+    
+    // Optimistically update UI
+    setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
+    if (userToDeactivate) {
+      setDeactivatedUsers(prev => [...prev, { ...userToDeactivate, deleted_at: new Date().toISOString() }]);
+    }
     
     const promise = new Promise(async (resolve, reject) => {
       try {
-        const response = await axios.put(route(routes.toggleStatus, { id: userId, user: userId }), {
-          active: newStatus
-        });
+        const response = await axios.delete(route(routes.destroy, { id: userId, user: userId }));
         
         if (response.status === 200) {
-          // Update with server response data if available
-          if (response.data.user) {
-            setUsers(prevUsers => prevUsers.map(user => 
-              user.id === userId ? { ...user, ...response.data.user } : user
-            ));
-          }
           fetchStats();
-          resolve([response.data.message || `User ${newStatus ? 'activated' : 'deactivated'} successfully`]);
+          resolve([response.data.message || 'User deactivated successfully']);
         } else {
-          // Revert optimistic update on non-200 status
-          setUsers(prevUsers => prevUsers.map(user => user.id === userId ? { ...user, active: !newStatus } : user));
-          reject(['Failed to update user status']);
+          // Revert optimistic update
+          if (userToDeactivate) {
+            setUsers(prevUsers => [...prevUsers, userToDeactivate]);
+            setDeactivatedUsers(prev => prev.filter(u => u.id !== userId));
+          }
+          reject(['Failed to deactivate user']);
         }
       } catch (error) {
-        // Revert optimistic update on error
-        setUsers(prevUsers => prevUsers.map(user => user.id === userId ? { ...user, active: !newStatus } : user));
+        // Revert optimistic update
+        if (userToDeactivate) {
+          setUsers(prevUsers => [...prevUsers, userToDeactivate]);
+          setDeactivatedUsers(prev => prev.filter(u => u.id !== userId));
+        }
         
-        console.error('Error toggling user status:', error);
+        console.error('Error deactivating user:', error);
         
         if (error.response?.status === 403) {
-          reject([error.response.data.error || 'You do not have permission to change this user\'s status']);
-        } else if (error.response?.status === 422) {
-          const errors = error.response.data.errors;
-          reject(errors ? Object.values(errors).flat() : ['Validation failed']);
+          reject([error.response.data.error || 'You do not have permission to deactivate this user']);
         } else {
-          reject([error.response?.data?.error || error.response?.data?.message || 'Failed to update user status. Please try again.']);
+          reject([error.response?.data?.error || error.response?.data?.message || 'Failed to deactivate user. Please try again.']);
         }
       }
     });
     
     showToast.promise(promise, {
-      loading: `${newStatus ? 'Activating' : 'Deactivating'} user...`,
+      loading: 'Deactivating user...',
       success: (data) => data.join(', '),
       error: (data) => Array.isArray(data) ? data.join(', ') : data,
     });
-  }, [fetchStats, routes.toggleStatus]);
+  }, [fetchStats, routes.destroy, users]);
+
+  // Restore/Reactivate user - restore soft-deleted user
+  const restoreUser = useCallback(async (userId) => {
+    // Get the user data before restoration
+    const userToRestore = deactivatedUsers.find(u => u.id === userId);
+    
+    // Set loading state
+    setDeletingUserId(userId);
+    
+    // Optimistically update UI
+    setDeactivatedUsers(prev => prev.filter(u => u.id !== userId));
+    if (userToRestore) {
+      setUsers(prevUsers => [...prevUsers, { ...userToRestore, deleted_at: null }]);
+    }
+    
+    const promise = new Promise(async (resolve, reject) => {
+      try {
+        const response = await axios.post(route(routes.restore, { id: userId, user: userId }));
+        
+        if (response.status === 200) {
+          fetchStats();
+          resolve([response.data.message || 'User restored successfully']);
+        } else {
+          // Revert optimistic update
+          if (userToRestore) {
+            setDeactivatedUsers(prev => [...prev, userToRestore]);
+            setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
+          }
+          reject(['Failed to restore user']);
+        }
+      } catch (error) {
+        // Revert optimistic update
+        if (userToRestore) {
+          setDeactivatedUsers(prev => [...prev, userToRestore]);
+          setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
+        }
+        
+        console.error('Error restoring user:', error);
+        
+        if (error.response?.status === 403) {
+          reject([error.response.data.error || 'You do not have permission to restore this user']);
+        } else {
+          reject([error.response?.data?.error || error.response?.data?.message || 'Failed to restore user. Please try again.']);
+        }
+      } finally {
+        setDeletingUserId(null);
+      }
+    });
+    
+    showToast.promise(promise, {
+      loading: 'Restoring user...',
+      success: (data) => data.join(', '),
+      error: (data) => Array.isArray(data) ? data.join(', ') : data,
+    });
+  }, [fetchStats, routes.restore, deactivatedUsers]);
 
   // Optimized roles update
   const updateUserRolesOptimized = useCallback((userId, newRoles) => {
@@ -635,12 +694,26 @@ const UsersList = ({
     }
   }, [routes.paginate]);
 
-  // Load deactivated users when sidebar opens
+  // Load deactivated users on component mount and when relevant data changes
   useEffect(() => {
-    if (showDeactivatedSidebar) {
-      fetchDeactivatedUsers();
-    }
-  }, [showDeactivatedSidebar, fetchDeactivatedUsers]);
+    fetchDeactivatedUsers();
+  }, [fetchDeactivatedUsers]);
+
+  // Filter deactivated users by search
+  const filteredDeactivatedUsers = useMemo(() => {
+    if (!deactivatedSearch.trim()) return deactivatedUsers;
+    const search = deactivatedSearch.toLowerCase();
+    return deactivatedUsers.filter(user => 
+      user.name?.toLowerCase().includes(search) ||
+      user.email?.toLowerCase().includes(search)
+    );
+  }, [deactivatedUsers, deactivatedSearch]);
+
+  // Filter out soft-deleted users from main table (only show active users)
+  const activeUsersForTable = useMemo(() => {
+    if (!paginatedUsers.data) return [];
+    return paginatedUsers.data.filter(user => !user.deleted_at);
+  }, [paginatedUsers.data]);
 
   // Permanent delete user function
   const permanentDeleteUser = useCallback(async (userId) => {
@@ -688,7 +761,16 @@ const UsersList = ({
 
   // Reactivate user from sidebar
   const reactivateUser = useCallback(async (userId) => {
+    // Get user data for optimistic update
+    const userToReactivate = deactivatedUsers.find(u => u.id === userId);
+    
     setDeletingUserId(userId); // Reuse loading state
+    
+    // Optimistic update: immediately move user from deactivated to main list
+    setDeactivatedUsers(prev => prev.filter(u => u.id !== userId));
+    if (userToReactivate) {
+      setUsers(prevUsers => [...prevUsers, { ...userToReactivate, active: true, deleted_at: null }]);
+    }
     
     const promise = new Promise(async (resolve, reject) => {
       try {
@@ -697,16 +779,24 @@ const UsersList = ({
         });
         
         if (response.status === 200) {
-          // Remove from deactivated users list
-          setDeactivatedUsers(prev => prev.filter(u => u.id !== userId));
-          // Refresh main users list
+          // Refresh to ensure consistency with server
           fetchUsers();
           fetchStats();
           resolve([response.data.message || 'User reactivated successfully']);
         } else {
+          // Revert optimistic update
+          if (userToReactivate) {
+            setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
+            setDeactivatedUsers(prev => [...prev, userToReactivate]);
+          }
           reject(['Failed to reactivate user']);
         }
       } catch (error) {
+        // Revert optimistic update
+        if (userToReactivate) {
+          setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
+          setDeactivatedUsers(prev => [...prev, userToReactivate]);
+        }
         console.error('Error reactivating user:', error);
         reject([error.response?.data?.error || error.response?.data?.message || 'Failed to reactivate user']);
       } finally {
@@ -719,7 +809,7 @@ const UsersList = ({
       success: (data) => data.join(', '),
       error: (data) => Array.isArray(data) ? data.join(', ') : data,
     });
-  }, [routes.toggleStatus, fetchUsers, fetchStats]);
+  }, [routes.toggleStatus, fetchUsers, fetchStats, deactivatedUsers]);
 
   // Device detection utility functions
   const getDeviceIcon = (userAgent, className = "w-4 h-4") => {
@@ -1139,6 +1229,7 @@ const UsersList = ({
         />
       )}
 
+    {/* Main Layout */}
       <StandardPageLayout
         title={pageTitle}
         subtitle={pageDescription}
@@ -1193,31 +1284,6 @@ const UsersList = ({
             >
               {isMobile ? "Export" : "Export Users"}
             </Button>
-            
-            {/* Deactivated Users Toggle Button */}
-            <Badge 
-              content={stats?.overview?.inactive_users || 0} 
-              color="danger" 
-              size="sm"
-              isInvisible={(stats?.overview?.inactive_users || 0) === 0}
-            >
-              <Button
-                size={isMobile ? "sm" : "md"}
-                variant="bordered"
-                startContent={<XCircleIcon className="w-4 h-4" />}
-                onPress={() => setShowDeactivatedSidebar(true)}
-                radius={themeRadius}
-                style={{
-                  background: `color-mix(in srgb, var(--theme-danger) 10%, transparent)` ,
-                  border: `1px solid color-mix(in srgb, var(--theme-danger) 30%, transparent)` ,
-                  color: 'var(--theme-danger)',
-                  fontFamily: `var(--fontFamily, "Inter")`,
-                }}
-                className="min-w-0"
-              >
-                {isMobile ? "Inactive" : "Deactivated Users"}
-              </Button>
-            </Badge>
           </>
         }
         stats={
@@ -1310,7 +1376,7 @@ const UsersList = ({
           </div>
         }
         pagination={
-          viewMode === 'grid' && paginatedUsers.data && paginatedUsers.data.length > 0 ? (
+          viewMode === 'grid' && activeUsersForTable && activeUsersForTable.length > 0 ? (
             <div className="flex justify-center border-t pt-4" style={{ borderColor: 'var(--theme-divider, #E4E4E7)' }}>
               <Pagination
                 total={Math.ceil(paginatedUsers.total / pagination.perPage)}
@@ -1329,7 +1395,10 @@ const UsersList = ({
           ) : null
         }
       >
-        <div className="overflow-hidden">
+        {/* Flex container for table and deactivated users panel */}
+        <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} gap-4`}>
+          {/* Main table content */}
+          <div className={`${deactivatedUsers.length > 0 && !isMobile ? 'flex-1' : 'w-full'} min-w-0 overflow-hidden`}>
           {tableLoading ? (
             <div className="space-y-3">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -1346,7 +1415,7 @@ const UsersList = ({
             </div>
           ) : viewMode === 'table' ? (
             <UsersTable 
-              allUsers={paginatedUsers.data}
+              allUsers={activeUsersForTable}
               roles={roles}
               setUsers={handleUsersUpdate}
               isMobile={isMobile}
@@ -1354,7 +1423,7 @@ const UsersList = ({
               pagination={pagination}
               onPageChange={handlePageChange}
               onRowsPerPageChange={handleRowsPerPageChange}
-              totalUsers={paginatedUsers.total}
+              totalUsers={activeUsersForTable.length}
               loading={loading}
               onEdit={(user) => openModal('edit', user)}
               updateUserOptimized={updateUserOptimized}
@@ -1368,7 +1437,7 @@ const UsersList = ({
             />
           ) : (
             <div>
-              {paginatedUsers.data && paginatedUsers.data.length > 0 ? (
+              {activeUsersForTable && activeUsersForTable.length > 0 ? (
                 <div className={`grid gap-4 ${
                   isMobile 
                     ? 'grid-cols-1' 
@@ -1376,7 +1445,7 @@ const UsersList = ({
                       ? 'grid-cols-2' 
                       : 'grid-cols-3 xl:grid-cols-4'
                 }`}>
-                  {paginatedUsers.data.map((user, index) => (
+                  {activeUsersForTable.map((user, index) => (
                     <UserCard key={user.id} user={user} index={index} />
                   ))}
                 </div>
@@ -1398,9 +1467,194 @@ const UsersList = ({
               )}
             </div>
           )}
+          </div>
+          
+          {/* Deactivated Users Side Panel */}
+          <DeactivatedUsersSidePanel
+            deactivatedUsers={deactivatedUsers}
+            deactivatedLoading={deactivatedLoading}
+            deactivatedSearch={deactivatedSearch}
+            setDeactivatedSearch={setDeactivatedSearch}
+            filteredDeactivatedUsers={filteredDeactivatedUsers}
+            reactivateUser={reactivateUser}
+            permanentDeleteUser={permanentDeleteUser}
+            deletingUserId={deletingUserId}
+            themeRadius={themeRadius}
+            isMobile={isMobile}
+            isTablet={isTablet}
+          />
         </div>
       </StandardPageLayout>
     </>
+  );
+};
+
+// Deactivated Users Side Panel Component
+const DeactivatedUsersSidePanel = ({
+  deactivatedUsers,
+  deactivatedLoading,
+  deactivatedSearch,
+  setDeactivatedSearch,
+  filteredDeactivatedUsers,
+  reactivateUser,
+  permanentDeleteUser,
+  deletingUserId,
+  themeRadius,
+  isMobile,
+  isTablet,
+}) => {
+  if (deactivatedUsers.length === 0) return null;
+  
+  return (
+    <Card 
+        className="shrink-0 border border-divider overflow-hidden"
+        style={{
+          width: isMobile ? '100%' : isTablet ? '280px' : '320px',
+          minWidth: isMobile ? '100%' : isTablet ? '280px' : '320px',
+          maxHeight: isMobile ? '400px' : 'calc(100vh - 120px)',
+          background: `linear-gradient(135deg, 
+            var(--theme-content1, #FAFAFA) 20%, 
+            var(--theme-content2, #F4F4F5) 10%, 
+            var(--theme-content3, #F1F3F4) 20%)`,
+          borderRadius: `var(--borderRadius, 12px)`,
+          fontFamily: `var(--fontFamily, "Inter")`,
+        }}
+      >
+        {/* Header */}
+        <div 
+          className="p-4 border-b border-divider"
+          style={{
+            background: `color-mix(in srgb, var(--theme-danger) 8%, var(--theme-content1))`,
+          }}
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <div 
+              className="p-2 rounded-lg"
+              style={{
+                background: `color-mix(in srgb, var(--theme-danger) 15%, transparent)`,
+              }}
+            >
+              <XCircleIcon className="w-5 h-5" style={{ color: 'var(--theme-danger)' }} />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold">Deactivated Users</h3>
+              <p className="text-xs text-default-500">
+                {deactivatedUsers.length} inactive user{deactivatedUsers.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+          </div>
+          
+          {/* Search */}
+          <Input
+            size="sm"
+            placeholder="Search deactivated users..."
+            value={deactivatedSearch}
+            onValueChange={setDeactivatedSearch}
+            startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
+            radius={themeRadius}
+            classNames={{
+              inputWrapper: "bg-default-100"
+            }}
+          />
+        </div>
+        
+        {/* Content */}
+        <div className="p-3 overflow-y-auto" style={{ maxHeight: isMobile ? '300px' : 'calc(100vh - 240px)' }}>
+          {deactivatedLoading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-default-50">
+                  <Skeleton className="w-10 h-10 rounded-full" />
+                  <div className="flex-1 space-y-1">
+                    <Skeleton className="h-3 w-3/4 rounded" />
+                    <Skeleton className="h-2 w-1/2 rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filteredDeactivatedUsers.length === 0 ? (
+            <div className="text-center py-6">
+              {deactivatedUsers.length === 0 ? (
+                <>
+                  <CheckCircleIcon className="w-12 h-12 mx-auto text-success mb-2" />
+                  <p className="text-sm font-medium">No Deactivated Users</p>
+                  <p className="text-xs text-default-500">All users are active</p>
+                </>
+              ) : (
+                <>
+                  <MagnifyingGlassIcon className="w-12 h-12 mx-auto text-default-300 mb-2" />
+                  <p className="text-sm font-medium">No Results</p>
+                  <p className="text-xs text-default-500">Try a different search</p>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {filteredDeactivatedUsers.map((user) => (
+                <div 
+                  key={user.id} 
+                  className="p-2.5 rounded-lg border border-divider hover:border-danger/30 transition-colors"
+                  style={{
+                    background: `color-mix(in srgb, var(--theme-danger) 3%, var(--theme-content1))`,
+                  }}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <User
+                      name={user.name}
+                      description={user.email}
+                      avatarProps={{
+                        src: user.profile_photo_url || user.avatar,
+                        size: "sm",
+                        showFallback: true,
+                        name: user.name?.charAt(0) || 'U',
+                      }}
+                      classNames={{
+                        base: "flex-1 min-w-0 justify-start",
+                        wrapper: "flex-1 min-w-0",
+                        name: "font-medium text-sm text-foreground truncate block",
+                        description: "text-default-500 text-xs truncate block"
+                      }}
+                    />
+                    
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Tooltip content="Restore User" size="sm">
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="flat"
+                          color="success"
+                          onPress={() => reactivateUser(user.id)}
+                          isDisabled={deletingUserId === user.id}
+                          className="min-w-7 w-7 h-7"
+                        >
+                          <ArrowPathIcon className="w-4 h-4" />
+                        </Button>
+                      </Tooltip>
+                      <Tooltip content="Delete Permanently" color="danger" size="sm">
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="flat"
+                          color="danger"
+                          onPress={() => {
+                            if (window.confirm(`Are you sure you want to PERMANENTLY delete ${user.name}? This action cannot be undone.`)) {
+                              permanentDeleteUser(user.id);
+                            }
+                          }}
+                          isLoading={deletingUserId === user.id}
+                          className="min-w-7 w-7 h-7"
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </Button>
+                      </Tooltip>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+    </Card>
   );
 };
 

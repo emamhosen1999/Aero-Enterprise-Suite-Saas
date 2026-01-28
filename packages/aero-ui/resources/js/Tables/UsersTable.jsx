@@ -587,14 +587,12 @@ const UsersTable = ({
       { name: "#", uid: "sl" },
       { name: "USER", uid: "user" },
       { name: "EMAIL", uid: "email" },
-      { name: "STATUS", uid: "status" },
       { name: "ROLES", uid: "roles" },
       { name: "ACTIONS", uid: "actions" }
     ] : [
       { name: "#", uid: "sl" },
       { name: "USER", uid: "user" },
       { name: "EMAIL", uid: "email" },
-      { name: "STATUS", uid: "status" },
       { name: "ROLES", uid: "roles" },
       { name: "ACTIONS", uid: "actions" }
     ];
@@ -1093,6 +1091,34 @@ const UsersTable = ({
           );
         }
         
+        // Deactivate User (soft delete) - only for non-self users
+        if (user.id !== auth?.user?.id && !user.deleted_at) {
+          actionItems.push(
+            <DropdownItem
+              key="deactivate"
+              onPress={() => {
+                if (window.confirm(`Are you sure you want to deactivate ${user.name}? They will be moved to the Deactivated Users section.`)) {
+                  toggleUserStatus(user.id, true);
+                }
+              }}
+              className="text-danger"
+              color="danger"
+              startContent={
+                isLoading(user.id, 'status') ? (
+                  <div className="animate-spin">
+                    <ArrowPathIcon className="w-4 h-4" />
+                  </div>
+                ) : (
+                  <XCircleIcon className="w-4 h-4" />
+                )
+              }
+              isDisabled={isLoading(user.id, 'status')}
+            >
+              {isLoading(user.id, 'status') ? 'Deactivating...' : 'Deactivate'}
+            </DropdownItem>
+          );
+        }
+        
         // Force Password Reset
         if (user.id !== auth?.user?.id) {
           actionItems.push(
@@ -1135,51 +1161,8 @@ const UsersTable = ({
           );
         }
         
-        // Delete User - Protected for Super Admins and last Super Admin check
-        const isCurrentUserTarget = user.id === auth?.user?.id;
-        const userIsSuperAdmin = isSuperAdmin(user);
-        
-        if (canDeleteUser(user)) {
-          actionItems.push(
-            <DropdownItem 
-              key="delete"
-              onPress={() => handleDelete(user.id)}
-              className="text-danger"
-              color="danger"
-              startContent={
-                isLoading(user.id, 'delete') ? (
-                  <div className="animate-spin">
-                    <ArrowPathIcon className="w-4 h-4" />
-                  </div>
-                ) : (
-                  <TrashIcon className="w-4 h-4" />
-                )
-              }
-              isDisabled={isLoading(user.id, 'delete')}
-            >
-              {isLoading(user.id, 'delete') ? 'Deleting...' : 'Delete'}
-            </DropdownItem>
-          );
-        } else {
-          // Determine the reason for restriction
-          let restrictionMessage = 'Delete (Super Admin Only)';
-          if (isCurrentUserTarget && currentUserIsSuperAdmin && superAdminCount <= 1) {
-            restrictionMessage = 'Cannot delete (Last Super Admin)';
-          } else if (userIsSuperAdmin && !currentUserIsSuperAdmin) {
-            restrictionMessage = 'Delete (Super Admin Only)';
-          }
-          
-          actionItems.push(
-            <DropdownItem 
-              key="delete-disabled"
-              isDisabled
-              className="text-default-400"
-              startContent={<TrashIcon className="w-4 h-4" />}
-            >
-              {restrictionMessage}
-            </DropdownItem>
-          );
-        }
+        // Note: Delete action has been moved to the Deactivated Users sidebar
+        // Users can only be permanently deleted from the sidebar after being deactivated
         
         return (
           <div className="flex justify-center items-center">
