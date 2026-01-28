@@ -64,34 +64,80 @@ return [
     'submodules' => [
         /*
         |--------------------------------------------------------------------------
-        | 1.1 Dashboard
+        | 1.0 Self Service (Core My Workspace items)
+        |--------------------------------------------------------------------------
+        */
+        [
+            'code' => 'self_service',
+            'name' => 'Self Service',
+            'description' => 'Employee self-service features (My Workspace items)',
+            'icon' => 'UserCircleIcon',
+            'route' => '/profile',
+            'priority' => 0,
+
+            'components' => [
+                [
+                    'code' => 'my-profile',
+                    'name' => 'My Profile',
+                    'type' => 'page',
+                    'route' => '/profile',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Profile'],
+                        ['code' => 'edit', 'name' => 'Edit Profile'],
+                    ],
+                ],
+                [
+                    'code' => 'my-notifications',
+                    'name' => 'My Notifications',
+                    'type' => 'page',
+                    'route' => '/notifications',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Notifications'],
+                        ['code' => 'mark_read', 'name' => 'Mark as Read'],
+                    ],
+                ],
+            ],
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | 1.1 Dashboards (3 dashboards matching navigation)
         |--------------------------------------------------------------------------
         */
         [
             'code' => 'dashboard',
-            'name' => 'Dashboard',
-            'description' => 'Main dashboard and overview',
+            'name' => 'Dashboards',
+            'description' => 'System dashboards and overviews',
             'icon' => 'HomeIcon',
             'route' => '/dashboard',
             'priority' => 1,
 
             'components' => [
                 [
-                    'code' => 'overview',
-                    'name' => 'Dashboard Overview',
+                    'code' => 'admin-dashboard',
+                    'name' => 'Admin Dashboard',
                     'type' => 'page',
                     'route' => '/dashboard',
                     'actions' => [
-                        ['code' => 'view', 'name' => 'View Dashboard'],
+                        ['code' => 'view', 'name' => 'View Admin Dashboard'],
                     ],
                 ],
                 [
-                    'code' => 'stats',
-                    'name' => 'Statistics Widget',
-                    'type' => 'widget',
+                    'code' => 'hrm-dashboard',
+                    'name' => 'HRM Dashboard',
+                    'type' => 'page',
+                    'route' => '/hrm/dashboard',
                     'actions' => [
-                        ['code' => 'view', 'name' => 'View Statistics'],
-                        ['code' => 'configure', 'name' => 'Configure Widgets'], // Added
+                        ['code' => 'view', 'name' => 'View HRM Dashboard'],
+                    ],
+                ],
+                [
+                    'code' => 'employee-dashboard',
+                    'name' => 'Employee Dashboard',
+                    'type' => 'page',
+                    'route' => '/hrm/employee/dashboard',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Employee Dashboard'],
                     ],
                 ],
             ],

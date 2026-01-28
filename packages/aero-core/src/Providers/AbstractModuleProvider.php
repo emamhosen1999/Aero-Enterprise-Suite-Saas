@@ -256,7 +256,14 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
             // Boot module-specific logic
             $this->bootModule();
         } catch (\Throwable $e) {
-            // Silently fail during package discovery
+            // Log error instead of silently failing
+            if ($this->app->bound('log')) {
+                \Log::error("Module {$this->moduleCode} boot failed: " . $e->getMessage(), [
+                    'exception' => $e,
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                ]);
+            }
         }
     }
 

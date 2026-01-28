@@ -3,6 +3,7 @@
 namespace Aero\Core;
 
 use Aero\Core\Contracts\TenantScopeInterface;
+use Aero\Core\Providers\CoreModuleProvider;
 use Aero\Core\Providers\ModuleRouteServiceProvider;
 use Aero\Core\Services\DashboardRegistry;
 use Aero\Core\Services\DashboardWidgetRegistry;
@@ -36,6 +37,10 @@ class AeroCoreServiceProvider extends ServiceProvider
     public function register(): void
     {
         try {
+            // Register the Core module service provider
+            // This handles navigation, self-service items, dashboards, etc.
+            $this->app->register(CoreModuleProvider::class);
+
             // CRITICAL: Inject global BootstrapGuard middleware FIRST
             // This ensures ALL requests are intercepted before routing
             // to redirect to /install if system is not installed
