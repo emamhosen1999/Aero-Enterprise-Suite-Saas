@@ -284,9 +284,24 @@ class CoreUserController extends Controller
         } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
             DB::rollBack();
             
+            // Determine which field caused the constraint violation
+            $errorMessage = $e->getMessage();
+            $errors = [];
+            
+            if (stripos($errorMessage, 'email') !== false || stripos($errorMessage, 'users_email_unique') !== false) {
+                $errors['email'] = ['This email address is already registered.'];
+            } elseif (stripos($errorMessage, 'phone') !== false || stripos($errorMessage, 'users_phone_unique') !== false) {
+                $errors['phone'] = ['This phone number is already in use.'];
+            } elseif (stripos($errorMessage, 'employee_id') !== false || stripos($errorMessage, 'users_employee_id_unique') !== false) {
+                $errors['employee_id'] = ['This employee ID already exists.'];
+            } else {
+                // Generic fallback
+                $errors['email'] = ['A user with this information already exists.'];
+            }
+            
             return response()->json([
-                'error' => 'A user with this email already exists.',
-                'message' => 'The email address is already in use.',
+                'message' => 'The given data was invalid.',
+                'errors' => $errors,
             ], 422);
         } catch (\Exception $e) {
             DB::rollBack();

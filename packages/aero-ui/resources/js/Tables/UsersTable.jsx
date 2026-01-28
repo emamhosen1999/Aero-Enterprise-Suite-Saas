@@ -332,12 +332,21 @@ const UsersTable = ({
             updateUserRolesOptimized(userId, newRoleNames);
           }
           resolve([response.data.message || 'Role updated successfully']);
+        } else {
+          reject(['Unexpected response while updating role']);
         }
       } catch (error) {
-        if (error.response?.status === 422) {
-          reject(error.response.data.errors || ['Failed to update user role.']);
+        console.error('Error updating user role:', error);
+        
+        if (error.response?.status === 403) {
+          reject([error.response.data.error || 'You do not have permission to change this user\'s role']);
+        } else if (error.response?.status === 404) {
+          reject(['User or role not found']);
+        } else if (error.response?.status === 422) {
+          const errors = error.response.data.errors;
+          reject(errors ? Object.values(errors).flat() : ['Failed to update user role']);
         } else {
-          reject(['An unexpected error occurred. Please try again later.']);
+          reject([error.response?.data?.error || error.response?.data?.message || 'An unexpected error occurred. Please try again later.']);
         }
       } finally {
         setLoading(userId, 'role', false);
@@ -359,7 +368,7 @@ const UsersTable = ({
     setLoading(userId, 'delete', true);
     const promise = new Promise(async (resolve, reject) => {
       try {
-        const response = await axios.delete(route(routes.destroy, { id: userId }), {
+        const response = await axios.delete(route(routes.destroy, { id: userId, user: userId }), {
           data: { user_id: userId }
         });
         if (response.status === 200) {
@@ -367,12 +376,21 @@ const UsersTable = ({
             deleteUserOptimized(userId);
           }
           resolve([response.data.message || 'User deleted successfully']);
+        } else {
+          reject(['Unexpected response while deleting user']);
         }
       } catch (error) {
-        if (error.response?.status === 422) {
-          reject(error.response.data.errors || ['Validation failed']);
+        console.error('Error deleting user:', error);
+        
+        if (error.response?.status === 403) {
+          reject([error.response.data.error || 'You do not have permission to delete this user']);
+        } else if (error.response?.status === 404) {
+          reject(['User not found or already deleted']);
+        } else if (error.response?.status === 422) {
+          const errors = error.response.data.errors;
+          reject(errors ? Object.values(errors).flat() : ['Validation failed']);
         } else {
-          reject([error.response?.data?.message || 'An error occurred while deleting user. Please try again.']);
+          reject([error.response?.data?.error || error.response?.data?.message || 'An error occurred while deleting user. Please try again.']);
         }
       } finally {
         setLoading(userId, 'delete', false);
@@ -389,16 +407,29 @@ const UsersTable = ({
   const handleRestoreUser = async (user) => {
     const promise = new Promise(async (resolve, reject) => {
       try {
-        const response = await axios.post(route('users.restore', { id: user.id }));
+        const response = await axios.post(route(routes.restore, { id: user.id, user: user.id }));
         if (response.status === 200) {
           // Refresh the users list
           if (updateUserOptimized) {
             updateUserOptimized(response.data.user);
           }
           resolve([response.data.message || 'User restored successfully']);
+        } else {
+          reject(['Unexpected response while restoring user']);
         }
       } catch (error) {
-        reject(error.response?.data?.errors || [error.response?.data?.error || 'Failed to restore user']);
+        console.error('Error restoring user:', error);
+        
+        if (error.response?.status === 403) {
+          reject([error.response.data.error || 'You do not have permission to restore this user']);
+        } else if (error.response?.status === 404) {
+          reject(['User not found or already restored']);
+        } else if (error.response?.status === 422) {
+          const errors = error.response.data.errors;
+          reject(errors ? Object.values(errors).flat() : ['Validation failed']);
+        } else {
+          reject([error.response?.data?.error || error.response?.data?.message || 'Failed to restore user']);
+        }
       }
     });
     
@@ -423,15 +454,25 @@ const UsersTable = ({
   const handleUnlockAccount = async (user) => {
     const promise = new Promise(async (resolve, reject) => {
       try {
-        const response = await axios.post(route('users.unlock', { id: user.id }));
+        const response = await axios.post(route(routes.unlock, { id: user.id, user: user.id }));
         if (response.status === 200) {
           if (updateUserOptimized) {
             updateUserOptimized(response.data.user);
           }
           resolve([response.data.message || 'Account unlocked successfully']);
+        } else {
+          reject(['Unexpected response while unlocking account']);
         }
       } catch (error) {
-        reject(error.response?.data?.errors || [error.response?.data?.error || 'Failed to unlock account']);
+        console.error('Error unlocking account:', error);
+        
+        if (error.response?.status === 403) {
+          reject([error.response.data.error || 'You do not have permission to unlock this account']);
+        } else if (error.response?.status === 404) {
+          reject(['User not found']);
+        } else {
+          reject([error.response?.data?.error || error.response?.data?.message || 'Failed to unlock account']);
+        }
       }
     });
     
@@ -446,15 +487,25 @@ const UsersTable = ({
   const handleForcePasswordReset = async (user) => {
     const promise = new Promise(async (resolve, reject) => {
       try {
-        const response = await axios.post(route('users.forcePasswordReset', { id: user.id }));
+        const response = await axios.post(route(routes.forcePasswordReset, { id: user.id, user: user.id }));
         if (response.status === 200) {
           if (updateUserOptimized) {
             updateUserOptimized(response.data.user);
           }
           resolve([response.data.message || 'Password reset forced successfully']);
+        } else {
+          reject(['Unexpected response while forcing password reset']);
         }
       } catch (error) {
-        reject(error.response?.data?.errors || [error.response?.data?.error || 'Failed to force password reset']);
+        console.error('Error forcing password reset:', error);
+        
+        if (error.response?.status === 403) {
+          reject([error.response.data.error || 'You do not have permission to force password reset']);
+        } else if (error.response?.status === 404) {
+          reject(['User not found']);
+        } else {
+          reject([error.response?.data?.error || error.response?.data?.message || 'Failed to force password reset']);
+        }
       }
     });
     
@@ -469,12 +520,24 @@ const UsersTable = ({
   const handleResendVerification = async (user) => {
     const promise = new Promise(async (resolve, reject) => {
       try {
-        const response = await axios.post(route('users.resendVerification', { id: user.id }));
+        const response = await axios.post(route(routes.resendVerification, { id: user.id, user: user.id }));
         if (response.status === 200) {
           resolve([response.data.message || 'Verification email sent successfully']);
+        } else {
+          reject(['Unexpected response while sending verification email']);
         }
       } catch (error) {
-        reject(error.response?.data?.errors || [error.response?.data?.error || 'Failed to resend verification email']);
+        console.error('Error resending verification email:', error);
+        
+        if (error.response?.status === 403) {
+          reject([error.response.data.error || 'You do not have permission to resend verification email']);
+        } else if (error.response?.status === 404) {
+          reject(['User not found']);
+        } else if (error.response?.status === 429) {
+          reject(['Too many requests. Please wait before trying again.']);
+        } else {
+          reject([error.response?.data?.error || error.response?.data?.message || 'Failed to resend verification email']);
+        }
       }
     });
     
@@ -540,28 +603,76 @@ const UsersTable = ({
     return baseColumns;
   }, [isMobile, isTablet, context, hrmModuleInstalled, selectedUsers, allUsers]);
 
-  // Function to toggle user status - optimized to avoid full reloads
+  // Function to toggle user status - calls parent handler which makes the API call
   const toggleUserStatus = async (userId, currentStatus) => {
     if (isLoading(userId, 'status')) return; // Prevent multiple calls
     
     setLoading(userId, 'status', true);
     try {
-      // In this implementation, we use the handler passed from the parent
+      // The parent component's toggleUserStatusOptimized now handles:
+      // 1. Optimistic UI update
+      // 2. API call with proper error handling
+      // 3. Toast notifications
+      // 4. Rollback on failure
       if (toggleUserStatusOptimized) {
-        toggleUserStatusOptimized(userId, !currentStatus);
-        showToast.success(`User status ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
+        await toggleUserStatusOptimized(userId, !currentStatus);
       } else if (setUsers) {
-        // Fallback to the older method if the optimized handler is not available
+        // Fallback: make direct API call if optimized handler is not available
+        const newStatus = !currentStatus;
+        
+        // Optimistic update
         setUsers(prevUsers => 
           prevUsers.map(user => 
-            user.id === userId ? { ...user, active: !currentStatus } : user
+            user.id === userId ? { ...user, active: newStatus } : user
           )
         );
-        showToast.success(`User status ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
+        
+        const promise = new Promise(async (resolve, reject) => {
+          try {
+            const response = await axios.post(route(routes.toggleStatus, { id: userId, user: userId }), {
+              active: newStatus
+            });
+            
+            if (response.status === 200) {
+              resolve([response.data.message || `User ${newStatus ? 'activated' : 'deactivated'} successfully`]);
+            } else {
+              // Revert on non-200
+              setUsers(prevUsers => 
+                prevUsers.map(user => 
+                  user.id === userId ? { ...user, active: currentStatus } : user
+                )
+              );
+              reject(['Failed to update user status']);
+            }
+          } catch (error) {
+            // Revert on error
+            setUsers(prevUsers => 
+              prevUsers.map(user => 
+                user.id === userId ? { ...user, active: currentStatus } : user
+              )
+            );
+            console.error('Error toggling user status:', error);
+            
+            if (error.response?.status === 403) {
+              reject([error.response.data.error || 'You do not have permission to change this user\'s status']);
+            } else if (error.response?.status === 422) {
+              const errors = error.response.data.errors;
+              reject(errors ? Object.values(errors).flat() : ['Validation failed']);
+            } else {
+              reject([error.response?.data?.error || error.response?.data?.message || 'Failed to update user status']);
+            }
+          }
+        });
+        
+        showToast.promise(promise, {
+          loading: `${newStatus ? 'Activating' : 'Deactivating'} user...`,
+          success: (data) => data.join(', '),
+          error: (data) => Array.isArray(data) ? data.join(', ') : data,
+        });
       }
     } catch (error) {
-      console.error('Error toggling user status:', error);
-      showToast.error('Failed to update user status');
+      console.error('Error in toggleUserStatus:', error);
+      // Error already handled by promise/toast
     } finally {
       setLoading(userId, 'status', false);
     }

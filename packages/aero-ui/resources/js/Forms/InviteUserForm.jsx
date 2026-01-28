@@ -131,28 +131,50 @@ const InviteUserForm = ({
         
         setLoading(true);
         
-        try {
-            const response = await axios.post(route(inviteRoute), formData);
-            
-            if (response.status === 200 || response.status === 201) {
-                showToast.success('Invitation sent successfully!');
-                resetForm();
-                onInviteSent?.();
-                closeModal();
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post(route(inviteRoute), formData);
+                
+                if (response.status === 200 || response.status === 201) {
+                    resetForm();
+                    onInviteSent?.();
+                    closeModal();
+                    resolve([response.data.message || 'Invitation sent successfully!']);
+                } else {
+                    reject(['Unexpected response while sending invitation']);
+                }
+            } catch (error) {
+                console.error('Error sending invitation:', error);
+                
+                const status = error.response?.status;
+                const errorData = error.response?.data || {};
+                
+                if (status === 422 && errorData.errors) {
+                    // Set field errors for form display
+                    setErrors(errorData.errors);
+                    const errorMessages = Object.values(errorData.errors).flat();
+                    reject(errorMessages.length > 0 ? errorMessages : ['Validation failed. Please check the form.']);
+                } else if (status === 403) {
+                    reject([errorData.error || errorData.message || 'You do not have permission to send invitations.']);
+                } else if (status === 409) {
+                    reject([errorData.error || errorData.message || 'This user has already been invited or exists in the system.']);
+                } else if (status === 429) {
+                    reject(['Too many invitation attempts. Please wait before trying again.']);
+                } else if (errorData.message) {
+                    reject([errorData.message]);
+                } else {
+                    reject(['Failed to send invitation. Please try again.']);
+                }
+            } finally {
+                setLoading(false);
             }
-        } catch (error) {
-            console.error('Error sending invitation:', error);
-            
-            if (error.response?.data?.errors) {
-                setErrors(error.response.data.errors);
-            } else if (error.response?.data?.message) {
-                showToast.error(error.response.data.message);
-            } else {
-                showToast.error('Failed to send invitation. Please try again.');
-            }
-        } finally {
-            setLoading(false);
-        }
+        });
+        
+        showToast.promise(promise, {
+            loading: 'Sending invitation...',
+            success: (data) => data.join(', '),
+            error: (data) => Array.isArray(data) ? data.join(', ') : data,
+        });
     };
 
     // Check if form is valid for submission

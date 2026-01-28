@@ -143,6 +143,7 @@ const AddEditUserForm = ({user, roles, setUsers, open, closeModal, editMode = fa
                     onError: (errors) => {
                         // Laravel Precognition automatically sets form.errors
                         // Extract error messages for toast display
+                        console.error('Form validation errors:', errors);
                         const errorMessages = Object.values(errors).flat();
                         if (errorMessages.length > 0) {
                             reject(errorMessages.join(', '));
@@ -155,20 +156,32 @@ const AddEditUserForm = ({user, roles, setUsers, open, closeModal, editMode = fa
                 console.error('Form submission error:', error);
                 
                 if (error.response) {
-                    if (error.response.status === 422) {
+                    const status = error.response.status;
+                    const errorData = error.response.data || {};
+                    
+                    if (status === 422) {
                         // Validation errors
-                        const errors = error.response.data.errors || {};
+                        const errors = errorData.errors || {};
                         const errorMessages = Object.values(errors).flat();
                         reject(errorMessages.length > 0 ? errorMessages.join(', ') : 'Validation failed. Please check the form.');
-                    } else if (error.response.status === 500) {
-                        reject(error.response.data.message || 'Server error occurred. Please try again later.');
+                    } else if (status === 403) {
+                        // Forbidden - permission error
+                        reject(errorData.error || errorData.message || `You do not have permission to ${editMode ? 'update' : 'create'} this user.`);
+                    } else if (status === 409) {
+                        // Conflict - duplicate entry
+                        reject(errorData.error || errorData.message || 'A user with this email already exists.');
+                    } else if (status === 404) {
+                        // Not found
+                        reject('User not found. They may have been deleted.');
+                    } else if (status === 500) {
+                        reject(errorData.message || 'Server error occurred. Please try again later.');
                     } else {
-                        reject(`HTTP Error ${error.response.status}: ${error.response.data.message || 'An unexpected error occurred.'}`);
+                        reject(`HTTP Error ${status}: ${errorData.message || 'An unexpected error occurred.'}`);
                     }
                 } else if (error.request) {
                     reject('No response received from the server. Please check your internet connection.');
                 } else {
-                    reject('An error occurred while setting up the request.');
+                    reject(error.message || 'An error occurred while setting up the request.');
                 }
             }
         });

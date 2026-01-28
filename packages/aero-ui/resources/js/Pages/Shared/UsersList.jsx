@@ -29,7 +29,8 @@ import {
   DropdownItem,
   Badge,
   Tooltip,
-  Switch
+  Switch,
+  Skeleton
 } from "@heroui/react";
 
 import { 
@@ -178,6 +179,8 @@ const UsersList = ({
   // State for users data with server-side pagination
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState(null);
   const [totalRows, setTotalRows] = useState(0);
   const [lastPage, setLastPage] = useState(1);
@@ -279,18 +282,84 @@ const UsersList = ({
   // Fetch user stats separately
   const fetchStats = useCallback(async () => {
     try {
+      setStatsLoading(true);
       const { data } = await axios.get(route(routes.stats));
       if (data.stats) {
-        setStats(data.stats);
+        // Transform flat API response to nested structure expected by UI
+        const apiStats = data.stats;
+        const totalUsers = apiStats.total_users || 0;
+        const activeUsers = apiStats.active_users || 0;
+        const inactiveUsers = apiStats.inactive_users || 0;
+        
+        setStats({
+          overview: {
+            total_users: totalUsers,
+            active_users: activeUsers,
+            inactive_users: inactiveUsers,
+            deleted_users: apiStats.deleted_users || 0,
+            total_roles: apiStats.total_roles || 0,
+            total_departments: apiStats.total_departments || 0
+          },
+          distribution: {
+            by_role: apiStats.by_role || [],
+            by_department: apiStats.by_department || [],
+            by_status: apiStats.by_status || []
+          },
+          activity: {
+            recent_registrations: {
+              new_users_30_days: apiStats.recent_users_30_days || 0,
+              new_users_90_days: apiStats.recent_users_90_days || 0,
+              new_users_year: apiStats.recent_users_year || 0,
+              recently_active: apiStats.recent_users_30_days || 0
+            },
+            user_growth_rate: apiStats.user_growth_rate || 0,
+            current_month_registrations: apiStats.recent_users_30_days || 0
+          },
+          security: {
+            access_metrics: {
+              users_with_roles: apiStats.users_with_roles || 0,
+              users_without_roles: apiStats.users_without_roles || 0,
+              admin_users: apiStats.admin_users || 0,
+              regular_users: totalUsers - (apiStats.admin_users || 0)
+            },
+            role_distribution: apiStats.role_distribution || []
+          },
+          health: {
+            status_ratio: {
+              active_percentage: apiStats.active_percentage || (totalUsers > 0 ? Math.round((activeUsers / totalUsers) * 100) : 0),
+              inactive_percentage: totalUsers > 0 ? Math.round((inactiveUsers / totalUsers) * 100) : 0,
+              deleted_percentage: apiStats.deleted_percentage || 0
+            },
+            system_metrics: {
+              user_activation_rate: apiStats.active_percentage || 0,
+              role_coverage: apiStats.roles_coverage || 0,
+              department_coverage: apiStats.department_coverage || 0
+            }
+          },
+          quick_metrics: {
+            total_users: totalUsers,
+            active_ratio: apiStats.active_percentage || 0,
+            role_diversity: apiStats.total_roles || 0,
+            department_diversity: apiStats.total_departments || 0,
+            recent_activity: apiStats.recent_users_30_days || 0,
+            system_health_score: Math.round(((apiStats.active_percentage || 0) + (apiStats.roles_coverage || 0)) / 2)
+          }
+        });
       }
     } catch (error) {
       console.error('Error fetching user stats:', error);
+    } finally {
+      setStatsLoading(false);
     }
   }, [routes.stats]);
 
   // Fetch users data with server-side pagination
-  const fetchUsers = useCallback(async () => {
-    setLoading(true);
+  const fetchUsers = useCallback(async (isInitialLoad = false) => {
+    // Only show full page loading on initial load
+    if (isInitialLoad) {
+      setLoading(true);
+    }
+    setTableLoading(true);
     
     try {
       const response = await axios.get(route(routes.paginate), {
@@ -334,12 +403,19 @@ const UsersList = ({
       setUsers([]);
     } finally {
       setLoading(false);
+      setTableLoading(false);
     }
   }, [filters, pagination.currentPage, pagination.perPage, routes.paginate]);
 
+  // Track initial load
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
+  
   // Effect to fetch data when filters or pagination changes
   useEffect(() => {
-    fetchUsers();
+    fetchUsers(!initialLoadDone);
+    if (!initialLoadDone) {
+      setInitialLoadDone(true);
+    }
   }, [fetchUsers]);
 
   // Effect to fetch stats initially and then periodically
@@ -392,11 +468,54 @@ const UsersList = ({
     fetchStats();
   }, [fetchStats]);
 
-  // Optimized status toggle
-  const toggleUserStatusOptimized = useCallback((userId, newStatus) => {
+  // Optimized status toggle - makes API call with proper toast feedback
+  const toggleUserStatusOptimized = useCallback(async (userId, newStatus) => {
+    // Optimistically update UI first for better UX
     setUsers(prevUsers => prevUsers.map(user => user.id === userId ? { ...user, active: newStatus } : user));
-    fetchStats();
-  }, [fetchStats]);
+    
+    const promise = new Promise(async (resolve, reject) => {
+      try {
+        const response = await axios.post(route(routes.toggleStatus, { id: userId, user: userId }), {
+          active: newStatus
+        });
+        
+        if (response.status === 200) {
+          // Update with server response data if available
+          if (response.data.user) {
+            setUsers(prevUsers => prevUsers.map(user => 
+              user.id === userId ? { ...user, ...response.data.user } : user
+            ));
+          }
+          fetchStats();
+          resolve([response.data.message || `User ${newStatus ? 'activated' : 'deactivated'} successfully`]);
+        } else {
+          // Revert optimistic update on non-200 status
+          setUsers(prevUsers => prevUsers.map(user => user.id === userId ? { ...user, active: !newStatus } : user));
+          reject(['Failed to update user status']);
+        }
+      } catch (error) {
+        // Revert optimistic update on error
+        setUsers(prevUsers => prevUsers.map(user => user.id === userId ? { ...user, active: !newStatus } : user));
+        
+        console.error('Error toggling user status:', error);
+        
+        if (error.response?.status === 403) {
+          reject([error.response.data.error || 'You do not have permission to change this user\'s status']);
+        } else if (error.response?.status === 422) {
+          const errors = error.response.data.errors;
+          reject(errors ? Object.values(errors).flat() : ['Validation failed']);
+        } else {
+          reject([error.response?.data?.error || error.response?.data?.message || 'Failed to update user status. Please try again.']);
+        }
+      }
+    });
+    
+    showToast.promise(promise, {
+      loading: `${newStatus ? 'Activating' : 'Deactivating'} user...`,
+      success: (data) => data.join(', '),
+      error: (data) => Array.isArray(data) ? data.join(', ') : data,
+    });
+  }, [fetchStats, routes.toggleStatus]);
 
   // Optimized roles update
   const updateUserRolesOptimized = useCallback((userId, newRoles) => {
@@ -836,14 +955,15 @@ const UsersList = ({
       iconBg: 'bg-pink-500/20',
       description: 'Overall health'
     },
-    {
-      title: context === 'admin' ? 'Tenants' : 'Departments',
+    // Only show Tenants card for admin context (Departments belongs in Employee list, not User list)
+    ...(context === 'admin' ? [{
+      title: 'Tenants',
       value: stats?.overview?.total_departments || 0,
       icon: <BuildingOfficeIcon className="w-5 h-5" />,
       color: 'text-indigo-400',
       iconBg: 'bg-indigo-500/20',
-      description: context === 'admin' ? 'Platform tenants' : 'Department diversity'
-    }
+      description: 'Platform tenants'
+    }] : [])
   ], [stats, context]);
 
   // Page title based on context
@@ -899,7 +1019,7 @@ const UsersList = ({
         title={pageTitle}
         subtitle={pageDescription}
         icon={UsersIcon}
-        isLoading={loading}
+        isLoading={loading && !initialLoadDone}
         ariaLabel={pageTitle}
         actions={
           <>
@@ -955,7 +1075,7 @@ const UsersList = ({
           <StatsCards
             stats={statsCards}
             className="mb-0"
-            isLoading={loading}
+            isLoading={statsLoading}
           />
         }
         filters={
@@ -1061,9 +1181,19 @@ const UsersList = ({
         }
       >
         <div className="overflow-hidden">
-          {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <Spinner size="lg" />
+          {tableLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex gap-4 p-3 bg-default-50 rounded-lg">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-1/3 rounded" />
+                    <Skeleton className="h-3 w-1/2 rounded" />
+                  </div>
+                  <Skeleton className="h-6 w-16 rounded" />
+                  <Skeleton className="h-6 w-20 rounded" />
+                </div>
+              ))}
             </div>
           ) : viewMode === 'table' ? (
             <UsersTable 
