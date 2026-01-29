@@ -313,114 +313,132 @@ const UsersTable = ({
     return loadingStates[`${userId}-${operation}`] || false;
   };
 
-  async function handleRoleChange(userId, newRoleNames) {
-    setLoading(userId, 'role', true);
-    const promise = new Promise(async (resolve, reject) => {
-      try {
-        // Use context-aware route and HTTP method for role updates
-        // Admin context uses PATCH, tenant/core context uses POST
-        const isAdminContext = context === 'admin';
-        const updateRoute = route(routes.updateRoles, { id: userId, user: userId });
-        
-        // Admin uses PATCH, tenant/core uses POST
-        const response = isAdminContext
-          ? await axios.patch(updateRoute, { roles: newRoleNames })
-          : await axios.post(updateRoute, { roles: newRoleNames });
-        
-        if (response.status === 200) {
-          // Only update the affected user locally without refreshing the entire table
-          if (updateUserRolesOptimized) {
-            updateUserRolesOptimized(userId, newRoleNames);
-          }
-          resolve([response.data.message || 'Role updated successfully']);
-        } else {
-          reject(['Unexpected response while updating role']);
-        }
-      } catch (error) {
-        console.error('Error updating user role:', error);
-        
-        if (error.response?.status === 403) {
-          reject([error.response.data.error || 'You do not have permission to change this user\'s role']);
-        } else if (error.response?.status === 404) {
-          reject(['User or role not found']);
-        } else if (error.response?.status === 422) {
-          const errors = error.response.data.errors;
-          reject(errors ? Object.values(errors).flat() : ['Failed to update user role']);
-        } else {
-          reject([error.response?.data?.error || error.response?.data?.message || 'An unexpected error occurred. Please try again later.']);
-        }
-      } finally {
-        setLoading(userId, 'role', false);
+  // Optimized: Update UI first, then sync with server
+  const handleRoleChange = async (userId, newRoleNames) => {
+    // 1. Snapshot previous state for rollback
+    const userToUpdate = allUsers.find(u => u.id === userId);
+    const previousRoles = userToUpdate ? userToUpdate.roles : [];
+    const newRoles = Array.from(newRoleNames); // Ensure it's an array
+
+    // 2. Optimistic Update: Update UI immediately
+    if (updateUserRolesOptimized) {
+      updateUserRolesOptimized(userId, newRoles);
+    } else if (setUsers) {
+      // Fallback local update
+      setUsers(prev => prev.map(u => 
+        u.id === userId ? { ...u, roles: newRoles } : u
+      ));
+    }
+
+    // 3. API Call in background
+    try {
+      const isAdminContext = context === 'admin';
+      const updateRoute = route(routes.updateRoles, { id: userId, user: userId });
+      
+      const response = isAdminContext
+        ? await axios.patch(updateRoute, { roles: newRoles })
+        : await axios.post(updateRoute, { roles: newRoles });
+
+      // Optional: Silent success or unobtrusive toast
+      // showToast.success("Roles updated"); 
+      
+    } catch (error) {
+      console.error('Role update failed:', error);
+      
+      // 4. Revert on Failure
+      if (updateUserRolesOptimized) {
+        updateUserRolesOptimized(userId, previousRoles);
+      } else if (setUsers) {
+        setUsers(prev => prev.map(u => 
+          u.id === userId ? { ...u, roles: previousRoles } : u
+        ));
       }
-    });
-    showToast.promise(promise, {
-      loading: 'Updating user role...',
-      success: (data) => data.join(', '),
-      error: (data) => Array.isArray(data) ? data.join(', ') : data,
-    });
-    
-    // Return the promise to allow parent components to track completion
-    return promise;
-  }
-
-
-
-  const handleDelete = async (userId) => {
-    setLoading(userId, 'delete', true);
-    const promise = new Promise(async (resolve, reject) => {
-      try {
-        const response = await axios.delete(route(routes.destroy, { id: userId, user: userId }), {
-          data: { user_id: userId }
-        });
-        if (response.status === 200) {
-          if (deleteUserOptimized) {
-            deleteUserOptimized(userId);
-          }
-          resolve([response.data.message || 'User deleted successfully']);
-        } else {
-          reject(['Unexpected response while deleting user']);
-        }
-      } catch (error) {
-        console.error('Error deleting user:', error);
-        
-        if (error.response?.status === 403) {
-          reject([error.response.data.error || 'You do not have permission to delete this user']);
-        } else if (error.response?.status === 404) {
-          reject(['User not found or already deleted']);
-        } else if (error.response?.status === 422) {
-          const errors = error.response.data.errors;
-          reject(errors ? Object.values(errors).flat() : ['Validation failed']);
-        } else {
-          reject([error.response?.data?.error || error.response?.data?.message || 'An error occurred while deleting user. Please try again.']);
-        }
-      } finally {
-        setLoading(userId, 'delete', false);
-      }
-    });
-    showToast.promise(promise, {
-      loading: 'Deleting user...',
-      success: (data) => data.join(', '),
-      error: (data) => Array.isArray(data) ? data.join(', ') : data,
-    });
+      
+      showToast.error("Failed to update roles. Changes reverted.");
+    }
   };
 
-  // Restore soft-deleted user
+
+
+  // Optimized: Remove row immediately, revert if API fails
+  const handleDelete = async (userId) => {
+    // 1. Snapshot the user data in case we need to restore it
+    const userToDelete = allUsers.find(u => u.id === userId);
+    if (!userToDelete) return;
+
+    // 2. Optimistic Update: Remove from UI immediately
+    if (deleteUserOptimized) {
+      deleteUserOptimized(userId);
+    } else if (setUsers) {
+      setUsers(prev => prev.filter(u => u.id !== userId));
+    }
+
+    // 3. API Call
+    try {
+      await axios.delete(route(routes.destroy, { id: userId, user: userId }), {
+        data: { user_id: userId }
+      });
+      // Success: Do nothing, user is already gone
+      showToast.success("User deleted");
+      
+    } catch (error) {
+      console.error('Delete failed:', error);
+      
+      // 4. Revert on Failure: Add user back
+      if (setUsers) {
+        setUsers(prev => {
+           // Insert back at specific index or just append? 
+           // Appending is safer to avoid complex index logic during state flux
+           return [...prev, userToDelete].sort((a, b) => a.id - b.id); 
+        });
+      }
+      // If you have a specific restoreUserOptimized prop, use it here
+      
+      showToast.error("Failed to delete user. Restored.");
+    }
+  };
+
+ // Optimized: Restore user immediately, revert if API fails
   const handleRestoreUser = async (user) => {
+    // 1. Snapshot for rollback
+    // We assume 'user' is the object currently in the 'deleted' list
+    const originalUser = { ...user };
+    
+    // 2. Optimistic Update
+    // Depending on your parent component logic, 'updateUserOptimized' might handle 
+    // moving it between lists, or we might need to call a specific 'restore' handler.
+    // Assuming 'updateUserOptimized' refreshes the list or adds the user back:
+    if (updateUserOptimized) {
+      // Pass the user with deleted_at = null so it appears active immediately
+      updateUserOptimized({ ...user, deleted_at: null });
+    }
+
+    // 3. API Call
     const promise = new Promise(async (resolve, reject) => {
       try {
         const response = await axios.post(route(routes.restore, { id: user.id, user: user.id }));
+        
         if (response.status === 200) {
-          // Refresh the users list
+          // Success: The optimistic update was correct.
+          // Optional: Update with exact server data if needed (usually not necessary for simple restore)
           if (updateUserOptimized) {
-            updateUserOptimized(response.data.user);
+             updateUserOptimized(response.data.user);
           }
           resolve([response.data.message || 'User restored successfully']);
         } else {
-          reject(['Unexpected response while restoring user']);
+          throw new Error('Unexpected response');
         }
       } catch (error) {
         console.error('Error restoring user:', error);
-        
+
+        // 4. Revert on Failure
+        // If it failed, we need to mark it as deleted again or remove it from the active list
+        if (updateUserOptimized) {
+           // Re-apply the original state (with deleted_at timestamp)
+           updateUserOptimized(originalUser); 
+        }
+
+        // Error handling logic
         if (error.response?.status === 403) {
           reject([error.response.data.error || 'You do not have permission to restore this user']);
         } else if (error.response?.status === 404) {
@@ -451,37 +469,28 @@ const UsersTable = ({
     }
   };
 
-  // Unlock user account
-  const handleUnlockAccount = async (user) => {
-    const promise = new Promise(async (resolve, reject) => {
-      try {
-        const response = await axios.post(route(routes.unlock, { id: user.id, user: user.id }));
-        if (response.status === 200) {
-          if (updateUserOptimized) {
-            updateUserOptimized(response.data.user);
-          }
-          resolve([response.data.message || 'Account unlocked successfully']);
-        } else {
-          reject(['Unexpected response while unlocking account']);
-        }
-      } catch (error) {
-        console.error('Error unlocking account:', error);
-        
-        if (error.response?.status === 403) {
-          reject([error.response.data.error || 'You do not have permission to unlock this account']);
-        } else if (error.response?.status === 404) {
-          reject(['User not found']);
-        } else {
-          reject([error.response?.data?.error || error.response?.data?.message || 'Failed to unlock account']);
-        }
-      }
-    });
+ const handleUnlockAccount = async (user) => {
+    // 1. Optimistic Update
+    const originalLockedAt = user.account_locked_at;
     
-    showToast.promise(promise, {
-      loading: 'Unlocking account...',
-      success: (data) => data.join(', '),
-      error: (data) => Array.isArray(data) ? data.join(', ') : data,
-    });
+    // Create updated user object (unlocked)
+    const updatedUser = { ...user, account_locked_at: null };
+    
+    if (updateUserOptimized) {
+      updateUserOptimized(user.id, updatedUser);
+    }
+
+    // 2. API Call
+    try {
+      await axios.post(route(routes.unlock, { id: user.id, user: user.id }));
+      showToast.success("Account unlocked");
+    } catch (error) {
+      // 3. Revert
+      if (updateUserOptimized) {
+        updateUserOptimized(user.id, { ...user, account_locked_at: originalLockedAt });
+      }
+      showToast.error("Failed to unlock account.");
+    }
   };
 
   // Force password reset
@@ -677,9 +686,9 @@ const UsersTable = ({
     }
   };
 
-  // Render cell content based on column type
-  const renderCell = (user, columnKey, rowIndex) => {
- 
+  
+
+  const renderCell = React.useCallback((user, columnKey, rowIndex) => {
     const cellValue = user[columnKey];
     
     switch (columnKey) {
@@ -688,20 +697,23 @@ const UsersTable = ({
           <div className="flex items-center justify-center">
             <Checkbox
               isSelected={isUserSelected(user)}
-              onChange={() => handleUserToggle(user)}
-              isDisabled={user.employee_id}
+              // Note: We need to pass the handler reference, ensure handleUserToggle is stable or use wrapper
+              onChange={() => handleUserToggle(user)} 
+              isDisabled={!!user.employee_id}
               aria-label={`Select ${user.name}`}
             />
           </div>
         );
+      // Inside renderCell function
       case "sl":
         // Calculate serial number based on pagination
         const startIndex = pagination?.currentPage && pagination?.perPage 
           ? Number((pagination.currentPage - 1) * pagination.perPage) 
           : 0;
-        // Since rowIndex might be undefined, ensure it has a numeric value
-        const safeIndex = typeof rowIndex === 'number' ? rowIndex : 0;
-        const serialNumber = startIndex + safeIndex + 1;
+          
+        // rowIndex is now guaranteed to be the sequential index (0, 1, 2...) from the .map()
+        const serialNumber = startIndex + rowIndex + 1;
+    
         return (
           <div className="flex items-center justify-center">
             <div 
@@ -724,7 +736,7 @@ const UsersTable = ({
             </div>
           </div>
         );
-        
+            
       case "user":
         return (
           <div className="flex items-center gap-2">
@@ -855,9 +867,7 @@ const UsersTable = ({
             </span>
           </div>
         );
-
-    
-        
+      
       case "status":
         // Show deleted indicator if user is soft-deleted
         if (user.deleted_at) {
@@ -1204,7 +1214,18 @@ const UsersTable = ({
       default:
         return cellValue;
     }
-  };
+  }, [
+    // Dependencies: Only re-create if these change
+    selectedUsers, 
+    isLoading, 
+    isMobile, 
+    pagination, 
+    handleUserToggle, // Ensure this function is stable or wrapped in useCallback too
+    handleRoleChange, 
+    handleDelete,
+    routes,
+    // Add other dependencies used inside renderCell
+  ]);
 
   const renderPagination = () => {
     if (!allUsers || !totalUsers || loading) return null;
@@ -1260,6 +1281,30 @@ const UsersTable = ({
       </div>
     );
   };
+
+
+  // Add this inside your component, before the return statement
+  const processedUsers = useMemo(() => {
+    if (!allUsers) return [];
+
+    // 1. Create a copy to avoid mutating state
+    let users = [...allUsers];
+
+    // 2. OPTIONAL: Local Sort (Fixes "does not resort")
+    // If your default view is sorted by ID descending (newest first), enable this:
+    // users.sort((a, b) => b.id - a.id);
+    
+    // OR if sorted by Name:
+    // users.sort((a, b) => a.name.localeCompare(b.name));
+
+    // 3. Strict Page Limit Enforcement
+    // If the array grew beyond the page limit due to optimistic updates, trim it.
+    if (pagination && pagination.perPage && users.length > pagination.perPage) {
+      users = users.slice(0, pagination.perPage);
+    }
+
+    return users;
+  }, [allUsers, pagination]);
 
   return (
     <div 
@@ -1346,8 +1391,9 @@ const UsersTable = ({
               </TableColumn>
             )}
           </TableHeader>
+          {/* Replace your existing TableBody with this */}
           <TableBody 
-            items={allUsers || []} 
+            items={processedUsers}
             emptyContent={
               <div className="flex flex-col items-center justify-center py-8">
                 <UserGroupIcon className="w-12 h-12 text-default-300 mb-3" />
@@ -1362,33 +1408,20 @@ const UsersTable = ({
             }
             isLoading={loading}
           >
-            {(item, index) => {
-              const itemIndex = allUsers ? allUsers.findIndex(user => user.id === item.id) : index;
-              return (
-                <TableRow 
-                  key={item.id} 
-                  className="group"
-                  style={{
-                    background: 'var(--theme-content1, #FFFFFF)',
-                  }}
-                >
-                  {(columnKey) => (
-                    <TableCell 
-                      
-                      style={{
-                        
-                        borderColor: 'var(--table-border-color)',
-                        fontFamily: `var(--fontFamily, "Inter")`,
-                        
-                        background: 'inherit',
-                      }}
-                    >
-                      {renderCell(item, columnKey, itemIndex)}
-                    </TableCell>
-                  )}
-                </TableRow>
-              );
-            }}
+            {processedUsers.map((item, index) => ( // <--- CHANGED
+              <TableRow 
+                key={item.id} 
+                className="group"
+                style={{ background: 'var(--theme-content1, #FFFFFF)' }}
+              >
+                {(columnKey) => (
+                  <TableCell>
+                    {/* Pass the strict index (0-9) to keep serial numbers correct */}
+                    {renderCell(item, columnKey, index)}
+                  </TableCell>
+                )}
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>
