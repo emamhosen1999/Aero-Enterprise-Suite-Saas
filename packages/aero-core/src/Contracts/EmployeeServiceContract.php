@@ -95,7 +95,7 @@ interface EmployeeServiceContract
     /**
      * Batch resolve employee_ids to user_ids.
      *
-     * @param Collection<int> $employeeIds
+     * @param  Collection<int>  $employeeIds
      * @return Collection<int, int> Map of employee_id => user_id
      */
     public function batchResolveUserIds(Collection $employeeIds): Collection;

@@ -4,13 +4,11 @@ namespace Aero\Finance\Http\Controllers;
 
 use Aero\Core\Services\DashboardWidgetRegistry;
 use Illuminate\Routing\Controller;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Finance Dashboard Controller
- * 
+ *
  * Handles the main finance dashboard with key financial metrics and insights
  */
 class FinanceDashboardController extends Controller
@@ -25,10 +23,10 @@ class FinanceDashboardController extends Controller
     public function index()
     {
         $stats = $this->getFinancialStats();
-        
+
         // Get dynamic widgets for Finance dashboard
         $dynamicWidgets = $this->widgetRegistry->getWidgetsForFrontend('finance');
-        
+
         return Inertia::render('Finance/Dashboard/Index', [
             'title' => 'Finance Dashboard',
             'stats' => $stats,

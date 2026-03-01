@@ -2,10 +2,10 @@
 
 namespace Aero\Healthcare\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class LabResult extends Model
 {
@@ -18,7 +18,7 @@ class LabResult extends Model
         'test_code', 'test_category', 'result_value', 'result_unit',
         'reference_range', 'status', 'abnormal_flag', 'ordered_date',
         'collected_date', 'result_date', 'lab_name', 'technician',
-        'notes', 'created_by'
+        'notes', 'created_by',
     ];
 
     protected $casts = [
@@ -33,16 +33,25 @@ class LabResult extends Model
     ];
 
     const CATEGORY_HEMATOLOGY = 'hematology';
+
     const CATEGORY_CHEMISTRY = 'chemistry';
+
     const CATEGORY_MICROBIOLOGY = 'microbiology';
+
     const CATEGORY_IMMUNOLOGY = 'immunology';
+
     const CATEGORY_PATHOLOGY = 'pathology';
+
     const CATEGORY_RADIOLOGY = 'radiology';
 
     const STATUS_ORDERED = 'ordered';
+
     const STATUS_COLLECTED = 'collected';
+
     const STATUS_IN_PROGRESS = 'in_progress';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_CANCELLED = 'cancelled';
 
     public function patient()
@@ -83,15 +92,15 @@ class LabResult extends Model
     public function getFormattedResultAttribute()
     {
         $result = $this->result_value;
-        
+
         if ($this->result_unit) {
-            $result .= ' ' . $this->result_unit;
+            $result .= ' '.$this->result_unit;
         }
-        
+
         if ($this->reference_range) {
-            $result .= ' (Ref: ' . $this->reference_range . ')';
+            $result .= ' (Ref: '.$this->reference_range.')';
         }
-        
+
         return $result;
     }
 
@@ -100,7 +109,7 @@ class LabResult extends Model
         if ($this->ordered_date && $this->result_date) {
             return $this->ordered_date->diffInDays($this->result_date);
         }
-        
+
         return null;
     }
 

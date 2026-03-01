@@ -8,7 +8,7 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * RfiRejected Event
- * 
+ *
  * Dispatched when an RFI is rejected.
  * Triggers:
  * - NCR auto-creation (if severity is high)

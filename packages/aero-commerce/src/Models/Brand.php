@@ -13,8 +13,8 @@ class Brand extends Model
     protected $table = 'commerce_brands';
 
     protected $fillable = [
-        'name', 'description', 'slug', 'logo', 'website', 
-        'is_active', 'sort_order', 'seo_title', 'seo_description', 'meta_keywords'
+        'name', 'description', 'slug', 'logo', 'website',
+        'is_active', 'sort_order', 'seo_title', 'seo_description', 'meta_keywords',
     ];
 
     protected $casts = [

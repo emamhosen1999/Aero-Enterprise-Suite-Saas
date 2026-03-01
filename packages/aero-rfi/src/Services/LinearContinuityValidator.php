@@ -8,13 +8,13 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * LinearContinuityValidator - Layer Progression Rules Engine (PATENTABLE CORE)
- * 
+ *
  * Enforces construction sequence integrity across linear projects.
  * Prevents upper layers from being approved before lower layers are complete.
- * 
- * Example: Cannot approve "Asphalt Base Course" at Ch 100-200 
+ *
+ * Example: Cannot approve "Asphalt Base Course" at Ch 100-200
  * if "Sub-base Compaction" has gaps at Ch 120-140.
- * 
+ *
  * This is the MOST VALUABLE algorithm in the system for Tier-1 infrastructure.
  */
 class LinearContinuityValidator
@@ -52,10 +52,10 @@ class LinearContinuityValidator
     /**
      * Validate if a new RFI can be approved based on underlying layer continuity
      *
-     * @param string $proposedLayer Layer being inspected (e.g., 'base_course')
-     * @param float $startChainage Start of the work segment
-     * @param float $endChainage End of the work segment
-     * @param int $projectId Project context
+     * @param  string  $proposedLayer  Layer being inspected (e.g., 'base_course')
+     * @param  float  $startChainage  Start of the work segment
+     * @param  float  $endChainage  End of the work segment
+     * @param  int  $projectId  Project context
      * @return array ['can_approve' => bool, 'gaps' => array, 'coverage' => float, 'violations' => array]
      */
     public function validateLayerContinuity(
@@ -73,7 +73,7 @@ class LinearContinuityValidator
                 'gaps' => [],
                 'coverage' => 100,
                 'violations' => [],
-                'message' => 'No underlying layers required for ' . $proposedLayer
+                'message' => 'No underlying layers required for '.$proposedLayer,
             ];
         }
 
@@ -100,7 +100,7 @@ class LinearContinuityValidator
                         $requiredLayer,
                         $analysis['coverage'],
                         self::REQUIRED_COVERAGE
-                    )
+                    ),
                 ];
 
                 $allGaps = array_merge($allGaps, $analysis['gaps']);
@@ -116,7 +116,7 @@ class LinearContinuityValidator
             'project_id' => $projectId,
             'can_approve' => $canApprove,
             'violations' => count($violations),
-            'required_layers' => $requiredLayers
+            'required_layers' => $requiredLayers,
         ]);
 
         return [
@@ -128,17 +128,14 @@ class LinearContinuityValidator
                 ? 'All underlying layers complete - safe to proceed'
                 : 'Cannot approve: Underlying layers incomplete',
             'required_layers' => $requiredLayers,
-            'blocking' => true // This is a hard block, not a warning
+            'blocking' => true, // This is a hard block, not a warning
         ];
     }
 
     /**
      * Analyze coverage of a specific layer within a chainage range
      *
-     * @param string $layer Layer to analyze
-     * @param float $startChainage
-     * @param float $endChainage
-     * @param int $projectId
+     * @param  string  $layer  Layer to analyze
      * @return array ['coverage' => float, 'gaps' => array, 'completed_segments' => array]
      */
     private function analyzeLayerCoverage(
@@ -159,14 +156,14 @@ class LinearContinuityValidator
                     ->orWhereBetween('work_locations.end_chainage_m', [$startChainage, $endChainage])
                     ->orWhere(function ($q) use ($startChainage, $endChainage) {
                         $q->where('work_locations.start_chainage_m', '<=', $startChainage)
-                          ->where('work_locations.end_chainage_m', '>=', $endChainage);
+                            ->where('work_locations.end_chainage_m', '>=', $endChainage);
                     });
             })
             ->orderBy('work_locations.start_chainage_m')
             ->select([
                 'work_locations.start_chainage_m as start_chainage',
                 'work_locations.end_chainage_m as end_chainage',
-                'daily_works.id'
+                'daily_works.id',
             ])
             ->get();
 
@@ -176,9 +173,9 @@ class LinearContinuityValidator
                 'gaps' => [[
                     'start' => $startChainage,
                     'end' => $endChainage,
-                    'length' => $endChainage - $startChainage
+                    'length' => $endChainage - $startChainage,
                 ]],
-                'completed_segments' => []
+                'completed_segments' => [],
             ];
         }
 
@@ -193,6 +190,7 @@ class LinearContinuityValidator
         $coveredLength = array_reduce($mergedSegments, function ($sum, $seg) use ($startChainage, $endChainage) {
             $segStart = max($seg->start_chainage, $startChainage);
             $segEnd = min($seg->end_chainage, $endChainage);
+
             return $sum + ($segEnd - $segStart);
         }, 0);
 
@@ -203,7 +201,7 @@ class LinearContinuityValidator
             'gaps' => $gaps,
             'completed_segments' => $mergedSegments,
             'covered_length' => round($coveredLength, 2),
-            'total_length' => round($totalLength, 2)
+            'total_length' => round($totalLength, 2),
         ];
     }
 
@@ -216,12 +214,12 @@ class LinearContinuityValidator
             return [];
         }
 
-        usort($segments, fn($a, $b) => $a->start_chainage <=> $b->start_chainage);
+        usort($segments, fn ($a, $b) => $a->start_chainage <=> $b->start_chainage);
 
         $merged = [];
-        $current = (object)[
+        $current = (object) [
             'start_chainage' => $segments[0]->start_chainage,
-            'end_chainage' => $segments[0]->end_chainage
+            'end_chainage' => $segments[0]->end_chainage,
         ];
 
         foreach (array_slice($segments, 1) as $segment) {
@@ -231,14 +229,15 @@ class LinearContinuityValidator
             } else {
                 // Gap found - save current and start new
                 $merged[] = $current;
-                $current = (object)[
+                $current = (object) [
                     'start_chainage' => $segment->start_chainage,
-                    'end_chainage' => $segment->end_chainage
+                    'end_chainage' => $segment->end_chainage,
                 ];
             }
         }
 
         $merged[] = $current;
+
         return $merged;
     }
 
@@ -256,7 +255,7 @@ class LinearContinuityValidator
                 $gaps[] = [
                     'start' => round($currentPosition, 2),
                     'end' => round($segment->start_chainage, 2),
-                    'length' => round($segment->start_chainage - $currentPosition, 2)
+                    'length' => round($segment->start_chainage - $currentPosition, 2),
                 ];
             }
             $currentPosition = max($currentPosition, $segment->end_chainage);
@@ -267,7 +266,7 @@ class LinearContinuityValidator
             $gaps[] = [
                 'start' => round($currentPosition, 2),
                 'end' => round($rangeEnd, 2),
-                'length' => round($rangeEnd - $currentPosition, 2)
+                'length' => round($rangeEnd - $currentPosition, 2),
             ];
         }
 
@@ -283,18 +282,15 @@ class LinearContinuityValidator
             return 100;
         }
 
-        $totalCoverage = array_reduce($violations, fn($sum, $v) => $sum + $v['coverage'], 0);
+        $totalCoverage = array_reduce($violations, fn ($sum, $v) => $sum + $v['coverage'], 0);
+
         return round($totalCoverage / count($violations), 2);
     }
 
     /**
      * Get visual representation of layer completion (for frontend map)
      *
-     * @param string $layer
-     * @param float $startChainage
-     * @param float $endChainage
-     * @param int $projectId
-     * @param int $segmentSize Divide range into segments of this size (e.g., 10m)
+     * @param  int  $segmentSize  Divide range into segments of this size (e.g., 10m)
      * @return array Grid of completion status
      */
     public function getLayerCompletionGrid(
@@ -309,7 +305,7 @@ class LinearContinuityValidator
 
         while ($currentCh < $endChainage) {
             $segmentEnd = min($currentCh + $segmentSize, $endChainage);
-            
+
             $analysis = $this->analyzeLayerCoverage(
                 $layer,
                 $currentCh,
@@ -321,8 +317,8 @@ class LinearContinuityValidator
                 'start' => round($currentCh, 2),
                 'end' => round($segmentEnd, 2),
                 'coverage' => $analysis['coverage'],
-                'status' => $analysis['coverage'] >= 95 ? 'complete' : 
-                           ($analysis['coverage'] >= 50 ? 'partial' : 'incomplete')
+                'status' => $analysis['coverage'] >= 95 ? 'complete' :
+                           ($analysis['coverage'] >= 50 ? 'partial' : 'incomplete'),
             ];
 
             $currentCh = $segmentEnd;
@@ -336,7 +332,7 @@ class LinearContinuityValidator
             'overall_coverage' => round(
                 array_sum(array_column($segments, 'coverage')) / count($segments),
                 2
-            )
+            ),
         ];
     }
 
@@ -344,10 +340,7 @@ class LinearContinuityValidator
      * Find optimal start location for next work based on continuity
      * (AI-assisted work planning)
      *
-     * @param string $layer Layer to find next location for
-     * @param int $projectId
-     * @param float $projectStartCh
-     * @param float $projectEndCh
+     * @param  string  $layer  Layer to find next location for
      * @return array Recommended work location
      */
     public function suggestNextWorkLocation(
@@ -367,12 +360,12 @@ class LinearContinuityValidator
             return [
                 'status' => 'layer_complete',
                 'message' => "Layer $layer is complete across entire project",
-                'recommendation' => null
+                'recommendation' => null,
             ];
         }
 
         // Sort gaps by length (prioritize largest gaps)
-        usort($analysis['gaps'], fn($a, $b) => $b['length'] <=> $a['length']);
+        usort($analysis['gaps'], fn ($a, $b) => $b['length'] <=> $a['length']);
 
         $priorityGap = $analysis['gaps'][0];
 
@@ -386,7 +379,7 @@ class LinearContinuityValidator
                 $priorityGap['end'],
                 $priorityGap['length']
             ),
-            'all_gaps' => $analysis['gaps']
+            'all_gaps' => $analysis['gaps'],
         ];
     }
 }

@@ -34,9 +34,9 @@ return new class extends Migration
             $table->index('start_date');
         });
 
-        // Add sprint_id to project_tasks if table exists and column not exists
-        if (Schema::hasTable('project_tasks') && !Schema::hasColumn('project_tasks', 'sprint_id')) {
-            Schema::table('project_tasks', function (Blueprint $table) {
+        // Add sprint_id to tasks if table exists and column not exists
+        if (Schema::hasTable('tasks') && ! Schema::hasColumn('tasks', 'sprint_id')) {
+            Schema::table('tasks', function (Blueprint $table) {
                 $table->foreignId('sprint_id')->nullable()->after('milestone_id')
                     ->constrained('project_sprints')->nullOnDelete();
                 $table->integer('story_points')->nullable()->after('estimated_hours');
@@ -117,7 +117,7 @@ return new class extends Migration
             $table->date('identified_date');
             $table->date('target_resolution_date')->nullable();
             $table->date('resolved_date')->nullable();
-            $table->foreignId('related_task_id')->nullable()->constrained('project_tasks')->nullOnDelete();
+            $table->foreignId('related_task_id')->nullable()->constrained('tasks')->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
 
@@ -138,7 +138,7 @@ return new class extends Migration
 
         // Task Labels (pivot)
         Schema::create('project_task_labels', function (Blueprint $table) {
-            $table->foreignId('task_id')->constrained('project_tasks')->cascadeOnDelete();
+            $table->foreignId('task_id')->constrained('tasks')->cascadeOnDelete();
             $table->foreignId('label_id')->constrained('project_labels')->cascadeOnDelete();
             $table->timestamps();
 
@@ -181,9 +181,9 @@ return new class extends Migration
         Schema::dropIfExists('project_comments');
         Schema::dropIfExists('project_members');
 
-        // Remove added columns from project_tasks if table exists
-        if (Schema::hasTable('project_tasks') && Schema::hasColumn('project_tasks', 'sprint_id')) {
-            Schema::table('project_tasks', function (Blueprint $table) {
+        // Remove added columns from tasks if table exists
+        if (Schema::hasTable('tasks') && Schema::hasColumn('tasks', 'sprint_id')) {
+            Schema::table('tasks', function (Blueprint $table) {
                 $table->dropForeign(['sprint_id']);
                 $table->dropColumn(['sprint_id', 'story_points', 'position']);
             });

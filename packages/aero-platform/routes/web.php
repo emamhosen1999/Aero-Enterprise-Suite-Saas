@@ -9,7 +9,6 @@ use Aero\Platform\Http\Controllers\Webhooks\SslCommerzWebhookController;
 use Aero\Platform\Http\Controllers\Webhooks\StripeWebhookController;
 use Aero\Platform\Http\Middleware\IdentifyDomainContext;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 /*
 |--------------------------------------------------------------------------

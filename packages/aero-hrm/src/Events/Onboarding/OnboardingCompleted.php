@@ -24,8 +24,6 @@ class OnboardingCompleted extends BaseHrmEvent
     /**
      * Create a new event instance.
      *
-     * @param  Onboarding  $onboarding
-     * @param  \DateTimeInterface  $completedAt
      * @param  int  $daysTaken  Number of days to complete onboarding
      * @param  int|null  $actorEmployeeId  Employee ID who marked completion
      */

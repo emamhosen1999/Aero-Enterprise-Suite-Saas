@@ -3,10 +3,8 @@
 namespace Aero\HRM\Http\Controllers;
 
 use Aero\HRM\Models\ExitInterview;
-use Aero\HRM\Models\Employee;
-use Aero\HRM\Models\Offboarding;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Inertia\Response;

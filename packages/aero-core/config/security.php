@@ -6,7 +6,7 @@ return [
     | Security Configuration
     |--------------------------------------------------------------------------
     |
-    | This file contains all security-related configuration for the 
+    | This file contains all security-related configuration for the
     | Aero Enterprise Suite. Settings here control password policies,
     | authentication requirements, session security, and more.
     |
@@ -24,7 +24,7 @@ return [
         'require_lowercase' => env('PASSWORD_REQUIRE_LOWERCASE', true),
         'require_numbers' => env('PASSWORD_REQUIRE_NUMBERS', true),
         'require_symbols' => env('PASSWORD_REQUIRE_SYMBOLS', false),
-        
+
         /*
         |--------------------------------------------------------------------------
         | Password Expiration & History
@@ -33,7 +33,7 @@ return [
         'max_age_days' => env('PASSWORD_MAX_AGE_DAYS', 90), // 0 = never expires
         'history_count' => env('PASSWORD_HISTORY_COUNT', 24), // Remember last N passwords
         'force_reset_on_first_login' => env('PASSWORD_FORCE_RESET_FIRST_LOGIN', false),
-        
+
         /*
         |--------------------------------------------------------------------------
         | Password Security Features
@@ -54,7 +54,7 @@ return [
         'max_login_attempts' => env('AUTH_MAX_LOGIN_ATTEMPTS', 5),
         'lockout_duration_minutes' => env('AUTH_LOCKOUT_DURATION', 30),
         'progressive_delays' => env('AUTH_PROGRESSIVE_DELAYS', true),
-        
+
         /*
         |--------------------------------------------------------------------------
         | Password Reset Security
@@ -63,7 +63,7 @@ return [
         'password_reset_code_length' => env('AUTH_RESET_CODE_LENGTH', 8),
         'password_reset_expiry_minutes' => env('AUTH_RESET_EXPIRY', 30),
         'password_reset_max_attempts' => env('AUTH_RESET_MAX_ATTEMPTS', 3),
-        
+
         /*
         |--------------------------------------------------------------------------
         | Two-Factor Authentication
@@ -73,7 +73,7 @@ return [
         'require_2fa_for_all_users' => env('AUTH_REQUIRE_2FA_ALL', false),
         'trusted_device_duration_days' => env('AUTH_TRUSTED_DEVICE_DAYS', 30),
         '2fa_backup_codes_count' => env('AUTH_2FA_BACKUP_CODES', 8),
-        
+
         /*
         |--------------------------------------------------------------------------
         | Device Management
@@ -94,7 +94,7 @@ return [
         'timeout_minutes' => env('SESSION_TIMEOUT_MINUTES', 120),
         'encrypt_payloads' => env('SESSION_ENCRYPT_PAYLOADS', true),
         'strict_ip_validation' => env('SESSION_STRICT_IP', false),
-        
+
         /*
         |--------------------------------------------------------------------------
         | Session Cleanup
@@ -114,7 +114,7 @@ return [
         'api_requests_per_minute' => env('RATE_LIMIT_API_PER_MINUTE', 120),
         'sensitive_endpoints_per_minute' => env('RATE_LIMIT_SENSITIVE_PER_MINUTE', 30),
         'admin_endpoints_per_minute' => env('RATE_LIMIT_ADMIN_PER_MINUTE', 60),
-        
+
         /*
         |--------------------------------------------------------------------------
         | Authentication Rate Limiting
@@ -135,7 +135,7 @@ return [
         'max_travel_speed_kmh' => env('THREAT_MAX_TRAVEL_SPEED', 900), // Commercial flight speed
         'enable_velocity_checks' => env('THREAT_VELOCITY_CHECKS', true),
         'max_logins_per_minute' => env('THREAT_MAX_LOGINS_PER_MINUTE', 5),
-        
+
         /*
         |--------------------------------------------------------------------------
         | Risk Scoring
@@ -144,7 +144,7 @@ return [
         'enable_risk_scoring' => env('THREAT_RISK_SCORING', true),
         'high_risk_threshold' => env('THREAT_HIGH_RISK_THRESHOLD', 7),
         'critical_risk_threshold' => env('THREAT_CRITICAL_RISK_THRESHOLD', 10),
-        
+
         /*
         |--------------------------------------------------------------------------
         | Automated Response
@@ -165,7 +165,7 @@ return [
         'log_permission_changes' => env('AUDIT_LOG_PERMISSION_CHANGES', true),
         'log_sensitive_data_access' => env('AUDIT_LOG_SENSITIVE_ACCESS', true),
         'log_failed_authorization_attempts' => env('AUDIT_LOG_FAILED_AUTH', true),
-        
+
         /*
         |--------------------------------------------------------------------------
         | Log Retention
@@ -185,7 +185,7 @@ return [
         'encrypt_sensitive_user_data' => env('ENCRYPT_SENSITIVE_DATA', true),
         'encrypt_session_data' => env('ENCRYPT_SESSION_DATA', true),
         'encrypt_audit_logs' => env('ENCRYPT_AUDIT_LOGS', false),
-        
+
         /*
         |--------------------------------------------------------------------------
         | Key Management
@@ -205,7 +205,7 @@ return [
         'pci_compliance_mode' => env('COMPLIANCE_PCI', false),
         'sox_compliance_mode' => env('COMPLIANCE_SOX', false),
         'iso27001_compliance_mode' => env('COMPLIANCE_ISO27001', false),
-        
+
         /*
         |--------------------------------------------------------------------------
         | Data Protection
@@ -239,7 +239,7 @@ return [
         'notify_on_suspicious_login' => env('SECURITY_NOTIFY_SUSPICIOUS_LOGIN', true),
         'notify_on_password_change' => env('SECURITY_NOTIFY_PASSWORD_CHANGE', true),
         'notify_on_2fa_disable' => env('SECURITY_NOTIFY_2FA_DISABLE', true),
-        
+
         /*
         |--------------------------------------------------------------------------
         | Admin Notifications

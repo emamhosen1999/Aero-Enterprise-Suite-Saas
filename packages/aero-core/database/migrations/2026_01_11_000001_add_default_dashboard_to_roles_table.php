@@ -25,14 +25,14 @@ return new class extends Migration
         });
 
         // Add columns if they don't exist
-        if (!Schema::hasColumn('roles', 'default_dashboard')) {
+        if (! Schema::hasColumn('roles', 'default_dashboard')) {
             Schema::table('roles', function (Blueprint $table) {
                 $table->string('default_dashboard')->nullable()->after('description')
                     ->comment('Route name for the default dashboard (e.g., hrm.dashboard, core.dashboard)');
             });
         }
 
-        if (!Schema::hasColumn('roles', 'priority')) {
+        if (! Schema::hasColumn('roles', 'priority')) {
             Schema::table('roles', function (Blueprint $table) {
                 $table->integer('priority')->default(0)->after('default_dashboard')
                     ->comment('Priority for determining which role dashboard takes precedence (higher = more important)');

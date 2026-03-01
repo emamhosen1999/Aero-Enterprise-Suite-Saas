@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
  * Approval Workflow Instance Model
- * 
+ *
  * Tracks individual workflow instances for approval processing.
  */
 class ApprovalWorkflowInstance extends Model
@@ -88,7 +88,7 @@ class ApprovalWorkflowInstance extends Model
     protected function processAction(string $action, int $userId, ?string $remarks): void
     {
         $currentAction = $this->currentAction();
-        
+
         if ($currentAction) {
             $currentAction->update([
                 'action' => $action,
@@ -125,7 +125,7 @@ class ApprovalWorkflowInstance extends Model
     protected function createNextAction(): void
     {
         $nextStep = $this->template->getStep($this->current_step);
-        
+
         if ($nextStep) {
             ApprovalAction::create([
                 'workflow_instance_id' => $this->id,
@@ -133,8 +133,8 @@ class ApprovalWorkflowInstance extends Model
                 'step_name' => $nextStep['name'] ?? "Step {$this->current_step}",
                 'approver_id' => $nextStep['approver_id'] ?? null,
                 'action' => 'pending',
-                'due_at' => isset($nextStep['due_hours']) 
-                    ? now()->addHours($nextStep['due_hours']) 
+                'due_at' => isset($nextStep['due_hours'])
+                    ? now()->addHours($nextStep['due_hours'])
                     : null,
             ]);
         }
@@ -150,7 +150,7 @@ class ApprovalWorkflowInstance extends Model
             'remarks' => $remarks,
             'timestamp' => now()->toISOString(),
         ];
-        
+
         $this->update(['step_history' => $history]);
     }
 }

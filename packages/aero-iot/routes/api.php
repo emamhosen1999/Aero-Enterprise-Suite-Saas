@@ -1,12 +1,11 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use Aero\IoT\Http\Controllers\Api\DeviceApiController;
-use Aero\IoT\Http\Controllers\Api\TelemetryApiController;
-use Aero\IoT\Http\Controllers\Api\CommandApiController;
-use Aero\IoT\Http\Controllers\Api\SensorApiController;
 use Aero\IoT\Http\Controllers\Api\AlertApiController;
+use Aero\IoT\Http\Controllers\Api\CommandApiController;
+use Aero\IoT\Http\Controllers\Api\DeviceApiController;
+use Aero\IoT\Http\Controllers\Api\SensorApiController;
+use Aero\IoT\Http\Controllers\Api\TelemetryApiController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,7 +18,7 @@ use Aero\IoT\Http\Controllers\Api\AlertApiController;
 */
 
 Route::middleware('api')->prefix('api/iot')->name('api.iot.')->group(function () {
-    
+
     // Device API endpoints
     Route::prefix('devices')->name('devices.')->group(function () {
         Route::get('/', [DeviceApiController::class, 'index'])->name('index');
@@ -27,13 +26,13 @@ Route::middleware('api')->prefix('api/iot')->name('api.iot.')->group(function ()
         Route::get('/{device}', [DeviceApiController::class, 'show'])->name('show');
         Route::put('/{device}', [DeviceApiController::class, 'update'])->name('update');
         Route::delete('/{device}', [DeviceApiController::class, 'destroy'])->name('destroy');
-        
+
         // Device status and heartbeat
         Route::post('/{device}/heartbeat', [DeviceApiController::class, 'heartbeat'])->name('heartbeat');
         Route::get('/{device}/status', [DeviceApiController::class, 'status'])->name('status');
         Route::post('/{device}/status', [DeviceApiController::class, 'updateStatus'])->name('status.update');
     });
-    
+
     // Telemetry API endpoints
     Route::prefix('telemetry')->name('telemetry.')->group(function () {
         Route::post('/', [TelemetryApiController::class, 'store'])->name('store');
@@ -41,14 +40,14 @@ Route::middleware('api')->prefix('api/iot')->name('api.iot.')->group(function ()
         Route::get('/device/{device}', [TelemetryApiController::class, 'device'])->name('device');
         Route::get('/sensor/{sensor}', [TelemetryApiController::class, 'sensor'])->name('sensor');
     });
-    
+
     // Sensor data API endpoints
     Route::prefix('sensors')->name('sensors.')->group(function () {
         Route::get('/{sensor}/data', [SensorApiController::class, 'data'])->name('data');
         Route::post('/{sensor}/data', [SensorApiController::class, 'storeData'])->name('data.store');
         Route::post('/{sensor}/data/batch', [SensorApiController::class, 'storeBatchData'])->name('data.batch');
     });
-    
+
     // Command API endpoints
     Route::prefix('commands')->name('commands.')->group(function () {
         Route::post('/', [CommandApiController::class, 'store'])->name('store');
@@ -58,7 +57,7 @@ Route::middleware('api')->prefix('api/iot')->name('api.iot.')->group(function ()
         Route::post('/{command}/complete', [CommandApiController::class, 'complete'])->name('complete');
         Route::post('/{command}/fail', [CommandApiController::class, 'fail'])->name('fail');
     });
-    
+
     // Alert API endpoints
     Route::prefix('alerts')->name('alerts.')->group(function () {
         Route::get('/', [AlertApiController::class, 'index'])->name('index');

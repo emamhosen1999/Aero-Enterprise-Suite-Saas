@@ -151,7 +151,9 @@ class TenantOnboardingController extends Controller
 
         // Update tenant name if changed
         if ($validated['company_name'] !== $tenant->name) {
-            DB::connection('mysql')
+            // Fix #19: Resolve the central DB connection name from config instead of
+            // hardcoding 'mysql', which breaks setups that use a different driver name.
+            DB::connection(config('tenancy.database.central_connection', 'mysql'))
                 ->table('tenants')
                 ->where('id', $tenant->id)
                 ->update(['name' => $validated['company_name']]);
@@ -345,7 +347,7 @@ class TenantOnboardingController extends Controller
         }
 
         // Read directly from database to avoid cached data issues
-        $tenantData = DB::connection('mysql')
+        $tenantData = DB::connection(config('tenancy.database.central_connection', 'mysql'))
             ->table('tenants')
             ->where('id', tenant()->id)
             ->value('data');
@@ -386,7 +388,7 @@ class TenantOnboardingController extends Controller
     protected function getTenantData(): array
     {
         $tenant = tenant();
-        $tenantData = DB::connection('mysql')
+        $tenantData = DB::connection(config('tenancy.database.central_connection', 'mysql'))
             ->table('tenants')
             ->where('id', $tenant->id)
             ->value('data');
@@ -400,7 +402,7 @@ class TenantOnboardingController extends Controller
     protected function updateTenantData(array $data): void
     {
         $tenant = tenant();
-        DB::connection('mysql')
+        DB::connection(config('tenancy.database.central_connection', 'mysql'))
             ->table('tenants')
             ->where('id', $tenant->id)
             ->update(['data' => json_encode($data)]);

@@ -35,9 +35,6 @@ class ExceptionHandlerServiceProvider extends ServiceProvider
     /**
      * Register exception handlers for the application.
      * This method is called from the host app's bootstrap/app.php withExceptions() callback.
-     *
-     * @param  \Illuminate\Foundation\Configuration\Exceptions  $exceptions
-     * @return void
      */
     public static function registerExceptionHandlers(Exceptions $exceptions): void
     {

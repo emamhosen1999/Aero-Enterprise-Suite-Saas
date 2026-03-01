@@ -2,10 +2,10 @@
 
 namespace Aero\RealEstate\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class PropertyTransaction extends Model
 {
@@ -18,7 +18,7 @@ class PropertyTransaction extends Model
         'transaction_number', 'transaction_type', 'sale_price', 'commission_rate',
         'agent_commission', 'buyer_agent_commission', 'contract_date',
         'closing_date', 'status', 'financing_type', 'loan_amount',
-        'down_payment', 'closing_costs', 'notes', 'created_by'
+        'down_payment', 'closing_costs', 'notes', 'created_by',
     ];
 
     protected $casts = [
@@ -40,20 +40,31 @@ class PropertyTransaction extends Model
     ];
 
     const TYPE_SALE = 'sale';
+
     const TYPE_PURCHASE = 'purchase';
+
     const TYPE_LEASE = 'lease';
 
     const STATUS_PENDING = 'pending';
+
     const STATUS_UNDER_CONTRACT = 'under_contract';
+
     const STATUS_CLOSED = 'closed';
+
     const STATUS_CANCELLED = 'cancelled';
+
     const STATUS_FAILED = 'failed';
 
     const FINANCING_CASH = 'cash';
+
     const FINANCING_CONVENTIONAL = 'conventional';
+
     const FINANCING_FHA = 'fha';
+
     const FINANCING_VA = 'va';
+
     const FINANCING_USDA = 'usda';
+
     const FINANCING_OTHER = 'other';
 
     public function property()
@@ -111,6 +122,7 @@ class PropertyTransaction extends Model
         if ($this->loan_amount && $this->sale_price) {
             return round(($this->loan_amount / $this->sale_price) * 100, 2);
         }
+
         return 0;
     }
 
@@ -124,14 +136,15 @@ class PropertyTransaction extends Model
         if ($this->contract_date && $this->closing_date) {
             return $this->contract_date->diffInDays($this->closing_date);
         }
+
         return null;
     }
 
     public function isOverdue()
     {
-        return $this->closing_date && 
-               $this->closing_date < now()->toDateString() && 
-               !$this->isClosed();
+        return $this->closing_date &&
+               $this->closing_date < now()->toDateString() &&
+               ! $this->isClosed();
     }
 
     public function scopeClosed($query)
@@ -155,14 +168,15 @@ class PropertyTransaction extends Model
         if ($maxPrice) {
             $query->where('sale_price', '<=', $maxPrice);
         }
+
         return $query;
     }
 
     public function scopeByAgent($query, $agentId)
     {
-        return $query->where(function($q) use ($agentId) {
+        return $query->where(function ($q) use ($agentId) {
             $q->where('agent_id', $agentId)
-              ->orWhere('buyer_agent_id', $agentId);
+                ->orWhere('buyer_agent_id', $agentId);
         });
     }
 }

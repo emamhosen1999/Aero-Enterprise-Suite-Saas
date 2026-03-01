@@ -24,10 +24,15 @@ namespace Aero\Core\Contracts;
 abstract class AbstractDashboardWidget implements DashboardWidgetInterface
 {
     protected string $position = 'main_left';
+
     protected int $order = 50;
+
     protected int|string $span = 1;
+
     protected bool $lazy = false;
+
     protected array $requiredPermissions = [];
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::SUMMARY;
 
     /**
@@ -117,12 +122,12 @@ abstract class AbstractDashboardWidget implements DashboardWidgetInterface
         }
 
         // Check if module is active
-        if (!$this->isModuleActive()) {
+        if (! $this->isModuleActive()) {
             return false;
         }
 
         // Check module access via HRMAC if available
-        if (!empty($this->requiredPermissions)) {
+        if (! empty($this->requiredPermissions)) {
             return $this->userHasModuleAccess();
         }
 
@@ -136,7 +141,7 @@ abstract class AbstractDashboardWidget implements DashboardWidgetInterface
     {
         $user = auth()->user();
 
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -188,7 +193,7 @@ abstract class AbstractDashboardWidget implements DashboardWidgetInterface
     {
         $user = auth()->user();
 
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -212,6 +217,7 @@ abstract class AbstractDashboardWidget implements DashboardWidgetInterface
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -238,13 +244,14 @@ abstract class AbstractDashboardWidget implements DashboardWidgetInterface
 
     /**
      * Check if user has any of the specified permissions.
+     *
      * @deprecated Use userHasModuleAccess() with HRMAC instead
      */
     protected function userHasAnyPermission(array $permissions): bool
     {
         $user = auth()->user();
 
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -264,13 +271,14 @@ abstract class AbstractDashboardWidget implements DashboardWidgetInterface
 
     /**
      * Check if user has all specified permissions.
+     *
      * @deprecated Use userHasModuleAccess() with HRMAC instead
      */
     protected function userHasAllPermissions(array $permissions): bool
     {
         $user = auth()->user();
 
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -280,7 +288,7 @@ abstract class AbstractDashboardWidget implements DashboardWidgetInterface
         }
 
         foreach ($permissions as $permission) {
-            if (!$user->can($permission)) {
+            if (! $user->can($permission)) {
                 return false;
             }
         }
@@ -296,9 +304,10 @@ abstract class AbstractDashboardWidget implements DashboardWidgetInterface
         try {
             return $callback();
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::warning('Widget data error: ' . $e->getMessage(), [
+            \Illuminate\Support\Facades\Log::warning('Widget data error: '.$e->getMessage(), [
                 'widget' => $this->getKey(),
             ]);
+
             return $fallback;
         }
     }

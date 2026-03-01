@@ -40,13 +40,13 @@ class DashboardRedirectMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         // Only intercept the base /dashboard route
-        if (!$this->shouldRedirect($request)) {
+        if (! $this->shouldRedirect($request)) {
             return $next($request);
         }
 
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return $next($request);
         }
 
@@ -57,7 +57,7 @@ class DashboardRedirectMiddleware
         $coreDashboardRoutes = ['dashboard', 'core.dashboard'];
 
         // If target is different from current (and not a core dashboard alias), redirect
-        if ($targetDashboard && !in_array($targetDashboard, $coreDashboardRoutes)) {
+        if ($targetDashboard && ! in_array($targetDashboard, $coreDashboardRoutes)) {
             $url = $this->dashboardRegistry->getUrl($targetDashboard);
 
             if ($url && Route::has($targetDashboard)) {
@@ -74,12 +74,12 @@ class DashboardRedirectMiddleware
     protected function shouldRedirect(Request $request): bool
     {
         // Only GET requests
-        if (!$request->isMethod('GET')) {
+        if (! $request->isMethod('GET')) {
             return false;
         }
 
         // Must be authenticated
-        if (!$request->user()) {
+        if (! $request->user()) {
             return false;
         }
 
@@ -87,7 +87,7 @@ class DashboardRedirectMiddleware
         $routeName = $request->route()?->getName();
         $dashboardRoutes = ['dashboard', 'core.dashboard'];
 
-        if (!in_array($routeName, $dashboardRoutes)) {
+        if (! in_array($routeName, $dashboardRoutes)) {
             return false;
         }
 
@@ -110,7 +110,7 @@ class DashboardRedirectMiddleware
     protected function resolveUserDashboard($user): ?string
     {
         // Load roles if not loaded
-        if (!$user->relationLoaded('roles')) {
+        if (! $user->relationLoaded('roles')) {
             $user->load('roles');
         }
 

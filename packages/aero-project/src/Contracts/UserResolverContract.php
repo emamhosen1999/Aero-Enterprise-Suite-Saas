@@ -20,7 +20,6 @@ interface UserResolverContract
     /**
      * Get user basic info by ID.
      *
-     * @param int $userId
      * @return array{id: int, name: string, email: string, avatar_url: ?string}|null
      */
     public function getUserById(int $userId): ?array;
@@ -28,7 +27,7 @@ interface UserResolverContract
     /**
      * Get multiple users by IDs.
      *
-     * @param array<int> $userIds
+     * @param  array<int>  $userIds
      * @return Collection<int, array{id: int, name: string, email: string, avatar_url: ?string}>
      */
     public function getUsersByIds(array $userIds): Collection;
@@ -36,7 +35,7 @@ interface UserResolverContract
     /**
      * Get all active users (for dropdowns).
      *
-     * @param array<string>|null $columns Optional columns to select
+     * @param  array<string>|null  $columns  Optional columns to select
      * @return Collection<int, array{id: int, name: string, email: string}>
      */
     public function getAllActiveUsers(?array $columns = null): Collection;
@@ -44,17 +43,14 @@ interface UserResolverContract
     /**
      * Get users excluding specific IDs.
      *
-     * @param array<int> $excludeIds
-     * @param array<string>|null $columns Optional columns to select
-     * @return Collection
+     * @param  array<int>  $excludeIds
+     * @param  array<string>|null  $columns  Optional columns to select
      */
     public function getUsersExcluding(array $excludeIds, ?array $columns = null): Collection;
 
     /**
      * Search users by name or email.
      *
-     * @param string $query
-     * @param int $limit
      * @return Collection<int, array{id: int, name: string, email: string}>
      */
     public function searchUsers(string $query, int $limit = 10): Collection;
@@ -62,7 +58,6 @@ interface UserResolverContract
     /**
      * Get user by ID as notifiable (for sending notifications).
      *
-     * @param int $userId
      * @return object|null The User model instance (as object to avoid type hint)
      */
     public function getNotifiable(int $userId): ?object;
@@ -70,7 +65,7 @@ interface UserResolverContract
     /**
      * Get multiple users as notifiables.
      *
-     * @param array<int> $userIds
+     * @param  array<int>  $userIds
      * @return Collection Collection of User model instances
      */
     public function getNotifiables(array $userIds): Collection;

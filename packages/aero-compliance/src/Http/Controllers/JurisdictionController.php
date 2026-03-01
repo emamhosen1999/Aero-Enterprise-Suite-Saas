@@ -2,10 +2,10 @@
 
 namespace Aero\Compliance\Http\Controllers;
 
-use Illuminate\Routing\Controller;
 use Aero\Compliance\Models\Jurisdiction;
 use Aero\Core\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 

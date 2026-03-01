@@ -149,6 +149,7 @@ class EmployeeService implements EmployeeServiceContract
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($employeeId) {
             $employee = Employee::with('user:id,name')->find($employeeId);
+
             return $employee?->user?->name;
         });
     }
@@ -224,9 +225,9 @@ class EmployeeService implements EmployeeServiceContract
     protected function getCacheKey(string $key): string
     {
         if (function_exists('tenant') && tenant()) {
-            return 'tenant:' . tenant('id') . ':hrm:' . $key;
+            return 'tenant:'.tenant('id').':hrm:'.$key;
         }
 
-        return 'hrm:' . $key;
+        return 'hrm:'.$key;
     }
 }

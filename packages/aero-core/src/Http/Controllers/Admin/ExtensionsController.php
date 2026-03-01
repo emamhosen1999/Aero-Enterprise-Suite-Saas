@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace Aero\Core\Http\Controllers\Admin;
 
 use Aero\Core\Http\Controllers\Controller;
-use Aero\Core\Services\ModuleManager;
 use Aero\Core\Services\MarketplaceService;
-use Illuminate\Http\Request;
+use Aero\Core\Services\ModuleManager;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -17,7 +16,7 @@ use ZipArchive;
 
 /**
  * ExtensionsController
- * 
+ *
  * Manages the Extensions Marketplace page where users can:
  * - View installed modules
  * - Activate/Deactivate modules
@@ -72,8 +71,8 @@ class ExtensionsController extends Controller
     {
         try {
             $module = $this->moduleManager->get("aero-{$moduleCode}");
-            
-            if (!$module) {
+
+            if (! $module) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Module not found',
@@ -82,12 +81,12 @@ class ExtensionsController extends Controller
 
             // Get current status and toggle it
             $currentStatus = $module['config']['enabled'] ?? true;
-            $newStatus = !$currentStatus;
+            $newStatus = ! $currentStatus;
 
             // Update module.json
             $modulePath = base_path("packages/aero-{$moduleCode}");
             $moduleJsonPath = "{$modulePath}/module.json";
-            
+
             if (file_exists($moduleJsonPath)) {
                 $moduleJson = json_decode(file_get_contents($moduleJsonPath), true);
                 $moduleJson['config']['enabled'] = $newStatus;
@@ -101,8 +100,8 @@ class ExtensionsController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => $newStatus 
-                    ? 'Module activated successfully' 
+                'message' => $newStatus
+                    ? 'Module activated successfully'
                     : 'Module deactivated successfully',
             ]);
         } catch (\Exception $e) {
@@ -130,7 +129,7 @@ class ExtensionsController extends Controller
             // Validate purchase code if provided
             if ($purchaseCode) {
                 $validation = $this->marketplaceService->validatePurchaseCode($purchaseCode);
-                if (!$validation['valid']) {
+                if (! $validation['valid']) {
                     return response()->json([
                         'success' => false,
                         'message' => 'Invalid purchase code',
@@ -139,14 +138,14 @@ class ExtensionsController extends Controller
             }
 
             // Create temp directory
-            $tempPath = storage_path('app/temp/' . uniqid('module_'));
-            if (!file_exists($tempPath)) {
+            $tempPath = storage_path('app/temp/'.uniqid('module_'));
+            if (! file_exists($tempPath)) {
                 mkdir($tempPath, 0755, true);
             }
 
             // Extract ZIP
             $zip = new ZipArchive;
-            if ($zip->open($file->getRealPath()) === TRUE) {
+            if ($zip->open($file->getRealPath()) === true) {
                 $zip->extractTo($tempPath);
                 $zip->close();
             } else {
@@ -155,20 +154,20 @@ class ExtensionsController extends Controller
 
             // Find module.json
             $moduleJson = $this->findModuleJson($tempPath);
-            if (!$moduleJson) {
+            if (! $moduleJson) {
                 throw new \Exception('Invalid module: module.json not found');
             }
 
             $moduleData = json_decode(file_get_contents($moduleJson), true);
             $moduleName = $moduleData['name'] ?? null;
 
-            if (!$moduleName) {
+            if (! $moduleName) {
                 throw new \Exception('Invalid module: name not specified in module.json');
             }
 
             // Copy to modules directory
             $modulesPath = base_path('modules');
-            if (!file_exists($modulesPath)) {
+            if (! file_exists($modulesPath)) {
                 mkdir($modulesPath, 0755, true);
             }
 
@@ -181,7 +180,7 @@ class ExtensionsController extends Controller
             // Install Composer dependencies if composer.json exists
             if (file_exists("{$targetPath}/composer.json")) {
                 exec("cd {$targetPath} && composer install --no-dev --optimize-autoloader 2>&1", $output, $returnCode);
-                
+
                 if ($returnCode !== 0) {
                     \Log::warning("Composer install failed for {$moduleName}", ['output' => $output]);
                 }
@@ -251,7 +250,7 @@ class ExtensionsController extends Controller
     {
         $module = $this->moduleManager->get("aero-{$moduleCode}");
 
-        if (!$module) {
+        if (! $module) {
             abort(404, 'Module not found');
         }
 
@@ -284,7 +283,7 @@ class ExtensionsController extends Controller
      */
     protected function recursiveCopy(string $source, string $dest): void
     {
-        if (!file_exists($dest)) {
+        if (! file_exists($dest)) {
             mkdir($dest, 0755, true);
         }
 
@@ -294,10 +293,10 @@ class ExtensionsController extends Controller
         );
 
         foreach ($iterator as $item) {
-            $target = $dest . DIRECTORY_SEPARATOR . $iterator->getSubPathName();
-            
+            $target = $dest.DIRECTORY_SEPARATOR.$iterator->getSubPathName();
+
             if ($item->isDir()) {
-                if (!file_exists($target)) {
+                if (! file_exists($target)) {
                     mkdir($target, 0755, true);
                 }
             } else {
@@ -313,12 +312,12 @@ class ExtensionsController extends Controller
     {
         if (is_dir($path)) {
             $files = array_diff(scandir($path), ['.', '..']);
-            
+
             foreach ($files as $file) {
-                $filePath = $path . DIRECTORY_SEPARATOR . $file;
+                $filePath = $path.DIRECTORY_SEPARATOR.$file;
                 is_dir($filePath) ? $this->recursiveRemove($filePath) : unlink($filePath);
             }
-            
+
             rmdir($path);
         }
     }
@@ -329,7 +328,7 @@ class ExtensionsController extends Controller
     protected function getModuleThumbnail(string $moduleCode): string
     {
         $thumbnailPath = "modules/aero-{$moduleCode}/thumbnail.png";
-        
+
         if (file_exists(public_path($thumbnailPath))) {
             return asset($thumbnailPath);
         }
@@ -343,7 +342,7 @@ class ExtensionsController extends Controller
     protected function getModuleInstallDate(string $moduleCode): ?string
     {
         $modulePath = base_path("packages/aero-{$moduleCode}");
-        
+
         if (file_exists($modulePath)) {
             return date('Y-m-d H:i:s', filectime($modulePath));
         }

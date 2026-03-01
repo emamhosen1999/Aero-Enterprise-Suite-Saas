@@ -2,10 +2,10 @@
 
 namespace Aero\Analytics\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class Report extends Model
 {
@@ -16,7 +16,7 @@ class Report extends Model
     protected $fillable = [
         'name', 'description', 'report_type', 'category', 'module',
         'data_source_id', 'query_config', 'format_config', 'parameters',
-        'is_public', 'is_scheduled', 'schedule_config', 'created_by'
+        'is_public', 'is_scheduled', 'schedule_config', 'created_by',
     ];
 
     protected $casts = [
@@ -31,16 +31,25 @@ class Report extends Model
     ];
 
     const TYPE_TABULAR = 'tabular';
+
     const TYPE_SUMMARY = 'summary';
+
     const TYPE_CHART = 'chart';
+
     const TYPE_CROSSTAB = 'crosstab';
+
     const TYPE_SUBREPORT = 'subreport';
 
     const MODULE_FINANCE = 'finance';
+
     const MODULE_HR = 'hr';
+
     const MODULE_CRM = 'crm';
+
     const MODULE_MANUFACTURING = 'manufacturing';
+
     const MODULE_PROJECT = 'project';
+
     const MODULE_INVENTORY = 'inventory';
 
     public function dataSource()

@@ -4,10 +4,8 @@ namespace Aero\Core\Http\Controllers\Auth;
 
 use Aero\Core\Http\Controllers\Controller;
 use Aero\Core\Http\Requests\AcceptTeamInvitationRequest;
-use Aero\Core\Models\UserInvitation;
 use Aero\Core\Services\AuditService;
 use Aero\Core\Services\UserInvitationService;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -27,7 +25,7 @@ class InvitationController extends Controller
     /**
      * Show the invitation acceptance form.
      *
-     * @param string $token The invitation token
+     * @param  string  $token  The invitation token
      */
     public function showAcceptForm(string $token): Response
     {
@@ -73,8 +71,7 @@ class InvitationController extends Controller
     /**
      * Accept the invitation and create user account.
      *
-     * @param AcceptTeamInvitationRequest $request
-     * @param string $token The invitation token
+     * @param  string  $token  The invitation token
      */
     public function accept(AcceptTeamInvitationRequest $request, string $token)
     {

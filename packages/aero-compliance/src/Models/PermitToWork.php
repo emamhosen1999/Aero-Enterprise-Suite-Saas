@@ -2,26 +2,26 @@
 
 namespace Aero\Compliance\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Aero\Core\Models\User;
 use Aero\Project\Models\Project;
 use Aero\Rfi\Models\Rfi;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * PermitToWork Model - PATENTABLE CORE IP
- * 
+ *
  * Digital permit authorization system for high-risk construction activities.
  * Integrates with PermitValidationService for automatic enforcement.
- * 
+ *
  * NOVELTY:
  * - Automatic permit validation before work approval
  * - Emergency revocation with immediate RFI locking
  * - Worker authorization tracking
  * - Condition checking (equipment, personnel, environmental)
- * 
+ *
  * @property int $id
  * @property string $permit_number PTW-YYYY-NNNN
  * @property int $project_id
@@ -126,30 +126,45 @@ class PermitToWork extends Model
      * Permit type constants
      */
     const TYPE_HOT_WORK = 'hot_work';
+
     const TYPE_CONFINED_SPACE = 'confined_space';
+
     const TYPE_WORK_AT_HEIGHT = 'work_at_height';
+
     const TYPE_EXCAVATION = 'excavation';
+
     const TYPE_ELECTRICAL = 'electrical';
+
     const TYPE_LIFTING_OPERATIONS = 'lifting_operations';
 
     /**
      * Status constants
      */
     const STATUS_DRAFT = 'draft';
+
     const STATUS_PENDING_APPROVAL = 'pending_approval';
+
     const STATUS_APPROVED = 'approved';
+
     const STATUS_ACTIVE = 'active';
+
     const STATUS_SUSPENDED = 'suspended';
+
     const STATUS_REVOKED = 'revoked';
+
     const STATUS_EXPIRED = 'expired';
+
     const STATUS_COMPLETED = 'completed';
 
     /**
      * Risk level constants
      */
     const RISK_LOW = 'low';
+
     const RISK_MEDIUM = 'medium';
+
     const RISK_HIGH = 'high';
+
     const RISK_CRITICAL = 'critical';
 
     // Relationships
@@ -266,7 +281,7 @@ class PermitToWork extends Model
 
     public function getConditionsMetAttribute(): bool
     {
-        if (!$this->equipment_check_required) {
+        if (! $this->equipment_check_required) {
             return true;
         }
 
@@ -291,7 +306,7 @@ class PermitToWork extends Model
     public function authorizeWorker(int $userId): void
     {
         $workers = $this->authorized_workers ?? [];
-        if (!in_array($userId, $workers)) {
+        if (! in_array($userId, $workers)) {
             $workers[] = $userId;
             $this->authorized_workers = $workers;
             $this->save();

@@ -2,8 +2,8 @@
 
 namespace Aero\HRM\Database\Factories;
 
-use Aero\HRM\Models\Designation;
 use Aero\HRM\Models\Department;
+use Aero\HRM\Models\Designation;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -38,7 +38,7 @@ class DesignationFactory extends Factory
                 'Product Manager',
                 'Designer',
                 'Team Lead',
-                'Project Manager'
+                'Project Manager',
             ]),
             'department_id' => Department::factory(),
             'description' => $this->faker->sentence(),

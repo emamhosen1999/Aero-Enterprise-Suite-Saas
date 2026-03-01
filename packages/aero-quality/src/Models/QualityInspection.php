@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * QualityInspection Model
- * 
+ *
  * Enhanced for RFI integration with geo-fencing and chainage indexing.
  * PATENTABLE: "Geo-verified quality inspection with spatial progress tracking"
  *
@@ -31,8 +31,11 @@ class QualityInspection extends Model
     use SoftDeletes;
 
     public const RESULT_PASS = 'pass';
+
     public const RESULT_FAIL = 'fail';
+
     public const RESULT_CONDITIONAL = 'conditional';
+
     public const RESULT_PENDING = 'pending';
 
     protected $fillable = [
@@ -161,7 +164,7 @@ class QualityInspection extends Model
         ];
 
         $hash = hash('sha256', json_encode($data));
-        
+
         $this->update([
             'verification_hash' => $hash,
             'hash_generated_at' => now(),
@@ -188,7 +191,7 @@ class QualityInspection extends Model
         );
 
         $verified = $distance <= $allowedRadiusM;
-        
+
         $this->update(['geo_verified' => $verified]);
 
         return $verified;

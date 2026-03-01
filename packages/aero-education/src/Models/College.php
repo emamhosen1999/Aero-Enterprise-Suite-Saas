@@ -2,10 +2,10 @@
 
 namespace Aero\Education\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class College extends Model
 {
@@ -16,7 +16,7 @@ class College extends Model
     protected $fillable = [
         'college_code', 'college_name', 'description', 'dean_id', 'location',
         'phone', 'email', 'website', 'budget', 'is_active', 'accreditation_info',
-        'mission_statement', 'vision_statement', 'established_date', 'created_by'
+        'mission_statement', 'vision_statement', 'established_date', 'created_by',
     ];
 
     protected $casts = [
@@ -50,14 +50,14 @@ class College extends Model
 
     public function getTotalFacultyAttribute()
     {
-        return Faculty::whereHas('department', function($query) {
+        return Faculty::whereHas('department', function ($query) {
             $query->where('college_id', $this->id);
         })->where('status', Faculty::STATUS_ACTIVE)->count();
     }
 
     public function getTotalStudentsAttribute()
     {
-        return Student::whereHas('department', function($query) {
+        return Student::whereHas('department', function ($query) {
             $query->where('college_id', $this->id);
         })->where('student_status', Student::STATUS_ACTIVE)->count();
     }

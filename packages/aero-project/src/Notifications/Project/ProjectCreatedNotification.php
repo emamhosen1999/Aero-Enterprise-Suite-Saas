@@ -16,8 +16,11 @@ use Aero\Project\Notifications\BaseProjectNotification;
 class ProjectCreatedNotification extends BaseProjectNotification
 {
     protected string $eventType = 'project.created';
+
     protected string $subModuleCode = 'projects';
+
     protected ?string $componentCode = 'project-list';
+
     protected string $actionCode = 'view';
 
     public function __construct(
@@ -29,8 +32,7 @@ class ProjectCreatedNotification extends BaseProjectNotification
         public ?string $endDate,
         public ?float $budget,
         public ?int $createdByUserId
-    ) {
-    }
+    ) {}
 
     /**
      * Create from ProjectCreated event.

@@ -15,6 +15,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Guard: core's create_modules_table already includes 'scope' column
+        if (Schema::hasColumn('modules', 'scope')) {
+            return;
+        }
+
         Schema::table('modules', function (Blueprint $table) {
             $table->enum('scope', ['platform', 'tenant'])->default('tenant')->after('code');
             $table->index('scope');

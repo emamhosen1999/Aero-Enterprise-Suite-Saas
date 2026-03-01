@@ -15,7 +15,7 @@ class EquipmentType extends Model
     protected $fillable = [
         'type_name', 'category', 'description', 'default_service_interval_days',
         'typical_lifespan_years', 'maintenance_requirements', 'safety_requirements',
-        'skill_requirements', 'is_active'
+        'skill_requirements', 'is_active',
     ];
 
     protected $casts = [
@@ -28,10 +28,15 @@ class EquipmentType extends Model
     ];
 
     const CATEGORY_HVAC = 'hvac';
+
     const CATEGORY_ELECTRICAL = 'electrical';
+
     const CATEGORY_PLUMBING = 'plumbing';
+
     const CATEGORY_MECHANICAL = 'mechanical';
+
     const CATEGORY_COMPUTER = 'computer';
+
     const CATEGORY_SAFETY = 'safety';
 
     public function equipment()

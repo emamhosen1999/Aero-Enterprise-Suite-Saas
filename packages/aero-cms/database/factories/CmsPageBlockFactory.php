@@ -80,7 +80,7 @@ class CmsPageBlockFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'block_type' => 'text_block',
             'content' => [
-                'text' => '<p>' . implode('</p><p>', $this->faker->paragraphs(3)) . '</p>',
+                'text' => '<p>'.implode('</p><p>', $this->faker->paragraphs(3)).'</p>',
                 'richText' => true,
             ],
         ]);

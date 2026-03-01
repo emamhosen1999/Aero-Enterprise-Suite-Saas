@@ -12,8 +12,11 @@ use Illuminate\Support\Facades\Log;
 class AiModelService
 {
     protected Client $client;
+
     protected string $endpoint;
+
     protected string $modelName;
+
     protected int $timeout;
 
     public function __construct()
@@ -35,8 +38,8 @@ class AiModelService
     /**
      * Generate a response from the AI model.
      *
-     * @param array $messages Conversation messages in OpenAI format
-     * @param array $options Additional generation options
+     * @param  array  $messages  Conversation messages in OpenAI format
+     * @param  array  $options  Additional generation options
      * @return array Response with 'content', 'tokens_used', etc.
      */
     public function generateResponse(array $messages, array $options = []): array
@@ -84,7 +87,7 @@ class AiModelService
     /**
      * Generate embeddings for text content.
      *
-     * @param string|array $input Text or array of texts to embed
+     * @param  string|array  $input  Text or array of texts to embed
      * @return array Array of embedding vectors
      */
     public function generateEmbeddings($input): array
@@ -103,7 +106,7 @@ class AiModelService
 
             return [
                 'success' => true,
-                'embeddings' => array_map(fn($item) => $item['embedding'], $data['data']),
+                'embeddings' => array_map(fn ($item) => $item['embedding'], $data['data']),
                 'tokens_used' => $data['usage']['total_tokens'] ?? 0,
             ];
         } catch (GuzzleException $e) {
@@ -127,6 +130,7 @@ class AiModelService
     {
         try {
             $response = $this->client->get('/health', ['timeout' => 5]);
+
             return $response->getStatusCode() === 200;
         } catch (GuzzleException $e) {
             return false;
@@ -139,7 +143,8 @@ class AiModelService
     public function getModelInfo(): array
     {
         try {
-            $response = $this->client->get('/models/' . $this->modelName);
+            $response = $this->client->get('/models/'.$this->modelName);
+
             return json_decode($response->getBody()->getContents(), true);
         } catch (GuzzleException $e) {
             return [

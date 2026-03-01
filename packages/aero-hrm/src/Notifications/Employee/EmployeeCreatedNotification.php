@@ -21,32 +21,32 @@ class EmployeeCreatedNotification extends Notification implements ShouldQueue
     public function via($notifiable): array
     {
         $channels = ['database'];
-        
+
         if ($this->isChannelEnabled('mail', $notifiable)) {
             $channels[] = 'mail';
         }
-        
+
         if ($this->isChannelEnabled('sms', $notifiable)) {
             $channels[] = 'sms';
         }
-        
+
         if ($this->isChannelEnabled('push', $notifiable)) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels;
     }
 
     public function toMail($notifiable): MailMessage
     {
-        $name = method_exists($notifiable, 'getName') 
-            ? $notifiable->getName() 
+        $name = method_exists($notifiable, 'getName')
+            ? $notifiable->getName()
             : $notifiable->name;
 
         $profileUrl = $this->getProfileUrl();
 
         $mail = (new MailMessage)
-            ->subject('Welcome to ' . config('app.name'))
+            ->subject('Welcome to '.config('app.name'))
             ->greeting("Hello {$name}!")
             ->line('Welcome to the team! Your employee account has been created.')
             ->line("Employee ID: {$this->employee->employee_id}")
@@ -71,7 +71,7 @@ class EmployeeCreatedNotification extends Notification implements ShouldQueue
             'employee_code' => $this->employee->employee_id,
             'department' => $this->employee->department?->name,
             'designation' => $this->employee->designation?->title,
-            'message' => "Welcome! Your employee account has been created.",
+            'message' => 'Welcome! Your employee account has been created.',
             'action_url' => $this->getProfileUrl(),
             'metadata' => $this->metadata,
         ];
@@ -80,7 +80,7 @@ class EmployeeCreatedNotification extends Notification implements ShouldQueue
     public function toBroadcast($notifiable): array
     {
         return [
-            'title' => 'Welcome to ' . config('app.name'),
+            'title' => 'Welcome to '.config('app.name'),
             'body' => "Your employee account has been created. Employee ID: {$this->employee->employee_id}",
             'icon' => '/images/icons/employee.png',
             'data' => $this->toArray($notifiable),
@@ -96,7 +96,8 @@ class EmployeeCreatedNotification extends Notification implements ShouldQueue
                     return route($routeName, $this->employee->id);
                 }
             }
-            return url('/employees/' . $this->employee->id);
+
+            return url('/employees/'.$this->employee->id);
         } catch (\Exception $e) {
             return null;
         }
@@ -108,28 +109,28 @@ class EmployeeCreatedNotification extends Notification implements ShouldQueue
         $globalSetting = DB::table('notification_settings')
             ->where('key', "channels.{$channel}.enabled")
             ->first();
-        
-        if (!$globalSetting || !json_decode($globalSetting->value)) {
+
+        if (! $globalSetting || ! json_decode($globalSetting->value)) {
             return false;
         }
-        
+
         // Check user preferences
         if (method_exists($notifiable, 'prefersNotificationChannel')) {
             return $notifiable->prefersNotificationChannel($channel, 'employee.created');
         }
-        
+
         // Check via relationship if available
         if (method_exists($notifiable, 'hasRelationship') && $notifiable->hasRelationship('notificationPreferences')) {
             $preference = $notifiable->getRelationship('notificationPreferences')
                 ->where('event_type', 'employee.created')
                 ->where('channel', $channel)
                 ->first();
-            
+
             if ($preference) {
                 return $preference->enabled;
             }
         }
-        
+
         return true; // Default to enabled if no preference found
     }
 }

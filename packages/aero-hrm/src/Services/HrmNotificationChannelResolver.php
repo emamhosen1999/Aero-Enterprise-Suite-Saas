@@ -57,8 +57,8 @@ class HrmNotificationChannelResolver
     /**
      * Resolve channels for a notification.
      *
-     * @param object $notifiable The user receiving the notification
-     * @param string $event The notification event type
+     * @param  object  $notifiable  The user receiving the notification
+     * @param  string  $event  The notification event type
      * @return array<string> Array of channel names
      */
     public function resolve(object $notifiable, string $event): array

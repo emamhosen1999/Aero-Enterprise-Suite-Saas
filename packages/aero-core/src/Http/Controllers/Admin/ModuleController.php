@@ -6,10 +6,10 @@ use Aero\Core\Http\Controllers\Controller;
 use Aero\Core\Models\Module;
 use Aero\Core\Models\ModuleComponent;
 use Aero\Core\Models\ModuleComponentAction;
-use Aero\HRMAC\Models\Role;
-use Aero\HRMAC\Models\RoleModuleAccess;
 use Aero\Core\Models\SubModule;
 use Aero\Core\Services\AuditService;
+use Aero\HRMAC\Models\Role;
+use Aero\HRMAC\Models\RoleModuleAccess;
 use Aero\HRMAC\Services\RoleModuleAccessService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -932,6 +932,7 @@ class ModuleController extends Controller
                 'errors' => $validator->errors()->toArray(),
                 'request_data' => $request->all(),
             ]);
+
             return response()->json(['errors' => $validator->errors()], 422);
         }
 

@@ -13,14 +13,23 @@ use Aero\Core\Providers\AbstractModuleProvider;
 class ImsModuleProvider extends AbstractModuleProvider
 {
     protected string $moduleCode = 'ims';
+
     protected string $moduleName = 'Inventory Management';
+
     protected string $moduleDescription = 'Complete inventory management system with stock tracking, item management, and warehouse operations';
+
     protected string $moduleVersion = '1.0.0';
+
     protected string $moduleCategory = 'business';
+
     protected string $moduleIcon = 'CubeIcon';
+
     protected int $modulePriority = 16;
+
     protected bool $enabled = true;
+
     protected ?string $minimumPlan = 'professional';
+
     protected array $dependencies = ['core'];
 
     protected array $navigationItems = [
@@ -134,7 +143,8 @@ class ImsModuleProvider extends AbstractModuleProvider
     protected function getModulePath(string $path = ''): string
     {
         $basePath = dirname(__DIR__, 2);
-        return $path ? $basePath . '/' . $path : $basePath;
+
+        return $path ? $basePath.'/'.$path : $basePath;
     }
 
     protected function registerServices(): void
@@ -146,7 +156,7 @@ class ImsModuleProvider extends AbstractModuleProvider
     {
         // Register dashboard widgets
         $this->registerDashboardWidgets();
-        
+
         // Register module-specific middleware, policies, etc.
     }
 

@@ -9,6 +9,7 @@ use Aero\Platform\Listeners\TenantCreatedListener;
 use Aero\Platform\Models\LandlordUser;
 use Aero\Platform\Services\Billing\SslCommerzService;
 use Aero\Platform\Services\Module\ModuleAccessService;
+use Aero\Platform\Services\Module\NullRoleModuleAccessService;
 use Aero\Platform\Services\Module\RoleModuleAccessService;
 use Aero\Platform\Services\Monitoring\Tenant\ErrorLogService;
 use Aero\Platform\Services\PlatformSettingService;
@@ -78,43 +79,16 @@ class AeroPlatformServiceProvider extends ServiceProvider
         // Register Module Access Services with fallback stubs for pre-install
         // These services are lazy-loaded to avoid DB queries before installation
         $this->app->singleton(HRMACRoleModuleAccessService::class, function ($app) {
-            // Only instantiate if installed to avoid DB queries pre-install
+            // Before installation: return a null-object stub that satisfies the
+            // RoleModuleAccessService type hint without making any DB queries.
             if (! file_exists(storage_path('app/aeos.installed'))) {
-                // Return a stub that uses __call for method handling
-                return new class
-                {
-                    public function __call($method, $args)
-                    {
-                        // Return appropriate defaults based on method signature
-                        if (str_starts_with($method, 'can') || str_starts_with($method, 'user')) {
-                            return false;
-                        }
-                        if (str_starts_with($method, 'get')) {
-                            return $method === 'getFirstAccessibleRoute' ? null : [];
-                        }
-
-                        return null;
-                    }
-                };
+                return new NullRoleModuleAccessService;
             }
 
             try {
                 return new HRMACRoleModuleAccessService;
             } catch (\Throwable $e) {
-                return new class
-                {
-                    public function __call($method, $args)
-                    {
-                        if (str_starts_with($method, 'can') || str_starts_with($method, 'user')) {
-                            return false;
-                        }
-                        if (str_starts_with($method, 'get')) {
-                            return $method === 'getFirstAccessibleRoute' ? null : [];
-                        }
-
-                        return null;
-                    }
-                };
+                return new NullRoleModuleAccessService;
             }
         });
 
@@ -905,6 +879,12 @@ class AeroPlatformServiceProvider extends ServiceProvider
                     // Check if we're on a tenant database (tenancy is initialized)
                     // If tenancy is initialized, allow ALL package migrations
                     if (function_exists('tenancy') && tenancy()->initialized) {
+                        return $files;
+                    }
+
+                    // During installation, allow ALL package migrations to run on central DB
+                    // Core, HRMAC, and other package migrations are needed for the initial setup
+                    if (! file_exists(storage_path('app/aeos.installed'))) {
                         return $files;
                     }
 

@@ -133,7 +133,7 @@ class PageController extends Controller
     {
         $validated = $request->validate([
             'title' => 'sometimes|string|max:255',
-            'slug' => 'sometimes|string|max:255|unique:cms_pages,slug,' . $page->id,
+            'slug' => 'sometimes|string|max:255|unique:cms_pages,slug,'.$page->id,
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
             'meta_keywords' => 'nullable|string|max:500',
@@ -193,7 +193,7 @@ class PageController extends Controller
     {
         $newPage = DB::transaction(function () use ($page) {
             $newPage = $page->replicate();
-            $newPage->title = $page->title . ' (Copy)';
+            $newPage->title = $page->title.' (Copy)';
             $newPage->slug = null; // Let the model generate a unique slug
             $newPage->status = 'draft';
             $newPage->published_at = null;
@@ -342,7 +342,7 @@ class PageController extends Controller
     protected function syncBlocks(CmsPage $page, array $blocks): void
     {
         $existingIds = $page->blocks->pluck('id')->toArray();
-        
+
         // Collect IDs of blocks that exist in the database from incoming data
         $incomingDbIds = collect($blocks)
             ->pluck('id')
@@ -351,7 +351,7 @@ class PageController extends Controller
 
         // Delete blocks that are no longer in the incoming data
         $toDelete = array_diff($existingIds, $incomingDbIds);
-        if (!empty($toDelete)) {
+        if (! empty($toDelete)) {
             CmsPageBlock::whereIn('id', $toDelete)->delete();
         }
 

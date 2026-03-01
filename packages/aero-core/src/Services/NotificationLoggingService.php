@@ -140,7 +140,6 @@ class NotificationLoggingService
      *
      * @param  object  $notifiable  The entity to get logs for
      * @param  int  $limit  Maximum number of logs to return
-     * @return \Illuminate\Support\Collection
      */
     public function getLogsFor(object $notifiable, int $limit = 50): \Illuminate\Support\Collection
     {
@@ -156,7 +155,6 @@ class NotificationLoggingService
      * Get failed notifications that need retry.
      *
      * @param  int  $limit  Maximum number of notifications to return
-     * @return \Illuminate\Support\Collection
      */
     public function getPendingRetries(int $limit = 100): \Illuminate\Support\Collection
     {
@@ -179,7 +177,6 @@ class NotificationLoggingService
      *
      * @param  DateTimeInterface|null  $from  Start date
      * @param  DateTimeInterface|null  $to  End date
-     * @return array
      */
     public function getStatistics(?DateTimeInterface $from = null, ?DateTimeInterface $to = null): array
     {

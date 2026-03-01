@@ -8,10 +8,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * BootstrapGuard Middleware
- * 
+ *
  * Global middleware that ensures ALL requests are redirected to /install
  * if the system is not installed. This middleware has route supremacy.
- * 
+ *
  * Registered globally via AeroCoreServiceProvider::register() to intercept
  * requests before any routing occurs.
  */
@@ -35,8 +35,8 @@ class BootstrapGuard
         }
 
         // Skip check for public assets and health checks
-        if ($request->is('build/*') || 
-            $request->is('storage/*') || 
+        if ($request->is('build/*') ||
+            $request->is('storage/*') ||
             $request->is('aero-core/health') ||
             $request->is('api/error-log') ||
             $request->is('api/version/check')) {
@@ -44,7 +44,7 @@ class BootstrapGuard
         }
 
         // Check if system is installed (file-based detection)
-        if (!$this->installed()) {
+        if (! $this->installed()) {
             // If it's an AJAX/API request, return JSON response
             if ($request->expectsJson()) {
                 return response()->json([
@@ -62,11 +62,9 @@ class BootstrapGuard
 
     /**
      * Check if the system is installed using file-based detection.
-     * 
+     *
      * This is the ONLY authoritative method for checking installation status.
      * Never use database queries for installation detection.
-     * 
-     * @return bool
      */
     protected function installed(): bool
     {

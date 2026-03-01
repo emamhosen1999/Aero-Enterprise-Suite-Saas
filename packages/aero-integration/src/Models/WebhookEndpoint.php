@@ -2,10 +2,10 @@
 
 namespace Aero\Integration\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class WebhookEndpoint extends Model
 {
@@ -16,7 +16,7 @@ class WebhookEndpoint extends Model
     protected $fillable = [
         'name', 'url', 'method', 'events', 'headers', 'secret', 'timeout',
         'retry_attempts', 'is_active', 'last_triggered_at', 'success_count',
-        'failure_count', 'created_by', 'description'
+        'failure_count', 'created_by', 'description',
     ];
 
     protected $casts = [
@@ -32,7 +32,9 @@ class WebhookEndpoint extends Model
     ];
 
     const METHOD_POST = 'POST';
+
     const METHOD_PUT = 'PUT';
+
     const METHOD_PATCH = 'PATCH';
 
     public function creator()
@@ -48,7 +50,7 @@ class WebhookEndpoint extends Model
     public function subscriptions()
     {
         return $this->belongsToMany(IntegrationEndpoint::class, 'integration_webhook_subscriptions')
-                    ->withPivot('event_types', 'is_active');
+            ->withPivot('event_types', 'is_active');
     }
 
     public function getSuccessRateAttribute()
@@ -57,6 +59,7 @@ class WebhookEndpoint extends Model
         if ($total === 0) {
             return 0;
         }
+
         return round(($this->success_count / $total) * 100, 2);
     }
 

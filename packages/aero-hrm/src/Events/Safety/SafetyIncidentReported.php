@@ -24,9 +24,6 @@ class SafetyIncidentReported extends BaseHrmEvent
     /**
      * Create a new event instance.
      *
-     * @param  SafetyIncident  $incident
-     * @param  string  $severity
-     * @param  bool  $requiresImmediateAction
      * @param  int|null  $actorEmployeeId  Employee ID who reported the incident
      */
     public function __construct(

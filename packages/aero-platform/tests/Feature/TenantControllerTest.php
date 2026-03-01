@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Tests\Feature;
 
+use Aero\HRMAC\Models\Role;
 use Aero\Platform\Models\LandlordUser;
 use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\Tenant;
 use Aero\Platform\Services\Monitoring\Tenant\TenantProvisioner;
 use Aero\Platform\Services\Tenant\TenantRetentionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Aero\HRMAC\Models\Role;
 use Tests\TestCase;
 
 /**
@@ -71,7 +71,7 @@ class TenantControllerTest extends TestCase
     // INDEX / LIST TENANTS
     // =========================================================================
 
-    public function testSuperAdminCanListTenants(): void
+    public function test_super_admin_can_list_tenants(): void
     {
         Tenant::factory()->count(5)->create();
 
@@ -87,7 +87,7 @@ class TenantControllerTest extends TestCase
         $this->assertCount(5, $response->json('data'));
     }
 
-    public function testTenantListCanBeFiltered(): void
+    public function test_tenant_list_can_be_filtered(): void
     {
         Tenant::factory()->active()->count(3)->create();
         Tenant::factory()->suspended()->count(2)->create();
@@ -99,7 +99,7 @@ class TenantControllerTest extends TestCase
         $this->assertCount(3, $response->json('data'));
     }
 
-    public function testTenantListCanBeSearched(): void
+    public function test_tenant_list_can_be_searched(): void
     {
         Tenant::factory()->create(['name' => 'Acme Corporation']);
         Tenant::factory()->create(['name' => 'Globex Industries']);
@@ -113,7 +113,7 @@ class TenantControllerTest extends TestCase
         $this->assertEquals('Acme Corporation', $response->json('data.0.name'));
     }
 
-    public function testTenantListCanIncludeArchived(): void
+    public function test_tenant_list_can_include_archived(): void
     {
         Tenant::factory()->active()->count(2)->create();
         Tenant::factory()->archived()->count(1)->create();
@@ -137,7 +137,7 @@ class TenantControllerTest extends TestCase
     // STATS
     // =========================================================================
 
-    public function testSuperAdminCanViewStats(): void
+    public function test_super_admin_can_view_stats(): void
     {
         Tenant::factory()->active()->count(5)->create();
         Tenant::factory()->suspended()->count(2)->create();
@@ -168,7 +168,7 @@ class TenantControllerTest extends TestCase
     // SHOW / VIEW TENANT
     // =========================================================================
 
-    public function testSuperAdminCanViewTenant(): void
+    public function test_super_admin_can_view_tenant(): void
     {
         $tenant = Tenant::factory()->withPlan($this->plan)->create();
 
@@ -180,7 +180,7 @@ class TenantControllerTest extends TestCase
             ->assertJsonPath('data.name', $tenant->name);
     }
 
-    public function testViewTenantReturns404ForNonExistent(): void
+    public function test_view_tenant_returns404_for_non_existent(): void
     {
         $response = $this->actingAs($this->superAdmin, 'landlord')
             ->getJson(route('api.v1.tenants.show', 'non-existent-uuid'));
@@ -192,7 +192,7 @@ class TenantControllerTest extends TestCase
     // STORE / CREATE TENANT
     // =========================================================================
 
-    public function testSuperAdminCanCreateTenant(): void
+    public function test_super_admin_can_create_tenant(): void
     {
         // Mock the provisioner to prevent actual provisioning
         $this->mock(TenantProvisioner::class, function ($mock) {
@@ -224,7 +224,7 @@ class TenantControllerTest extends TestCase
         ]);
     }
 
-    public function testCreateTenantValidatesRequiredFields(): void
+    public function test_create_tenant_validates_required_fields(): void
     {
         $response = $this->actingAs($this->superAdmin, 'landlord')
             ->postJson(route('api.v1.tenants.store'), []);
@@ -233,7 +233,7 @@ class TenantControllerTest extends TestCase
             ->assertJsonValidationErrors(['name', 'subdomain', 'email', 'type', 'plan_id', 'admin_name', 'admin_email']);
     }
 
-    public function testCreateTenantValidatesSubdomainUniqueness(): void
+    public function test_create_tenant_validates_subdomain_uniqueness(): void
     {
         Tenant::factory()->create(['subdomain' => 'existing']);
 
@@ -254,7 +254,7 @@ class TenantControllerTest extends TestCase
             ->assertJsonValidationErrors(['subdomain']);
     }
 
-    public function testCreateTenantValidatesSubdomainFormat(): void
+    public function test_create_tenant_validates_subdomain_format(): void
     {
         $tenantData = [
             'name' => 'New Company',
@@ -277,7 +277,7 @@ class TenantControllerTest extends TestCase
     // UPDATE TENANT
     // =========================================================================
 
-    public function testSuperAdminCanUpdateTenant(): void
+    public function test_super_admin_can_update_tenant(): void
     {
         $tenant = Tenant::factory()->create();
 
@@ -297,7 +297,7 @@ class TenantControllerTest extends TestCase
         ]);
     }
 
-    public function testUpdateTenantValidatesEmail(): void
+    public function test_update_tenant_validates_email(): void
     {
         $tenant = Tenant::factory()->create();
 
@@ -314,7 +314,7 @@ class TenantControllerTest extends TestCase
     // SUSPEND TENANT
     // =========================================================================
 
-    public function testSuperAdminCanSuspendActiveTenant(): void
+    public function test_super_admin_can_suspend_active_tenant(): void
     {
         $tenant = Tenant::factory()->active()->create();
 
@@ -332,7 +332,7 @@ class TenantControllerTest extends TestCase
         ]);
     }
 
-    public function testCannotSuspendAlreadySuspendedTenant(): void
+    public function test_cannot_suspend_already_suspended_tenant(): void
     {
         $tenant = Tenant::factory()->suspended()->create();
 
@@ -346,7 +346,7 @@ class TenantControllerTest extends TestCase
     // ACTIVATE TENANT
     // =========================================================================
 
-    public function testSuperAdminCanActivateSuspendedTenant(): void
+    public function test_super_admin_can_activate_suspended_tenant(): void
     {
         $tenant = Tenant::factory()->suspended()->create();
 
@@ -362,7 +362,7 @@ class TenantControllerTest extends TestCase
         ]);
     }
 
-    public function testCannotActivateAlreadyActiveTenant(): void
+    public function test_cannot_activate_already_active_tenant(): void
     {
         $tenant = Tenant::factory()->active()->create();
 
@@ -376,7 +376,7 @@ class TenantControllerTest extends TestCase
     // ARCHIVE / SOFT DELETE TENANT
     // =========================================================================
 
-    public function testSuperAdminCanArchiveTenant(): void
+    public function test_super_admin_can_archive_tenant(): void
     {
         $tenant = Tenant::factory()->active()->create();
 
@@ -393,7 +393,7 @@ class TenantControllerTest extends TestCase
     // RESTORE TENANT
     // =========================================================================
 
-    public function testSuperAdminCanRestoreArchivedTenant(): void
+    public function test_super_admin_can_restore_archived_tenant(): void
     {
         $tenant = Tenant::factory()->archived()->create();
 
@@ -416,7 +416,7 @@ class TenantControllerTest extends TestCase
         ]);
     }
 
-    public function testCannotRestoreTenantAfterRetentionPeriod(): void
+    public function test_cannot_restore_tenant_after_retention_period(): void
     {
         $tenant = Tenant::factory()->archived()->create();
 
@@ -436,7 +436,7 @@ class TenantControllerTest extends TestCase
     // DELETE / DESTROY TENANT (Soft Delete with Retention)
     // =========================================================================
 
-    public function testSuperAdminCanSoftDeleteTenant(): void
+    public function test_super_admin_can_soft_delete_tenant(): void
     {
         $tenant = Tenant::factory()->create();
 
@@ -458,7 +458,7 @@ class TenantControllerTest extends TestCase
         $this->assertSoftDeleted('tenants', ['id' => $tenant->id]);
     }
 
-    public function testDestroyTenantRequiresReason(): void
+    public function test_destroy_tenant_requires_reason(): void
     {
         $tenant = Tenant::factory()->create();
 
@@ -471,7 +471,7 @@ class TenantControllerTest extends TestCase
             ->assertJsonValidationErrors(['reason']);
     }
 
-    public function testDestroyTenantRequiresConfirmation(): void
+    public function test_destroy_tenant_requires_confirmation(): void
     {
         $tenant = Tenant::factory()->create();
 
@@ -488,7 +488,7 @@ class TenantControllerTest extends TestCase
     // RETRY PROVISIONING
     // =========================================================================
 
-    public function testSuperAdminCanRetryProvisioningForFailedTenant(): void
+    public function test_super_admin_can_retry_provisioning_for_failed_tenant(): void
     {
         $tenant = Tenant::factory()->failed()->create();
 
@@ -505,7 +505,7 @@ class TenantControllerTest extends TestCase
             ->assertJsonPath('message', 'Provisioning retry started.');
     }
 
-    public function testCannotRetryProvisioningForNonFailedTenant(): void
+    public function test_cannot_retry_provisioning_for_non_failed_tenant(): void
     {
         $tenant = Tenant::factory()->active()->create();
 
@@ -520,7 +520,7 @@ class TenantControllerTest extends TestCase
     // AUTHORIZATION TESTS
     // =========================================================================
 
-    public function testUnauthenticatedUserCannotAccessTenantEndpoints(): void
+    public function test_unauthenticated_user_cannot_access_tenant_endpoints(): void
     {
         $tenant = Tenant::factory()->create();
 
@@ -531,7 +531,7 @@ class TenantControllerTest extends TestCase
         $this->deleteJson(route('api.v1.tenants.destroy', $tenant))->assertUnauthorized();
     }
 
-    public function testPaginationWorksCorrectly(): void
+    public function test_pagination_works_correctly(): void
     {
         Tenant::factory()->count(25)->create();
 
@@ -546,7 +546,7 @@ class TenantControllerTest extends TestCase
         $this->assertCount(10, $response->json('data'));
     }
 
-    public function testSortingWorksCorrectly(): void
+    public function test_sorting_works_correctly(): void
     {
         Tenant::factory()->create(['name' => 'Alpha Company']);
         Tenant::factory()->create(['name' => 'Beta Corporation']);
@@ -565,7 +565,7 @@ class TenantControllerTest extends TestCase
     // FORCE LOGOUT
     // =========================================================================
 
-    public function testSuperAdminCanForceLogoutTenantUsers(): void
+    public function test_super_admin_can_force_logout_tenant_users(): void
     {
         $tenant = Tenant::factory()->active()->create();
 
@@ -580,7 +580,7 @@ class TenantControllerTest extends TestCase
     // TOGGLE MAINTENANCE MODE
     // =========================================================================
 
-    public function testSuperAdminCanToggleMaintenanceMode(): void
+    public function test_super_admin_can_toggle_maintenance_mode(): void
     {
         $tenant = Tenant::factory()->active()->create(['maintenance_mode' => false]);
 
@@ -605,7 +605,7 @@ class TenantControllerTest extends TestCase
     // EXPORT
     // =========================================================================
 
-    public function testSuperAdminCanExportTenants(): void
+    public function test_super_admin_can_export_tenants(): void
     {
         Tenant::factory()->count(3)->create();
 
@@ -617,7 +617,7 @@ class TenantControllerTest extends TestCase
             ->assertHeader('Content-Disposition');
     }
 
-    public function testExportCanBeFilteredByStatus(): void
+    public function test_export_can_be_filtered_by_status(): void
     {
         Tenant::factory()->active()->count(2)->create();
         Tenant::factory()->suspended()->count(1)->create();

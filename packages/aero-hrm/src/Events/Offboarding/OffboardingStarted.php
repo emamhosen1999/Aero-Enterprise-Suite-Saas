@@ -25,7 +25,6 @@ class OffboardingStarted extends BaseHrmEvent
     /**
      * Create a new event instance.
      *
-     * @param  Offboarding  $offboarding
      * @param  string  $reason  'resignation' or 'termination'
      * @param  int|null  $actorEmployeeId  Employee ID who initiated offboarding
      */

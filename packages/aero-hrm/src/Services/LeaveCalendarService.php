@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Aero\HRM\Services;
 
+use Aero\Core\Support\TenantCache;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Collection;
-use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -71,10 +71,9 @@ class LeaveCalendarService
     /**
      * Get team calendar for a given period.
      *
-     * @param int|array|null $departmentIds Department ID(s) or null for all
-     * @param string $month Format: 'YYYY-MM'
-     * @param array $options Additional options
-     * @return array
+     * @param  int|array|null  $departmentIds  Department ID(s) or null for all
+     * @param  string  $month  Format: 'YYYY-MM'
+     * @param  array  $options  Additional options
      */
     public function getTeamCalendar(
         int|array|null $departmentIds,
@@ -133,11 +132,6 @@ class LeaveCalendarService
 
     /**
      * Get availability for a specific date or period.
-     *
-     * @param int|array|null $departmentIds
-     * @param Carbon|string $date
-     * @param Carbon|string|null $endDate
-     * @return array
      */
     public function getAvailability(
         int|array|null $departmentIds,
@@ -197,12 +191,6 @@ class LeaveCalendarService
 
     /**
      * Detect leave conflicts for an employee.
-     *
-     * @param int $employeeId
-     * @param Carbon|string $fromDate
-     * @param Carbon|string $toDate
-     * @param array $options
-     * @return array
      */
     public function detectConflicts(
         int $employeeId,
@@ -302,10 +290,6 @@ class LeaveCalendarService
 
     /**
      * Get leave balance and forecast for an employee.
-     *
-     * @param int $employeeId
-     * @param int $year
-     * @return array
      */
     public function getLeaveBalanceForecast(int $employeeId, ?int $year = null): array
     {
@@ -367,10 +351,6 @@ class LeaveCalendarService
 
     /**
      * Export calendar to iCal format.
-     *
-     * @param int|array|null $departmentIds
-     * @param string $month
-     * @return string
      */
     public function exportToICal(int|array|null $departmentIds, string $month): string
     {
@@ -386,12 +366,12 @@ class LeaveCalendarService
         foreach ($calendar['calendar'] as $day) {
             foreach ($day['leaves'] ?? [] as $leave) {
                 $ical .= "BEGIN:VEVENT\r\n";
-                $ical .= 'UID:' . uniqid('leave-', true) . "@aero\r\n";
-                $ical .= 'DTSTAMP:' . now()->format('Ymd\THis\Z') . "\r\n";
-                $ical .= 'DTSTART;VALUE=DATE:' . str_replace('-', '', $day['date']) . "\r\n";
-                $ical .= 'DTEND;VALUE=DATE:' . str_replace('-', '', $day['date']) . "\r\n";
-                $ical .= 'SUMMARY:' . $leave['employee_name'] . ' - ' . $leave['leave_type'] . " Leave\r\n";
-                $ical .= 'DESCRIPTION:' . ($leave['reason'] ?? 'On leave') . "\r\n";
+                $ical .= 'UID:'.uniqid('leave-', true)."@aero\r\n";
+                $ical .= 'DTSTAMP:'.now()->format('Ymd\THis\Z')."\r\n";
+                $ical .= 'DTSTART;VALUE=DATE:'.str_replace('-', '', $day['date'])."\r\n";
+                $ical .= 'DTEND;VALUE=DATE:'.str_replace('-', '', $day['date'])."\r\n";
+                $ical .= 'SUMMARY:'.$leave['employee_name'].' - '.$leave['leave_type']." Leave\r\n";
+                $ical .= 'DESCRIPTION:'.($leave['reason'] ?? 'On leave')."\r\n";
                 $ical .= "STATUS:CONFIRMED\r\n";
                 $ical .= "END:VEVENT\r\n";
             }
@@ -400,11 +380,11 @@ class LeaveCalendarService
         // Add holidays
         foreach ($calendar['holidays'] as $holiday) {
             $ical .= "BEGIN:VEVENT\r\n";
-            $ical .= 'UID:holiday-' . md5($holiday['date'] . $holiday['name']) . "@aero\r\n";
-            $ical .= 'DTSTAMP:' . now()->format('Ymd\THis\Z') . "\r\n";
-            $ical .= 'DTSTART;VALUE=DATE:' . str_replace('-', '', $holiday['date']) . "\r\n";
-            $ical .= 'DTEND;VALUE=DATE:' . str_replace('-', '', $holiday['date']) . "\r\n";
-            $ical .= 'SUMMARY:🎉 ' . $holiday['name'] . "\r\n";
+            $ical .= 'UID:holiday-'.md5($holiday['date'].$holiday['name'])."@aero\r\n";
+            $ical .= 'DTSTAMP:'.now()->format('Ymd\THis\Z')."\r\n";
+            $ical .= 'DTSTART;VALUE=DATE:'.str_replace('-', '', $holiday['date'])."\r\n";
+            $ical .= 'DTEND;VALUE=DATE:'.str_replace('-', '', $holiday['date'])."\r\n";
+            $ical .= 'SUMMARY:🎉 '.$holiday['name']."\r\n";
             $ical .= "CATEGORIES:HOLIDAY\r\n";
             $ical .= "STATUS:CONFIRMED\r\n";
             $ical .= "END:VEVENT\r\n";
@@ -417,10 +397,6 @@ class LeaveCalendarService
 
     /**
      * Export calendar to CSV format.
-     *
-     * @param int|array|null $departmentIds
-     * @param string $month
-     * @return string
      */
     public function exportToCSV(int|array|null $departmentIds, string $month): string
     {
@@ -433,11 +409,11 @@ class LeaveCalendarService
                 $csv .= implode(',', [
                     $day['date'],
                     $day['day_name'],
-                    '"' . str_replace('"', '""', $leave['employee_name']) . '"',
-                    '"' . str_replace('"', '""', $leave['department'] ?? '') . '"',
+                    '"'.str_replace('"', '""', $leave['employee_name']).'"',
+                    '"'.str_replace('"', '""', $leave['department'] ?? '').'"',
                     $leave['leave_type'],
                     $leave['status'],
-                ]) . "\n";
+                ])."\n";
             }
         }
 
@@ -446,10 +422,6 @@ class LeaveCalendarService
 
     /**
      * Get capacity forecast for planning.
-     *
-     * @param int|array|null $departmentIds
-     * @param int $daysAhead
-     * @return array
      */
     public function getCapacityForecast(int|array|null $departmentIds, int $daysAhead = 30): array
     {
@@ -508,9 +480,6 @@ class LeaveCalendarService
 
     /**
      * Set minimum capacity threshold.
-     *
-     * @param int $percent
-     * @return self
      */
     public function setMinCapacityThreshold(int $percent): self
     {
@@ -830,6 +799,6 @@ class LeaveCalendarService
     {
         $deptKey = is_array($departments) ? implode('-', $departments) : ($departments ?? 'all');
 
-        return "leave_calendar:{$type}:{$deptKey}:{$month}:" . md5(json_encode($options));
+        return "leave_calendar:{$type}:{$deptKey}:{$month}:".md5(json_encode($options));
     }
 }

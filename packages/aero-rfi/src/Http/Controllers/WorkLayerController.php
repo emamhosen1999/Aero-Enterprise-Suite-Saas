@@ -102,8 +102,8 @@ class WorkLayerController extends Controller
     public function update(Request $request, WorkLayer $workLayer): JsonResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:work_layers,name,' . $workLayer->id,
-            'code' => 'nullable|string|max:50|unique:work_layers,code,' . $workLayer->id,
+            'name' => 'required|string|max:255|unique:work_layers,name,'.$workLayer->id,
+            'code' => 'nullable|string|max:50|unique:work_layers,code,'.$workLayer->id,
             'description' => 'nullable|string|max:1000',
             'layer_order' => 'required|integer|min:1',
             'prerequisite_layer_id' => 'nullable|exists:work_layers,id|different:id',
@@ -185,7 +185,7 @@ class WorkLayerController extends Controller
      */
     protected function validateNoCircularPrerequisite(?int $prerequisiteId, ?int $currentLayerId): void
     {
-        if (!$prerequisiteId) {
+        if (! $prerequisiteId) {
             return;
         }
 

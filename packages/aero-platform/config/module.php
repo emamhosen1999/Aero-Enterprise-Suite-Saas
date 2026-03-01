@@ -580,6 +580,17 @@ return [
                         ['code' => 'toggle', 'name' => 'Toggle Maintenance Mode'],
                     ],
                 ],
+                [
+                    'code' => 'infrastructure_settings',
+                    'name' => 'Infrastructure',
+                    'icon' => 'ServerStackIcon',
+                    'route' => '/settings/infrastructure',
+                    'route_name' => 'admin.settings.infrastructure',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Infrastructure Settings'],
+                        ['code' => 'edit', 'name' => 'Edit Infrastructure Settings'],
+                    ],
+                ],
             ],
         ],
 

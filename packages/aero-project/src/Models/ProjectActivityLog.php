@@ -36,18 +36,31 @@ class ProjectActivityLog extends Model
      * Event type constants.
      */
     public const EVENT_CREATED = 'created';
+
     public const EVENT_UPDATED = 'updated';
+
     public const EVENT_DELETED = 'deleted';
+
     public const EVENT_STATUS_CHANGED = 'status_changed';
+
     public const EVENT_ASSIGNED = 'assigned';
+
     public const EVENT_UNASSIGNED = 'unassigned';
+
     public const EVENT_COMMENT_ADDED = 'comment_added';
+
     public const EVENT_ATTACHMENT_ADDED = 'attachment_added';
+
     public const EVENT_ATTACHMENT_REMOVED = 'attachment_removed';
+
     public const EVENT_MEMBER_ADDED = 'member_added';
+
     public const EVENT_MEMBER_REMOVED = 'member_removed';
+
     public const EVENT_MILESTONE_REACHED = 'milestone_reached';
+
     public const EVENT_SPRINT_STARTED = 'sprint_started';
+
     public const EVENT_SPRINT_COMPLETED = 'sprint_completed';
 
     /**

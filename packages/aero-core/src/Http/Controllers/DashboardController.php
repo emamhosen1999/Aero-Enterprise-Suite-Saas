@@ -4,12 +4,10 @@ namespace Aero\Core\Http\Controllers;
 
 use Aero\Core\Models\User;
 use Aero\Core\Services\DashboardWidgetRegistry;
+use Aero\HRMAC\Models\Role;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Aero\HRMAC\Models\Role;
-
-
 
 /**
  * Dashboard Controller

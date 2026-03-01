@@ -59,7 +59,7 @@ class SiteInstruction extends Model
      */
     public function getIsOverdueAttribute(): bool
     {
-        if (!$this->target_completion_date || $this->status === 'completed') {
+        if (! $this->target_completion_date || $this->status === 'completed') {
             return false;
         }
 
@@ -71,11 +71,12 @@ class SiteInstruction extends Model
      */
     public function getDaysToDeadlineAttribute(): ?int
     {
-        if (!$this->target_completion_date) {
+        if (! $this->target_completion_date) {
             return null;
         }
 
         $diff = now()->diffInDays($this->target_completion_date, false);
+
         return (int) $diff;
     }
 
@@ -84,7 +85,7 @@ class SiteInstruction extends Model
      */
     public function getResponsePendingAttribute(): bool
     {
-        return in_array($this->status, ['issued', 'acknowledged']) && !$this->response_date;
+        return in_array($this->status, ['issued', 'acknowledged']) && ! $this->response_date;
     }
 
     /**

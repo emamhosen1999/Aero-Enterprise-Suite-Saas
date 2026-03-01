@@ -2,12 +2,12 @@
 
 namespace Aero\HRM\Http\Controllers\Employee;
 
+use Aero\Core\Models\User;
+use Aero\Core\Support\TenantCache;
 use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Designation;
 use Aero\HRM\Models\Employee;
-use Aero\Core\Models\User;
-use Aero\Core\Support\TenantCache;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -86,7 +86,7 @@ class ProfileController extends Controller
     /**
      * Display the employee profile page.
      *
-     * @param User $user The user whose employee profile to display
+     * @param  User  $user  The user whose employee profile to display
      */
     public function index(Request $request, User $user): Response
     {
@@ -331,6 +331,7 @@ class ProfileController extends Controller
                 if ($employee->{$key} !== null) {
                     $employee->{$key} = null;
                 }
+
                 continue;
             }
 

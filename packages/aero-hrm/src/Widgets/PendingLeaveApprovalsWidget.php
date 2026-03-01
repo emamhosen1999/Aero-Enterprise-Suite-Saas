@@ -19,10 +19,15 @@ use Illuminate\Support\Facades\DB;
 class PendingLeaveApprovalsWidget extends AbstractDashboardWidget
 {
     protected string $position = 'sidebar';
+
     protected int $order = 10;
+
     protected int|string $span = 1;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
+
     protected array $requiredPermissions = ['hrm.leaves']; // HRMAC format: module.submodule
+
     protected array $dashboards = ['hrm'];
 
     public function getKey(): string
@@ -55,7 +60,7 @@ class PendingLeaveApprovalsWidget extends AbstractDashboardWidget
     {
         return $this->safeResolve(function () {
             $user = auth()->user();
-            if (!$user) {
+            if (! $user) {
                 return ['count' => 0, 'urgent' => 0, 'items' => []];
             }
 
@@ -68,8 +73,8 @@ class PendingLeaveApprovalsWidget extends AbstractDashboardWidget
             // Department managers only see their department's leaves
             $isSuperAdmin = $this->isSuperAdmin();
             $canManageAll = $this->userHasModuleAccess('hrm', 'leaves', 'manage');
-            
-            if (!$isSuperAdmin && !$canManageAll) {
+
+            if (! $isSuperAdmin && ! $canManageAll) {
                 // Filter to user's department only
                 $query->where('users.department_id', $user->department_id);
             }

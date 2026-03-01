@@ -2,10 +2,10 @@
 
 namespace Aero\Finance\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class FixedAsset extends Model
 {
@@ -19,7 +19,7 @@ class FixedAsset extends Model
         'useful_life_years', 'salvage_value', 'depreciation_method',
         'current_book_value', 'accumulated_depreciation', 'location',
         'custodian_id', 'status', 'serial_number', 'warranty_expiry',
-        'last_maintenance_date', 'next_maintenance_date'
+        'last_maintenance_date', 'next_maintenance_date',
     ];
 
     protected $casts = [
@@ -38,13 +38,19 @@ class FixedAsset extends Model
     ];
 
     const METHOD_STRAIGHT_LINE = 'straight_line';
+
     const METHOD_DECLINING_BALANCE = 'declining_balance';
+
     const METHOD_SUM_OF_YEARS = 'sum_of_years';
+
     const METHOD_UNITS_OF_PRODUCTION = 'units_of_production';
 
     const STATUS_ACTIVE = 'active';
+
     const STATUS_DISPOSED = 'disposed';
+
     const STATUS_UNDER_MAINTENANCE = 'under_maintenance';
+
     const STATUS_LOST_STOLEN = 'lost_stolen';
 
     public function category()

@@ -1,6 +1,7 @@
 <?php
 
 namespace Aero\HRM\Models;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -68,7 +69,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  */
 class Employee extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia;
+    use HasFactory, InteractsWithMedia, SoftDeletes;
 
     /**
      * Create a new factory instance for the model.
@@ -646,7 +647,7 @@ class Employee extends Model implements HasMedia
 
     /**
      * Register media collections for the Employee model.
-     * 
+     *
      * Media Collections:
      * - employee_images: Official employee photo for HR purposes (badges, org charts, ID cards)
      * - employee_documents: Employment-related documents (contracts, certificates)
@@ -687,18 +688,18 @@ class Employee extends Model implements HasMedia
 
     /**
      * Get the employee's image URL.
-     * 
+     *
      * This is the official HR photo used for badges, org charts, etc.
      * Different from User's profile_image which is for authentication/identity.
      *
-     * @param string $conversion The image conversion size (thumb, medium, large, or empty for original)
+     * @param  string  $conversion  The image conversion size (thumb, medium, large, or empty for original)
      * @return string|null The image URL or null if no image
      */
     public function getEmployeeImageUrl(string $conversion = ''): ?string
     {
         $media = $this->getFirstMedia('employee_images');
-        
-        if (!$media) {
+
+        if (! $media) {
             return null;
         }
 
@@ -707,10 +708,10 @@ class Employee extends Model implements HasMedia
 
     /**
      * Get the employee's image URL with fallback to user's profile image.
-     * 
+     *
      * Falls back to the linked User's profile image if no employee image exists.
      *
-     * @param string $conversion The image conversion size
+     * @param  string  $conversion  The image conversion size
      * @return string The image URL (employee image, user profile image, or default avatar)
      */
     public function getEmployeeImageUrlWithFallback(string $conversion = ''): string
@@ -733,7 +734,7 @@ class Employee extends Model implements HasMedia
 
     /**
      * Get the employee image URL attribute for easy access.
-     * 
+     *
      * Usage: $employee->employee_image_url
      */
     public function getEmployeeImageUrlAttribute(): ?string

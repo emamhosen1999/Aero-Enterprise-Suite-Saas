@@ -1,14 +1,14 @@
 <?php
 
 use Aero\Rfi\Http\Controllers\ChainageProgressController;
-use Aero\Rfi\Http\Controllers\RfiWebController;
-use Aero\Rfi\Http\Controllers\RfiSummaryController;
 use Aero\Rfi\Http\Controllers\EquipmentLogController;
 use Aero\Rfi\Http\Controllers\LaborDeploymentController;
 use Aero\Rfi\Http\Controllers\MaterialConsumptionController;
 use Aero\Rfi\Http\Controllers\ObjectionController;
 use Aero\Rfi\Http\Controllers\ProgressPhotoController;
 use Aero\Rfi\Http\Controllers\RfiDashboardController;
+use Aero\Rfi\Http\Controllers\RfiSummaryController;
+use Aero\Rfi\Http\Controllers\RfiWebController;
 use Aero\Rfi\Http\Controllers\SiteInstructionController;
 use Aero\Rfi\Http\Controllers\WeatherLogController;
 use Aero\Rfi\Http\Controllers\WorkLayerController;
@@ -57,61 +57,61 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // RFIs - maps to inspection-management sub-module
     Route::prefix('rfis')->name('rfis.')->middleware(['module:rfi,inspection-management'])->group(function () {
-    Route::get('/', [RfiWebController::class, 'index'])->name('index');
-    Route::get('/create', [RfiWebController::class, 'create'])->name('create');
-    Route::post('/', [RfiWebController::class, 'store'])->name('store');
-    Route::get('/{rfi}', [RfiWebController::class, 'show'])->name('show');
-    Route::get('/{rfi}/edit', [RfiWebController::class, 'edit'])->name('edit');
-    Route::put('/{rfi}', [RfiWebController::class, 'update'])->name('update');
-    Route::delete('/{rfi}', [RfiWebController::class, 'destroy'])->name('destroy');
+        Route::get('/', [RfiWebController::class, 'index'])->name('index');
+        Route::get('/create', [RfiWebController::class, 'create'])->name('create');
+        Route::post('/', [RfiWebController::class, 'store'])->name('store');
+        Route::get('/{rfi}', [RfiWebController::class, 'show'])->name('show');
+        Route::get('/{rfi}/edit', [RfiWebController::class, 'edit'])->name('edit');
+        Route::put('/{rfi}', [RfiWebController::class, 'update'])->name('update');
+        Route::delete('/{rfi}', [RfiWebController::class, 'destroy'])->name('destroy');
 
-    // API Endpoints for pagination and filtering
-    Route::get('/api/paginate', [RfiWebController::class, 'paginate'])->name('paginate');
-    Route::get('/api/all', [RfiWebController::class, 'all'])->name('all');
+        // API Endpoints for pagination and filtering
+        Route::get('/api/paginate', [RfiWebController::class, 'paginate'])->name('paginate');
+        Route::get('/api/all', [RfiWebController::class, 'all'])->name('all');
 
-    // Import
-    Route::post('/import', [RfiWebController::class, 'import'])->name('import');
-    Route::get('/template/download', [RfiWebController::class, 'downloadTemplate'])->name('template.download');
+        // Import
+        Route::post('/import', [RfiWebController::class, 'import'])->name('import');
+        Route::get('/template/download', [RfiWebController::class, 'downloadTemplate'])->name('template.download');
 
-    // RFI Submission
-    Route::post('/{rfi}/submit', [RfiWebController::class, 'submit'])->name('submit');
+        // RFI Submission
+        Route::post('/{rfi}/submit', [RfiWebController::class, 'submit'])->name('submit');
 
-    // Inspection
-    Route::post('/{rfi}/inspect', [RfiWebController::class, 'inspect'])->name('inspect');
+        // Inspection
+        Route::post('/{rfi}/inspect', [RfiWebController::class, 'inspect'])->name('inspect');
 
-    // Files
-    Route::post('/{rfi}/files', [RfiWebController::class, 'uploadFiles'])->name('files.upload');
-    Route::get('/{rfi}/files', [RfiWebController::class, 'getRfiFiles'])->name('files.list');
-    Route::delete('/{rfi}/files/{mediaId}', [RfiWebController::class, 'deleteFile'])->name('files.delete');
-    Route::get('/{rfi}/files/{mediaId}/download', [RfiWebController::class, 'downloadRfiFile'])->name('files.download');
+        // Files
+        Route::post('/{rfi}/files', [RfiWebController::class, 'uploadFiles'])->name('files.upload');
+        Route::get('/{rfi}/files', [RfiWebController::class, 'getRfiFiles'])->name('files.list');
+        Route::delete('/{rfi}/files/{mediaId}', [RfiWebController::class, 'deleteFile'])->name('files.delete');
+        Route::get('/{rfi}/files/{mediaId}/download', [RfiWebController::class, 'downloadRfiFile'])->name('files.download');
 
-    // Objection management
-    Route::get('/{rfi}/objections', [RfiWebController::class, 'getObjections'])->name('objections.index');
-    Route::get('/{rfi}/objections/available', [RfiWebController::class, 'getAvailableObjections'])->name('objections.available');
-    Route::post('/{rfi}/objections', [RfiWebController::class, 'attachObjections'])->name('objections.attach');
-    Route::delete('/{rfi}/objections', [RfiWebController::class, 'detachObjections'])->name('objections.detach');
+        // Objection management
+        Route::get('/{rfi}/objections', [RfiWebController::class, 'getObjections'])->name('objections.index');
+        Route::get('/{rfi}/objections/available', [RfiWebController::class, 'getAvailableObjections'])->name('objections.available');
+        Route::post('/{rfi}/objections', [RfiWebController::class, 'attachObjections'])->name('objections.attach');
+        Route::delete('/{rfi}/objections', [RfiWebController::class, 'detachObjections'])->name('objections.detach');
 
-    // Bulk operations
-    Route::post('/bulk/status', [RfiWebController::class, 'bulkUpdateStatus'])->name('bulk.status');
-    Route::post('/bulk/submit', [RfiWebController::class, 'bulkSubmit'])->name('bulk.submit');
-    Route::post('/bulk/import-submit', [RfiWebController::class, 'bulkImportSubmit'])->name('bulk.import-submit');
-    Route::get('/bulk/submit-template', [RfiWebController::class, 'downloadBulkImportTemplate'])->name('bulk.submit-template');
-    Route::post('/bulk/response-status', [RfiWebController::class, 'bulkResponseStatusUpdate'])->name('bulk.response-status');
-    Route::post('/bulk/import-response-status', [RfiWebController::class, 'bulkImportResponseStatus'])->name('bulk.import-response-status');
-    Route::get('/bulk/response-status-template', [RfiWebController::class, 'downloadResponseStatusTemplate'])->name('bulk.response-status-template');
+        // Bulk operations
+        Route::post('/bulk/status', [RfiWebController::class, 'bulkUpdateStatus'])->name('bulk.status');
+        Route::post('/bulk/submit', [RfiWebController::class, 'bulkSubmit'])->name('bulk.submit');
+        Route::post('/bulk/import-submit', [RfiWebController::class, 'bulkImportSubmit'])->name('bulk.import-submit');
+        Route::get('/bulk/submit-template', [RfiWebController::class, 'downloadBulkImportTemplate'])->name('bulk.submit-template');
+        Route::post('/bulk/response-status', [RfiWebController::class, 'bulkResponseStatusUpdate'])->name('bulk.response-status');
+        Route::post('/bulk/import-response-status', [RfiWebController::class, 'bulkImportResponseStatus'])->name('bulk.import-response-status');
+        Route::get('/bulk/response-status-template', [RfiWebController::class, 'downloadResponseStatusTemplate'])->name('bulk.response-status-template');
 
-    // Status updates
-    Route::post('/update-status', [RfiWebController::class, 'updateStatus'])->name('update-status');
-    Route::post('/update-completion-time', [RfiWebController::class, 'updateCompletionTime'])->name('update-completion-time');
-    Route::post('/update-submission-time', [RfiWebController::class, 'updateSubmissionTime'])->name('update-submission-time');
-    Route::post('/update-inspection-details', [RfiWebController::class, 'updateInspectionDetails'])->name('update-inspection-details');
-    Route::post('/update-incharge', [RfiWebController::class, 'updateIncharge'])->name('update-incharge');
-    Route::post('/update-assigned', [RfiWebController::class, 'updateAssigned'])->name('update-assigned');
+        // Status updates
+        Route::post('/update-status', [RfiWebController::class, 'updateStatus'])->name('update-status');
+        Route::post('/update-completion-time', [RfiWebController::class, 'updateCompletionTime'])->name('update-completion-time');
+        Route::post('/update-submission-time', [RfiWebController::class, 'updateSubmissionTime'])->name('update-submission-time');
+        Route::post('/update-inspection-details', [RfiWebController::class, 'updateInspectionDetails'])->name('update-inspection-details');
+        Route::post('/update-incharge', [RfiWebController::class, 'updateIncharge'])->name('update-incharge');
+        Route::post('/update-assigned', [RfiWebController::class, 'updateAssigned'])->name('update-assigned');
 
-    // Export
-    Route::get('/export/csv', [RfiWebController::class, 'export'])->name('export');
-    Route::get('/export/objected', [RfiWebController::class, 'exportObjectedRfis'])->name('export.objected');
-});
+        // Export
+        Route::get('/export/csv', [RfiWebController::class, 'export'])->name('export');
+        Route::get('/export/objected', [RfiWebController::class, 'exportObjectedRfis'])->name('export.objected');
+    });
 
     // RFI Summary - maps to inspection-management sub-module
     Route::prefix('rfis-summary')->name('rfis-summary.')->middleware(['module:rfi,inspection-management'])->group(function () {

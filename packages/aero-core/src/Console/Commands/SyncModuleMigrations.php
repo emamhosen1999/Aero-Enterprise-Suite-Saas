@@ -52,10 +52,11 @@ class SyncModuleMigrations extends Command
 
         if (empty($this->migrationPaths)) {
             $this->warn('⚠️  No migration paths found in installed packages.');
+
             return self::SUCCESS;
         }
 
-        $this->info("📦 Found " . count($this->migrationPaths) . " package(s) with migrations:");
+        $this->info('📦 Found '.count($this->migrationPaths).' package(s) with migrations:');
         foreach ($this->migrationPaths as $package => $path) {
             $this->line("   • {$package}: {$path}");
         }
@@ -77,7 +78,7 @@ class SyncModuleMigrations extends Command
     protected function discoverMigrationPaths(): void
     {
         // 1. Discover packages installed via Composer (vendor/aero/*)
-        $vendorPath = base_path('vendor/' . $this->vendorPrefix);
+        $vendorPath = base_path('vendor/'.$this->vendorPrefix);
         if (File::exists($vendorPath)) {
             foreach (File::directories($vendorPath) as $packagePath) {
                 $this->addMigrationPath($packagePath);
@@ -98,7 +99,7 @@ class SyncModuleMigrations extends Command
      */
     protected function addMigrationPath(string $packagePath): void
     {
-        $migrationsPath = $packagePath . '/database/migrations';
+        $migrationsPath = $packagePath.'/database/migrations';
 
         if (File::exists($migrationsPath) && File::isDirectory($migrationsPath)) {
             // Get migration files count
@@ -120,7 +121,7 @@ class SyncModuleMigrations extends Command
 
         foreach ($this->migrationPaths as $package => $path) {
             $this->info("Package: {$package}");
-            
+
             $files = File::files($path);
             foreach ($files as $file) {
                 $filename = $file->getFilename();
@@ -129,7 +130,7 @@ class SyncModuleMigrations extends Command
                 $hasRun = \DB::table('migrations')
                     ->where('migration', $migrationName)
                     ->exists();
-                
+
                 $status = $hasRun ? '✅' : '❌';
                 $this->line("   {$status} {$filename}");
             }
@@ -145,7 +146,7 @@ class SyncModuleMigrations extends Command
     protected function runMigrations(): int
     {
         $options = [];
-        
+
         if ($this->option('force')) {
             $options['--force'] = true;
         }
@@ -156,12 +157,12 @@ class SyncModuleMigrations extends Command
         try {
             if ($this->option('fresh')) {
                 $this->warn('⚠️  Running migrate:fresh - this will drop ALL tables!');
-                if (!$this->option('force') && !$this->confirm('Are you sure you want to continue?')) {
+                if (! $this->option('force') && ! $this->confirm('Are you sure you want to continue?')) {
                     return self::SUCCESS;
                 }
 
                 $this->info('🗑️  Dropping all tables and running fresh migrations...');
-                
+
                 // migrate:fresh with paths
                 Artisan::call('migrate:fresh', array_merge($options, [
                     '--path' => $paths,
@@ -169,7 +170,7 @@ class SyncModuleMigrations extends Command
                 ]), $this->output);
             } else {
                 $this->info('🔄 Running pending migrations...');
-                
+
                 // Regular migrate with paths
                 Artisan::call('migrate', array_merge($options, [
                     '--path' => $paths,
@@ -189,7 +190,8 @@ class SyncModuleMigrations extends Command
 
             return self::SUCCESS;
         } catch (\Exception $e) {
-            $this->error('❌ Migration failed: ' . $e->getMessage());
+            $this->error('❌ Migration failed: '.$e->getMessage());
+
             return self::FAILURE;
         }
     }

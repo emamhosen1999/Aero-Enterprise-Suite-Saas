@@ -142,11 +142,11 @@ class CpanelDatabaseManager implements TenantDatabaseManager
 
     /**
      * Check if the database exists.
+     *
+     * @param string $name Full database name (e.g. "cpaneluser_tn_subdomain")
      */
-    public function databaseExists(TenantWithDatabase $tenant): bool
+    public function databaseExists(string $name): bool
     {
-        $dbName = $this->getShortDatabaseName($tenant);
-
         try {
             $response = $this->callCpanelApi('Mysql', 'list_databases', []);
 
@@ -155,15 +155,56 @@ class CpanelDatabaseManager implements TenantDatabaseManager
             }
 
             $databases = $response['data'] ?? [];
-            $fullDbName = $this->getFullDatabaseName($tenant);
 
-            return in_array($fullDbName, array_column($databases, 'database'));
+            return in_array($name, array_column($databases, 'database'));
         } catch (\Exception $e) {
             Log::error('❌ cPanel: Failed to check database existence', [
                 'error' => $e->getMessage(),
             ]);
 
             return false;
+        }
+    }
+
+    /**
+     * Test a cPanel connection using the provided credentials.
+     * Used by the admin UI "Test Connection" button — does NOT create databases.
+     *
+     * @return array{success: bool, database_count?: int, error?: string}
+     */
+    public function testConnection(string $host, int $port, string $username, string $token): array
+    {
+        $url = "https://{$host}:{$port}/execute/Mysql/list_databases";
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => "cpanel {$username}:{$token}",
+            ])
+                ->timeout(15)
+                ->withoutVerifying()   // Self-signed certs common on shared hosts
+                ->get($url);
+
+            if (! $response->successful()) {
+                return [
+                    'success' => false,
+                    'error'   => "HTTP {$response->status()}: cPanel did not accept the request. Check host and port.",
+                ];
+            }
+
+            $data = $response->json();
+
+            if (($data['status'] ?? 0) == 1) {
+                return [
+                    'success'        => true,
+                    'database_count' => count($data['data'] ?? []),
+                ];
+            }
+
+            $errMsg = $data['errors'][0] ?? $data['error'] ?? 'cPanel returned a non-success status';
+
+            return ['success' => false, 'error' => $errMsg];
+        } catch (\Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
         }
     }
 

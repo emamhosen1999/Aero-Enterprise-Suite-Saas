@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * ChainageProgress Model
- * 
+ *
  * The "Golden Ledger" - tracks the status of every chainage segment for every layer.
  * This is the PATENTABLE core: "Spatial progress tracking for linear infrastructure".
  *
@@ -31,9 +31,13 @@ class ChainageProgress extends Model
     use HasFactory, SoftDeletes;
 
     public const STATUS_NOT_STARTED = 'not_started';
+
     public const STATUS_RFI_SUBMITTED = 'rfi_submitted';
+
     public const STATUS_INSPECTED = 'inspected';
+
     public const STATUS_APPROVED = 'approved';
+
     public const STATUS_REJECTED = 'rejected';
 
     /**
@@ -147,7 +151,7 @@ class ChainageProgress extends Model
     {
         $start = $this->formatChainage($this->start_chainage_m);
         $end = $this->formatChainage($this->end_chainage_m);
-        
+
         return "CH {$start} - {$end}";
     }
 
@@ -198,7 +202,7 @@ class ChainageProgress extends Model
     {
         $km = floor($meters / 1000);
         $m = $meters - ($km * 1000);
-        
+
         return sprintf('%d+%03d', $km, $m);
     }
 }

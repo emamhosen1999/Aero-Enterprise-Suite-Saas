@@ -17,7 +17,7 @@ class Equipment extends Model
         'manufacturer', 'model', 'serial_number', 'installation_date',
         'warranty_start_date', 'warranty_end_date', 'status', 'operating_hours',
         'last_service_date', 'next_service_date', 'service_interval_days',
-        'specifications', 'notes'
+        'specifications', 'notes',
     ];
 
     protected $casts = [
@@ -35,9 +35,13 @@ class Equipment extends Model
     ];
 
     const STATUS_ACTIVE = 'active';
+
     const STATUS_INACTIVE = 'inactive';
+
     const STATUS_UNDER_MAINTENANCE = 'under_maintenance';
+
     const STATUS_OUT_OF_ORDER = 'out_of_order';
+
     const STATUS_RETIRED = 'retired';
 
     public function customer()
@@ -63,7 +67,7 @@ class Equipment extends Model
     public function serviceHistory()
     {
         return $this->workOrders()->where('status', ServiceWorkOrder::STATUS_COMPLETED)
-                    ->orderBy('actual_end_time', 'desc');
+            ->orderBy('actual_end_time', 'desc');
     }
 
     public function maintenanceSchedule()
@@ -74,17 +78,18 @@ class Equipment extends Model
     public function parts()
     {
         return $this->belongsToMany(ServicePart::class, 'field_service_equipment_parts')
-                    ->withPivot('quantity', 'installed_date', 'warranty_end_date');
+            ->withPivot('quantity', 'installed_date', 'warranty_end_date');
     }
 
     public function getDisplayNameAttribute()
     {
-        return $this->manufacturer . ' ' . $this->model . ' (' . $this->equipment_number . ')';
+        return $this->manufacturer.' '.$this->model.' ('.$this->equipment_number.')';
     }
 
     public function isUnderWarranty($date = null)
     {
         $date = $date ?: now()->toDateString();
+
         return $this->warranty_end_date && $this->warranty_end_date >= $date;
     }
 
@@ -98,6 +103,7 @@ class Equipment extends Model
         if ($this->last_service_date) {
             return now()->diffInDays($this->last_service_date);
         }
+
         return null;
     }
 }

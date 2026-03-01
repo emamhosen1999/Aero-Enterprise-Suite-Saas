@@ -13,7 +13,7 @@ class ProductCategory extends Model
     protected $table = 'manufacturing_product_categories';
 
     protected $fillable = [
-        'name', 'description', 'parent_id', 'is_active'
+        'name', 'description', 'parent_id', 'is_active',
     ];
 
     protected $casts = [

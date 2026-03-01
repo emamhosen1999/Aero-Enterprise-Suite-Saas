@@ -2,25 +2,25 @@
 
 namespace Aero\HRM\Services\AIAnalytics;
 
-use Aero\HRM\Models\Employee;
-use Aero\HRM\Models\BehavioralAnomaly;
 use Aero\HRM\Models\AIInsight;
 use Aero\HRM\Models\Attendance;
+use Aero\HRM\Models\BehavioralAnomaly;
+use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Leave;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 /**
  * Behavioral Anomaly Detection Service
- * 
+ *
  * Detects unusual patterns in employee behavior that may indicate:
  * - Disengagement
  * - Personal issues
  * - Job searching
  * - Performance problems
  * - Burnout warning signs
- * 
+ *
  * Uses statistical deviation analysis and pattern matching.
  */
 class AnomalyDetectionService
@@ -74,7 +74,7 @@ class AnomalyDetectionService
 
         foreach ($employees as $employee) {
             $anomalies = $this->detectAnomalies($employee);
-            if (!empty($anomalies)) {
+            if (! empty($anomalies)) {
                 $allAnomalies->push([
                     'employee_id' => $employee->id,
                     'employee_name' => $employee->full_name,
@@ -126,6 +126,7 @@ class AnomalyDetectionService
         // Calculate historical baseline
         $historicalMinutes = $historicalData->map(function ($a) {
             $time = Carbon::parse($a->check_in);
+
             return $time->hour * 60 + $time->minute;
         });
 
@@ -144,7 +145,7 @@ class AnomalyDetectionService
         foreach ($recentData as $attendance) {
             $time = Carbon::parse($attendance->check_in);
             $minutes = $time->hour * 60 + $time->minute;
-            
+
             $deviation = abs($minutes - $baseline['mean']) / max(1, $baseline['std']);
 
             if ($deviation > $this->thresholds['attendance_time']) {
@@ -194,7 +195,7 @@ class AnomalyDetectionService
 
         $values = array_values($monthlyAbsences);
         $recentMonth = array_pop($values);
-        
+
         $baseline = [
             'mean' => array_sum($values) / count($values),
             'std' => $this->standardDeviation($values),
@@ -237,7 +238,7 @@ class AnomalyDetectionService
             ->where('employee_id', $employee->id)
             ->where('attendance_date', '>=', now()->subMonths(3))
             ->whereNotNull('overtime_hours')
-            ->selectRaw("YEARWEEK(attendance_date) as week, SUM(overtime_hours) as hours")
+            ->selectRaw('YEARWEEK(attendance_date) as week, SUM(overtime_hours) as hours')
             ->groupBy('week')
             ->orderBy('week')
             ->pluck('hours', 'week')

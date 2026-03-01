@@ -3,7 +3,6 @@
 namespace Aero\Project\Services\Task;
 
 use Aero\Project\Models\Task;
-use Aero\Core\Models\User;
 use Illuminate\Support\Facades\Notification;
 
 class TaskNotificationService

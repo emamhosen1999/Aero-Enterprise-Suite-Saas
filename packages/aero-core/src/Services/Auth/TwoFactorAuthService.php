@@ -7,7 +7,6 @@ namespace Aero\Core\Services\Auth;
 use Aero\Core\Models\User;
 use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use PragmaRX\Google2FA\Google2FA;
 
@@ -66,14 +65,13 @@ class TwoFactorAuthService
 
     public function __construct()
     {
-        $this->google2fa = new Google2FA();
+        $this->google2fa = new Google2FA;
         $this->issuer = config('app.name', 'Aero Enterprise');
     }
 
     /**
      * Generate a new 2FA secret for a user.
      *
-     * @param User $user
      * @return string The secret key
      */
     public function generateSecret(User $user): string
@@ -92,10 +90,6 @@ class TwoFactorAuthService
 
     /**
      * Get the QR code URL for the authenticator app.
-     *
-     * @param User $user
-     * @param string $secret
-     * @return string
      */
     public function getQrCodeUrl(User $user, string $secret): string
     {
@@ -108,10 +102,6 @@ class TwoFactorAuthService
 
     /**
      * Get QR code as inline SVG data for rendering.
-     *
-     * @param User $user
-     * @param string $secret
-     * @return string
      */
     public function getQrCodeSvg(User $user, string $secret): string
     {
@@ -124,10 +114,6 @@ class TwoFactorAuthService
 
     /**
      * Verify a 2FA code against the user's secret.
-     *
-     * @param User $user
-     * @param string $code
-     * @return bool
      */
     public function verifyCode(User $user, string $code): bool
     {
@@ -143,10 +129,6 @@ class TwoFactorAuthService
 
     /**
      * Verify a pending 2FA setup code.
-     *
-     * @param User $user
-     * @param string $code
-     * @return bool
      */
     public function verifyPendingCode(User $user, string $code): bool
     {
@@ -164,7 +146,6 @@ class TwoFactorAuthService
     /**
      * Enable 2FA for a user after verification.
      *
-     * @param User $user
      * @return array Recovery codes
      */
     public function enable(User $user): array
@@ -195,8 +176,6 @@ class TwoFactorAuthService
 
     /**
      * Disable 2FA for a user.
-     *
-     * @param User $user
      */
     public function disable(User $user): void
     {
@@ -212,9 +191,6 @@ class TwoFactorAuthService
 
     /**
      * Check if user has 2FA enabled.
-     *
-     * @param User $user
-     * @return bool
      */
     public function isEnabled(User $user): bool
     {
@@ -223,10 +199,6 @@ class TwoFactorAuthService
 
     /**
      * Verify a recovery code.
-     *
-     * @param User $user
-     * @param string $code
-     * @return bool
      */
     public function verifyRecoveryCode(User $user, string $code): bool
     {
@@ -254,9 +226,6 @@ class TwoFactorAuthService
 
     /**
      * Generate new recovery codes (regenerates all).
-     *
-     * @param User $user
-     * @return array
      */
     public function regenerateRecoveryCodes(User $user): array
     {
@@ -271,9 +240,6 @@ class TwoFactorAuthService
 
     /**
      * Get remaining recovery codes count.
-     *
-     * @param User $user
-     * @return int
      */
     public function getRemainingRecoveryCodesCount(User $user): int
     {
@@ -282,9 +248,6 @@ class TwoFactorAuthService
 
     /**
      * Trust a device for 2FA bypass.
-     *
-     * @param User $user
-     * @param string $deviceId
      */
     public function trustDevice(User $user, string $deviceId): void
     {
@@ -294,10 +257,6 @@ class TwoFactorAuthService
 
     /**
      * Check if a device is trusted.
-     *
-     * @param User $user
-     * @param string $deviceId
-     * @return bool
      */
     public function isDeviceTrusted(User $user, string $deviceId): bool
     {
@@ -306,8 +265,6 @@ class TwoFactorAuthService
 
     /**
      * Clear all trusted devices for a user.
-     *
-     * @param User $user
      */
     public function clearTrustedDevices(User $user): void
     {
@@ -317,8 +274,6 @@ class TwoFactorAuthService
 
     /**
      * Generate a device ID from request fingerprint.
-     *
-     * @return string
      */
     public function generateDeviceId(): string
     {
@@ -335,9 +290,6 @@ class TwoFactorAuthService
 
     /**
      * Get the user's decrypted 2FA secret.
-     *
-     * @param User $user
-     * @return string|null
      */
     protected function getUserSecret(User $user): ?string
     {
@@ -354,9 +306,6 @@ class TwoFactorAuthService
 
     /**
      * Get the user's recovery codes.
-     *
-     * @param User $user
-     * @return array
      */
     protected function getRecoveryCodes(User $user): array
     {
@@ -375,8 +324,6 @@ class TwoFactorAuthService
 
     /**
      * Generate recovery codes.
-     *
-     * @return array
      */
     protected function generateRecoveryCodes(): array
     {

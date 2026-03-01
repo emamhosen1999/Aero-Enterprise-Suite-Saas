@@ -13,10 +13,10 @@ class WorkCenter extends Model
     protected $table = 'manufacturing_work_centers';
 
     protected $fillable = [
-        'code', 'name', 'description', 'work_center_type', 
-        'capacity_hours_per_day', 'efficiency_percentage', 
+        'code', 'name', 'description', 'work_center_type',
+        'capacity_hours_per_day', 'efficiency_percentage',
         'setup_time_minutes', 'cost_per_hour', 'location',
-        'is_active', 'calendar_id'
+        'is_active', 'calendar_id',
     ];
 
     protected $casts = [
@@ -29,8 +29,11 @@ class WorkCenter extends Model
     ];
 
     const TYPE_MACHINE = 'machine';
+
     const TYPE_WORKSTATION = 'workstation';
+
     const TYPE_ASSEMBLY_LINE = 'assembly_line';
+
     const TYPE_QUALITY_CONTROL = 'quality_control';
 
     public function operations()

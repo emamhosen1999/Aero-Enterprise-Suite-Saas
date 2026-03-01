@@ -29,8 +29,11 @@ class SmsProvider extends Model
     }
 
     const PROVIDER_TWILIO = 'twilio';
+
     const PROVIDER_NEXMO = 'nexmo';
+
     const PROVIDER_MESSAGEBIRD = 'messagebird';
+
     const PROVIDER_SSLWIRELESS = 'sslwireless';
 
     public function scopeActive($query)

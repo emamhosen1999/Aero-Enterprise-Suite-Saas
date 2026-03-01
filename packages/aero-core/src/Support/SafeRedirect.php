@@ -2,8 +2,8 @@
 
 namespace Aero\Core\Support;
 
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Safe Redirect Helpers for Inertia.js Compliance
@@ -202,7 +202,6 @@ class SafeRedirect
      * Validate that a URL belongs to the same domain as current request.
      *
      * @param  string  $url  URL to validate
-     * @return bool
      */
     protected static function validateSameDomain(string $url): bool
     {
@@ -254,7 +253,6 @@ class SafeRedirect
      * Check if a route exists and is accessible.
      *
      * @param  string  $routeName  Route name
-     * @return bool
      */
     public static function routeExists(string $routeName): bool
     {

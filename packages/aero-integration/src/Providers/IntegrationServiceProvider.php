@@ -20,23 +20,23 @@ class IntegrationServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Load migrations
-        $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
+        $this->loadMigrationsFrom(__DIR__.'/../../database/migrations');
 
         // Load routes
-        $this->loadRoutesFrom(__DIR__ . '/../../routes/web.php');
-        $this->loadRoutesFrom(__DIR__ . '/../../routes/api.php');
+        $this->loadRoutesFrom(__DIR__.'/../../routes/web.php');
+        $this->loadRoutesFrom(__DIR__.'/../../routes/api.php');
 
         // Register views
-        $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'integration');
+        $this->loadViewsFrom(__DIR__.'/../../resources/views', 'integration');
 
         // Publish configuration
         $this->publishes([
-            __DIR__ . '/../../config/integration.php' => config_path('integration.php'),
+            __DIR__.'/../../config/integration.php' => config_path('integration.php'),
         ], 'config');
 
         // Publish migrations
         $this->publishes([
-            __DIR__ . '/../../database/migrations/' => database_path('migrations'),
+            __DIR__.'/../../database/migrations/' => database_path('migrations'),
         ], 'migrations');
     }
 }

@@ -2,21 +2,21 @@
 
 namespace Aero\HRM\Http\Controllers\Recruitment;
 
-use Aero\HRM\Models\Department;
-use Aero\HRM\Models\JobHiringStage;
-use Aero\HRM\Models\JobInterview;
-use Aero\HRM\Http\Controllers\Controller;
-use Aero\HRM\Models\JobApplicationStageHistory;
-use Aero\HRM\Models\JobOffer;
-use Aero\HRM\Models\Job;
-use Aero\HRM\Models\JobApplication;
 use Aero\HRM\Events\Recruitment\ApplicationReceived;
 use Aero\HRM\Events\Recruitment\InterviewScheduled;
 use Aero\HRM\Events\Recruitment\OfferExtended;
+use Aero\HRM\Http\Controllers\Controller;
+use Aero\HRM\Models\Department;
+use Aero\HRM\Models\Job;
+use Aero\HRM\Models\JobApplication;
+use Aero\HRM\Models\JobApplicationStageHistory;
+use Aero\HRM\Models\JobHiringStage;
+use Aero\HRM\Models\JobInterview;
+use Aero\HRM\Models\JobOffer;
 use Aero\HRMAC\Facades\HRMAC;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class RecruitmentController extends Controller

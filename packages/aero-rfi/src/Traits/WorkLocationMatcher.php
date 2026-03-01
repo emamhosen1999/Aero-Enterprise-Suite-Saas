@@ -2,9 +2,9 @@
 
 namespace Aero\Rfi\Traits;
 
+use Aero\Core\Support\TenantCache;
 use Aero\Rfi\Models\WorkLocation;
 use Illuminate\Support\Collection;
-use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\Log;
 
 /**

@@ -2,10 +2,10 @@
 
 namespace Aero\Commerce\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class PaymentGateway extends Model
 {
@@ -16,7 +16,7 @@ class PaymentGateway extends Model
     protected $fillable = [
         'name', 'provider', 'configuration', 'supported_currencies',
         'supported_payment_types', 'transaction_fee_percentage', 'transaction_fee_fixed',
-        'is_active', 'is_sandbox', 'webhook_secret', 'created_by'
+        'is_active', 'is_sandbox', 'webhook_secret', 'created_by',
     ];
 
     protected $casts = [
@@ -31,10 +31,15 @@ class PaymentGateway extends Model
     ];
 
     const PROVIDER_STRIPE = 'stripe';
+
     const PROVIDER_PAYPAL = 'paypal';
+
     const PROVIDER_SQUARE = 'square';
+
     const PROVIDER_BRAINTREE = 'braintree';
+
     const PROVIDER_AUTHORIZE_NET = 'authorize_net';
+
     const PROVIDER_RAZORPAY = 'razorpay';
 
     public function creator()
@@ -65,6 +70,7 @@ class PaymentGateway extends Model
     public function calculateTransactionFee($amount)
     {
         $percentageFee = ($amount * $this->transaction_fee_percentage) / 100;
+
         return $percentageFee + $this->transaction_fee_fixed;
     }
 

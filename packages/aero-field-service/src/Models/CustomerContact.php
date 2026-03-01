@@ -15,7 +15,7 @@ class CustomerContact extends Model
     protected $fillable = [
         'customer_id', 'first_name', 'last_name', 'title', 'department',
         'email', 'phone', 'mobile_phone', 'is_primary', 'can_authorize_work',
-        'receive_notifications', 'preferred_contact_method', 'notes'
+        'receive_notifications', 'preferred_contact_method', 'notes',
     ];
 
     protected $casts = [
@@ -26,7 +26,9 @@ class CustomerContact extends Model
     ];
 
     const CONTACT_EMAIL = 'email';
+
     const CONTACT_PHONE = 'phone';
+
     const CONTACT_MOBILE = 'mobile';
 
     public function customer()
@@ -36,7 +38,7 @@ class CustomerContact extends Model
 
     public function getFullNameAttribute()
     {
-        return trim($this->first_name . ' ' . $this->last_name);
+        return trim($this->first_name.' '.$this->last_name);
     }
 
     public function scopePrimary($query)

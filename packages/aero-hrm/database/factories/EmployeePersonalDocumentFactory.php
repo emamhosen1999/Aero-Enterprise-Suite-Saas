@@ -2,8 +2,8 @@
 
 namespace Aero\HRM\Database\Factories;
 
-use Aero\HRM\Models\EmployeePersonalDocument;
 use Aero\Core\Models\User;
+use Aero\HRM\Models\EmployeePersonalDocument;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -40,8 +40,8 @@ class EmployeePersonalDocumentFactory extends Factory
             ]),
             'document_type' => $this->faker->randomElement(['passport', 'identity', 'contract', 'certificate', 'visa']),
             'document_number' => strtoupper($this->faker->bothify('??######')),
-            'file_path' => 'documents/' . $this->faker->uuid() . '.pdf',
-            'file_name' => $this->faker->words(3, true) . '.pdf',
+            'file_path' => 'documents/'.$this->faker->uuid().'.pdf',
+            'file_name' => $this->faker->words(3, true).'.pdf',
             'mime_type' => 'application/pdf',
             'file_size_kb' => $this->faker->numberBetween(100, 5000),
             'issue_date' => $issueDate,

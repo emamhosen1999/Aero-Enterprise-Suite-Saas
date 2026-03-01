@@ -26,8 +26,6 @@ class EmployeeTerminated extends BaseHrmEvent
     /**
      * Create a new event instance.
      *
-     * @param  Employee  $employee
-     * @param  \DateTimeInterface  $terminationDate
      * @param  string  $reason  Reason for termination
      * @param  int|null  $actorEmployeeId  Employee ID (HR/Manager) who performed termination
      * @param  bool  $immediate  Whether termination is immediate (no notice)

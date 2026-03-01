@@ -7,10 +7,10 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * GeoFencingService - Anti-Fraud GPS Validation (PATENTABLE)
- * 
+ *
  * Validates that user's GPS coordinates match the claimed chainage location.
  * Prevents fraudulent RFI submissions from remote locations.
- * 
+ *
  * Algorithm: Converts chainage to GPS coordinates using project alignment data,
  * then calculates Haversine distance to verify proximity.
  */
@@ -29,11 +29,11 @@ class GeoFencingService
     /**
      * Validate if user's GPS coordinates are within acceptable range of the claimed chainage
      *
-     * @param float $userLat User's current latitude
-     * @param float $userLng User's current longitude
-     * @param float $claimedChainage The chainage they claim to be at (e.g., 1250.50)
-     * @param int $projectId Project context
-     * @param int|null $toleranceMeters Optional custom tolerance (overrides default 50m)
+     * @param  float  $userLat  User's current latitude
+     * @param  float  $userLng  User's current longitude
+     * @param  float  $claimedChainage  The chainage they claim to be at (e.g., 1250.50)
+     * @param  int  $projectId  Project context
+     * @param  int|null  $toleranceMeters  Optional custom tolerance (overrides default 50m)
      * @return array ['valid' => bool, 'distance' => float, 'message' => string, 'expected_location' => array]
      */
     public function validateLocation(
@@ -48,13 +48,13 @@ class GeoFencingService
         // Get expected GPS coordinates for the claimed chainage
         $expectedLocation = $this->chainageToGps($claimedChainage, $projectId);
 
-        if (!$expectedLocation) {
+        if (! $expectedLocation) {
             return [
                 'valid' => false,
                 'distance' => null,
-                'message' => 'Unable to determine GPS coordinates for chainage ' . $claimedChainage,
+                'message' => 'Unable to determine GPS coordinates for chainage '.$claimedChainage,
                 'expected_location' => null,
-                'reason' => 'missing_alignment_data'
+                'reason' => 'missing_alignment_data',
             ];
         }
 
@@ -77,29 +77,29 @@ class GeoFencingService
             'distance_meters' => round($distance, 2),
             'tolerance_meters' => $tolerance,
             'valid' => $isValid,
-            'timestamp' => now()
+            'timestamp' => now(),
         ]);
 
         return [
             'valid' => $isValid,
             'distance' => round($distance, 2),
-            'message' => $isValid 
-                ? "Location verified within {$tolerance}m radius" 
-                : "Location mismatch: You are " . round($distance - $tolerance) . "m beyond allowed zone",
+            'message' => $isValid
+                ? "Location verified within {$tolerance}m radius"
+                : 'Location mismatch: You are '.round($distance - $tolerance).'m beyond allowed zone',
             'expected_location' => $expectedLocation,
             'tolerance' => $tolerance,
-            'reason' => $isValid ? null : 'outside_geofence'
+            'reason' => $isValid ? null : 'outside_geofence',
         ];
     }
 
     /**
      * Convert chainage to GPS coordinates using project alignment data
-     * 
+     *
      * Uses linear interpolation between known control points along the alignment.
      * For complex curves, supports Bezier curve interpolation.
      *
-     * @param float $chainage Target chainage
-     * @param int $projectId Project context
+     * @param  float  $chainage  Target chainage
+     * @param  int  $projectId  Project context
      * @return array|null ['lat' => float, 'lng' => float, 'elevation' => float]
      */
     private function chainageToGps(float $chainage, int $projectId): ?array
@@ -123,14 +123,14 @@ class GeoFencingService
             if ($point->chainage <= $chainage) {
                 $prevPoint = $point;
             }
-            if ($point->chainage >= $chainage && !$nextPoint) {
+            if ($point->chainage >= $chainage && ! $nextPoint) {
                 $nextPoint = $point;
                 break;
             }
         }
 
         // If chainage is before first point or after last point
-        if (!$prevPoint || !$nextPoint) {
+        if (! $prevPoint || ! $nextPoint) {
             return null;
         }
 
@@ -139,7 +139,7 @@ class GeoFencingService
             return [
                 'lat' => $prevPoint->latitude,
                 'lng' => $prevPoint->longitude,
-                'elevation' => $prevPoint->elevation
+                'elevation' => $prevPoint->elevation,
             ];
         }
 
@@ -149,20 +149,20 @@ class GeoFencingService
         return [
             'lat' => $prevPoint->latitude + ($nextPoint->latitude - $prevPoint->latitude) * $ratio,
             'lng' => $prevPoint->longitude + ($nextPoint->longitude - $prevPoint->longitude) * $ratio,
-            'elevation' => $prevPoint->elevation + ($nextPoint->elevation - $prevPoint->elevation) * $ratio
+            'elevation' => $prevPoint->elevation + ($nextPoint->elevation - $prevPoint->elevation) * $ratio,
         ];
     }
 
     /**
      * Calculate distance between two GPS coordinates using Haversine formula
-     * 
+     *
      * This is the most accurate method for calculating great-circle distances
      * on a sphere from latitude/longitude pairs.
      *
-     * @param float $lat1 First point latitude
-     * @param float $lon1 First point longitude
-     * @param float $lat2 Second point latitude
-     * @param float $lon2 Second point longitude
+     * @param  float  $lat1  First point latitude
+     * @param  float  $lon1  First point longitude
+     * @param  float  $lat2  Second point latitude
+     * @param  float  $lon2  Second point longitude
      * @return float Distance in meters
      */
     private function haversineDistance(float $lat1, float $lon1, float $lat2, float $lon2): float
@@ -189,8 +189,7 @@ class GeoFencingService
     /**
      * Validate multiple locations in batch (e.g., for route verification)
      *
-     * @param array $locations Array of ['lat' => float, 'lng' => float, 'chainage' => float]
-     * @param int $projectId
+     * @param  array  $locations  Array of ['lat' => float, 'lng' => float, 'chainage' => float]
      * @return array Results for each location
      */
     public function validateBatchLocations(array $locations, int $projectId): array
@@ -208,18 +207,16 @@ class GeoFencingService
 
         return [
             'total' => count($locations),
-            'valid' => count(array_filter($results, fn($r) => $r['valid'])),
-            'invalid' => count(array_filter($results, fn($r) => !$r['valid'])),
-            'results' => $results
+            'valid' => count(array_filter($results, fn ($r) => $r['valid'])),
+            'invalid' => count(array_filter($results, fn ($r) => ! $r['valid'])),
+            'results' => $results,
         ];
     }
 
     /**
      * Check if a polygon area is within project boundaries (for excavation permits)
      *
-     * @param array $polygonPoints Array of ['lat' => float, 'lng' => float]
-     * @param int $projectId
-     * @return array
+     * @param  array  $polygonPoints  Array of ['lat' => float, 'lng' => float]
      */
     public function validatePolygonArea(array $polygonPoints, int $projectId): array
     {
@@ -228,31 +225,31 @@ class GeoFencingService
             ->where('id', $projectId)
             ->value('boundary_polygon');
 
-        if (!$projectBoundary) {
+        if (! $projectBoundary) {
             return [
                 'valid' => false,
                 'message' => 'Project boundary not defined',
-                'reason' => 'missing_boundary'
+                'reason' => 'missing_boundary',
             ];
         }
 
         // Use PostGIS ST_Within function for spatial validation
-        $withinBoundary = DB::selectOne("
+        $withinBoundary = DB::selectOne('
             SELECT ST_Within(
                 ST_GeomFromText(?),
                 ST_GeomFromText(?)
             ) as within_boundary
-        ", [
+        ', [
             $this->arrayToWKT($polygonPoints),
-            $projectBoundary
+            $projectBoundary,
         ]);
 
         return [
             'valid' => (bool) $withinBoundary->within_boundary,
-            'message' => $withinBoundary->within_boundary 
-                ? 'Area is within project boundaries' 
+            'message' => $withinBoundary->within_boundary
+                ? 'Area is within project boundaries'
                 : 'Area extends beyond project boundaries',
-            'reason' => $withinBoundary->within_boundary ? null : 'outside_project_boundary'
+            'reason' => $withinBoundary->within_boundary ? null : 'outside_project_boundary',
         ];
     }
 
@@ -261,9 +258,10 @@ class GeoFencingService
      */
     private function arrayToWKT(array $points): string
     {
-        $coordinates = array_map(fn($p) => "{$p['lng']} {$p['lat']}", $points);
+        $coordinates = array_map(fn ($p) => "{$p['lng']} {$p['lat']}", $points);
         // Close the polygon by repeating first point
         $coordinates[] = $coordinates[0];
-        return 'POLYGON((' . implode(', ', $coordinates) . '))';
+
+        return 'POLYGON(('.implode(', ', $coordinates).'))';
     }
 }

@@ -43,7 +43,7 @@ class CheckForcePasswordReset
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return $next($request);
         }
 
@@ -112,7 +112,7 @@ class CheckForcePasswordReset
     {
         $currentRouteName = $request->route()?->getName();
 
-        if (!$currentRouteName) {
+        if (! $currentRouteName) {
             return false;
         }
 

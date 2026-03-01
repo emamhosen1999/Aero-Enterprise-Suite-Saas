@@ -20,26 +20,26 @@ class ApplicationReceivedNotification extends Notification implements ShouldQueu
     public function via($notifiable): array
     {
         $channels = ['database'];
-        
+
         if ($this->isChannelEnabled('mail', $notifiable)) {
             $channels[] = 'mail';
         }
-        
+
         return $channels;
     }
 
     public function toMail($notifiable): MailMessage
     {
         $jobTitle = $this->application->job?->title ?? 'Position';
-        
+
         return (new MailMessage)
-            ->subject('Application Received - ' . $jobTitle)
+            ->subject('Application Received - '.$jobTitle)
             ->greeting("Dear {$this->application->name},")
-            ->line('Thank you for applying to ' . config('app.name') . '!')
+            ->line('Thank you for applying to '.config('app.name').'!')
             ->line("Position: {$jobTitle}")
             ->line('We have received your application and our recruitment team will review it shortly.')
             ->line('If your profile matches our requirements, we will contact you for the next steps.')
-            ->line('Application Reference: ' . $this->application->application_number)
+            ->line('Application Reference: '.$this->application->application_number)
             ->line('Thank you for your interest in joining our team!')
             ->salutation('Best regards, Recruitment Team');
     }
@@ -64,15 +64,15 @@ class ApplicationReceivedNotification extends Notification implements ShouldQueu
         $globalSetting = DB::table('notification_settings')
             ->where('key', "channels.{$channel}.enabled")
             ->first();
-        
-        if (!$globalSetting || !json_decode($globalSetting->value)) {
+
+        if (! $globalSetting || ! json_decode($globalSetting->value)) {
             return false;
         }
-        
+
         if (method_exists($notifiable, 'prefersNotificationChannel')) {
             return $notifiable->prefersNotificationChannel($channel, 'recruitment.application_received');
         }
-        
+
         return true;
     }
 }

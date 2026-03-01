@@ -2,8 +2,8 @@
 
 namespace Aero\HRM\Database\Factories;
 
-use Aero\HRM\Models\Employee;
 use Aero\Core\Models\User;
+use Aero\HRM\Models\Employee;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -27,7 +27,7 @@ class EmployeeFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'employee_code' => 'EMP' . $this->faker->unique()->numberBetween(1000, 9999),
+            'employee_code' => 'EMP'.$this->faker->unique()->numberBetween(1000, 9999),
             'date_of_joining' => $this->faker->dateTimeBetween('-2 years', 'now'),
             'employment_type' => $this->faker->randomElement(['full_time', 'part_time', 'contract', 'intern']),
             'status' => 'active',

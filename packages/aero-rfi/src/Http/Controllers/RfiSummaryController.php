@@ -300,7 +300,6 @@ class RfiSummaryController extends Controller
      * Generate summaries from RFIs collection.
      *
      * @param  \Illuminate\Support\Collection  $rfis
-     * @return array
      */
     private function generateSummariesFromRfis($rfis): array
     {
@@ -344,8 +343,6 @@ class RfiSummaryController extends Controller
 
     /**
      * Refresh summary data.
-     *
-     * @return \Illuminate\Http\JsonResponse
      */
     public function refresh(): JsonResponse
     {

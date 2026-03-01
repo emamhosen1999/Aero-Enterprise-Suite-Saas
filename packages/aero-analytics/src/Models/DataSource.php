@@ -2,10 +2,10 @@
 
 namespace Aero\Analytics\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class DataSource extends Model
 {
@@ -15,7 +15,7 @@ class DataSource extends Model
 
     protected $fillable = [
         'name', 'description', 'source_type', 'connection_config',
-        'schema_config', 'is_active', 'created_by', 'last_sync_at'
+        'schema_config', 'is_active', 'created_by', 'last_sync_at',
     ];
 
     protected $casts = [
@@ -27,9 +27,13 @@ class DataSource extends Model
     ];
 
     const TYPE_DATABASE = 'database';
+
     const TYPE_API = 'api';
+
     const TYPE_FILE = 'file';
+
     const TYPE_WAREHOUSE = 'warehouse';
+
     const TYPE_CLOUD = 'cloud';
 
     public function creator()

@@ -2,10 +2,10 @@
 
 namespace Aero\Education\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class FinancialAid extends Model
 {
@@ -18,7 +18,7 @@ class FinancialAid extends Model
         'awarded_amount', 'disbursed_amount', 'remaining_amount', 'eligibility_status',
         'application_date', 'award_date', 'acceptance_date', 'expiration_date',
         'renewable', 'renewal_criteria', 'gpa_requirement', 'enrollment_requirement',
-        'satisfactory_progress', 'notes', 'created_by'
+        'satisfactory_progress', 'notes', 'created_by',
     ];
 
     protected $casts = [
@@ -39,25 +39,41 @@ class FinancialAid extends Model
     ];
 
     const TYPE_GRANT = 'grant';
+
     const TYPE_SCHOLARSHIP = 'scholarship';
+
     const TYPE_LOAN = 'loan';
+
     const TYPE_WORK_STUDY = 'work_study';
+
     const TYPE_FELLOWSHIP = 'fellowship';
+
     const TYPE_ASSISTANTSHIP = 'assistantship';
 
     const SOURCE_FEDERAL = 'federal';
+
     const SOURCE_STATE = 'state';
+
     const SOURCE_INSTITUTIONAL = 'institutional';
+
     const SOURCE_PRIVATE = 'private';
+
     const SOURCE_EMPLOYER = 'employer';
+
     const SOURCE_FOUNDATION = 'foundation';
 
     const STATUS_ELIGIBLE = 'eligible';
+
     const STATUS_AWARDED = 'awarded';
+
     const STATUS_ACCEPTED = 'accepted';
+
     const STATUS_DECLINED = 'declined';
+
     const STATUS_CANCELLED = 'cancelled';
+
     const STATUS_SUSPENDED = 'suspended';
+
     const STATUS_COMPLETED = 'completed';
 
     public function student()
@@ -87,19 +103,21 @@ class FinancialAid extends Model
 
     public function isRenewable()
     {
-        return $this->renewable && !$this->isExpired();
+        return $this->renewable && ! $this->isExpired();
     }
 
     public function meetsRenewalCriteria()
     {
         $student = $this->student;
-        if (!$student) return false;
-        
+        if (! $student) {
+            return false;
+        }
+
         // Check GPA requirement
         if ($this->gpa_requirement && $student->gpa < $this->gpa_requirement) {
             return false;
         }
-        
+
         // Check enrollment requirement
         if ($this->enrollment_requirement) {
             $currentEnrollment = $student->getCurrentSemesterEnrollmentsAttribute()->sum('credit_hours');
@@ -107,28 +125,30 @@ class FinancialAid extends Model
                 return false;
             }
         }
-        
+
         // Check satisfactory academic progress
         if ($this->satisfactory_progress === false) {
             return false;
         }
-        
+
         return true;
     }
 
     public function calculateDisbursementSchedule($numberOfDisbursements = 2)
     {
-        if (!$this->isActive() || $this->awarded_amount <= 0) {
+        if (! $this->isActive() || $this->awarded_amount <= 0) {
             return [];
         }
-        
+
         $amountPerDisbursement = $this->awarded_amount / $numberOfDisbursements;
         $schedule = [];
-        
+
         // Get current semester
         $currentSemester = AcademicSemester::current();
-        if (!$currentSemester) return [];
-        
+        if (! $currentSemester) {
+            return [];
+        }
+
         // Create disbursement schedule
         for ($i = 0; $i < $numberOfDisbursements; $i++) {
             $disbursementDate = $currentSemester->start_date->addDays($i * 60); // Every 2 months
@@ -138,7 +158,7 @@ class FinancialAid extends Model
                 'amount' => $amountPerDisbursement,
             ];
         }
-        
+
         return $schedule;
     }
 
@@ -154,7 +174,10 @@ class FinancialAid extends Model
 
     public function getDisbursementPercentageAttribute()
     {
-        if ($this->awarded_amount <= 0) return 0;
+        if ($this->awarded_amount <= 0) {
+            return 0;
+        }
+
         return round(($this->getTotalDisbursedAttribute() / $this->awarded_amount) * 100, 2);
     }
 
@@ -186,6 +209,6 @@ class FinancialAid extends Model
     public function scopeExpiring($query, $days = 30)
     {
         return $query->where('expiration_date', '<=', now()->addDays($days))
-                    ->where('expiration_date', '>', now());
+            ->where('expiration_date', '>', now());
     }
 }

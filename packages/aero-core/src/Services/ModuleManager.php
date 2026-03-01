@@ -2,16 +2,16 @@
 
 namespace Aero\Core\Services;
 
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
-use Aero\Core\Support\TenantCache;
 
 /**
  * ModuleManager
- * 
+ *
  * Manages module discovery, registration, and provides access to module metadata.
  * Works in both SaaS (Composer-installed) and Standalone (Runtime-loaded) modes.
- * 
+ *
  * This service:
  * - Scans for module.json files
  * - Provides module information to Blade templates
@@ -22,37 +22,27 @@ class ModuleManager
 {
     /**
      * Modules directory path.
-     *
-     * @var string
      */
     protected string $modulesPath;
 
     /**
      * Packages directory path (for Composer mode).
-     *
-     * @var string
      */
     protected string $packagesPath;
 
     /**
      * Cache key for module registry.
-     *
-     * @var string
      */
     protected string $cacheKey = 'aero_modules_registry';
 
     /**
      * Cache TTL in seconds.
-     *
-     * @var int
      */
     protected int $cacheTtl = 3600; // 1 hour
 
     /**
      * Create a new ModuleManager instance.
      *
-     * @param  string|null  $modulesPath
-     * @param  string|null  $packagesPath
      * @return void
      */
     public function __construct(?string $modulesPath = null, ?string $packagesPath = null)
@@ -63,8 +53,6 @@ class ModuleManager
 
     /**
      * Get all active modules for frontend injection.
-     *
-     * @return array
      */
     public function active(): array
     {
@@ -81,8 +69,6 @@ class ModuleManager
 
     /**
      * Get all modules (active and inactive).
-     *
-     * @return array
      */
     public function all(): array
     {
@@ -91,8 +77,6 @@ class ModuleManager
 
     /**
      * Discover modules from both runtime and packages directories.
-     *
-     * @return array
      */
     protected function discoverModules(): array
     {
@@ -112,7 +96,7 @@ class ModuleManager
         $uniqueModules = [];
         foreach ($modules as $module) {
             $shortName = $module['short_name'];
-            if (!isset($uniqueModules[$shortName])) {
+            if (! isset($uniqueModules[$shortName])) {
                 $uniqueModules[$shortName] = $module;
             }
         }
@@ -122,10 +106,6 @@ class ModuleManager
 
     /**
      * Scan a directory for module.json files.
-     *
-     * @param  string  $directory
-     * @param  string  $source
-     * @return array
      */
     protected function scanDirectory(string $directory, string $source): array
     {
@@ -133,7 +113,7 @@ class ModuleManager
         $directories = File::directories($directory);
 
         foreach ($directories as $dir) {
-            $moduleJsonPath = $dir . '/module.json';
+            $moduleJsonPath = $dir.'/module.json';
 
             if (File::exists($moduleJsonPath)) {
                 try {
@@ -153,9 +133,6 @@ class ModuleManager
 
     /**
      * Validate module configuration.
-     *
-     * @param  array  $config
-     * @return bool
      */
     protected function isValidModuleConfig(array $config): bool
     {
@@ -166,11 +143,6 @@ class ModuleManager
 
     /**
      * Normalize module configuration for template use.
-     *
-     * @param  array  $config
-     * @param  string  $path
-     * @param  string  $source
-     * @return array
      */
     protected function normalizeModuleConfig(array $config, string $path, string $source): array
     {
@@ -209,9 +181,6 @@ class ModuleManager
 
     /**
      * Get a specific module by name.
-     *
-     * @param  string  $name
-     * @return array|null
      */
     public function get(string $name): ?array
     {
@@ -228,15 +197,12 @@ class ModuleManager
 
     /**
      * Check if a module is enabled.
-     *
-     * @param  string  $name
-     * @return bool
      */
     public function isEnabled(string $name): bool
     {
         $module = $this->get($name);
 
-        if (!$module) {
+        if (! $module) {
             return false;
         }
 
@@ -247,8 +213,6 @@ class ModuleManager
 
     /**
      * Get modules that should be injected in Blade (Standalone mode).
-     *
-     * @return array
      */
     public function getInjectableModules(): array
     {
@@ -259,7 +223,7 @@ class ModuleManager
         }
 
         return array_filter($this->active(), function ($module) {
-            return $module['source'] === 'runtime' && 
+            return $module['source'] === 'runtime' &&
                    $module['enabled'] &&
                    isset($module['assets']['js']) &&
                    $this->assetExists($module['assets']['js']);
@@ -268,9 +232,6 @@ class ModuleManager
 
     /**
      * Check if an asset file exists.
-     *
-     * @param  string  $path
-     * @return bool
      */
     protected function assetExists(string $path): bool
     {
@@ -279,8 +240,6 @@ class ModuleManager
 
     /**
      * Clear module registry cache.
-     *
-     * @return void
      */
     public function clearCache(): void
     {
@@ -293,8 +252,6 @@ class ModuleManager
 
     /**
      * Get module count.
-     *
-     * @return int
      */
     public function count(): int
     {
@@ -303,40 +260,34 @@ class ModuleManager
 
     /**
      * Get enabled module count.
-     *
-     * @return int
      */
     public function enabledCount(): int
     {
-        return count(array_filter($this->all(), fn($m) => $m['enabled']));
+        return count(array_filter($this->all(), fn ($m) => $m['enabled']));
     }
 
     /**
      * Get modules by source.
      *
      * @param  string  $source  'runtime' or 'composer'
-     * @return array
      */
     public function bySource(string $source): array
     {
-        return array_filter($this->all(), fn($m) => $m['source'] === $source);
+        return array_filter($this->all(), fn ($m) => $m['source'] === $source);
     }
 
     /**
      * Check if module has required assets.
-     *
-     * @param  string  $name
-     * @return bool
      */
     public function hasAssets(string $name): bool
     {
         $module = $this->get($name);
 
-        if (!$module) {
+        if (! $module) {
             return false;
         }
 
-        return isset($module['assets']['js']) && 
+        return isset($module['assets']['js']) &&
                $this->assetExists($module['assets']['js']);
     }
 }

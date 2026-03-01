@@ -16,8 +16,11 @@ use Aero\Project\Notifications\BaseProjectNotification;
 class RiskIdentifiedNotification extends BaseProjectNotification
 {
     protected string $eventType = 'project.risk.identified';
+
     protected string $subModuleCode = 'risks';
+
     protected ?string $componentCode = 'risk-register';
+
     protected string $actionCode = 'view';
 
     public function __construct(
@@ -28,8 +31,7 @@ class RiskIdentifiedNotification extends BaseProjectNotification
         public string $severity,
         public string $source,
         public ?int $identifiedByUserId
-    ) {
-    }
+    ) {}
 
     /**
      * Create from RiskIdentified event.
@@ -62,6 +64,7 @@ class RiskIdentifiedNotification extends BaseProjectNotification
     protected function getMailLine(): string
     {
         $sourceText = $this->source === 'ai_prediction' ? 'AI has detected' : 'A new';
+
         return "{$sourceText} {$this->severity} severity risk '{$this->title}' has been identified in project '{$this->projectName}'.";
     }
 

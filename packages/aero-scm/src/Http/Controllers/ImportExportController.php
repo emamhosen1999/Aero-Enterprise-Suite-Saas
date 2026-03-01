@@ -2,10 +2,10 @@
 
 namespace Aero\Scm\Http\Controllers;
 
-use Illuminate\Routing\Controller;
-use App\Models\Tenant\SCM$1
-use App\Models\Tenant\SCM$1
+use Aero\Scm\Models\CustomsDeclaration;
+use Aero\Scm\Models\TradeDocument;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;

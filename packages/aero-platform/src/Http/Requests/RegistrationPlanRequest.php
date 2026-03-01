@@ -23,16 +23,17 @@ class RegistrationPlanRequest extends FormRequest
      */
     public function rules(): array
     {
-        $allowedModules = array_values(array_filter(array_map(
-            static fn ($module) => $module['code'] ?? null,
-            config('platform.registration.modules', [])
-        )));
-
         return [
             'billing_cycle' => ['required', Rule::in(['monthly', 'yearly'])],
-            'plan_id' => ['nullable', 'string', 'uuid', 'exists:plans,id'],
+            // Fix #22: Restrict to active plans only (inactive/archived plans must not be selectable).
+            'plan_id' => ['nullable', 'string', Rule::exists('plans', 'id')->where('is_active', true)],
             'modules' => ['nullable', 'array'],
-            'modules.*' => ['string', Rule::in($allowedModules)],
+            // Module codes are alphanumeric identifiers (e.g. 'hrm', 'crm').
+            // Per-plan module whitelisting is enforced in withValidator() below.
+            // We intentionally do not restrict to a DB-driven list here because
+            // discovered modules come from Composer packages and are not necessarily
+            // registered in any plan — the controller handles final filtering.
+            'modules.*' => ['string', 'max:100', 'regex:/^[a-z0-9_-]+$/'],
             'notes' => ['nullable', 'string', 'max:500'],
         ];
     }

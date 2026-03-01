@@ -81,7 +81,7 @@ class AddPersonalInfoToEmployeesTable extends Migration
             $columns = [
                 'birthday', 'gender', 'nationality', 'religion', 'marital_status', 'blood_group',
                 'passport_no', 'passport_expiry', 'visa_no', 'visa_expiry', 'emirates_id', 'emirates_id_expiry',
-                'joining_date', 'probation_period_months', 'contract_start_date', 'contract_end_date'
+                'joining_date', 'probation_period_months', 'contract_start_date', 'contract_end_date',
             ];
 
             foreach ($columns as $column) {

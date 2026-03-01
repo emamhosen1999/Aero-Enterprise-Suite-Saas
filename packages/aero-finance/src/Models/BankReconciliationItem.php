@@ -13,7 +13,7 @@ class BankReconciliationItem extends Model
 
     protected $fillable = [
         'bank_reconciliation_id', 'bank_transaction_id', 'journal_entry_id',
-        'item_type', 'amount', 'description', 'is_cleared'
+        'item_type', 'amount', 'description', 'is_cleared',
     ];
 
     protected $casts = [
@@ -25,10 +25,15 @@ class BankReconciliationItem extends Model
     ];
 
     const TYPE_DEPOSIT_IN_TRANSIT = 'deposit_in_transit';
+
     const TYPE_OUTSTANDING_CHECK = 'outstanding_check';
+
     const TYPE_BANK_FEE = 'bank_fee';
+
     const TYPE_INTEREST = 'interest';
+
     const TYPE_NSF_CHECK = 'nsf_check';
+
     const TYPE_ERROR = 'error';
 
     public function bankReconciliation()

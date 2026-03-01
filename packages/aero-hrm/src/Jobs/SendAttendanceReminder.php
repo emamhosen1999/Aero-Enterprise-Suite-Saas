@@ -2,11 +2,11 @@
 
 namespace Aero\HRM\Jobs;
 
+use Aero\Core\Models\User;
+use Aero\Core\Services\Notification\FcmNotificationService;
 use Aero\HRM\Models\AttendanceSetting;
 use Aero\HRM\Models\Holiday;
 use Aero\HRM\Models\Leave;
-use Aero\Core\Models\User;
-use Aero\Core\Services\Notification\FcmNotificationService;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;

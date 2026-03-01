@@ -2,8 +2,8 @@
 
 namespace Aero\HRM\Models;
 
-use App\Models\OpportunityActivity;
 use Aero\Core\Models\User;
+use App\Models\OpportunityActivity;
 use App\Models\Tenant\CRM\Customer;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

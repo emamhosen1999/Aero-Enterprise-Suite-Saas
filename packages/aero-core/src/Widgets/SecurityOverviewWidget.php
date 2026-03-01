@@ -26,9 +26,13 @@ use Illuminate\Support\Facades\Schema;
 class SecurityOverviewWidget extends AbstractDashboardWidget
 {
     protected string $position = 'sidebar';
+
     protected int $order = 2;
+
     protected int|string $span = 1;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
+
     protected array $requiredPermissions = ['dashboard.view_security'];
 
     public function getKey(): string
@@ -66,13 +70,13 @@ class SecurityOverviewWidget extends AbstractDashboardWidget
 
     /**
      * Get widget data for frontend.
-     * 
+     *
      * Uses optimized queries and 2-minute caching for security stats.
      */
     public function getData(): array
     {
         // Cache security stats for 2 minutes (more frequent updates for security data)
-        return Cache::remember('dashboard.security.' . auth()->id(), 120, function () {
+        return Cache::remember('dashboard.security.'.auth()->id(), 120, function () {
             return $this->fetchSecurityStats();
         });
     }
@@ -83,22 +87,22 @@ class SecurityOverviewWidget extends AbstractDashboardWidget
     protected function fetchSecurityStats(): array
     {
         $user = auth()->user();
-        
+
         // OPTIMIZED: Single query for failed logins
         $failedLoginsToday = $this->getFailedLoginsCount();
-        
+
         // OPTIMIZED: Single query for active sessions
         $activeSessions = $this->getActiveSessionsCount();
-        
+
         // Get user's last login (skip current session)
         $lastLogin = $this->getUserLastLogin($user);
-        
+
         // Get registered devices count
         $registeredDevices = $this->getRegisteredDevicesCount();
-        
+
         // Get security events today
         $securityEventsToday = $this->getSecurityEventsCount();
-        
+
         // Determine alert level based on failed logins
         $alertLevel = 'success'; // Green - all good
         if ($failedLoginsToday > 10) {
@@ -162,9 +166,10 @@ class SecurityOverviewWidget extends AbstractDashboardWidget
         } catch (\Throwable $e) {
             Log::warning('SecurityOverviewWidget: Failed to fetch failed logins count', [
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id()
+                'user_id' => auth()->id(),
             ]);
         }
+
         return 0;
     }
 
@@ -181,9 +186,10 @@ class SecurityOverviewWidget extends AbstractDashboardWidget
             }
         } catch (\Throwable $e) {
             Log::warning('SecurityOverviewWidget: Failed to fetch active sessions', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
+
         return 0;
     }
 
@@ -192,7 +198,7 @@ class SecurityOverviewWidget extends AbstractDashboardWidget
      */
     protected function getUserLastLogin($user): ?string
     {
-        if (!$user) {
+        if (! $user) {
             return null;
         }
 
@@ -204,15 +210,16 @@ class SecurityOverviewWidget extends AbstractDashboardWidget
                     ->orderByDesc('created_at')
                     ->skip(1) // Skip current login
                     ->first();
-                
+
                 return $lastLoginEvent?->created_at;
             }
         } catch (\Throwable $e) {
             Log::warning('SecurityOverviewWidget: Failed to fetch last login', [
                 'error' => $e->getMessage(),
-                'user_id' => $user->id
+                'user_id' => $user->id,
             ]);
         }
+
         return null;
     }
 
@@ -227,9 +234,10 @@ class SecurityOverviewWidget extends AbstractDashboardWidget
             }
         } catch (\Throwable $e) {
             Log::warning('SecurityOverviewWidget: Failed to fetch registered devices', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
+
         return 0;
     }
 
@@ -246,9 +254,10 @@ class SecurityOverviewWidget extends AbstractDashboardWidget
             }
         } catch (\Throwable $e) {
             Log::warning('SecurityOverviewWidget: Failed to fetch security events', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
+
         return 0;
     }
 }

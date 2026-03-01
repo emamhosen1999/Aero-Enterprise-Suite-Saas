@@ -2,10 +2,10 @@
 
 namespace Aero\IoT\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class SensorAlert extends Model
 {
@@ -17,7 +17,7 @@ class SensorAlert extends Model
         'sensor_id', 'sensor_data_id', 'alert_type', 'severity', 'message',
         'threshold_value', 'actual_value', 'alert_data', 'triggered_at',
         'acknowledged_at', 'resolved_at', 'acknowledged_by', 'resolved_by',
-        'status', 'auto_resolve_duration'
+        'status', 'auto_resolve_duration',
     ];
 
     protected $casts = [
@@ -35,21 +35,33 @@ class SensorAlert extends Model
     ];
 
     const TYPE_THRESHOLD_EXCEEDED = 'threshold_exceeded';
+
     const TYPE_OUT_OF_RANGE = 'out_of_range';
+
     const TYPE_RAPID_CHANGE = 'rapid_change';
+
     const TYPE_NO_DATA = 'no_data';
+
     const TYPE_CALIBRATION_NEEDED = 'calibration_needed';
+
     const TYPE_QUALITY_LOW = 'quality_low';
+
     const TYPE_ANOMALY_DETECTED = 'anomaly_detected';
 
     const SEVERITY_LOW = 'low';
+
     const SEVERITY_MEDIUM = 'medium';
+
     const SEVERITY_HIGH = 'high';
+
     const SEVERITY_CRITICAL = 'critical';
 
     const STATUS_ACTIVE = 'active';
+
     const STATUS_ACKNOWLEDGED = 'acknowledged';
+
     const STATUS_RESOLVED = 'resolved';
+
     const STATUS_AUTO_RESOLVED = 'auto_resolved';
 
     public function sensor()
@@ -100,12 +112,13 @@ class SensorAlert extends Model
     public function getDurationAttribute()
     {
         $endTime = $this->resolved_at ?: now();
+
         return $this->triggered_at->diffInMinutes($endTime);
     }
 
     public function getSeverityColorAttribute()
     {
-        return match($this->severity) {
+        return match ($this->severity) {
             self::SEVERITY_LOW => 'success',
             self::SEVERITY_MEDIUM => 'warning',
             self::SEVERITY_HIGH => 'danger',
@@ -116,9 +129,12 @@ class SensorAlert extends Model
 
     public function getVariancePercentageAttribute()
     {
-        if (!$this->threshold_value || $this->threshold_value == 0) return null;
-        
+        if (! $this->threshold_value || $this->threshold_value == 0) {
+            return null;
+        }
+
         $variance = abs($this->actual_value - $this->threshold_value);
+
         return round(($variance / abs($this->threshold_value)) * 100, 2);
     }
 
@@ -129,8 +145,8 @@ class SensorAlert extends Model
             'acknowledged_at' => now(),
             'acknowledged_by' => $user->id,
             'alert_data' => array_merge($this->alert_data ?: [], [
-                'acknowledgment_notes' => $notes
-            ])
+                'acknowledgment_notes' => $notes,
+            ]),
         ]);
     }
 
@@ -141,8 +157,8 @@ class SensorAlert extends Model
             'resolved_at' => now(),
             'resolved_by' => $user->id,
             'alert_data' => array_merge($this->alert_data ?: [], [
-                'resolution_notes' => $notes
-            ])
+                'resolution_notes' => $notes,
+            ]),
         ]);
     }
 
@@ -156,10 +172,10 @@ class SensorAlert extends Model
 
     public function shouldAutoResolve()
     {
-        if (!$this->auto_resolve_duration || $this->isResolved()) {
+        if (! $this->auto_resolve_duration || $this->isResolved()) {
             return false;
         }
-        
+
         return $this->triggered_at->addMinutes($this->auto_resolve_duration) <= now();
     }
 
@@ -206,7 +222,7 @@ class SensorAlert extends Model
     public function scopeAutoResolvable($query)
     {
         return $query->where('status', self::STATUS_ACTIVE)
-                    ->whereNotNull('auto_resolve_duration')
-                    ->whereRaw('DATE_ADD(triggered_at, INTERVAL auto_resolve_duration MINUTE) <= NOW()');
+            ->whereNotNull('auto_resolve_duration')
+            ->whereRaw('DATE_ADD(triggered_at, INTERVAL auto_resolve_duration MINUTE) <= NOW()');
     }
 }

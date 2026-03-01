@@ -20,10 +20,15 @@ use Illuminate\Support\Facades\Auth;
 class PendingInspectionsWidget extends AbstractDashboardWidget
 {
     protected string $position = 'sidebar';
+
     protected int $order = 15;
+
     protected int|string $span = 1;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
+
     protected array $requiredPermissions = ['rfi.dashboard']; // HRMAC format: module.submodule
+
     protected array $dashboards = ['rfi'];
 
     public function getKey(): string
@@ -62,7 +67,7 @@ class PendingInspectionsWidget extends AbstractDashboardWidget
             return true;
         }
 
-        if (!$this->isModuleActive()) {
+        if (! $this->isModuleActive()) {
             return false;
         }
 
@@ -74,7 +79,7 @@ class PendingInspectionsWidget extends AbstractDashboardWidget
     {
         return $this->safeResolve(function () {
             $user = Auth::user();
-            if (!$user) {
+            if (! $user) {
                 return $this->getEmptyState();
             }
 
@@ -88,8 +93,8 @@ class PendingInspectionsWidget extends AbstractDashboardWidget
             // Otherwise filter by their assignments
             $isSuperAdmin = $this->isSuperAdmin();
             $canManageAll = $this->userHasModuleAccess('rfi', 'inspections', 'manage');
-            
-            if (!$isSuperAdmin && !$canManageAll) {
+
+            if (! $isSuperAdmin && ! $canManageAll) {
                 $pendingQuery->where('assigned_user_id', $user->id);
             }
 

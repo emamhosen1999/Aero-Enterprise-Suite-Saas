@@ -248,8 +248,8 @@ class GoalSettingService
      * Get goals for a user by user ID.
      * This is a convenience method that looks up the employee and delegates to getEmployeeGoals.
      *
-     * @param int $userId The user ID
-     * @param array $filters Optional filters (status, type, period, search)
+     * @param  int  $userId  The user ID
+     * @param  array  $filters  Optional filters (status, type, period, search)
      * @return array Goals data with summary
      */
     public function getGoalsForUser(int $userId, array $filters = []): array

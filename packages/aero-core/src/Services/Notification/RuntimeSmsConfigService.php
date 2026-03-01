@@ -29,6 +29,7 @@ class RuntimeSmsConfigService
             $tenancy = app('Stancl\Tenancy\Facades\Tenancy');
             if ($tenancy::initialized()) {
                 $this->applyTenantSmsSettings();
+
                 return;
             }
         }
@@ -47,6 +48,7 @@ class RuntimeSmsConfigService
         // In standalone mode (no Platform), skip platform settings
         if (! class_exists('Aero\Platform\Models\PlatformSetting')) {
             Log::debug('RuntimeSmsConfigService: Platform not installed, skipping platform SMS settings');
+
             return;
         }
 

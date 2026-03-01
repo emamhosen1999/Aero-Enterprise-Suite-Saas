@@ -3,8 +3,8 @@
 namespace AeroHRM\Tests\Unit\Models;
 
 use AeroHRM\Models\Asset;
-use AeroHRM\Models\AssetCategory;
 use AeroHRM\Models\AssetAllocation;
+use AeroHRM\Models\AssetCategory;
 use AeroHRM\Models\Employee;
 use AeroHRM\Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -13,7 +13,7 @@ class AssetModelTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_has_correct_status_workflow_states()
     {
         $validStatuses = ['available', 'allocated', 'maintenance', 'retired', 'lost'];
@@ -24,18 +24,18 @@ class AssetModelTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_auto_generates_unique_asset_tag_on_creation()
     {
         $asset1 = Asset::factory()->create();
         $asset2 = Asset::factory()->create();
 
         $this->assertNotEquals($asset1->asset_tag, $asset2->asset_tag);
-        $this->assertStringStartsWith('AST' . date('Y'), $asset1->asset_tag);
-        $this->assertStringStartsWith('AST' . date('Y'), $asset2->asset_tag);
+        $this->assertStringStartsWith('AST'.date('Y'), $asset1->asset_tag);
+        $this->assertStringStartsWith('AST'.date('Y'), $asset2->asset_tag);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_belongs_to_category_and_has_allocations()
     {
         $category = AssetCategory::factory()->create();
@@ -43,7 +43,7 @@ class AssetModelTest extends TestCase
             'asset_category_id' => $category->id,
         ]);
         $employee = Employee::factory()->create();
-        
+
         $allocation = AssetAllocation::factory()->create([
             'asset_id' => $asset->id,
             'employee_id' => $employee->id,
@@ -55,7 +55,7 @@ class AssetModelTest extends TestCase
         $this->assertInstanceOf(AssetAllocation::class, $asset->allocations->first());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_check_if_asset_can_be_allocated()
     {
         $availableAsset = Asset::factory()->create(['status' => 'available']);
@@ -67,7 +67,7 @@ class AssetModelTest extends TestCase
         $this->assertFalse($maintenanceAsset->canBeAllocated());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_check_if_asset_is_allocated()
     {
         $availableAsset = Asset::factory()->create(['status' => 'available']);
@@ -77,7 +77,7 @@ class AssetModelTest extends TestCase
         $this->assertTrue($allocatedAsset->isAllocated());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_tracks_current_allocation()
     {
         $asset = Asset::factory()->create();
@@ -99,7 +99,7 @@ class AssetModelTest extends TestCase
         $this->assertEquals($employee->id, $activeAllocation->employee_id);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_soft_deletes_correctly()
     {
         $asset = Asset::factory()->create();

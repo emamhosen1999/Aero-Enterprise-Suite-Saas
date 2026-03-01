@@ -2,10 +2,10 @@
 
 namespace Aero\Finance\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class PurchaseOrder extends Model
 {
@@ -15,9 +15,9 @@ class PurchaseOrder extends Model
 
     protected $fillable = [
         'po_number', 'vendor_id', 'order_date', 'expected_date',
-        'subtotal', 'tax_amount', 'total_amount', 'status', 
+        'subtotal', 'tax_amount', 'total_amount', 'status',
         'currency', 'exchange_rate', 'payment_terms', 'notes',
-        'shipping_address', 'created_by', 'approved_by', 'approved_at'
+        'shipping_address', 'created_by', 'approved_by', 'approved_at',
     ];
 
     protected $casts = [
@@ -34,11 +34,17 @@ class PurchaseOrder extends Model
     ];
 
     const STATUS_DRAFT = 'draft';
+
     const STATUS_SUBMITTED = 'submitted';
+
     const STATUS_APPROVED = 'approved';
+
     const STATUS_SENT = 'sent';
+
     const STATUS_PARTIAL = 'partial';
+
     const STATUS_RECEIVED = 'received';
+
     const STATUS_CANCELLED = 'cancelled';
 
     public function vendor()

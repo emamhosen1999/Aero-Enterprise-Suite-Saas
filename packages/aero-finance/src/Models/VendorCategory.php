@@ -13,7 +13,7 @@ class VendorCategory extends Model
     protected $table = 'finance_vendor_categories';
 
     protected $fillable = [
-        'name', 'description', 'default_payment_terms', 'is_active'
+        'name', 'description', 'default_payment_terms', 'is_active',
     ];
 
     protected $casts = [

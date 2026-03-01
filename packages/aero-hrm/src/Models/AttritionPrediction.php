@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Attrition Prediction Model
- * 
+ *
  * Tracks historical attrition predictions for each employee.
  * Used for model accuracy tracking and trend analysis.
  */
@@ -45,7 +45,7 @@ class AttritionPrediction extends Model
     public function getRiskLevelAttribute(): string
     {
         $probability = $this->predicted_probability;
-        
+
         if ($probability >= 0.75) {
             return 'critical';
         } elseif ($probability >= 0.50) {
@@ -53,7 +53,7 @@ class AttritionPrediction extends Model
         } elseif ($probability >= 0.25) {
             return 'medium';
         }
-        
+
         return 'low';
     }
 
@@ -61,7 +61,7 @@ class AttritionPrediction extends Model
     {
         $factors = $this->feature_importance ?? [];
         arsort($factors);
-        
+
         return array_slice($factors, 0, 5, true);
     }
 }

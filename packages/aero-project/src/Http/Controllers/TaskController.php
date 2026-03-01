@@ -30,7 +30,7 @@ class TaskController extends Controller
         // Note: Report model reference removed as it should be in its own package
         // $reports = Report::all();
         // $reports_with_tasks = Report::with('tasks')->has('tasks')->get();
-        
+
         // Get users with project module access for in-charges
         $incharges = $this->getUsersWithProjectAccess();
         $users = User::with('roles')->get();

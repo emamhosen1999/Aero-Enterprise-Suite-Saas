@@ -2,8 +2,8 @@
 
 namespace Aero\HRM\Http\Controllers\Disciplinary;
 
-use App\Http\Controllers\Controller;
 use Aero\HRM\Models\DisciplinaryActionType;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -45,7 +45,7 @@ class ActionTypeController extends Controller
         $actionType = DisciplinaryActionType::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'sometimes|string|max:255|unique:disciplinary_action_types,name,' . $id,
+            'name' => 'sometimes|string|max:255|unique:disciplinary_action_types,name,'.$id,
             'description' => 'nullable|string',
             'severity_level' => 'sometimes|integer|min:1|max:5',
             'is_active' => 'boolean',

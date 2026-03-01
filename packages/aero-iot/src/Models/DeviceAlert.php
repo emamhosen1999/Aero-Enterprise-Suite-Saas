@@ -2,10 +2,10 @@
 
 namespace Aero\IoT\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class DeviceAlert extends Model
 {
@@ -17,7 +17,7 @@ class DeviceAlert extends Model
         'device_id', 'alert_type', 'severity', 'title', 'message',
         'alert_data', 'triggered_at', 'acknowledged_at', 'resolved_at',
         'acknowledged_by', 'resolved_by', 'status', 'notification_sent',
-        'escalation_level', 'auto_resolve'
+        'escalation_level', 'auto_resolve',
     ];
 
     protected $casts = [
@@ -34,24 +34,39 @@ class DeviceAlert extends Model
     ];
 
     const TYPE_DEVICE_OFFLINE = 'device_offline';
+
     const TYPE_LOW_BATTERY = 'low_battery';
+
     const TYPE_SENSOR_FAULT = 'sensor_fault';
+
     const TYPE_CONNECTIVITY = 'connectivity';
+
     const TYPE_TEMPERATURE = 'temperature';
+
     const TYPE_THRESHOLD = 'threshold';
+
     const TYPE_MAINTENANCE = 'maintenance';
+
     const TYPE_SECURITY = 'security';
+
     const TYPE_PERFORMANCE = 'performance';
+
     const TYPE_ANOMALY = 'anomaly';
 
     const SEVERITY_LOW = 'low';
+
     const SEVERITY_MEDIUM = 'medium';
+
     const SEVERITY_HIGH = 'high';
+
     const SEVERITY_CRITICAL = 'critical';
 
     const STATUS_ACTIVE = 'active';
+
     const STATUS_ACKNOWLEDGED = 'acknowledged';
+
     const STATUS_RESOLVED = 'resolved';
+
     const STATUS_SUPPRESSED = 'suppressed';
 
     public function device()
@@ -97,6 +112,7 @@ class DeviceAlert extends Model
     public function getDurationAttribute()
     {
         $endTime = $this->resolved_at ?: now();
+
         return $this->triggered_at->diffInMinutes($endTime);
     }
 
@@ -107,7 +123,7 @@ class DeviceAlert extends Model
 
     public function getSeverityColorAttribute()
     {
-        return match($this->severity) {
+        return match ($this->severity) {
             self::SEVERITY_LOW => 'success',
             self::SEVERITY_MEDIUM => 'warning',
             self::SEVERITY_HIGH => 'danger',
@@ -118,7 +134,7 @@ class DeviceAlert extends Model
 
     public function getStatusColorAttribute()
     {
-        return match($this->status) {
+        return match ($this->status) {
             self::STATUS_ACTIVE => 'danger',
             self::STATUS_ACKNOWLEDGED => 'warning',
             self::STATUS_RESOLVED => 'success',
@@ -136,7 +152,7 @@ class DeviceAlert extends Model
             'alert_data' => array_merge($this->alert_data ?: [], [
                 'acknowledgment_notes' => $notes,
                 'acknowledged_at' => now()->toISOString(),
-            ])
+            ]),
         ]);
     }
 
@@ -149,7 +165,7 @@ class DeviceAlert extends Model
             'alert_data' => array_merge($this->alert_data ?: [], [
                 'resolution_notes' => $notes,
                 'resolved_at' => now()->toISOString(),
-            ])
+            ]),
         ]);
     }
 
@@ -160,20 +176,20 @@ class DeviceAlert extends Model
             'alert_data' => array_merge($this->alert_data ?: [], [
                 'escalated_at' => now()->toISOString(),
                 'escalation_level' => $this->escalation_level,
-            ])
+            ]),
         ]);
     }
 
     public function suppress($duration = null)
     {
         $suppressedUntil = $duration ? now()->addMinutes($duration) : null;
-        
+
         $this->update([
             'status' => self::STATUS_SUPPRESSED,
             'alert_data' => array_merge($this->alert_data ?: [], [
                 'suppressed_at' => now()->toISOString(),
                 'suppressed_until' => $suppressedUntil?->toISOString(),
-            ])
+            ]),
         ]);
     }
 

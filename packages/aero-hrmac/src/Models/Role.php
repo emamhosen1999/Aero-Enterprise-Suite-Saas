@@ -184,9 +184,9 @@ class Role extends Model
                     $q->where('module_id', $module->id)
                         ->whereNull('sub_module_id');
                 })
-                ->orWhere(function ($q) use ($subModule) {
-                    $q->where('sub_module_id', $subModule->id);
-                });
+                    ->orWhere(function ($q) use ($subModule) {
+                        $q->where('sub_module_id', $subModule->id);
+                    });
             })
             ->exists();
     }
@@ -237,20 +237,20 @@ class Role extends Model
                         ->whereNull('action_id');
                 })
                 // SubModule level access
-                ->orWhere(function ($q) use ($subModule) {
-                    $q->where('sub_module_id', $subModule->id)
-                        ->whereNull('component_id')
-                        ->whereNull('action_id');
-                })
+                    ->orWhere(function ($q) use ($subModule) {
+                        $q->where('sub_module_id', $subModule->id)
+                            ->whereNull('component_id')
+                            ->whereNull('action_id');
+                    })
                 // Component level access
-                ->orWhere(function ($q) use ($component) {
-                    $q->where('component_id', $component->id)
-                        ->whereNull('action_id');
-                })
+                    ->orWhere(function ($q) use ($component) {
+                        $q->where('component_id', $component->id)
+                            ->whereNull('action_id');
+                    })
                 // Specific action access
-                ->orWhere(function ($q) use ($action) {
-                    $q->where('action_id', $action->id);
-                });
+                    ->orWhere(function ($q) use ($action) {
+                        $q->where('action_id', $action->id);
+                    });
             })
             ->exists();
     }

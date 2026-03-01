@@ -19,38 +19,56 @@ class PerformanceReviewService
      * Review types.
      */
     public const TYPE_ANNUAL = 'annual';
+
     public const TYPE_MID_YEAR = 'mid_year';
+
     public const TYPE_QUARTERLY = 'quarterly';
+
     public const TYPE_PROBATION = 'probation';
+
     public const TYPE_PROJECT = 'project';
+
     public const TYPE_CONTINUOUS = 'continuous';
 
     /**
      * Review statuses.
      */
     public const STATUS_DRAFT = 'draft';
+
     public const STATUS_SELF_REVIEW = 'self_review';
+
     public const STATUS_PEER_REVIEW = 'peer_review';
+
     public const STATUS_MANAGER_REVIEW = 'manager_review';
+
     public const STATUS_CALIBRATION = 'calibration';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_ACKNOWLEDGED = 'acknowledged';
 
     /**
      * Reviewer types for 360-degree.
      */
     public const REVIEWER_SELF = 'self';
+
     public const REVIEWER_MANAGER = 'manager';
+
     public const REVIEWER_PEER = 'peer';
+
     public const REVIEWER_DIRECT_REPORT = 'direct_report';
+
     public const REVIEWER_EXTERNAL = 'external';
 
     /**
      * Rating scales.
      */
     public const SCALE_5_POINT = '5_point';
+
     public const SCALE_4_POINT = '4_point';
+
     public const SCALE_10_POINT = '10_point';
+
     public const SCALE_CUSTOM = 'custom';
 
     /**
@@ -349,7 +367,7 @@ class PerformanceReviewService
         ];
 
         // Manager
-        if (!empty($data['manager_id'])) {
+        if (! empty($data['manager_id'])) {
             $reviewers[] = [
                 'id' => Str::uuid()->toString(),
                 'reviewer_id' => $data['manager_id'],
@@ -436,6 +454,7 @@ class PerformanceReviewService
     protected function getRatingLabel(float $rating): string
     {
         $roundedRating = (int) round($rating);
+
         return $this->ratingLabels[$roundedRating] ?? 'Unknown';
     }
 

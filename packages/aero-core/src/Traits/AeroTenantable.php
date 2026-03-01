@@ -8,10 +8,10 @@ use Illuminate\Database\Eloquent\Scope;
 
 /**
  * AeroTenantable Trait
- * 
+ *
  * Provides tenant isolation that works in both SaaS (with stancl/tenancy)
  * and Standalone (without tenancy package) modes.
- * 
+ *
  * This trait safely checks for the presence of tenancy dependencies and
  * applies appropriate scoping based on the runtime environment.
  */
@@ -19,21 +19,17 @@ trait AeroTenantable
 {
     /**
      * Boot the AeroTenantable trait for a model.
-     *
-     * @return void
      */
     public static function bootAeroTenantable(): void
     {
         // Only apply scoping if we're in a tenant context
         if (static::shouldApplyTenantScope()) {
-            static::addGlobalScope(new AeroTenantScope());
+            static::addGlobalScope(new AeroTenantScope);
         }
     }
 
     /**
      * Get the name of the tenant key column.
-     *
-     * @return string
      */
     public function getTenantKeyName(): string
     {
@@ -42,8 +38,6 @@ trait AeroTenantable
 
     /**
      * Get the current tenant identifier.
-     *
-     * @return int|string|null
      */
     public static function getCurrentTenantId(): int|string|null
     {
@@ -63,13 +57,11 @@ trait AeroTenantable
 
     /**
      * Determine if tenant scoping should be applied.
-     *
-     * @return bool
      */
     protected static function shouldApplyTenantScope(): bool
     {
         // Don't apply if model explicitly disables it
-        if (property_exists(static::class, 'tenantable') && !static::$tenantable) {
+        if (property_exists(static::class, 'tenantable') && ! static::$tenantable) {
             return false;
         }
 
@@ -84,8 +76,6 @@ trait AeroTenantable
 
     /**
      * Check if stancl/tenancy package is active.
-     *
-     * @return bool
      */
     protected static function isTenancyPackageActive(): bool
     {
@@ -95,19 +85,17 @@ trait AeroTenantable
 
     /**
      * Get tenant ID from stancl/tenancy.
-     *
-     * @return int|string|null
      */
     protected static function getTenantIdFromStancl(): int|string|null
     {
-        if (!function_exists('tenant')) {
+        if (! function_exists('tenant')) {
             return null;
         }
 
         try {
             $tenant = tenant();
-            
-            if (!$tenant) {
+
+            if (! $tenant) {
                 return null;
             }
 
@@ -121,8 +109,6 @@ trait AeroTenantable
 
     /**
      * Check if aero-platform is active.
-     *
-     * @return bool
      */
     protected static function isPlatformActive(): bool
     {
@@ -132,8 +118,6 @@ trait AeroTenantable
 
     /**
      * Get tenant ID from aero-platform context.
-     *
-     * @return int|string|null
      */
     protected static function getTenantIdFromPlatform(): int|string|null
     {
@@ -152,8 +136,6 @@ trait AeroTenantable
 
     /**
      * Get standalone mode tenant ID.
-     *
-     * @return int
      */
     protected static function getStandaloneTenantId(): int
     {
@@ -162,8 +144,6 @@ trait AeroTenantable
 
     /**
      * Determine if we're in central/landlord context.
-     *
-     * @return bool
      */
     protected static function isInCentralContext(): bool
     {
@@ -186,8 +166,6 @@ trait AeroTenantable
 
     /**
      * Create a new model instance without tenant scoping.
-     *
-     * @return \Illuminate\Database\Eloquent\Builder
      */
     public static function withoutTenantScope(): Builder
     {
@@ -196,8 +174,6 @@ trait AeroTenantable
 
     /**
      * Create a new model instance for all tenants.
-     *
-     * @return \Illuminate\Database\Eloquent\Builder
      */
     public static function allTenants(): Builder
     {
@@ -207,17 +183,13 @@ trait AeroTenantable
 
 /**
  * AeroTenantScope
- * 
+ *
  * Global scope that automatically filters queries by tenant_id.
  */
 class AeroTenantScope implements Scope
 {
     /**
      * Apply the scope to a given Eloquent query builder.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $builder
-     * @param  \Illuminate\Database\Eloquent\Model  $model
-     * @return void
      */
     public function apply(Builder $builder, Model $model): void
     {
@@ -230,9 +202,6 @@ class AeroTenantScope implements Scope
 
     /**
      * Extend the query builder with custom methods.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $builder
-     * @return void
      */
     public function extend(Builder $builder): void
     {
@@ -243,12 +212,9 @@ class AeroTenantScope implements Scope
 
     /**
      * Get the qualified tenant key name.
-     *
-     * @param  \Illuminate\Database\Eloquent\Model  $model
-     * @return string
      */
     protected function getQualifiedTenantKeyName(Model $model): string
     {
-        return $model->getTable() . '.' . $model->getTenantKeyName();
+        return $model->getTable().'.'.$model->getTenantKeyName();
     }
 }

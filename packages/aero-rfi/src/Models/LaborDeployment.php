@@ -58,7 +58,7 @@ class LaborDeployment extends Model
      */
     public function getProductivityPerManHourAttribute(): ?float
     {
-        if (!$this->productivity_rate || $this->man_hours == 0) {
+        if (! $this->productivity_rate || $this->man_hours == 0) {
             return null;
         }
 

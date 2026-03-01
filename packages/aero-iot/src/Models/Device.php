@@ -2,10 +2,10 @@
 
 namespace Aero\IoT\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class Device extends Model
 {
@@ -20,7 +20,7 @@ class Device extends Model
         'connection_type', 'network_id', 'last_seen', 'battery_level',
         'signal_strength', 'configuration', 'metadata', 'is_active',
         'installation_date', 'warranty_expiry', 'maintenance_schedule',
-        'created_by'
+        'created_by',
     ];
 
     protected $casts = [
@@ -41,18 +41,29 @@ class Device extends Model
     ];
 
     const STATUS_ONLINE = 'online';
+
     const STATUS_OFFLINE = 'offline';
+
     const STATUS_MAINTENANCE = 'maintenance';
+
     const STATUS_ERROR = 'error';
+
     const STATUS_DECOMMISSIONED = 'decommissioned';
+
     const STATUS_PROVISIONING = 'provisioning';
 
     const CONNECTION_WIFI = 'wifi';
+
     const CONNECTION_ETHERNET = 'ethernet';
+
     const CONNECTION_CELLULAR = 'cellular';
+
     const CONNECTION_BLUETOOTH = 'bluetooth';
+
     const CONNECTION_LORA = 'lora';
+
     const CONNECTION_ZIGBEE = 'zigbee';
+
     const CONNECTION_MQTT = 'mqtt';
 
     public function deviceType()
@@ -123,37 +134,42 @@ class Device extends Model
     public function getUptimePercentageAttribute()
     {
         $totalTime = now()->diffInMinutes($this->created_at);
-        if ($totalTime === 0) return 100;
-        
+        if ($totalTime === 0) {
+            return 100;
+        }
+
         $downtime = $this->telemetryData()
-                        ->where('metric_name', 'uptime')
-                        ->where('metric_value', '0')
-                        ->count();
-        
+            ->where('metric_name', 'uptime')
+            ->where('metric_value', '0')
+            ->count();
+
         return round((($totalTime - $downtime) / $totalTime) * 100, 2);
     }
 
     public function getLocationDescriptionAttribute()
     {
         if ($this->latitude && $this->longitude) {
-            return $this->location_name . ' (' . $this->latitude . ', ' . $this->longitude . ')';
+            return $this->location_name.' ('.$this->latitude.', '.$this->longitude.')';
         }
+
         return $this->location_name ?: 'Location not set';
     }
 
     public function getLatestTelemetryAttribute()
     {
         return $this->telemetryData()
-                   ->orderBy('timestamp', 'desc')
-                   ->limit(10)
-                   ->get();
+            ->orderBy('timestamp', 'desc')
+            ->limit(10)
+            ->get();
     }
 
     public function getBatteryStatusAttribute()
     {
-        if (!$this->battery_level) return 'N/A';
-        
-        return match(true) {
+        if (! $this->battery_level) {
+            return 'N/A';
+        }
+
+        return match (true) {
             $this->battery_level >= 80 => 'Excellent',
             $this->battery_level >= 60 => 'Good',
             $this->battery_level >= 40 => 'Fair',
@@ -164,9 +180,11 @@ class Device extends Model
 
     public function getSignalQualityAttribute()
     {
-        if (!$this->signal_strength) return 'N/A';
-        
-        return match(true) {
+        if (! $this->signal_strength) {
+            return 'N/A';
+        }
+
+        return match (true) {
             $this->signal_strength >= -50 => 'Excellent',
             $this->signal_strength >= -60 => 'Good',
             $this->signal_strength >= -70 => 'Fair',
@@ -222,7 +240,7 @@ class Device extends Model
 
     public function scopeByLocation($query, $location)
     {
-        return $query->where('location_name', 'like', '%' . $location . '%');
+        return $query->where('location_name', 'like', '%'.$location.'%');
     }
 
     public function scopeRecentlyActive($query, $minutes = 30)
@@ -233,6 +251,6 @@ class Device extends Model
     public function scopeLowBattery($query, $threshold = 20)
     {
         return $query->where('battery_level', '<=', $threshold)
-                    ->whereNotNull('battery_level');
+            ->whereNotNull('battery_level');
     }
 }

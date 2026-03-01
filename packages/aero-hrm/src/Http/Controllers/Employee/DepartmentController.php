@@ -2,9 +2,9 @@
 
 namespace Aero\HRM\Http\Controllers\Employee;
 
-use Aero\HRM\Models\Department;
-use Aero\HRM\Http\Controllers\Controller;
 use Aero\Core\Models\User;
+use Aero\HRM\Http\Controllers\Controller;
+use Aero\HRM\Models\Department;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -322,8 +322,6 @@ class DepartmentController extends Controller
 
     /**
      * Display the organization chart
-     *
-     * @return \Inertia\Response
      */
     public function orgChart(): \Inertia\Response
     {

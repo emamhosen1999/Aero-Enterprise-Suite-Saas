@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\HRM\Notifications;
 
+use Aero\Core\Models\User;
 use Aero\HRM\Events\EmployeeBirthday;
 use Aero\HRM\Events\WorkAnniversary;
 use Aero\HRM\Jobs\CheckBirthdaysJob;
@@ -12,7 +13,6 @@ use Aero\HRM\Models\Employee;
 use Aero\HRM\Notifications\BirthdayWishNotification;
 use Aero\HRM\Notifications\TeamBirthdayAlertNotification;
 use Aero\HRM\Notifications\WorkAnniversaryNotification;
-use Aero\Core\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
@@ -29,8 +29,11 @@ class BirthdayAnniversaryNotificationUatTest extends TestCase
     use RefreshDatabase;
 
     protected User $employee;
+
     protected User $manager;
+
     protected Employee $employeeRecord;
+
     protected Employee $managerRecord;
 
     protected function setUp(): void
@@ -70,10 +73,10 @@ class BirthdayAnniversaryNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: NOTIF-BD-01
      * Birthday Wish to Employee
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_sends_birthday_wish_to_employee(): void
     {
         Notification::fake();
@@ -99,10 +102,10 @@ class BirthdayAnniversaryNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: NOTIF-BD-02
      * Birthday Alert to Manager
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_sends_birthday_alert_to_manager(): void
     {
         Notification::fake();
@@ -126,16 +129,16 @@ class BirthdayAnniversaryNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: JOB-01
      * Birthday Job Runs and Sends Notifications
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_runs_birthday_job_and_sends_notifications(): void
     {
         Notification::fake();
 
         // Run the birthday check job
-        $job = new CheckBirthdaysJob();
+        $job = new CheckBirthdaysJob;
         $job->handle();
 
         // Assert birthday notification was sent
@@ -153,10 +156,10 @@ class BirthdayAnniversaryNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: NOTIF-AN-01
      * Work Anniversary Notification
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_sends_work_anniversary_notification(): void
     {
         Notification::fake();
@@ -182,10 +185,10 @@ class BirthdayAnniversaryNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: NOTIF-AN-02
      * Milestone Anniversary (5 years)
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_recognizes_milestone_anniversaries(): void
     {
         // Create employee with 5-year anniversary
@@ -212,16 +215,16 @@ class BirthdayAnniversaryNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: JOB-02
      * Anniversary Job Runs and Sends Notifications
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_runs_anniversary_job_and_sends_notifications(): void
     {
         Notification::fake();
 
         // Run the anniversary check job
-        $job = new CheckWorkAnniversariesJob();
+        $job = new CheckWorkAnniversariesJob;
         $job->handle();
 
         // Assert anniversary notification was sent
@@ -234,16 +237,16 @@ class BirthdayAnniversaryNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: JOB-04
      * Job Failure Handling with Retry
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_job_failure_with_retry(): void
     {
         Queue::fake();
 
         // Create a job that will fail
-        $job = new CheckBirthdaysJob();
+        $job = new CheckBirthdaysJob;
 
         // Assert job has retry configuration
         $this->assertEquals(3, $job->tries);
@@ -253,10 +256,10 @@ class BirthdayAnniversaryNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: NOTIF-BD-03 / NOTIF-AN-03
      * No Notification for Inactive Employees
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_does_not_send_notifications_for_inactive_employees(): void
     {
         Notification::fake();
@@ -269,7 +272,7 @@ class BirthdayAnniversaryNotificationUatTest extends TestCase
         ]);
 
         // Run birthday job
-        $job = new CheckBirthdaysJob();
+        $job = new CheckBirthdaysJob;
         $job->handle();
 
         // Assert no notification sent to inactive employee
@@ -282,10 +285,10 @@ class BirthdayAnniversaryNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: Multiple Birthdays/Anniversaries
      * Bulk Notification Processing
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_multiple_birthdays_on_same_day(): void
     {
         Notification::fake();
@@ -303,7 +306,7 @@ class BirthdayAnniversaryNotificationUatTest extends TestCase
         }
 
         // Run birthday job
-        $job = new CheckBirthdaysJob();
+        $job = new CheckBirthdaysJob;
         $job->handle();
 
         // Assert all received notifications

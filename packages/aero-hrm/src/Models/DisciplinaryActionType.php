@@ -4,8 +4,8 @@ namespace Aero\HRM\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class DisciplinaryActionType extends Model
 {
@@ -31,8 +31,11 @@ class DisciplinaryActionType extends Model
      * Severity constants
      */
     public const SEVERITY_MINOR = 'minor';
+
     public const SEVERITY_MODERATE = 'moderate';
+
     public const SEVERITY_MAJOR = 'major';
+
     public const SEVERITY_CRITICAL = 'critical';
 
     /**

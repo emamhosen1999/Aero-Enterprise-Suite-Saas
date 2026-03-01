@@ -8,10 +8,10 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * RequiresPermit Trait - Automatic PTW Enforcement (PATENTABLE)
- * 
+ *
  * Automatically checks Compliance module for active Permit to Work
  * before allowing model to be saved or approved.
- * 
+ *
  * Prevents unauthorized high-risk work from proceeding.
  */
 trait RequiresPermit
@@ -31,6 +31,7 @@ trait RequiresPermit
             if ($model->isDirty('status') && $model->status === 'approved') {
                 return $model->validatePermitRequirement();
             }
+
             return true;
         });
     }
@@ -38,7 +39,6 @@ trait RequiresPermit
     /**
      * Validate that a valid PTW exists for this work
      *
-     * @return bool
      * @throws \Exception If permit is required but missing
      */
     protected function validatePermitRequirement(): bool
@@ -54,14 +54,14 @@ trait RequiresPermit
         $workDate = $this->work_date ?? $this->created_at ?? now();
         $projectId = $this->project_id ?? null;
 
-        if (!$workType || !$projectId) {
+        if (! $workType || ! $projectId) {
             // If missing context, allow save (to prevent breaking other functionality)
             return true;
         }
 
         // Validate permit
         $permitService = app(PermitValidationService::class);
-        
+
         $validation = $permitService->validatePermit(
             $workType,
             $projectId,
@@ -75,10 +75,10 @@ trait RequiresPermit
             'has_permit' => $validation['has_permit'],
             'permit_id' => $validation['permit']?->id,
             'violations' => $validation['violations'],
-            'validated_at' => now()->toIso8601String()
+            'validated_at' => now()->toIso8601String(),
         ]);
 
-        if (!$validation['has_permit'] && $validation['required']) {
+        if (! $validation['has_permit'] && $validation['required']) {
             // Log the violation
             Log::channel('compliance')->warning('PTW validation failed', [
                 'model' => get_class($this),
@@ -86,20 +86,20 @@ trait RequiresPermit
                 'work_type' => $workType,
                 'project_id' => $projectId,
                 'user_id' => auth()->id(),
-                'violations' => $validation['violations']
+                'violations' => $validation['violations'],
             ]);
 
             // Check if any violations are blocking
-            $hasBlockingViolation = !empty(array_filter(
+            $hasBlockingViolation = ! empty(array_filter(
                 $validation['violations'],
-                fn($v) => $v['blocking'] ?? true
+                fn ($v) => $v['blocking'] ?? true
             ));
 
             if ($hasBlockingViolation && ($this->permitEnforcement ?? true)) {
                 // Block the save/approval
                 $messages = array_column($validation['violations'], 'message');
                 throw new \Exception(
-                    'STOP WORK: ' . implode(' | ', $messages) . 
+                    'STOP WORK: '.implode(' | ', $messages).
                     ' (Contact HSE department to obtain Permit to Work)'
                 );
             }
@@ -157,13 +157,13 @@ trait RequiresPermit
     public function skipPermitValidation(): self
     {
         $this->skipPermitValidation = true;
-        
+
         // Log the override for audit
         Log::channel('compliance')->warning('PTW validation bypassed', [
             'model' => get_class($this),
             'id' => $this->id ?? 'new',
             'user_id' => auth()->id(),
-            'reason' => 'Manual override'
+            'reason' => 'Manual override',
         ]);
 
         return $this;
@@ -176,7 +176,7 @@ trait RequiresPermit
     {
         // Temporarily clear validation status
         $this->permit_validation_status = null;
-        
+
         // Re-run validation
         return $this->validatePermitRequirement();
     }

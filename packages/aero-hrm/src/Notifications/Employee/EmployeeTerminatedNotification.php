@@ -47,7 +47,7 @@ class EmployeeTerminatedNotification extends Notification implements ShouldQueue
             : $notifiable->name;
 
         $mail = (new MailMessage)
-            ->subject('Employment Termination Notice - ' . config('app.name'))
+            ->subject('Employment Termination Notice - '.config('app.name'))
             ->greeting("Dear {$name},")
             ->line('This is to inform you that your employment has been terminated.')
             ->line("Termination Reason: {$this->reason}");

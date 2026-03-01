@@ -23,10 +23,15 @@ use Illuminate\Support\Facades\Schema;
 class UpcomingHolidaysWidget extends AbstractDashboardWidget
 {
     protected string $position = 'main_left';
+
     protected int $order = 3;
+
     protected int|string $span = 1;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::DISPLAY;
+
     protected array $requiredPermissions = [];
+
     protected array $dashboards = ['hrm.employee'];
 
     public function getKey(): string
@@ -87,7 +92,7 @@ class UpcomingHolidaysWidget extends AbstractDashboardWidget
                 foreach ($upcomingHolidays as $holiday) {
                     $holidayDate = \Carbon\Carbon::parse($holiday->date);
                     $daysRemaining = now()->diffInDays($holidayDate, false);
-                    
+
                     $holidays[] = [
                         'id' => $holiday->id,
                         'name' => $holiday->name,

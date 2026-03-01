@@ -4,8 +4,8 @@ namespace Aero\HRM\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Succession Candidate Model
@@ -49,25 +49,35 @@ class SuccessionCandidate extends Model
      * Readiness levels.
      */
     public const READINESS_READY_NOW = 'ready_now';
+
     public const READINESS_READY_1_YEAR = 'ready_1_year';
+
     public const READINESS_READY_2_YEARS = 'ready_2_years';
+
     public const READINESS_READY_3_PLUS = 'ready_3_plus';
+
     public const READINESS_NOT_READY = 'not_ready';
 
     /**
      * Development priorities.
      */
     public const PRIORITY_HIGH = 'high';
+
     public const PRIORITY_MEDIUM = 'medium';
+
     public const PRIORITY_LOW = 'low';
 
     /**
      * Candidate statuses.
      */
     public const STATUS_ACTIVE = 'active';
+
     public const STATUS_IN_DEVELOPMENT = 'in_development';
+
     public const STATUS_ON_HOLD = 'on_hold';
+
     public const STATUS_PROMOTED = 'promoted';
+
     public const STATUS_REMOVED = 'removed';
 
     public function successionPlan(): BelongsTo

@@ -44,9 +44,7 @@ class HRMAuthorizationService
     /**
      * Check if employee has access to a specific HRM sub-module
      *
-     * @param Employee $employee
-     * @param string $subModuleCode (e.g., 'leaves', 'attendance', 'employees')
-     * @return bool
+     * @param  string  $subModuleCode  (e.g., 'leaves', 'attendance', 'employees')
      */
     public function hasModuleAccess(Employee $employee, string $subModuleCode): bool
     {
@@ -60,11 +58,6 @@ class HRMAuthorizationService
 
     /**
      * Check if employee can perform a specific action in a sub-module
-     *
-     * @param Employee $employee
-     * @param string $subModuleCode
-     * @param string $actionCode
-     * @return bool
      */
     public function hasModuleAction(Employee $employee, string $subModuleCode, string $actionCode): bool
     {
@@ -226,7 +219,6 @@ class HRMAuthorizationService
     /**
      * Get IDs of departments this employee can manage
      *
-     * @param Employee $employee
      * @return array<int>
      */
     public function getManagedDepartmentIds(Employee $employee): array
@@ -345,7 +337,6 @@ class HRMAuthorizationService
     /**
      * Get IDs of employees that this employee manages
      *
-     * @param Employee $employee
      * @return array<int>
      */
     public function getManagedEmployeeIds(Employee $employee): array

@@ -3,7 +3,6 @@
 namespace Aero\Compliance\Providers;
 
 use Aero\Core\Providers\AbstractModuleProvider;
-use Aero\Core\Services\NavigationRegistry;
 use Aero\Core\Services\UserRelationshipRegistry;
 use Illuminate\Support\Facades\Gate;
 
@@ -73,7 +72,7 @@ class ComplianceModuleProvider extends AbstractModuleProvider
         // ========================================================================
         // PATENTABLE CORE IP SERVICES - HSE & Safety Automation
         // ========================================================================
-        
+
         // Permit Validation Service - Automatic safety authorization enforcement
         $this->app->singleton(\Aero\Compliance\Services\PermitValidationService::class);
 

@@ -14,6 +14,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Guard against duplicate creation - aero-core creates these tables individually
+        if (Schema::hasTable('modules')) {
+            return;
+        }
+
         Schema::create('modules', function (Blueprint $table) {
             $table->id();
             $table->string('code')->unique()->comment('Unique identifier: hrm, crm, project_mgmt');

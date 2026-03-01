@@ -27,10 +27,10 @@ class ExpenseCategoryController extends Controller
     {
         $perPage = $request->get('perPage', 30);
         $query = ExpenseCategory::orderBy('name');
-        
+
         if ($search = $request->get('search')) {
             $query->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                ->orWhere('description', 'like', "%{$search}%");
         }
 
         return response()->json($query->paginate($perPage));
@@ -57,16 +57,16 @@ class ExpenseCategoryController extends Controller
 
         return response()->json([
             'message' => 'Expense category created successfully',
-            'category' => $category
+            'category' => $category,
         ], 201);
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
         $category = ExpenseCategory::findOrFail($id);
-        
+
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:expense_categories,name,' . $id,
+            'name' => 'required|string|max:255|unique:expense_categories,name,'.$id,
             'description' => 'nullable|string',
             'is_active' => 'boolean',
         ]);
@@ -75,25 +75,25 @@ class ExpenseCategoryController extends Controller
 
         return response()->json([
             'message' => 'Expense category updated successfully',
-            'category' => $category
+            'category' => $category,
         ]);
     }
 
     public function destroy(int $id): JsonResponse
     {
         $category = ExpenseCategory::findOrFail($id);
-        
+
         // Check if category is being used by any expense claims
         if ($category->expenseClaims()->exists()) {
             return response()->json([
-                'message' => 'Cannot delete category that is being used by expense claims'
+                'message' => 'Cannot delete category that is being used by expense claims',
             ], 422);
         }
-        
+
         $category->delete();
 
         return response()->json([
-            'message' => 'Expense category deleted successfully'
+            'message' => 'Expense category deleted successfully',
         ]);
     }
 }

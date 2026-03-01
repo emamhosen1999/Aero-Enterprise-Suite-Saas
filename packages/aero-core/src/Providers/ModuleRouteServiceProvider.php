@@ -3,16 +3,16 @@
 namespace Aero\Core\Providers;
 
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Route;
 
 /**
  * ModuleRouteServiceProvider
- * 
+ *
  * Context-aware route provider that registers module routes based on the runtime environment:
  * - SaaS Mode: Routes are registered with tenant middleware (subdomain-based)
  * - Standalone Mode: Routes are registered with web middleware (root domain)
- * 
+ *
  * This provider automatically detects the presence of aero-platform and adjusts
  * route registration strategy accordingly.
  */
@@ -20,8 +20,6 @@ class ModuleRouteServiceProvider extends ServiceProvider
 {
     /**
      * The modules to register routes for.
-     *
-     * @var array
      */
     protected array $modules = [];
 
@@ -34,14 +32,12 @@ class ModuleRouteServiceProvider extends ServiceProvider
     public function __construct($app)
     {
         parent::__construct($app);
-        
+
         // Don't auto-discover in constructor - defer to boot()
     }
 
     /**
      * Define your route model bindings, pattern filters, etc.
-     *
-     * @return void
      */
     public function boot(): void
     {
@@ -49,21 +45,19 @@ class ModuleRouteServiceProvider extends ServiceProvider
 
         // Auto-discover modules during boot (when app is fully initialized)
         $this->discoverModules();
-        
+
         $this->registerModuleRoutes();
     }
 
     /**
      * Discover available modules from packages directory.
-     *
-     * @return void
      */
     protected function discoverModules(): void
     {
         try {
             $packagesPath = base_path('packages');
-            
-            if (!File::isDirectory($packagesPath)) {
+
+            if (! File::isDirectory($packagesPath)) {
                 return;
             }
 
@@ -71,22 +65,22 @@ class ModuleRouteServiceProvider extends ServiceProvider
 
             foreach ($directories as $directory) {
                 $moduleName = basename($directory);
-                
+
                 // Check if module is installed via Composer
                 if (class_exists(\Composer\InstalledVersions::class)) {
                     // Convert folder name to package name (e.g. aero-hrm -> aero/hrm)
-                    $packageName = 'aero/' . str_replace('aero-', '', $moduleName);
-                    
+                    $packageName = 'aero/'.str_replace('aero-', '', $moduleName);
+
                     // Skip if package is not installed
-                    if (!\Composer\InstalledVersions::isInstalled($packageName) && 
-                        !\Composer\InstalledVersions::isInstalled($moduleName)) {
+                    if (! \Composer\InstalledVersions::isInstalled($packageName) &&
+                        ! \Composer\InstalledVersions::isInstalled($moduleName)) {
                         continue;
                     }
                 }
 
                 // Check if module has routes directory
-                $routesPath = $directory . '/routes';
-                
+                $routesPath = $directory.'/routes';
+
                 if (File::isDirectory($routesPath)) {
                     $this->modules[$moduleName] = [
                         'path' => $directory,
@@ -102,23 +96,18 @@ class ModuleRouteServiceProvider extends ServiceProvider
 
     /**
      * Get the namespace for a module.
-     *
-     * @param  string  $moduleName
-     * @return string
      */
     protected function getModuleNamespace(string $moduleName): string
     {
         // Convert aero-hrm to Aero\Hrm
         $parts = explode('-', $moduleName);
         $namespace = implode('\\', array_map('ucfirst', $parts));
-        
-        return $namespace . '\\Http\\Controllers';
+
+        return $namespace.'\\Http\\Controllers';
     }
 
     /**
      * Register routes for all discovered modules.
-     *
-     * @return void
      */
     protected function registerModuleRoutes(): void
     {
@@ -129,10 +118,6 @@ class ModuleRouteServiceProvider extends ServiceProvider
 
     /**
      * Register routes for a specific module.
-     *
-     * @param  string  $moduleName
-     * @param  array  $moduleData
-     * @return void
      */
     protected function registerRoutesForModule(string $moduleName, array $moduleData): void
     {
@@ -162,11 +147,6 @@ class ModuleRouteServiceProvider extends ServiceProvider
 
     /**
      * Register routes for SaaS mode (with tenant middleware).
-     *
-     * @param  string  $moduleName
-     * @param  string  $routesPath
-     * @param  string  $namespace
-     * @return void
      */
     protected function registerSaaSRoutes(string $moduleName, string $routesPath, string $namespace): void
     {
@@ -175,75 +155,68 @@ class ModuleRouteServiceProvider extends ServiceProvider
         $tenancyMiddleware = \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class;
 
         // Register tenant routes (subdomain-based, requires auth)
-        if (File::exists($routesPath . '/tenant.php')) {
+        if (File::exists($routesPath.'/tenant.php')) {
             Route::middleware(['web', $tenancyMiddleware, 'tenant', 'auth', 'verified'])
-                ->group($routesPath . '/tenant.php');
+                ->group($routesPath.'/tenant.php');
         }
 
         // Register web routes (for tenant routes without auth requirement)
-        if (File::exists($routesPath . '/web.php')) {
+        if (File::exists($routesPath.'/web.php')) {
             Route::middleware(['web', $tenancyMiddleware, 'tenant'])
-                ->group($routesPath . '/web.php');
+                ->group($routesPath.'/web.php');
         }
 
         // Register landlord routes (central domain routes - NO tenancy middleware)
-        if (File::exists($routesPath . '/landlord.php')) {
+        if (File::exists($routesPath.'/landlord.php')) {
             Route::middleware(['web', 'landlord'])
                 ->domain(config('tenancy.central_domains')[0] ?? null)
-                ->group($routesPath . '/landlord.php');
+                ->group($routesPath.'/landlord.php');
         }
 
         // Register API routes (tenant-scoped)
-        if (File::exists($routesPath . '/api.php')) {
+        if (File::exists($routesPath.'/api.php')) {
             Route::middleware(['api', $tenancyMiddleware, 'tenant', 'auth:sanctum'])
                 ->prefix('api')
-                ->group($routesPath . '/api.php');
+                ->group($routesPath.'/api.php');
         }
     }
 
     /**
      * Register routes for Standalone mode (without tenant middleware).
-     *
-     * @param  string  $moduleName
-     * @param  string  $routesPath
-     * @param  string  $namespace
-     * @return void
      */
     protected function registerStandaloneRoutes(string $moduleName, string $routesPath, string $namespace): void
     {
         // In standalone mode, all routes go through standard web middleware
-        
+
         // Register authenticated routes
-        if (File::exists($routesPath . '/tenant.php')) {
+        if (File::exists($routesPath.'/tenant.php')) {
             Route::middleware(['web', 'auth', 'verified'])
-                ->group($routesPath . '/tenant.php');
+                ->group($routesPath.'/tenant.php');
         }
 
         // Register web routes
-        if (File::exists($routesPath . '/web.php')) {
+        if (File::exists($routesPath.'/web.php')) {
             Route::middleware(['web'])
-                ->group($routesPath . '/web.php');
+                ->group($routesPath.'/web.php');
         }
 
         // In standalone, no landlord routes needed
         // But if they exist, register them as regular web routes
-        if (File::exists($routesPath . '/landlord.php')) {
+        if (File::exists($routesPath.'/landlord.php')) {
             Route::middleware(['web', 'auth'])
-                ->group($routesPath . '/landlord.php');
+                ->group($routesPath.'/landlord.php');
         }
 
         // Register API routes
-        if (File::exists($routesPath . '/api.php')) {
+        if (File::exists($routesPath.'/api.php')) {
             Route::middleware(['api', 'auth:sanctum'])
                 ->prefix('api')
-                ->group($routesPath . '/api.php');
+                ->group($routesPath.'/api.php');
         }
     }
 
     /**
      * Determine if aero-platform is active.
-     *
-     * @return bool
      */
     protected function isPlatformActive(): bool
     {
@@ -267,14 +240,13 @@ class ModuleRouteServiceProvider extends ServiceProvider
 
     /**
      * Check if tenancy middleware is available.
-     *
-     * @return bool
      */
     protected function isTenancyMiddlewareAvailable(): bool
     {
         try {
             $middleware = $this->app['router']->getMiddleware();
-            return isset($middleware['tenant']) || 
+
+            return isset($middleware['tenant']) ||
                    class_exists('Stancl\Tenancy\Middleware\InitializeTenancyByDomain');
         } catch (\Throwable $e) {
             return false;
@@ -283,11 +255,6 @@ class ModuleRouteServiceProvider extends ServiceProvider
 
     /**
      * Register a module manually (for testing or dynamic loading).
-     *
-     * @param  string  $moduleName
-     * @param  string  $routesPath
-     * @param  string  $namespace
-     * @return void
      */
     public function registerModule(string $moduleName, string $routesPath, string $namespace): void
     {
@@ -302,8 +269,6 @@ class ModuleRouteServiceProvider extends ServiceProvider
 
     /**
      * Get all registered modules.
-     *
-     * @return array
      */
     public function getRegisteredModules(): array
     {
@@ -342,9 +307,6 @@ class ModuleRouteServiceProvider extends ServiceProvider
 
     /**
      * Check if a module is registered.
-     *
-     * @param  string  $moduleName
-     * @return bool
      */
     public function isModuleRegistered(string $moduleName): bool
     {

@@ -2,10 +2,10 @@
 
 namespace Aero\Finance\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class Bill extends Model
 {
@@ -14,11 +14,11 @@ class Bill extends Model
     protected $table = 'finance_bills';
 
     protected $fillable = [
-        'bill_number', 'vendor_id', 'bill_date', 'due_date', 
-        'subtotal', 'tax_amount', 'total_amount', 'paid_amount', 
-        'status', 'currency', 'exchange_rate', 'notes', 
+        'bill_number', 'vendor_id', 'bill_date', 'due_date',
+        'subtotal', 'tax_amount', 'total_amount', 'paid_amount',
+        'status', 'currency', 'exchange_rate', 'notes',
         'payment_terms', 'reference_number', 'purchase_order_id',
-        'created_by', 'approved_by', 'approved_at'
+        'created_by', 'approved_by', 'approved_at',
     ];
 
     protected $casts = [
@@ -37,11 +37,17 @@ class Bill extends Model
     ];
 
     const STATUS_DRAFT = 'draft';
+
     const STATUS_SUBMITTED = 'submitted';
+
     const STATUS_APPROVED = 'approved';
+
     const STATUS_PARTIAL = 'partial';
+
     const STATUS_PAID = 'paid';
+
     const STATUS_OVERDUE = 'overdue';
+
     const STATUS_CANCELLED = 'cancelled';
 
     public function vendor()

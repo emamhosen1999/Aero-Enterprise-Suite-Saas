@@ -69,6 +69,7 @@ class SmsTemplate extends Model
     public function extractVariables(): array
     {
         preg_match_all('/\{\{\s*(\w+)\s*\}\}/', $this->message, $matches);
+
         return array_unique($matches[1] ?? []);
     }
 }

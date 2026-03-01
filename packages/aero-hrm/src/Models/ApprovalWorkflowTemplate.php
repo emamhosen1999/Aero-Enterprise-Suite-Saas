@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Approval Workflow Template Model
- * 
+ *
  * Defines reusable approval workflow configurations.
  */
 class ApprovalWorkflowTemplate extends Model

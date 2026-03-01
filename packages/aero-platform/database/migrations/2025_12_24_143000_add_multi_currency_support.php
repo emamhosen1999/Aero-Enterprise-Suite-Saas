@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         // Add currency fields to plans table
-        if (!Schema::hasColumn('plans', 'base_currency')) {
+        if (! Schema::hasColumn('plans', 'base_currency')) {
             Schema::table('plans', function (Blueprint $table) {
                 $table->string('base_currency', 3)->default('USD')->after('yearly_price');
                 $table->json('regional_pricing')->nullable()->after('base_currency'); // {"EUR": 89, "GBP": 79, etc.}
@@ -20,7 +20,7 @@ return new class extends Migration
         }
 
         // Add currency and notification branding to tenants table
-        if (!Schema::hasColumn('tenants', 'currency')) {
+        if (! Schema::hasColumn('tenants', 'currency')) {
             Schema::table('tenants', function (Blueprint $table) {
                 $table->string('currency', 3)->default('USD')->after('trial_ends_at');
                 $table->decimal('exchange_rate_at_signup', 10, 6)->default(1.000000)->after('currency');
@@ -28,7 +28,7 @@ return new class extends Migration
         }
 
         // Add notification branding columns (separate check in case currency already exists)
-        if (!Schema::hasColumn('tenants', 'notification_branding')) {
+        if (! Schema::hasColumn('tenants', 'notification_branding')) {
             Schema::table('tenants', function (Blueprint $table) {
                 $table->json('notification_branding')->nullable()->after('data'); // Custom branding for notifications
                 $table->boolean('sms_notifications_enabled')->default(false)->after('notification_branding');
@@ -37,7 +37,7 @@ return new class extends Migration
         }
 
         // Add currency to subscriptions table
-        if (!Schema::hasColumn('subscriptions', 'currency')) {
+        if (! Schema::hasColumn('subscriptions', 'currency')) {
             Schema::table('subscriptions', function (Blueprint $table) {
                 $table->string('currency', 3)->default('USD')->after('quantity');
                 $table->decimal('exchange_rate_at_purchase', 10, 6)->default(1.000000)->after('currency');

@@ -2,9 +2,9 @@
 
 namespace Aero\Pos\Http\Controllers;
 
-use Illuminate\Routing\Controller;
 use App\Services\Tenant\POS\POSService;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 
 class POSController extends Controller

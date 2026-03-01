@@ -2,9 +2,9 @@
 
 namespace Aero\Healthcare\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Aero\Core\Models\User;
 
 class PrescriptionRefill extends Model
 {
@@ -14,7 +14,7 @@ class PrescriptionRefill extends Model
 
     protected $fillable = [
         'prescription_id', 'refill_date', 'quantity_dispensed',
-        'pharmacy_name', 'pharmacist_name', 'status', 'notes', 'processed_by'
+        'pharmacy_name', 'pharmacist_name', 'status', 'notes', 'processed_by',
     ];
 
     protected $casts = [
@@ -25,9 +25,13 @@ class PrescriptionRefill extends Model
     ];
 
     const STATUS_REQUESTED = 'requested';
+
     const STATUS_APPROVED = 'approved';
+
     const STATUS_DISPENSED = 'dispensed';
+
     const STATUS_DENIED = 'denied';
+
     const STATUS_CANCELLED = 'cancelled';
 
     public function prescription()

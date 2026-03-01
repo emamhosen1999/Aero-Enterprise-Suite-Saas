@@ -170,7 +170,7 @@ class BoqItemController extends Controller
     public function update(Request $request, BoqItem $boqItem): JsonResponse
     {
         $validated = $request->validate([
-            'item_code' => 'required|string|max:50|unique:boq_items,item_code,' . $boqItem->id,
+            'item_code' => 'required|string|max:50|unique:boq_items,item_code,'.$boqItem->id,
             'description' => 'required|string|max:500',
             'unit' => 'required|string|max:20',
             'unit_rate' => 'required|numeric|min:0',
@@ -213,7 +213,7 @@ class BoqItemController extends Controller
      */
     public function toggleStatus(BoqItem $boqItem): JsonResponse
     {
-        $boqItem->update(['is_active' => !$boqItem->is_active]);
+        $boqItem->update(['is_active' => ! $boqItem->is_active]);
 
         return response()->json([
             'message' => $boqItem->is_active ? 'BOQ item activated' : 'BOQ item deactivated',
@@ -271,7 +271,7 @@ class BoqItemController extends Controller
 
         return response()->json([
             'data' => $exportData,
-            'filename' => 'boq_items_' . now()->format('Y-m-d_His') . '.csv',
+            'filename' => 'boq_items_'.now()->format('Y-m-d_His').'.csv',
         ]);
     }
 

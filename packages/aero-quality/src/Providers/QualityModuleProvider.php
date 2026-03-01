@@ -10,10 +10,15 @@ use Aero\Quality\Services\NcrBlockingService;
 class QualityModuleProvider extends AbstractModuleProvider
 {
     protected string $moduleCode = 'quality';
+
     protected string $moduleName = 'Quality Management';
+
     protected string $moduleDescription = 'Quality assurance, inspections, and non-conformance tracking';
+
     protected string $moduleVersion = '1.0.0';
+
     protected int $modulePriority = 19;
+
     protected array $dependencies = ['core'];
 
     /**
@@ -22,7 +27,7 @@ class QualityModuleProvider extends AbstractModuleProvider
     protected function getModulePath(string $path = ''): string
     {
         $basePath = dirname(__DIR__, 2);
-        
+
         return $path ? $basePath.'/'.$path : $basePath;
     }
 
@@ -32,13 +37,13 @@ class QualityModuleProvider extends AbstractModuleProvider
     public function register(): void
     {
         parent::register();
-        
+
         // Register with module registry
         $this->app->make(ModuleRegistry::class)->register($this);
 
         // Bind NCR blocking abstraction for other modules (e.g., RFI)
         $this->app->singleton(NcrBlockingServiceInterface::class, NcrBlockingService::class);
-        
+
         // Load module configuration
         $this->mergeConfigFrom(
             __DIR__.'/../../config/module.php', 'quality'
@@ -51,16 +56,16 @@ class QualityModuleProvider extends AbstractModuleProvider
     public function boot(): void
     {
         parent::boot();
-        
+
         // Register navigation
         $this->registerNavigation();
-        
+
         // Register dashboards
         $this->registerDashboards();
-        
+
         // Register dashboard widgets
         $this->registerDashboardWidgets();
-        
+
         // Publish configuration
         if ($this->app->runningInConsole()) {
             $this->publishes([
@@ -119,25 +124,25 @@ class QualityModuleProvider extends AbstractModuleProvider
                 'label' => 'Quality Dashboard',
                 'icon' => 'ChartBarIcon',
                 'route' => 'quality.dashboard',
-                'permission' => 'quality.dashboard.view'
+                'permission' => 'quality.dashboard.view',
             ],
             [
                 'label' => 'Inspections',
                 'icon' => 'ClipboardDocumentCheckIcon',
                 'route' => 'quality.inspections.index',
-                'permission' => 'quality.inspections.view'
+                'permission' => 'quality.inspections.view',
             ],
             [
                 'label' => 'Non-Conformances',
                 'icon' => 'ExclamationTriangleIcon',
                 'route' => 'quality.ncrs.index',
-                'permission' => 'quality.ncrs.view'
+                'permission' => 'quality.ncrs.view',
             ],
             [
                 'label' => 'Quality Standards',
                 'icon' => 'DocumentCheckIcon',
                 'route' => 'quality.standards.index',
-                'permission' => 'quality.standards.view'
+                'permission' => 'quality.standards.view',
             ],
         ];
     }

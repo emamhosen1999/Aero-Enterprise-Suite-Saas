@@ -3,8 +3,6 @@
 namespace Aero\HRM\Services;
 
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -19,19 +17,28 @@ class CompensatoryLeaveService
      * Comp-off types.
      */
     public const TYPE_OVERTIME = 'overtime';
+
     public const TYPE_HOLIDAY_WORK = 'holiday_work';
+
     public const TYPE_WEEKEND_WORK = 'weekend_work';
+
     public const TYPE_ON_CALL = 'on_call';
+
     public const TYPE_EMERGENCY = 'emergency';
 
     /**
      * Comp-off statuses.
      */
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_APPROVED = 'approved';
+
     public const STATUS_REJECTED = 'rejected';
+
     public const STATUS_EXPIRED = 'expired';
+
     public const STATUS_UTILIZED = 'utilized';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     /**
@@ -57,7 +64,7 @@ class CompensatoryLeaveService
 
         // Validate eligibility
         $eligibility = $this->checkEligibility($employeeId, $workDate, $hoursWorked, $type);
-        if (!$eligibility['eligible']) {
+        if (! $eligibility['eligible']) {
             return [
                 'success' => false,
                 'error' => $eligibility['reason'],
@@ -110,7 +117,7 @@ class CompensatoryLeaveService
      */
     public function processRequest(int $compOffId, string $action, int $approverId, ?string $remarks = null): array
     {
-        if (!in_array($action, ['approve', 'reject'])) {
+        if (! in_array($action, ['approve', 'reject'])) {
             return ['success' => false, 'error' => 'Invalid action'];
         }
 
@@ -234,22 +241,22 @@ class CompensatoryLeaveService
         $compOffs = $this->fetchEmployeeCompOffs($employeeId);
 
         // Apply filters
-        if (!empty($filters['status'])) {
-            $compOffs = array_filter($compOffs, fn($c) => $c['status'] === $filters['status']);
+        if (! empty($filters['status'])) {
+            $compOffs = array_filter($compOffs, fn ($c) => $c['status'] === $filters['status']);
         }
 
-        if (!empty($filters['type'])) {
-            $compOffs = array_filter($compOffs, fn($c) => $c['type'] === $filters['type']);
+        if (! empty($filters['type'])) {
+            $compOffs = array_filter($compOffs, fn ($c) => $c['type'] === $filters['type']);
         }
 
-        if (!empty($filters['from_date'])) {
+        if (! empty($filters['from_date'])) {
             $fromDate = Carbon::parse($filters['from_date']);
-            $compOffs = array_filter($compOffs, fn($c) => Carbon::parse($c['work_date'])->gte($fromDate));
+            $compOffs = array_filter($compOffs, fn ($c) => Carbon::parse($c['work_date'])->gte($fromDate));
         }
 
-        if (!empty($filters['to_date'])) {
+        if (! empty($filters['to_date'])) {
             $toDate = Carbon::parse($filters['to_date']);
-            $compOffs = array_filter($compOffs, fn($c) => Carbon::parse($c['work_date'])->lte($toDate));
+            $compOffs = array_filter($compOffs, fn ($c) => Carbon::parse($c['work_date'])->lte($toDate));
         }
 
         return [
@@ -451,6 +458,7 @@ class CompensatoryLeaveService
     protected function getExpiryDaysForType(string $type): int
     {
         $config = $this->getPolicyConfiguration()['types'][$type] ?? [];
+
         return $config['expiry_days'] ?? $this->defaultExpiryDays;
     }
 
@@ -499,7 +507,7 @@ class CompensatoryLeaveService
             }
 
             $type = $compOff['type'];
-            if (!isset($summary['by_type'][$type])) {
+            if (! isset($summary['by_type'][$type])) {
                 $summary['by_type'][$type] = ['earned' => 0, 'utilized' => 0];
             }
             $summary['by_type'][$type]['earned'] += $compOff['days_earned'] ?? 0;

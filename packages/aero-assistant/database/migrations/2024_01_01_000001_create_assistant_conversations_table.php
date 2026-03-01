@@ -19,7 +19,7 @@ return new class extends Migration
             $table->boolean('is_archived')->default(false);
             $table->timestamp('last_message_at')->nullable();
             $table->timestamps();
-            
+
             $table->index(['user_id', 'is_archived', 'last_message_at']);
         });
     }

@@ -49,15 +49,23 @@ class SmsCampaign extends Model
     }
 
     const STATUS_DRAFT = 'draft';
+
     const STATUS_SCHEDULED = 'scheduled';
+
     const STATUS_SENDING = 'sending';
+
     const STATUS_SENT = 'sent';
+
     const STATUS_PAUSED = 'paused';
+
     const STATUS_CANCELLED = 'cancelled';
+
     const STATUS_FAILED = 'failed';
 
     const TYPE_REGULAR = 'regular';
+
     const TYPE_AUTOMATED = 'automated';
+
     const TYPE_TRIGGERED = 'triggered';
 
     public function recipients(): HasMany
@@ -106,6 +114,7 @@ class SmsCampaign extends Model
         if ($this->sent_count === 0) {
             return 0;
         }
+
         return round(($this->delivered_count / $this->sent_count) * 100, 2);
     }
 

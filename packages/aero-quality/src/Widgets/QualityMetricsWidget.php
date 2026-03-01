@@ -18,10 +18,15 @@ use Aero\Core\Contracts\CoreWidgetCategory;
 class QualityMetricsWidget extends AbstractDashboardWidget
 {
     protected string $position = 'main_left';
+
     protected int $order = 20;
+
     protected int|string $span = 1;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::SUMMARY;
+
     protected array $requiredPermissions = ['quality.reports'];
+
     protected array $dashboards = ['quality'];
 
     public function getKey(): string

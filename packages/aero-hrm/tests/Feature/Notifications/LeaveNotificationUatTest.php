@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\HRM\Notifications;
 
+use Aero\Core\Models\User;
 use Aero\HRM\Events\Leave\LeaveApproved;
 use Aero\HRM\Events\Leave\LeaveCancelled;
 use Aero\HRM\Events\Leave\LeaveRejected;
@@ -14,7 +15,6 @@ use Aero\HRM\Notifications\LeaveApprovedNotification;
 use Aero\HRM\Notifications\LeaveCancelledNotification;
 use Aero\HRM\Notifications\LeaveRejectedNotification;
 use Aero\HRM\Notifications\LeaveRequestNotification;
-use Aero\Core\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
@@ -30,9 +30,13 @@ class LeaveNotificationUatTest extends TestCase
     use RefreshDatabase;
 
     protected User $employee;
+
     protected User $manager;
+
     protected User $hrAdmin;
+
     protected Employee $employeeRecord;
+
     protected Employee $managerRecord;
 
     protected function setUp(): void
@@ -85,10 +89,10 @@ class LeaveNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: NOTIF-LV-01
      * Leave Request Notification to Manager
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_sends_leave_request_notification_to_manager(): void
     {
         Notification::fake();
@@ -122,10 +126,10 @@ class LeaveNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: NOTIF-LV-02
      * Leave Approved Notification to Employee
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_sends_leave_approved_notification_to_employee(): void
     {
         Notification::fake();
@@ -158,10 +162,10 @@ class LeaveNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: NOTIF-LV-03
      * Leave Rejected Notification to Employee
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_sends_leave_rejected_notification_to_employee(): void
     {
         Notification::fake();
@@ -197,10 +201,10 @@ class LeaveNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: NOTIF-LV-04
      * Leave Cancelled by Employee - Manager Notified
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_sends_leave_cancelled_notification_to_manager(): void
     {
         Notification::fake();
@@ -227,10 +231,10 @@ class LeaveNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: NOTIF-LV-05
      * Leave Cancelled by Manager - Employee Notified
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_sends_leave_cancelled_notification_to_employee(): void
     {
         Notification::fake();
@@ -265,10 +269,10 @@ class LeaveNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: PREF-01
      * Respect User Notification Preferences - Email Disabled
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_respects_user_preference_when_email_disabled(): void
     {
         Notification::fake();
@@ -303,10 +307,10 @@ class LeaveNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: ERR-04
      * Employee Without User Account
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_employee_without_user_gracefully(): void
     {
         $employeeWithoutUser = Employee::factory()->create([
@@ -330,10 +334,10 @@ class LeaveNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: ERR-05
      * Manager Not Assigned - Falls Back to HR
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_falls_back_to_hr_when_manager_not_assigned(): void
     {
         Notification::fake();

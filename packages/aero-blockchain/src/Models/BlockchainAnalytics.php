@@ -14,7 +14,7 @@ class BlockchainAnalytics extends Model
 
     protected $fillable = [
         'blockchain_id', 'date', 'metric_type', 'metric_name', 'value',
-        'previous_value', 'change_percentage', 'metadata', 'period'
+        'previous_value', 'change_percentage', 'metadata', 'period',
     ];
 
     protected $casts = [
@@ -27,18 +27,29 @@ class BlockchainAnalytics extends Model
     ];
 
     const TYPE_NETWORK = 'network';
+
     const TYPE_TRANSACTION = 'transaction';
+
     const TYPE_BLOCK = 'block';
+
     const TYPE_TOKEN = 'token';
+
     const TYPE_DEFI = 'defi';
+
     const TYPE_NFT = 'nft';
+
     const TYPE_CONSENSUS = 'consensus';
+
     const TYPE_SECURITY = 'security';
 
     const PERIOD_HOURLY = 'hourly';
+
     const PERIOD_DAILY = 'daily';
+
     const PERIOD_WEEKLY = 'weekly';
+
     const PERIOD_MONTHLY = 'monthly';
+
     const PERIOD_YEARLY = 'yearly';
 
     public function blockchain()
@@ -48,10 +59,10 @@ class BlockchainAnalytics extends Model
 
     public function getFormattedValueAttribute()
     {
-        return match($this->metric_name) {
-            'total_value_locked', 'market_cap', 'volume' => '$' . number_format($this->value, 2),
-            'gas_price' => number_format($this->value, 9) . ' Gwei',
-            'hash_rate' => number_format($this->value / 1000000, 2) . ' MH/s',
+        return match ($this->metric_name) {
+            'total_value_locked', 'market_cap', 'volume' => '$'.number_format($this->value, 2),
+            'gas_price' => number_format($this->value, 9).' Gwei',
+            'hash_rate' => number_format($this->value / 1000000, 2).' MH/s',
             'active_addresses', 'total_addresses', 'transaction_count' => number_format($this->value, 0),
             default => number_format($this->value, 8)
         };
@@ -59,13 +70,16 @@ class BlockchainAnalytics extends Model
 
     public function getChangeDirectionAttribute()
     {
-        if (!$this->change_percentage) return 'neutral';
+        if (! $this->change_percentage) {
+            return 'neutral';
+        }
+
         return $this->change_percentage > 0 ? 'up' : 'down';
     }
 
     public function getChangeColorAttribute()
     {
-        return match($this->change_direction) {
+        return match ($this->change_direction) {
             'up' => 'success',
             'down' => 'danger',
             default => 'default'

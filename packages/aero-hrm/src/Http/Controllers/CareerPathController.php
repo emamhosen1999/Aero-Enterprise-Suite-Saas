@@ -4,10 +4,8 @@ namespace Aero\HRM\Http\Controllers;
 
 use Aero\HRM\Models\CareerPath;
 use Aero\HRM\Models\CareerPathMilestone;
-use Aero\HRM\Models\EmployeeCareerProgression;
 use Aero\HRM\Models\Employee;
-use Aero\HRM\Models\Department;
-use Aero\HRM\Models\Designation;
+use Aero\HRM\Models\EmployeeCareerProgression;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;

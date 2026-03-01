@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace Aero\Core\Contracts;
 
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-
 /**
  * UserContract Interface
  *
@@ -26,8 +23,6 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  *
  * public function __construct(private UserContract $user) {}
  * ```
- *
- * @package Aero\Core\Contracts
  */
 interface UserContract
 {
@@ -132,7 +127,6 @@ interface UserContract
      * Get the user's notification preferences for a specific channel.
      *
      * @param  string  $channel  Channel name (email, sms, push, database)
-     * @return bool
      */
     public function prefersNotificationChannel(string $channel): bool;
 
@@ -144,16 +138,12 @@ interface UserContract
      *
      * Example: $user->getRelationship('employee')
      *
-     * @param  string  $relationshipName
      * @return mixed
      */
     public function getRelationship(string $relationshipName);
 
     /**
      * Check if a dynamically registered relationship exists.
-     *
-     * @param  string  $relationshipName
-     * @return bool
      */
     public function hasRelationship(string $relationshipName): bool;
 

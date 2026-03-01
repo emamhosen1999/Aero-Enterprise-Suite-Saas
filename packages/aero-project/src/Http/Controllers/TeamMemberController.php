@@ -28,6 +28,7 @@ class TeamMemberController extends Controller
     public function __construct(
         protected ?EmployeeResolverContract $employeeResolver = null
     ) {}
+
     /**
      * Show the invitation acceptance form.
      */

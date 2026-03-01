@@ -22,10 +22,10 @@ class GeoFencingServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new GeoFencingService();
+        $this->service = new GeoFencingService;
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_validates_location_within_tolerance(): void
     {
         // Mock alignment data in database
@@ -36,7 +36,7 @@ class GeoFencingServiceTest extends TestCase
             'longitude' => 55.2708,
             'elevation' => 10.0,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         // User location within 30m of chainage 1000 (well within 50m tolerance)
@@ -53,7 +53,7 @@ class GeoFencingServiceTest extends TestCase
         $this->assertArrayHasKey('expected_location', $result);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_rejects_location_outside_tolerance(): void
     {
         // Mock alignment data
@@ -64,7 +64,7 @@ class GeoFencingServiceTest extends TestCase
             'longitude' => 55.2708,
             'elevation' => 10.0,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         // User location 100m away (beyond 50m tolerance)
@@ -81,7 +81,7 @@ class GeoFencingServiceTest extends TestCase
         $this->assertEquals('outside_geofence', $result['reason']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_calculates_haversine_distance_accurately(): void
     {
         // Use reflection to test private haversineDistance method
@@ -105,9 +105,9 @@ class GeoFencingServiceTest extends TestCase
         // Test 2: Short distance (Dubai Marina - 2km apart)
         $shortDistance = $method->invoke(
             $this->service,
-            25.0800, 
+            25.0800,
             55.1400,
-            25.0980, 
+            25.0980,
             55.1400
         );
 
@@ -116,7 +116,7 @@ class GeoFencingServiceTest extends TestCase
         $this->assertLessThan(2100, $shortDistance);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_missing_alignment_data_gracefully(): void
     {
         // Project with no alignment points in database
@@ -134,7 +134,7 @@ class GeoFencingServiceTest extends TestCase
         $this->assertStringContainsString('Unable to determine GPS coordinates', $result['message']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_supports_custom_tolerance_override(): void
     {
         // Mock alignment data
@@ -145,7 +145,7 @@ class GeoFencingServiceTest extends TestCase
             'longitude' => 55.2708,
             'elevation' => 10.0,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         // User location 75m away
@@ -173,7 +173,7 @@ class GeoFencingServiceTest extends TestCase
         $this->assertEquals(100, $resultCustom['tolerance']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_logs_validation_attempts_for_audit(): void
     {
         // Mock alignment data
@@ -184,7 +184,7 @@ class GeoFencingServiceTest extends TestCase
             'longitude' => 55.2708,
             'elevation' => 10.0,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         // Expect log to be written
@@ -192,7 +192,7 @@ class GeoFencingServiceTest extends TestCase
             ->once()
             ->with('geofence')
             ->andReturnSelf();
-        
+
         Log::shouldReceive('info')
             ->once()
             ->withArgs(function ($message, $context) {
@@ -211,7 +211,7 @@ class GeoFencingServiceTest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_interpolates_chainage_to_gps_correctly(): void
     {
         // Set up two control points 1000m apart
@@ -223,7 +223,7 @@ class GeoFencingServiceTest extends TestCase
                 'longitude' => 55.2000,
                 'elevation' => 0.0,
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ],
             [
                 'project_id' => 1,
@@ -232,8 +232,8 @@ class GeoFencingServiceTest extends TestCase
                 'longitude' => 55.2100,
                 'elevation' => 10.0,
                 'created_at' => now(),
-                'updated_at' => now()
-            ]
+                'updated_at' => now(),
+            ],
         ]);
 
         // Request validation at Ch 500 (midpoint)
@@ -246,7 +246,7 @@ class GeoFencingServiceTest extends TestCase
 
         $this->assertTrue($result['valid']);
         $this->assertLessThan(10, $result['distance']); // Should be < 10m (near perfect)
-        
+
         // Verify interpolated coordinates
         $expected = $result['expected_location'];
         $this->assertEquals(25.2050, $expected['lat'], '', 0.0001); // 0.0001 degree tolerance
@@ -254,7 +254,7 @@ class GeoFencingServiceTest extends TestCase
         $this->assertEquals(5.0, $expected['elevation'], '', 0.1); // Elevation also interpolated
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_curved_alignment_segments(): void
     {
         // Set up multiple control points to form a curve
@@ -266,7 +266,7 @@ class GeoFencingServiceTest extends TestCase
                 'longitude' => 55.2000,
                 'elevation' => 0.0,
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ],
             [
                 'project_id' => 1,
@@ -275,7 +275,7 @@ class GeoFencingServiceTest extends TestCase
                 'longitude' => 55.2025,
                 'elevation' => 2.5,
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ],
             [
                 'project_id' => 1,
@@ -284,7 +284,7 @@ class GeoFencingServiceTest extends TestCase
                 'longitude' => 55.2040, // Curved path
                 'elevation' => 5.0,
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ],
             [
                 'project_id' => 1,
@@ -293,8 +293,8 @@ class GeoFencingServiceTest extends TestCase
                 'longitude' => 55.2050,
                 'elevation' => 10.0,
                 'created_at' => now(),
-                'updated_at' => now()
-            ]
+                'updated_at' => now(),
+            ],
         ]);
 
         // Validate at Ch 750 (between Ch 500 and Ch 1000)
@@ -307,7 +307,7 @@ class GeoFencingServiceTest extends TestCase
         );
 
         $this->assertTrue($result['valid']);
-        
+
         // Expected location should be interpolated between Ch 500 and Ch 1000
         $expected = $result['expected_location'];
         $this->assertGreaterThan(25.2050, $expected['lat']); // Between point at 500

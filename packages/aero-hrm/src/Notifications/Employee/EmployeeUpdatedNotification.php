@@ -21,11 +21,11 @@ class EmployeeUpdatedNotification extends Notification implements ShouldQueue
     public function via($notifiable): array
     {
         $channels = ['database'];
-        
+
         if ($this->isChannelEnabled('mail', $notifiable)) {
             $channels[] = 'mail';
         }
-        
+
         return $channels;
     }
 
@@ -36,7 +36,7 @@ class EmployeeUpdatedNotification extends Notification implements ShouldQueue
             ->greeting("Hello {$notifiable->name}!")
             ->line("Employee profile for {$this->employee->full_name} has been updated.");
 
-        if (!empty($this->changes)) {
+        if (! empty($this->changes)) {
             $message->line('The following changes were made:');
             foreach ($this->changes as $field => $change) {
                 $message->line("• {$this->formatFieldName($field)}: {$change['old']} → {$change['new']}");
@@ -56,7 +56,7 @@ class EmployeeUpdatedNotification extends Notification implements ShouldQueue
             'employee_id' => $this->employee->id,
             'employee_name' => $this->employee->full_name,
             'changes' => $this->changes,
-            'message' => "Employee profile updated with " . count($this->changes) . " changes.",
+            'message' => 'Employee profile updated with '.count($this->changes).' changes.',
             'action_url' => route('employees.show', $this->employee->id),
         ];
     }
@@ -71,15 +71,15 @@ class EmployeeUpdatedNotification extends Notification implements ShouldQueue
         $globalSetting = DB::table('notification_settings')
             ->where('key', "channels.{$channel}.enabled")
             ->first();
-        
-        if (!$globalSetting || !json_decode($globalSetting->value)) {
+
+        if (! $globalSetting || ! json_decode($globalSetting->value)) {
             return false;
         }
-        
+
         if (method_exists($notifiable, 'prefersNotificationChannel')) {
             return $notifiable->prefersNotificationChannel($channel, 'employee.updated');
         }
-        
+
         return true;
     }
 }

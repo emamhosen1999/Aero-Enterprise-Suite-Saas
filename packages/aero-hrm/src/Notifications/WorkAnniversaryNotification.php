@@ -37,7 +37,7 @@ class WorkAnniversaryNotification extends BaseHrmNotification
             ->greeting("Congratulations, {$name}! 🎉")
             ->line("Today marks your **{$years}-year anniversary** with us!")
             ->line("Your dedication, hard work, and contributions over the past {$years} {$yearText} have been invaluable to our team's success.")
-            ->line("Thank you for being an essential part of our organization. We look forward to many more successful years together!")
+            ->line('Thank you for being an essential part of our organization. We look forward to many more successful years together!')
             ->line("Here's to celebrating this milestone!")
             ->salutation("With Appreciation,\nYour Team");
     }

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Employee Sentiment Record Model
- * 
+ *
  * Stores sentiment analysis results from various sources.
  * Supports continuous engagement monitoring.
  */
@@ -99,7 +99,7 @@ class EmployeeSentimentRecord extends Model
         } elseif ($this->isNegative()) {
             return 'Negative';
         }
-        
+
         return 'Neutral';
     }
 
@@ -115,7 +115,7 @@ class EmployeeSentimentRecord extends Model
         ];
 
         $areas = array_filter($areas, fn ($v) => $v !== null);
-        
+
         if (empty($areas)) {
             return null;
         }

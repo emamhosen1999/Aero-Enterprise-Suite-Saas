@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use Aero\Cms\Http\Controllers\Admin\PageController;
 use Aero\Cms\Http\Controllers\Admin\BlockController;
 use Aero\Cms\Http\Controllers\Admin\MediaController;
-use Aero\Cms\Http\Controllers\Admin\TemplateController;
+use Aero\Cms\Http\Controllers\Admin\PageController;
 use Aero\Cms\Http\Controllers\Admin\SettingsController;
+use Aero\Cms\Http\Controllers\Admin\TemplateController;
 use Illuminate\Support\Facades\Route;
 
 /*

@@ -23,7 +23,7 @@ return new class extends Migration
             $table->boolean('used_rag')->default(false);
             $table->integer('rag_chunks_retrieved')->nullable();
             $table->timestamps();
-            
+
             $table->index(['user_id', 'created_at']);
             $table->index('action_type');
         });

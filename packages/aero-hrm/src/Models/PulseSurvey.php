@@ -4,9 +4,9 @@ namespace Aero\HRM\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Pulse Survey Model
@@ -52,17 +52,24 @@ class PulseSurvey extends Model
      * Frequency options.
      */
     public const FREQUENCY_WEEKLY = 'weekly';
+
     public const FREQUENCY_BIWEEKLY = 'biweekly';
+
     public const FREQUENCY_MONTHLY = 'monthly';
+
     public const FREQUENCY_ONE_TIME = 'one_time';
 
     /**
      * Status options.
      */
     public const STATUS_DRAFT = 'draft';
+
     public const STATUS_ACTIVE = 'active';
+
     public const STATUS_PAUSED = 'paused';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     public function createdBy(): BelongsTo

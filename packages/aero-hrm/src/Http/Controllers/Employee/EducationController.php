@@ -2,8 +2,8 @@
 
 namespace Aero\HRM\Http\Controllers\Employee;
 
-use Aero\HRM\Models\Education;
 use Aero\HRM\Http\Controllers\Controller;
+use Aero\HRM\Models\Education;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 

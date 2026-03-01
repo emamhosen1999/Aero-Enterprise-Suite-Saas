@@ -103,7 +103,7 @@ class HandleInertiaRequests extends Middleware
         // - Tenant context: Core provides tenant navigation, Platform provides tenant-specific props
         $context = $request->attributes->get('domain_context', 'tenant');
         $isSaaSMode = is_saas_mode();
-        
+
         // Skip sharing props for admin/platform contexts in SaaS mode
         // Platform's HandleInertiaRequests handles those contexts completely
         if ($isSaaSMode && ($context === 'admin' || $context === 'platform')) {

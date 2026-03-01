@@ -15,7 +15,7 @@ class BankTransaction extends Model
         'bank_account_id', 'transaction_date', 'transaction_type',
         'amount', 'balance_after', 'description', 'reference_number',
         'payee', 'category', 'journal_entry_id', 'is_reconciled',
-        'reconciled_at', 'bank_reference'
+        'reconciled_at', 'bank_reference',
     ];
 
     protected $casts = [
@@ -29,9 +29,13 @@ class BankTransaction extends Model
     ];
 
     const TYPE_DEPOSIT = 'deposit';
+
     const TYPE_WITHDRAWAL = 'withdrawal';
+
     const TYPE_TRANSFER = 'transfer';
+
     const TYPE_FEE = 'fee';
+
     const TYPE_INTEREST = 'interest';
 
     public function bankAccount()

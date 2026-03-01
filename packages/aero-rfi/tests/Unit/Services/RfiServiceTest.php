@@ -4,13 +4,12 @@ namespace Aero\Rfi\Tests\Unit\Services;
 
 use Aero\Rfi\Models\Rfi;
 use Aero\Rfi\Services\RfiService;
-use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Auth;
+use Tests\TestCase;
 
 /**
  * RfiServiceTest - Test CRUD operations for RFI service
- * 
+ *
  * Tests basic RFI management functionality:
  * - Creating RFIs with auto-generated numbers
  * - Updating RFI status and details
@@ -29,7 +28,7 @@ class RfiServiceTest extends TestCase
         $this->service = app(RfiService::class);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_creates_rfi_with_auto_generated_number()
     {
         $data = [
@@ -50,7 +49,7 @@ class RfiServiceTest extends TestCase
         $this->assertEquals($data['description'], $rfi->description);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_updates_rfi_status()
     {
         $rfi = Rfi::factory()->create(['status' => 'pending']);
@@ -61,7 +60,7 @@ class RfiServiceTest extends TestCase
         $this->assertEquals('Quality check passed', $updated->approval_remarks);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_rfis_by_status()
     {
         Rfi::factory()->count(3)->create(['status' => 'pending']);
@@ -75,7 +74,7 @@ class RfiServiceTest extends TestCase
         $this->assertCount(2, $approved);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_rfis_by_chainage_range()
     {
         Rfi::factory()->create(['chainage_start' => 1000, 'chainage_end' => 1200]);
@@ -87,7 +86,7 @@ class RfiServiceTest extends TestCase
         $this->assertCount(2, $rfis);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_fetches_rfi_with_relationships()
     {
         $rfi = Rfi::factory()->create();
@@ -99,7 +98,7 @@ class RfiServiceTest extends TestCase
         $this->assertTrue($loaded->relationLoaded('workLayer'));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_calculates_rfi_statistics()
     {
         Rfi::factory()->count(5)->create(['status' => 'pending']);
@@ -114,7 +113,7 @@ class RfiServiceTest extends TestCase
         $this->assertEquals(2, $stats['rejected']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_validates_gps_coordinates_if_provided()
     {
         $data = [
@@ -134,7 +133,7 @@ class RfiServiceTest extends TestCase
         $this->assertEquals(55.2708, $rfi->gps_longitude);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_deletes_rfi_with_dependencies()
     {
         $rfi = Rfi::factory()->create();

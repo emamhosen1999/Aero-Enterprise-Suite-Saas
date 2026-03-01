@@ -2,7 +2,6 @@
 
 namespace Aero\HRM\Listeners\Safety;
 
-use Aero\Core\Models\User;
 use Aero\HRM\Events\Safety\SafetyIncidentReported;
 use Aero\HRM\Notifications\Safety\SafetyIncidentReportedNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -31,13 +30,13 @@ class NotifySafetyTeam implements ShouldQueue
             // If high severity, also notify users with admin access
             if ($event->requiresImmediateAction) {
                 $adminUsers = \Aero\HRMAC\Facades\HRMAC::getUsersWithModuleAccess('hrm');
-                
+
                 foreach ($adminUsers as $user) {
                     // Skip if already notified
                     if ($hrUsers->contains('id', $user->id)) {
                         continue;
                     }
-                    
+
                     $user->notify(new SafetyIncidentReportedNotification(
                         incident: $incident,
                         requiresImmediateAction: $event->requiresImmediateAction

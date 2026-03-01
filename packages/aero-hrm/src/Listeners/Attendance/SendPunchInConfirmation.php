@@ -16,10 +16,11 @@ class SendPunchInConfirmation implements ShouldQueue
         $employee = $attendance->employee;
         $user = $employee?->user;
 
-        if (!$user) {
+        if (! $user) {
             Log::warning('Employee has no user for punch-in notification', [
                 'attendance_id' => $attendance->id,
             ]);
+
             return;
         }
 

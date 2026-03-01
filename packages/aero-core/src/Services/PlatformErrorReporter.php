@@ -21,8 +21,6 @@ use Throwable;
  * Works in two modes:
  * - SaaS mode: Stores directly in central database (same codebase)
  * - Standalone mode: Sends via HTTP API to platform
- *
- * @package Aero\Core\Services
  */
 class PlatformErrorReporter
 {
@@ -40,7 +38,7 @@ class PlatformErrorReporter
      */
     public function isEnabled(): bool
     {
-        return ($this->config['enabled'] ?? true) && !empty($this->config['license_key'] ?? '');
+        return ($this->config['enabled'] ?? true) && ! empty($this->config['license_key'] ?? '');
     }
 
     /**
@@ -52,11 +50,11 @@ class PlatformErrorReporter
         ?string $module = null,
         array $additionalContext = []
     ): ?string {
-        if (!$this->isEnabled()) {
+        if (! $this->isEnabled()) {
             return null;
         }
 
-        if (!$this->shouldReport($exception)) {
+        if (! $this->shouldReport($exception)) {
             return null;
         }
 
@@ -83,7 +81,7 @@ class PlatformErrorReporter
      */
     public function reportFrontendError(array $errorData): ?string
     {
-        if (!$this->isEnabled()) {
+        if (! $this->isEnabled()) {
             return null;
         }
 
@@ -249,7 +247,7 @@ class PlatformErrorReporter
             // Use the ErrorLog model from aero-platform
             $errorLogClass = 'Aero\\Platform\\Models\\ErrorLog';
 
-            if (!class_exists($errorLogClass)) {
+            if (! class_exists($errorLogClass)) {
                 Log::warning('ErrorLog model not found, falling back to API');
                 $this->sendToApi($payload);
 
@@ -337,7 +335,7 @@ class PlatformErrorReporter
         $notifyOn = $this->config['notify_on'] ?? [];
         $adminEmail = $this->config['admin_email'] ?? '';
 
-        if (empty($adminEmail) || !in_array($payload['error_type'], $notifyOn)) {
+        if (empty($adminEmail) || ! in_array($payload['error_type'], $notifyOn)) {
             return;
         }
 
@@ -435,7 +433,7 @@ class PlatformErrorReporter
      */
     protected function detectModule(?Request $request): ?string
     {
-        if (!$request) {
+        if (! $request) {
             return null;
         }
 
@@ -444,7 +442,7 @@ class PlatformErrorReporter
 
         // Skip common prefixes
         $skipPrefixes = ['api', 'tenant', 'admin', 'platform'];
-        while (!empty($segments) && in_array($segments[0], $skipPrefixes)) {
+        while (! empty($segments) && in_array($segments[0], $skipPrefixes)) {
             array_shift($segments);
         }
 

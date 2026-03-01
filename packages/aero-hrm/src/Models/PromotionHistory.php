@@ -4,9 +4,9 @@ namespace Aero\HRM\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Promotion History Model
@@ -55,16 +55,22 @@ class PromotionHistory extends Model
      * Promotion types.
      */
     public const TYPE_VERTICAL = 'vertical';
+
     public const TYPE_LATERAL = 'lateral';
+
     public const TYPE_DRY = 'dry'; // Title change without salary
+
     public const TYPE_GRADE = 'grade'; // Grade promotion
 
     /**
      * Status options.
      */
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_APPROVED = 'approved';
+
     public const STATUS_REJECTED = 'rejected';
+
     public const STATUS_COMPLETED = 'completed';
 
     public function employee(): BelongsTo

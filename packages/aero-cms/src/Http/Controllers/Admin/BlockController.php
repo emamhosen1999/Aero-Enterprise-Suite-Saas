@@ -40,7 +40,7 @@ class BlockController extends Controller
     {
         $schema = $this->blockRegistry->get($type);
 
-        if (!$schema) {
+        if (! $schema) {
             return response()->json(['error' => 'Block type not found'], 404);
         }
 
@@ -54,6 +54,7 @@ class BlockController extends Controller
     {
         try {
             $defaults = $this->blockRegistry->getDefaults($type);
+
             return response()->json(['content' => $defaults]);
         } catch (\InvalidArgumentException $e) {
             return response()->json(['error' => $e->getMessage()], 404);
@@ -113,7 +114,7 @@ class BlockController extends Controller
     public function duplicate(CmsPageBlock $block): JsonResponse
     {
         $newBlock = $block->replicate();
-        
+
         // Insert after original block
         $maxOrder = CmsPageBlock::where('page_id', $block->page_id)->max('order_index');
         $newBlock->order_index = $maxOrder + 1;

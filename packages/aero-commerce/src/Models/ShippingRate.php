@@ -15,7 +15,7 @@ class ShippingRate extends Model
     protected $fillable = [
         'shipping_method_id', 'from_postal_code', 'to_postal_code',
         'weight_min', 'weight_max', 'distance_min', 'distance_max',
-        'rate', 'surcharge', 'is_active'
+        'rate', 'surcharge', 'is_active',
     ];
 
     protected $casts = [
@@ -51,11 +51,11 @@ class ShippingRate extends Model
         if ($this->from_postal_code && $this->from_postal_code !== $fromPostalCode) {
             return false;
         }
-        
+
         if ($this->to_postal_code && $this->to_postal_code !== $toPostalCode) {
             return false;
         }
-        
+
         return true;
     }
 
@@ -73,10 +73,10 @@ class ShippingRate extends Model
     {
         return $query->where(function ($q) use ($weight) {
             $q->whereNull('weight_min')
-              ->orWhere('weight_min', '<=', $weight);
+                ->orWhere('weight_min', '<=', $weight);
         })->where(function ($q) use ($weight) {
             $q->whereNull('weight_max')
-              ->orWhere('weight_max', '>=', $weight);
+                ->orWhere('weight_max', '>=', $weight);
         });
     }
 }

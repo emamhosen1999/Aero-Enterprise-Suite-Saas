@@ -25,7 +25,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int|null $scheduled_by
  * @property \Carbon\Carbon|null $created_at
  * @property \Carbon\Carbon|null $updated_at
- *
  * @property-read JobApplication $application
  * @property-read User|null $scheduledBy
  * @property-read \Illuminate\Database\Eloquent\Collection|User[] $interviewers

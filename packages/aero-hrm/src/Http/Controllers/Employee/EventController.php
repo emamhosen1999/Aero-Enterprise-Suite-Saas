@@ -2,9 +2,9 @@
 
 namespace Aero\HRM\Http\Controllers\Employee;
 
+use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Models\Event;
 use Aero\HRM\Models\EventActivityLog;
-use Aero\HRM\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

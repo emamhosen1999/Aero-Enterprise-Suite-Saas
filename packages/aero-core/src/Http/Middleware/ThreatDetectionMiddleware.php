@@ -32,7 +32,7 @@ class ThreatDetectionMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         // Skip threat detection for non-authenticated routes
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return $next($request);
         }
 
@@ -101,7 +101,7 @@ class ThreatDetectionMiddleware
             // Implementation would send email/SMS notification
             Log::info('Security notification queued', [
                 'user_id' => $user->id,
-                'risk_level' => $analysis['risk_level']
+                'risk_level' => $analysis['risk_level'],
             ]);
         });
     }
@@ -116,7 +116,7 @@ class ThreatDetectionMiddleware
             Log::warning('Security alert queued', [
                 'user_id' => $user->id,
                 'risk_level' => $analysis['risk_level'],
-                'threats' => $analysis['threats']
+                'threats' => $analysis['threats'],
             ]);
         });
     }
@@ -132,11 +132,11 @@ class ThreatDetectionMiddleware
             'risk_level' => $analysis['risk_level'],
             'risk_score' => $analysis['risk_score'],
             'threats' => $analysis['threats'],
-            'metadata' => $analysis['metadata']
+            'metadata' => $analysis['metadata'],
         ]);
 
         // Queue notification to security team
-        dispatch(function () use ($user, $analysis) {
+        dispatch(function () {
             // Implementation would notify security team via Slack, email, etc.
         });
     }
@@ -148,12 +148,12 @@ class ThreatDetectionMiddleware
     {
         $user->update([
             'account_locked_at' => now(),
-            'locked_reason' => 'Automatic lock due to high security risk: ' . implode(', ', $analysis['threats'])
+            'locked_reason' => 'Automatic lock due to high security risk: '.implode(', ', $analysis['threats']),
         ]);
 
         Log::critical('User account locked due to security threat', [
             'user_id' => $user->id,
-            'threats' => $analysis['threats']
+            'threats' => $analysis['threats'],
         ]);
     }
 
@@ -170,7 +170,7 @@ class ThreatDetectionMiddleware
 
         Log::warning('User account temporarily locked', [
             'user_id' => $user->id,
-            'duration' => '15 minutes'
+            'duration' => '15 minutes',
         ]);
     }
 
@@ -205,7 +205,7 @@ class ThreatDetectionMiddleware
 
         Log::info('Extended monitoring enabled for user', [
             'user_id' => $user->id,
-            'duration' => '24 hours'
+            'duration' => '24 hours',
         ]);
     }
 }

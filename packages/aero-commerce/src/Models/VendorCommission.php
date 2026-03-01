@@ -13,7 +13,7 @@ class VendorCommission extends Model
 
     protected $fillable = [
         'vendor_id', 'order_id', 'order_item_id', 'commission_rate', 'commission_amount',
-        'commission_type', 'status', 'processed_at', 'notes'
+        'commission_type', 'status', 'processed_at', 'notes',
     ];
 
     protected $casts = [
@@ -26,13 +26,19 @@ class VendorCommission extends Model
     ];
 
     const TYPE_PERCENTAGE = 'percentage';
+
     const TYPE_FIXED_AMOUNT = 'fixed_amount';
+
     const TYPE_TIERED = 'tiered';
 
     const STATUS_PENDING = 'pending';
+
     const STATUS_APPROVED = 'approved';
+
     const STATUS_PAID = 'paid';
+
     const STATUS_DISPUTED = 'disputed';
+
     const STATUS_CANCELLED = 'cancelled';
 
     public function vendor()

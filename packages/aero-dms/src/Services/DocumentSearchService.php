@@ -2,8 +2,6 @@
 
 namespace Aero\DMS\Services;
 
-use Carbon\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -19,17 +17,24 @@ class DocumentSearchService
      * Search providers.
      */
     public const PROVIDER_DATABASE = 'database';
+
     public const PROVIDER_ELASTICSEARCH = 'elasticsearch';
+
     public const PROVIDER_MEILISEARCH = 'meilisearch';
+
     public const PROVIDER_ALGOLIA = 'algolia';
+
     public const PROVIDER_TYPESENSE = 'typesense';
 
     /**
      * Index status.
      */
     public const INDEX_STATUS_PENDING = 'pending';
+
     public const INDEX_STATUS_INDEXED = 'indexed';
+
     public const INDEX_STATUS_FAILED = 'failed';
+
     public const INDEX_STATUS_REINDEX_REQUIRED = 'reindex_required';
 
     /**
@@ -82,7 +87,7 @@ class DocumentSearchService
         if (strlen($query) < $this->config['min_search_length'] && empty($filters)) {
             return [
                 'success' => false,
-                'error' => 'Query must be at least ' . $this->config['min_search_length'] . ' characters',
+                'error' => 'Query must be at least '.$this->config['min_search_length'].' characters',
             ];
         }
 
@@ -402,7 +407,7 @@ class DocumentSearchService
      */
     protected function highlightMatches(string $text, array $tokens): string
     {
-        if (!$this->config['highlight_enabled']) {
+        if (! $this->config['highlight_enabled']) {
             return $text;
         }
 
@@ -410,7 +415,7 @@ class DocumentSearchService
 
         foreach ($tokens as $token) {
             $text = preg_replace(
-                '/\b(' . preg_quote($token, '/') . ')\b/i',
+                '/\b('.preg_quote($token, '/').')\b/i',
                 "<{$tag}>$1</{$tag}>",
                 $text
             );
@@ -511,9 +516,28 @@ class DocumentSearchService
     }
 
     // Index methods for different providers
-    protected function indexToDatabase(array $data): bool { return true; }
-    protected function indexToElasticsearch(array $data): bool { return true; }
-    protected function indexToMeilisearch(array $data): bool { return true; }
-    protected function indexToAlgolia(array $data): bool { return true; }
-    protected function indexToTypesense(array $data): bool { return true; }
+    protected function indexToDatabase(array $data): bool
+    {
+        return true;
+    }
+
+    protected function indexToElasticsearch(array $data): bool
+    {
+        return true;
+    }
+
+    protected function indexToMeilisearch(array $data): bool
+    {
+        return true;
+    }
+
+    protected function indexToAlgolia(array $data): bool
+    {
+        return true;
+    }
+
+    protected function indexToTypesense(array $data): bool
+    {
+        return true;
+    }
 }

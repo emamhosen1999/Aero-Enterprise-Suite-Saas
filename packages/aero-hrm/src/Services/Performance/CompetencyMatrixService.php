@@ -2,8 +2,6 @@
 
 namespace Aero\HRM\Services\Performance;
 
-use Carbon\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -19,18 +17,26 @@ class CompetencyMatrixService
      * Competency categories.
      */
     public const CATEGORY_TECHNICAL = 'technical';
+
     public const CATEGORY_LEADERSHIP = 'leadership';
+
     public const CATEGORY_BEHAVIORAL = 'behavioral';
+
     public const CATEGORY_FUNCTIONAL = 'functional';
+
     public const CATEGORY_INDUSTRY = 'industry';
 
     /**
      * Proficiency levels.
      */
     public const LEVEL_NOVICE = 1;
+
     public const LEVEL_BEGINNER = 2;
+
     public const LEVEL_INTERMEDIATE = 3;
+
     public const LEVEL_ADVANCED = 4;
+
     public const LEVEL_EXPERT = 5;
 
     /**

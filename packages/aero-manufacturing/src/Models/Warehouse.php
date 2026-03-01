@@ -14,7 +14,7 @@ class Warehouse extends Model
 
     protected $fillable = [
         'code', 'name', 'description', 'location', 'warehouse_type',
-        'is_active', 'manager_id'
+        'is_active', 'manager_id',
     ];
 
     protected $casts = [
@@ -23,9 +23,13 @@ class Warehouse extends Model
     ];
 
     const TYPE_RAW_MATERIALS = 'raw_materials';
+
     const TYPE_WORK_IN_PROCESS = 'work_in_process';
+
     const TYPE_FINISHED_GOODS = 'finished_goods';
+
     const TYPE_RETURNS = 'returns';
+
     const TYPE_QUARANTINE = 'quarantine';
 
     public function manager()

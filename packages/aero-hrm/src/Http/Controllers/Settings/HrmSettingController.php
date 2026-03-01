@@ -2,6 +2,7 @@
 
 namespace Aero\HRM\Http\Controllers\Settings;
 
+use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Models\Benefit;
 use Aero\HRM\Models\Checklist;
 use Aero\HRM\Models\Competency;
@@ -9,7 +10,6 @@ use Aero\HRM\Models\OnboardingStep;
 use Aero\HRM\Models\SafetyIncident;
 use Aero\HRM\Models\SafetyTraining;
 use Aero\HRM\Models\Skill;
-use Aero\HRM\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;

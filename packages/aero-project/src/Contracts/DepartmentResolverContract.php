@@ -20,7 +20,6 @@ interface DepartmentResolverContract
     /**
      * Get department by ID.
      *
-     * @param int $departmentId
      * @return array{id: int, name: string, code: ?string, parent_id: ?int}|null
      */
     public function getDepartmentById(int $departmentId): ?array;
@@ -34,8 +33,6 @@ interface DepartmentResolverContract
 
     /**
      * Get departments as hierarchical tree.
-     *
-     * @return Collection
      */
     public function getDepartmentTree(): Collection;
 }

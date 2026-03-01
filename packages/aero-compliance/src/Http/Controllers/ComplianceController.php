@@ -9,17 +9,9 @@ use Aero\Compliance\Models\ComplianceTrainingRecord;
 use Aero\Compliance\Models\ControlledDocument;
 use Aero\Compliance\Models\RegulatoryRequirement;
 use Aero\Compliance\Models\RiskAssessment;
-use Aero\Compliance\Models\RiskMitigationAction;
 use Aero\Core\Services\DashboardWidgetRegistry;
-use Illuminate\Routing\Controller;
-
-
-
-
-
-
-
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 
 class ComplianceController extends Controller
@@ -34,7 +26,7 @@ class ComplianceController extends Controller
     public function index()
     {
         $stats = $this->getComplianceStats();
-        
+
         // Get dynamic widgets for Compliance dashboard
         $dynamicWidgets = $this->widgetRegistry->getWidgetsForFrontend('compliance');
 

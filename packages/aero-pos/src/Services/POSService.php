@@ -2,11 +2,6 @@
 
 namespace Aero\Pos\Services;
 
-
-
-
-
-
 use App\Models\Tenant\POS\Category;
 use App\Models\Tenant\POS\Customer;
 use App\Models\Tenant\POS\PaymentMethod;

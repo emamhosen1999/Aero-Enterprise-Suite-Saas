@@ -2,25 +2,25 @@
 
 namespace Aero\HRM\Services\AIAnalytics;
 
+use Aero\HRM\Models\AIInsight;
 use Aero\HRM\Models\Employee;
+use Aero\HRM\Models\EmployeeRiskScore;
 use Aero\HRM\Models\EmployeeSentimentRecord;
 use Aero\HRM\Models\EngagementSurvey;
 use Aero\HRM\Models\EngagementSurveyResponse;
-use Aero\HRM\Models\EmployeeRiskScore;
-use Aero\HRM\Models\AIInsight;
-use Illuminate\Support\Collection;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 /**
  * Continuous Engagement Sentiment Analytics Service
- * 
+ *
  * Analyzes employee sentiment from multiple sources:
  * - Engagement surveys
  * - Pulse checks
  * - Performance review comments
  * - One-on-one meeting notes
  * - Exit interview data
- * 
+ *
  * Uses keyword analysis and scoring patterns to detect:
  * - Overall sentiment (positive/neutral/negative)
  * - Specific satisfaction dimensions
@@ -73,7 +73,7 @@ class SentimentAnalyticsService
     public function analyzeEmployeeSentiment(Employee $employee): array
     {
         $sentimentRecords = $this->getEmployeeSentimentData($employee);
-        
+
         if ($sentimentRecords->isEmpty()) {
             return [
                 'employee_id' => $employee->id,
@@ -186,7 +186,7 @@ class SentimentAnalyticsService
 
         foreach ($responses as $response) {
             $sentiment = $this->analyzeText($response->response_text);
-            
+
             // Store as sentiment record
             EmployeeSentimentRecord::create([
                 'employee_id' => $response->employee_id,
@@ -231,7 +231,7 @@ class SentimentAnalyticsService
         }
 
         $avgScore = round($records->avg('sentiment_score'), 1);
-        
+
         return [
             'department_id' => $departmentId,
             'has_data' => true,
@@ -327,7 +327,7 @@ class SentimentAnalyticsService
 
         // Declining sentiment (comparing recent vs older)
         $employees = Employee::where('employment_status', 'active')->pluck('id');
-        
+
         foreach ($employees as $employeeId) {
             $recent = EmployeeSentimentRecord::query()
                 ->where('employee_id', $employeeId)
@@ -409,7 +409,7 @@ class SentimentAnalyticsService
 
         foreach ($this->engagementDimensions as $dimension => $keywords) {
             $relevantRecords = $records->filter(function ($record) use ($keywords) {
-                if (!$record->raw_text) {
+                if (! $record->raw_text) {
                     return false;
                 }
                 $text = strtolower($record->raw_text);
@@ -418,6 +418,7 @@ class SentimentAnalyticsService
                         return true;
                     }
                 }
+
                 return false;
             });
 
@@ -526,6 +527,7 @@ class SentimentAnalyticsService
         } elseif ($score <= 35) {
             return 'negative';
         }
+
         return 'neutral';
     }
 
@@ -538,8 +540,8 @@ class SentimentAnalyticsService
 
         foreach ($records as $record) {
             if ($record->dimension_scores) {
-                $dims = is_array($record->dimension_scores) 
-                    ? $record->dimension_scores 
+                $dims = is_array($record->dimension_scores)
+                    ? $record->dimension_scores
                     : json_decode($record->dimension_scores, true);
 
                 if ($dims) {
@@ -583,7 +585,7 @@ class SentimentAnalyticsService
     protected function createInsightForIssue(array $issue): void
     {
         $employee = Employee::find($issue['employee_id']);
-        if (!$employee) {
+        if (! $employee) {
             return;
         }
 
@@ -596,7 +598,7 @@ class SentimentAnalyticsService
         $description = match ($issue['type']) {
             'low_employee_sentiment' => "Employee shows consistently low engagement sentiment (score: {$issue['score']})",
             'sentiment_decline' => "Employee engagement declined by {$issue['decline']} points (from {$issue['previous_score']} to {$issue['current_score']})",
-            default => "Engagement issue detected",
+            default => 'Engagement issue detected',
         };
 
         AIInsight::create([

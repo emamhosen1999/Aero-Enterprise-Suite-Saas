@@ -2,10 +2,10 @@
 
 namespace Aero\Commerce\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class Vendor extends Model
 {
@@ -17,7 +17,7 @@ class Vendor extends Model
         'vendor_code', 'business_name', 'contact_name', 'email', 'phone',
         'website', 'description', 'address', 'city', 'state', 'postal_code',
         'country', 'tax_number', 'commission_rate', 'payment_terms',
-        'status', 'user_id', 'approved_at', 'approved_by'
+        'status', 'user_id', 'approved_at', 'approved_by',
     ];
 
     protected $casts = [
@@ -28,8 +28,11 @@ class Vendor extends Model
     ];
 
     const STATUS_PENDING = 'pending';
+
     const STATUS_APPROVED = 'approved';
+
     const STATUS_SUSPENDED = 'suspended';
+
     const STATUS_REJECTED = 'rejected';
 
     public function user()

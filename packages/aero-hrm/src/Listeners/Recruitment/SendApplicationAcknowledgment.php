@@ -16,7 +16,7 @@ class SendApplicationAcknowledgment implements ShouldQueue
 
         // For now, we'll log this as we don't have a direct user for the applicant
         // In the future, this could send an email directly to the applicant's email
-        
+
         Log::info('Job application received', [
             'application_id' => $application->id,
             'application_number' => $application->application_number,

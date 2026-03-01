@@ -18,6 +18,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Guard: core's create_modules_table already includes all these metadata columns
+        if (Schema::hasColumn('modules', 'version')) {
+            return;
+        }
+
         Schema::table('modules', function (Blueprint $table) {
             $table->string('version')->nullable()->after('settings')->comment('Semantic version: 1.0.0');
             $table->string('min_plan')->nullable()->after('version')->comment('Minimum plan required: basic, business, professional, null=all');

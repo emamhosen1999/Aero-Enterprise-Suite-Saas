@@ -87,8 +87,15 @@ return [
         // Uses the default DB connection as the template for creating tenant databases
         'template_tenant_connection' => env('DB_CONNECTION', 'mysql'),
 
-        // Managers that handle tenant database creation/deletion
-        // Use 'cpanel' for shared hosting, 'mysql' for VPS/dedicated servers
+        // Managers that handle tenant database creation/deletion.
+        //
+        // HOSTING MODE PRECEDENCE (resolved at provisioning time in ProvisionTenant::createDatabase):
+        //   1. platform_settings.hosting_settings.mode  (DB — set via Admin → Settings → Infrastructure)
+        //   2. TENANCY_DATABASE_MANAGER env variable     (legacy .env fallback)
+        //   3. Default → 'mysql'                         (dedicated/VPS)
+        //
+        // 'shared'    mode → CpanelDatabaseManager  (Namecheap / cPanel shared hosting)
+        // 'dedicated' mode → MySQLDatabaseManager   (VPS, cloud, local)
         'managers' => [
             'mysql' => env('TENANCY_DATABASE_MANAGER', 'mysql') === 'cpanel'
                 ? \Aero\Platform\TenantDatabaseManagers\CpanelDatabaseManager::class

@@ -24,9 +24,6 @@ class PerformanceReviewCompleted extends BaseHrmEvent
     /**
      * Create a new event instance.
      *
-     * @param  PerformanceReview  $review
-     * @param  float  $overallRating
-     * @param  string|null  $summary
      * @param  int|null  $actorEmployeeId  Employee ID (reviewer) who completed the review
      */
     public function __construct(

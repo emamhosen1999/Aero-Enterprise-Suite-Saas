@@ -2,10 +2,10 @@
 
 namespace Aero\RealEstate\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class RealEstateBrokerage extends Model
 {
@@ -17,7 +17,7 @@ class RealEstateBrokerage extends Model
         'brokerage_name', 'license_number', 'license_state', 'license_expiry',
         'broker_name', 'address_line_1', 'address_line_2', 'city', 'state',
         'postal_code', 'country', 'phone', 'email', 'website', 'mls_access',
-        'commission_structure', 'specializations', 'status', 'created_by'
+        'commission_structure', 'specializations', 'status', 'created_by',
     ];
 
     protected $casts = [
@@ -29,7 +29,9 @@ class RealEstateBrokerage extends Model
     ];
 
     const STATUS_ACTIVE = 'active';
+
     const STATUS_INACTIVE = 'inactive';
+
     const STATUS_SUSPENDED = 'suspended';
 
     public function creator()
@@ -46,9 +48,10 @@ class RealEstateBrokerage extends Model
     {
         $address = $this->address_line_1;
         if ($this->address_line_2) {
-            $address .= ', ' . $this->address_line_2;
+            $address .= ', '.$this->address_line_2;
         }
-        $address .= ', ' . $this->city . ', ' . $this->state . ' ' . $this->postal_code;
+        $address .= ', '.$this->city.', '.$this->state.' '.$this->postal_code;
+
         return $address;
     }
 
@@ -69,23 +72,24 @@ class RealEstateBrokerage extends Model
 
     public function getTotalSalesAttribute()
     {
-        return PropertyTransaction::whereHas('agent', function($query) {
+        return PropertyTransaction::whereHas('agent', function ($query) {
             $query->where('brokerage_id', $this->id);
         })->where('status', PropertyTransaction::STATUS_CLOSED)->count();
     }
 
     public function getTotalSalesVolumeAttribute()
     {
-        return PropertyTransaction::whereHas('agent', function($query) {
+        return PropertyTransaction::whereHas('agent', function ($query) {
             $query->where('brokerage_id', $this->id);
         })->where('status', PropertyTransaction::STATUS_CLOSED)->sum('sale_price');
     }
 
     public function hasMLSAccess($mls = null)
     {
-        if (!$mls) {
-            return !empty($this->mls_access);
+        if (! $mls) {
+            return ! empty($this->mls_access);
         }
+
         return in_array($mls, $this->mls_access ?? []);
     }
 

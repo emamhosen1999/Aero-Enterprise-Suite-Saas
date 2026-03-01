@@ -2,12 +2,12 @@
 
 namespace Aero\HRM\Http\Controllers\Employee;
 
+use Aero\Core\Models\User;
+use Aero\HRM\Events\Safety\SafetyIncidentReported;
+use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\SafetyIncident;
 use Aero\HRM\Models\SafetyIncidentParticipant;
-use Aero\HRM\Events\Safety\SafetyIncidentReported;
-use Aero\HRM\Http\Controllers\Controller;
-use Aero\Core\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

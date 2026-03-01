@@ -1,6 +1,7 @@
 <?php
-use Illuminate\Support\Facades\Route;
+
 use Aero\Project\Http\Controllers\ProjectDashboardController;
+use Illuminate\Support\Facades\Route;
 
 // Dashboard route
 Route::middleware(['auth:web'])->group(function () {

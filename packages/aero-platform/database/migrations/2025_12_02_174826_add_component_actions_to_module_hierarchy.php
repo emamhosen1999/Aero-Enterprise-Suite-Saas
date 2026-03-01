@@ -11,12 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Add description field to module_components
-        Schema::table('module_components', function (Blueprint $table) {
-            $table->text('description')->nullable()->after('name');
-        });
+        // Add description field to module_components (guard in case core already added it)
+        if (Schema::hasTable('module_components') && !Schema::hasColumn('module_components', 'description')) {
+            Schema::table('module_components', function (Blueprint $table) {
+                $table->text('description')->nullable()->after('name');
+            });
+        }
 
-        // Create module_component_actions table
+        // Create module_component_actions table (guard in case core already created it)
+        if (Schema::hasTable('module_component_actions')) {
+            return;
+        }
+
         Schema::create('module_component_actions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('module_component_id')->constrained()->onDelete('cascade');

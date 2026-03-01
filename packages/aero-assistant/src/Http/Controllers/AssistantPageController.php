@@ -4,8 +4,8 @@ namespace Aero\Assistant\Http\Controllers;
 
 use Aero\Assistant\Services\IndexingService;
 use Aero\Assistant\Services\RagService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -13,6 +13,7 @@ use Inertia\Response;
 class AssistantPageController extends Controller
 {
     protected IndexingService $indexingService;
+
     protected RagService $ragService;
 
     public function __construct(IndexingService $indexingService, RagService $ragService)
@@ -38,7 +39,7 @@ class AssistantPageController extends Controller
     public function stats(): JsonResponse
     {
         // TODO: Add admin permission check
-        
+
         $stats = $this->ragService->getKnowledgeBaseStats();
 
         return response()->json([

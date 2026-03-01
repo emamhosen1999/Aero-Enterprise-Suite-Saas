@@ -15,13 +15,13 @@ class CmsServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__ . '/../config/cms.php', 'cms');
-        $this->mergeConfigFrom(__DIR__ . '/../config/module.php', 'aero-cms-module');
-        $this->mergeConfigFrom(__DIR__ . '/../config/blocks.php', 'cms-blocks');
+        $this->mergeConfigFrom(__DIR__.'/../config/cms.php', 'cms');
+        $this->mergeConfigFrom(__DIR__.'/../config/module.php', 'aero-cms-module');
+        $this->mergeConfigFrom(__DIR__.'/../config/blocks.php', 'cms-blocks');
 
         // Register BlockRegistry as singleton
         $this->app->singleton(BlockRegistry::class, function ($app) {
-            $registry = new BlockRegistry();
+            $registry = new BlockRegistry;
             $registry->registerFromConfig();
 
             return $registry;
@@ -33,7 +33,7 @@ class CmsServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         $this->registerRoutes();
         $this->registerPublishing();
@@ -50,20 +50,20 @@ class CmsServiceProvider extends ServiceProvider
         Route::middleware(['web', 'auth:landlord', 'admin.domain'])
             ->prefix('cms')
             ->name('admin.cms.')
-            ->group(__DIR__ . '/../routes/admin.php');
+            ->group(__DIR__.'/../routes/admin.php');
 
         // Public CMS page rendering routes
         // IMPORTANT: Uses 'platform.domain' middleware to only serve pages on the
         // platform domain (e.g., aeos365.test), NOT on tenant subdomains or admin domain.
         // This catch-all route is registered LAST to allow functional routes to take priority.
         Route::middleware(['web', 'platform.domain'])
-            ->group(__DIR__ . '/../routes/web.php');
+            ->group(__DIR__.'/../routes/web.php');
 
         // API routes for page builder
         Route::middleware(['web', 'auth:landlord', 'admin.domain'])
             ->prefix('api/cms')
             ->name('api.admin.cms.')
-            ->group(__DIR__ . '/../routes/api.php');
+            ->group(__DIR__.'/../routes/api.php');
     }
 
     /**
@@ -73,11 +73,11 @@ class CmsServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__ . '/../config/cms.php' => config_path('cms.php'),
+                __DIR__.'/../config/cms.php' => config_path('cms.php'),
             ], 'cms-config');
 
             $this->publishes([
-                __DIR__ . '/../database/migrations' => database_path('migrations'),
+                __DIR__.'/../database/migrations' => database_path('migrations'),
             ], 'cms-migrations');
         }
     }

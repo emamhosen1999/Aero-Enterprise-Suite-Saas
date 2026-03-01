@@ -2,10 +2,10 @@
 
 namespace Aero\Education\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class Faculty extends Model
 {
@@ -19,7 +19,7 @@ class Faculty extends Model
         'title', 'rank', 'employment_type', 'hire_date', 'tenure_date',
         'specializations', 'education', 'certifications', 'bio',
         'research_interests', 'publications', 'is_advisor', 'max_advisees',
-        'status', 'created_by'
+        'status', 'created_by',
     ];
 
     protected $casts = [
@@ -38,30 +38,49 @@ class Faculty extends Model
     ];
 
     const TITLE_PROFESSOR = 'professor';
+
     const TITLE_ASSOCIATE_PROFESSOR = 'associate_professor';
+
     const TITLE_ASSISTANT_PROFESSOR = 'assistant_professor';
+
     const TITLE_INSTRUCTOR = 'instructor';
+
     const TITLE_LECTURER = 'lecturer';
+
     const TITLE_ADJUNCT = 'adjunct';
+
     const TITLE_VISITING = 'visiting';
+
     const TITLE_EMERITUS = 'emeritus';
 
     const RANK_FULL = 'full';
+
     const RANK_ASSOCIATE = 'associate';
+
     const RANK_ASSISTANT = 'assistant';
+
     const RANK_CLINICAL = 'clinical';
+
     const RANK_RESEARCH = 'research';
 
     const EMPLOYMENT_FULL_TIME = 'full_time';
+
     const EMPLOYMENT_PART_TIME = 'part_time';
+
     const EMPLOYMENT_ADJUNCT = 'adjunct';
+
     const EMPLOYMENT_VISITING = 'visiting';
+
     const EMPLOYMENT_EMERITUS = 'emeritus';
 
     const STATUS_ACTIVE = 'active';
+
     const STATUS_INACTIVE = 'inactive';
+
     const STATUS_SABBATICAL = 'sabbatical';
+
     const STATUS_RETIRED = 'retired';
+
     const STATUS_TERMINATED = 'terminated';
 
     public function user()
@@ -92,7 +111,7 @@ class Faculty extends Model
     public function committees()
     {
         return $this->belongsToMany(Committee::class, 'committee_members')
-                    ->withPivot('role', 'start_date', 'end_date');
+            ->withPivot('role', 'start_date', 'end_date');
     }
 
     public function evaluations()
@@ -102,24 +121,28 @@ class Faculty extends Model
 
     public function getFullNameAttribute()
     {
-        $name = trim($this->first_name . ' ' . ($this->middle_name ? $this->middle_name . ' ' : '') . $this->last_name);
+        $name = trim($this->first_name.' '.($this->middle_name ? $this->middle_name.' ' : '').$this->last_name);
+
         return $name;
     }
 
     public function getFullTitleAttribute()
     {
         $title = str_replace('_', ' ', ucwords($this->title, '_'));
-        return $title . ' ' . $this->getFullNameAttribute();
+
+        return $title.' '.$this->getFullNameAttribute();
     }
 
     public function getCurrentTeachingLoadAttribute()
     {
         $currentSemester = AcademicSemester::current();
-        if (!$currentSemester) return 0;
-        
+        if (! $currentSemester) {
+            return 0;
+        }
+
         return $this->courseSections()
-                   ->where('semester_id', $currentSemester->id)
-                   ->sum('credit_hours');
+            ->where('semester_id', $currentSemester->id)
+            ->sum('credit_hours');
     }
 
     public function getCurrentAdviseesCountAttribute()
@@ -144,16 +167,19 @@ class Faculty extends Model
 
     public function canTakeMoreAdvisees()
     {
-        if (!$this->is_advisor || !$this->max_advisees) return false;
+        if (! $this->is_advisor || ! $this->max_advisees) {
+            return false;
+        }
+
         return $this->getCurrentAdviseesCountAttribute() < $this->max_advisees;
     }
 
     public function getAverageTeachingEvaluationAttribute()
     {
         $evaluations = $this->evaluations()
-                          ->where('evaluation_type', FacultyEvaluation::TYPE_STUDENT_TEACHING)
-                          ->where('status', FacultyEvaluation::STATUS_COMPLETED);
-        
+            ->where('evaluation_type', FacultyEvaluation::TYPE_STUDENT_TEACHING)
+            ->where('status', FacultyEvaluation::STATUS_COMPLETED);
+
         return $evaluations->count() > 0 ? round($evaluations->avg('overall_rating'), 2) : null;
     }
 
@@ -190,12 +216,12 @@ class Faculty extends Model
     public function scopeAvailableAdvisors($query)
     {
         return $query->where('is_advisor', true)
-                    ->whereRaw('(SELECT COUNT(*) FROM education_students WHERE advisor_id = education_faculty.id AND student_status = ?) < max_advisees', [Student::STATUS_ACTIVE]);
+            ->whereRaw('(SELECT COUNT(*) FROM education_students WHERE advisor_id = education_faculty.id AND student_status = ?) < max_advisees', [Student::STATUS_ACTIVE]);
     }
 
     public function scopeTenured($query)
     {
         return $query->whereNotNull('tenure_date')
-                    ->where('tenure_date', '<=', now());
+            ->where('tenure_date', '<=', now());
     }
 }

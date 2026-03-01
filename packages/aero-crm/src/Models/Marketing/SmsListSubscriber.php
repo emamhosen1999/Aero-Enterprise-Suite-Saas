@@ -32,8 +32,11 @@ class SmsListSubscriber extends Model
     }
 
     const STATUS_ACTIVE = 'active';
+
     const STATUS_OPTED_OUT = 'opted_out';
+
     const STATUS_INVALID = 'invalid';
+
     const STATUS_BLOCKED = 'blocked';
 
     public function list(): BelongsTo

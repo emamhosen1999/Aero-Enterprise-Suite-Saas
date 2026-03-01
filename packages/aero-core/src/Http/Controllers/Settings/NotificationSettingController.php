@@ -141,7 +141,7 @@ class NotificationSettingController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Channel test failed: ' . $e->getMessage(),
+                'message' => 'Channel test failed: '.$e->getMessage(),
             ], 500);
         }
     }

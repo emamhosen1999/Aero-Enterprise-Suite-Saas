@@ -3,7 +3,6 @@
 namespace Aero\Core\Services\Notification;
 
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -19,19 +18,28 @@ class EmailDigestService
      * Digest frequencies.
      */
     public const FREQUENCY_IMMEDIATE = 'immediate';
+
     public const FREQUENCY_DAILY = 'daily';
+
     public const FREQUENCY_WEEKLY = 'weekly';
+
     public const FREQUENCY_DISABLED = 'disabled';
 
     /**
      * Content categories.
      */
     public const CATEGORY_TASKS = 'tasks';
+
     public const CATEGORY_APPROVALS = 'approvals';
+
     public const CATEGORY_MENTIONS = 'mentions';
+
     public const CATEGORY_UPDATES = 'updates';
+
     public const CATEGORY_REPORTS = 'reports';
+
     public const CATEGORY_ALERTS = 'alerts';
+
     public const CATEGORY_REMINDERS = 'reminders';
 
     /**
@@ -62,7 +70,7 @@ class EmailDigestService
         foreach ($categories as $category) {
             $items = $this->getItemsForCategory($userId, $category, $date, $date);
 
-            if (!empty($items)) {
+            if (! empty($items)) {
                 $digestContent['sections'][$category] = [
                     'title' => $this->getCategoryTitle($category),
                     'items' => $items,
@@ -113,7 +121,7 @@ class EmailDigestService
         foreach ($categories as $category) {
             $items = $this->getItemsForCategory($userId, $category, $weekStart, $weekEnd);
 
-            if (!empty($items)) {
+            if (! empty($items)) {
                 $digestContent['sections'][$category] = [
                     'title' => $this->getCategoryTitle($category),
                     'items' => array_slice($items, 0, 10), // Limit per category
@@ -297,7 +305,7 @@ class EmailDigestService
             self::FREQUENCY_DISABLED,
         ];
 
-        if (isset($preferences['frequency']) && !in_array($preferences['frequency'], $validFrequencies)) {
+        if (isset($preferences['frequency']) && ! in_array($preferences['frequency'], $validFrequencies)) {
             return [
                 'success' => false,
                 'error' => 'Invalid frequency',
@@ -317,7 +325,7 @@ class EmailDigestService
             ];
 
             foreach (array_keys($preferences['categories']) as $category) {
-                if (!in_array($category, $validCategories)) {
+                if (! in_array($category, $validCategories)) {
                     return [
                         'success' => false,
                         'error' => "Invalid category: {$category}",
@@ -489,10 +497,12 @@ class EmailDigestService
 
         if ($digest['type'] === self::FREQUENCY_DAILY) {
             $date = Carbon::parse($digest['period']['start'])->format('M j');
+
             return "Your Daily Digest - {$date} ({$itemCount} updates)";
         }
 
         $weekNumber = $digest['period']['week_number'] ?? '';
+
         return "Your Weekly Digest - Week {$weekNumber} ({$itemCount} updates)";
     }
 
@@ -504,7 +514,7 @@ class EmailDigestService
         $categories = array_keys($digest['summary']['categories']);
         $topCategories = array_slice($categories, 0, 3);
 
-        return implode(', ', array_map(fn($c) => ucfirst($c), $topCategories)) . ' and more...';
+        return implode(', ', array_map(fn ($c) => ucfirst($c), $topCategories)).' and more...';
     }
 
     /**
@@ -517,11 +527,38 @@ class EmailDigestService
     }
 
     // Placeholder methods for fetching category items
-    protected function getTaskItems(int $userId, Carbon $startDate, Carbon $endDate): array { return []; }
-    protected function getApprovalItems(int $userId, Carbon $startDate, Carbon $endDate): array { return []; }
-    protected function getMentionItems(int $userId, Carbon $startDate, Carbon $endDate): array { return []; }
-    protected function getUpdateItems(int $userId, Carbon $startDate, Carbon $endDate): array { return []; }
-    protected function getReportItems(int $userId, Carbon $startDate, Carbon $endDate): array { return []; }
-    protected function getAlertItems(int $userId, Carbon $startDate, Carbon $endDate): array { return []; }
-    protected function getReminderItems(int $userId, Carbon $startDate, Carbon $endDate): array { return []; }
+    protected function getTaskItems(int $userId, Carbon $startDate, Carbon $endDate): array
+    {
+        return [];
+    }
+
+    protected function getApprovalItems(int $userId, Carbon $startDate, Carbon $endDate): array
+    {
+        return [];
+    }
+
+    protected function getMentionItems(int $userId, Carbon $startDate, Carbon $endDate): array
+    {
+        return [];
+    }
+
+    protected function getUpdateItems(int $userId, Carbon $startDate, Carbon $endDate): array
+    {
+        return [];
+    }
+
+    protected function getReportItems(int $userId, Carbon $startDate, Carbon $endDate): array
+    {
+        return [];
+    }
+
+    protected function getAlertItems(int $userId, Carbon $startDate, Carbon $endDate): array
+    {
+        return [];
+    }
+
+    protected function getReminderItems(int $userId, Carbon $startDate, Carbon $endDate): array
+    {
+        return [];
+    }
 }

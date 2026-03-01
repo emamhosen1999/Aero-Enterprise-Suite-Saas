@@ -2,10 +2,10 @@
 
 namespace Aero\Commerce\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class Order extends Model
 {
@@ -18,7 +18,7 @@ class Order extends Model
         'fulfillment_status', 'subtotal', 'tax_amount', 'shipping_amount',
         'discount_amount', 'total_amount', 'currency', 'exchange_rate',
         'billing_address', 'shipping_address', 'notes', 'order_date',
-        'shipped_date', 'delivered_date', 'cart_id', 'coupon_code'
+        'shipped_date', 'delivered_date', 'cart_id', 'coupon_code',
     ];
 
     protected $casts = [
@@ -39,23 +39,37 @@ class Order extends Model
     ];
 
     const ORDER_STATUS_PENDING = 'pending';
+
     const ORDER_STATUS_CONFIRMED = 'confirmed';
+
     const ORDER_STATUS_PROCESSING = 'processing';
+
     const ORDER_STATUS_SHIPPED = 'shipped';
+
     const ORDER_STATUS_DELIVERED = 'delivered';
+
     const ORDER_STATUS_CANCELLED = 'cancelled';
+
     const ORDER_STATUS_REFUNDED = 'refunded';
 
     const PAYMENT_STATUS_PENDING = 'pending';
+
     const PAYMENT_STATUS_PAID = 'paid';
+
     const PAYMENT_STATUS_PARTIAL = 'partial';
+
     const PAYMENT_STATUS_FAILED = 'failed';
+
     const PAYMENT_STATUS_REFUNDED = 'refunded';
 
     const FULFILLMENT_STATUS_PENDING = 'pending';
+
     const FULFILLMENT_STATUS_PROCESSING = 'processing';
+
     const FULFILLMENT_STATUS_SHIPPED = 'shipped';
+
     const FULFILLMENT_STATUS_DELIVERED = 'delivered';
+
     const FULFILLMENT_STATUS_RETURNED = 'returned';
 
     public function customer()
@@ -105,7 +119,7 @@ class Order extends Model
 
     public function canBeRefunded()
     {
-        return $this->payment_status === self::PAYMENT_STATUS_PAID && 
+        return $this->payment_status === self::PAYMENT_STATUS_PAID &&
                $this->order_status !== self::ORDER_STATUS_REFUNDED;
     }
 }

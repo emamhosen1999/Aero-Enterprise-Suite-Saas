@@ -33,11 +33,11 @@ class SendOnboardingRemindersCommand extends Command
             OnboardingReminderJob::dispatch();
 
             $this->info('Onboarding reminder job dispatched successfully.');
-            
+
             return Command::SUCCESS;
         } catch (\Exception $e) {
-            $this->error('Failed to dispatch onboarding reminder job: ' . $e->getMessage());
-            
+            $this->error('Failed to dispatch onboarding reminder job: '.$e->getMessage());
+
             return Command::FAILURE;
         }
     }

@@ -3,9 +3,9 @@
 namespace Aero\Compliance\Http\Controllers;
 
 use Aero\HRM\Models\Department;
-use Illuminate\Routing\Controller;
 use App\Models\ComplianceDocumentRevision;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;

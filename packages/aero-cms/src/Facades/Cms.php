@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\Cms\Facades;
 
-use Illuminate\Support\Facades\Facade;
 use Aero\Cms\Services\CmsService;
+use Illuminate\Support\Facades\Facade;
 
 /**
  * @method static array getAvailableBlocks()

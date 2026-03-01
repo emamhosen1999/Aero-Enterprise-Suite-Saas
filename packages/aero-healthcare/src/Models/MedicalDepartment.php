@@ -2,10 +2,10 @@
 
 namespace Aero\Healthcare\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class MedicalDepartment extends Model
 {
@@ -16,7 +16,7 @@ class MedicalDepartment extends Model
     protected $fillable = [
         'name', 'code', 'description', 'head_provider_id', 'location',
         'phone', 'email', 'operating_hours', 'services_offered',
-        'bed_capacity', 'current_occupancy', 'is_active', 'created_by'
+        'bed_capacity', 'current_occupancy', 'is_active', 'created_by',
     ];
 
     protected $casts = [
@@ -49,7 +49,7 @@ class MedicalDepartment extends Model
         if ($this->bed_capacity === 0) {
             return 0;
         }
-        
+
         return round(($this->current_occupancy / $this->bed_capacity) * 100, 1);
     }
 
@@ -65,20 +65,20 @@ class MedicalDepartment extends Model
 
     public function isOperatingNow()
     {
-        if (!$this->operating_hours) {
+        if (! $this->operating_hours) {
             return false;
         }
-        
+
         $now = now();
         $dayOfWeek = strtolower($now->format('l'));
         $currentTime = $now->format('H:i');
-        
+
         $todayHours = $this->operating_hours[$dayOfWeek] ?? null;
-        
-        if (!$todayHours || !$todayHours['open']) {
+
+        if (! $todayHours || ! $todayHours['open']) {
             return false;
         }
-        
+
         return $currentTime >= $todayHours['start'] && $currentTime <= $todayHours['end'];
     }
 

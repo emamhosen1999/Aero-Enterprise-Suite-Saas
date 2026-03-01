@@ -54,12 +54,19 @@ class CompensationHistory extends Model
      * Change types.
      */
     public const TYPE_ANNUAL_INCREASE = 'annual_increase';
+
     public const TYPE_PROMOTION = 'promotion';
+
     public const TYPE_MARKET_ADJUSTMENT = 'market_adjustment';
+
     public const TYPE_MERIT_INCREASE = 'merit_increase';
+
     public const TYPE_COST_OF_LIVING = 'cost_of_living';
+
     public const TYPE_DEMOTION = 'demotion';
+
     public const TYPE_CORRECTION = 'correction';
+
     public const TYPE_BONUS = 'bonus';
 
     public function employee(): BelongsTo

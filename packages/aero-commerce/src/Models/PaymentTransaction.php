@@ -14,7 +14,7 @@ class PaymentTransaction extends Model
     protected $fillable = [
         'order_payment_id', 'payment_gateway_id', 'transaction_type', 'gateway_transaction_id',
         'amount', 'currency', 'status', 'gateway_request', 'gateway_response',
-        'processed_at', 'failure_reason'
+        'processed_at', 'failure_reason',
     ];
 
     protected $casts = [
@@ -27,14 +27,21 @@ class PaymentTransaction extends Model
     ];
 
     const TYPE_AUTHORIZE = 'authorize';
+
     const TYPE_CAPTURE = 'capture';
+
     const TYPE_SALE = 'sale';
+
     const TYPE_REFUND = 'refund';
+
     const TYPE_VOID = 'void';
 
     const STATUS_PENDING = 'pending';
+
     const STATUS_SUCCESS = 'success';
+
     const STATUS_FAILED = 'failed';
+
     const STATUS_CANCELLED = 'cancelled';
 
     public function orderPayment()

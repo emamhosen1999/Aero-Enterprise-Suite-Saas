@@ -73,7 +73,7 @@ abstract class BaseProjectNotification extends Notification implements ShouldQue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage())
+        return (new MailMessage)
             ->subject($this->getMailSubject())
             ->line($this->getMailLine())
             ->action($this->getMailActionText(), $this->getMailActionUrl())

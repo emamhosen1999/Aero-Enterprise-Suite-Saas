@@ -5,7 +5,6 @@ namespace Aero\HRM\Services;
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Onboarding;
 use Aero\HRM\Models\OnboardingTask;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -82,7 +81,6 @@ class EmployeeOnboardingService
      * Returns an array of task templates customized for the employee's
      * department and designation.
      *
-     * @param  Employee  $employee
      * @return array Array of task data
      */
     protected function getDefaultTasksFor(Employee $employee): array

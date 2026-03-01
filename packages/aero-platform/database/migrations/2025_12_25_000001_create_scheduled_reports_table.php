@@ -26,7 +26,7 @@ return new class extends Migration
                 'cohort_analysis',
                 'plan_performance',
                 'customer_analytics',
-                'usage'
+                'usage',
             ]);
             $table->json('config'); // Report configuration (metrics, filters, grouping, etc.)
             $table->enum('frequency', ['daily', 'weekly', 'monthly', 'custom'])->default('weekly');

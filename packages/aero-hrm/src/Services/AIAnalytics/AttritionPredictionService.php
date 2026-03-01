@@ -2,23 +2,23 @@
 
 namespace Aero\HRM\Services\AIAnalytics;
 
+use Aero\HRM\Models\AIInsight;
+use Aero\HRM\Models\Attendance;
+use Aero\HRM\Models\AttritionPrediction;
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\EmployeeRiskScore;
-use Aero\HRM\Models\AttritionPrediction;
-use Aero\HRM\Models\AIInsight;
 use Aero\HRM\Models\Leave;
-use Aero\HRM\Models\Attendance;
 use Aero\HRM\Models\PerformanceReview;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 /**
  * Attrition Prediction Service
- * 
+ *
  * AI-driven employee attrition risk prediction using multi-factor analysis.
  * Uses statistical models and pattern recognition to predict flight risk.
- * 
+ *
  * Key Factors Analyzed:
  * - Tenure patterns (honeymoon period, cliff periods)
  * - Compensation relative to market/peers
@@ -56,7 +56,7 @@ class AttritionPredictionService
         $features = $this->extractFeatures($employee);
         $riskScore = $this->calculateRiskScore($features);
         $riskLevel = $this->classifyRiskLevel($riskScore);
-        
+
         return [
             'employee_id' => $employee->id,
             'risk_score' => $riskScore,
@@ -80,6 +80,7 @@ class AttritionPredictionService
         return $employees->map(function (Employee $employee) {
             $prediction = $this->predictAttritionRisk($employee);
             $this->storePrediction($employee, $prediction);
+
             return $prediction;
         });
     }
@@ -122,7 +123,7 @@ class AttritionPredictionService
      */
     protected function calculateTenureRisk(Employee $employee): float
     {
-        $tenureMonths = $employee->joining_date 
+        $tenureMonths = $employee->joining_date
             ? Carbon::parse($employee->joining_date)->diffInMonths(now())
             : 0;
 
@@ -150,7 +151,7 @@ class AttritionPredictionService
     protected function calculateCompensationGap(Employee $employee): float
     {
         $salary = $employee->salaryStructure?->basic_salary ?? 0;
-        
+
         if ($salary <= 0) {
             return 50; // Unknown compensation, neutral risk
         }
@@ -281,12 +282,12 @@ class AttritionPredictionService
                 DB::raw('SUM(consecutive_overtime_flag) as overtime_days'),
             ]);
 
-        if (!$metrics) {
+        if (! $metrics) {
             return 50;
         }
 
         $stress = 0;
-        
+
         // High utilization = stress
         if ($metrics->avg_utilization > 100) {
             $stress += min(40, ($metrics->avg_utilization - 100) * 2);
@@ -310,7 +311,7 @@ class AttritionPredictionService
      */
     protected function calculatePromotionVelocity(Employee $employee): float
     {
-        $tenureYears = $employee->joining_date 
+        $tenureYears = $employee->joining_date
             ? Carbon::parse($employee->joining_date)->diffInYears(now())
             : 0;
 
@@ -321,7 +322,7 @@ class AttritionPredictionService
         // Check job history for promotions
         // This is a simplified check - ideally would track actual promotions
         $gradeLevel = $employee->grade?->level ?? 1;
-        
+
         $expectedGrowth = $tenureYears / 3; // Expect growth every 3 years
         $actualGrowth = $gradeLevel - 1;
 
@@ -352,8 +353,7 @@ class AttritionPredictionService
         $risk = 0;
 
         // Check for interview leave pattern (scattered single days)
-        $singleDayLeaves = $leaves->filter(fn ($l) => 
-            Carbon::parse($l->start_date)->isSameDay(Carbon::parse($l->end_date))
+        $singleDayLeaves = $leaves->filter(fn ($l) => Carbon::parse($l->start_date)->isSameDay(Carbon::parse($l->end_date))
         )->count();
 
         if ($singleDayLeaves > 5) {
@@ -363,6 +363,7 @@ class AttritionPredictionService
         // Check for Monday/Friday pattern
         $mondayFridayLeaves = $leaves->filter(function ($l) {
             $day = Carbon::parse($l->start_date)->dayOfWeek;
+
             return $day === 1 || $day === 5;
         })->count();
 
@@ -412,8 +413,8 @@ class AttritionPredictionService
     {
         // High-demand roles have higher attrition risk
         $highDemandRoles = [
-            'software engineer', 'developer', 'data scientist', 
-            'product manager', 'designer', 'devops'
+            'software engineer', 'developer', 'data scientist',
+            'product manager', 'designer', 'devops',
         ];
 
         $designation = strtolower($employee->designation?->name ?? '');
@@ -457,7 +458,7 @@ class AttritionPredictionService
         } elseif ($score >= 40) {
             return 'medium';
         }
-        
+
         return 'low';
     }
 
@@ -467,7 +468,7 @@ class AttritionPredictionService
     protected function getTopRiskFactors(array $features): array
     {
         arsort($features);
-        
+
         return array_slice($features, 0, 3, true);
     }
 

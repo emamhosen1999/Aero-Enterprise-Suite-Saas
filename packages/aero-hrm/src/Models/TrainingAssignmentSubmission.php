@@ -2,8 +2,8 @@
 
 namespace Aero\HRM\Models;
 
-use App\Models\CarbonInterface;
 use Aero\Core\Models\User;
+use App\Models\CarbonInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;

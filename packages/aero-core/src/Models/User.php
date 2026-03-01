@@ -6,10 +6,10 @@ use Aero\Core\Contracts\UserContract;
 use Aero\Core\Services\UserRelationshipRegistry;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Log;
@@ -329,7 +329,6 @@ class User extends Authenticatable implements MustVerifyEmail, UserContract
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @param  string|array  $roles
-     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeRole($query, $roles): \Illuminate\Database\Eloquent\Builder
     {
@@ -399,6 +398,7 @@ class User extends Authenticatable implements MustVerifyEmail, UserContract
                 if (is_object($role) && isset($role->id)) {
                     return $role->id;
                 }
+
                 return is_numeric($role) ? (int) $role : null;
             })
             ->filter()
@@ -460,6 +460,7 @@ class User extends Authenticatable implements MustVerifyEmail, UserContract
                 if (is_object($role) && isset($role->id)) {
                     return $role->id;
                 }
+
                 return is_numeric($role) ? (int) $role : null;
             })
             ->filter()
@@ -974,10 +975,23 @@ class User extends Authenticatable implements MustVerifyEmail, UserContract
     /**
      * Get the user's notification preferences for a specific channel.
      */
-    public function prefersNotificationChannel(string $channel): bool
+    public function prefersNotificationChannel(string $channel, ?string $eventType = null): bool
     {
+        $query = \Illuminate\Support\Facades\DB::table('user_notification_preferences')
+            ->where('user_id', $this->id)
+            ->where('channel', $channel);
+
+        if ($eventType !== null) {
+            $query->where('event_type', $eventType);
+        }
+
+        $preference = $query->first();
+
+        if ($preference !== null) {
+            return (bool) $preference->enabled;
+        }
+
         // Default: all channels enabled unless explicitly disabled
-        // TODO: Implement user notification preferences table
         return true;
     }
 

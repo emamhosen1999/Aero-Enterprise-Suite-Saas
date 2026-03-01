@@ -3,20 +3,19 @@
 namespace Aero\HRM\Http\Controllers;
 
 use Aero\Core\Services\DashboardWidgetRegistry;
+use Aero\HRM\Models\Attendance;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Leave;
-use Aero\HRM\Models\Attendance;
 use Aero\HRM\Models\PerformanceReview;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
  * HRM Dashboard Controller
- * 
+ *
  * Provides the main HR Manager dashboard with:
  * - Employee statistics
  * - Leave management overview
@@ -35,23 +34,23 @@ class HRMDashboardController extends Controller
     public function index(): Response
     {
         $today = Carbon::today();
-        
+
         // Get employee stats
         $totalEmployees = Employee::count();
         $activeEmployees = Employee::where('status', 'active')->count();
-        
+
         // Get leave stats
         $pendingLeaves = Leave::where('status', 'pending')->count();
         $approvedLeaves = Leave::where('status', 'approved')
             ->whereMonth('created_at', $today->month)
             ->count();
-        
+
         // Get employees on leave today
         $onLeaveToday = Leave::where('status', 'approved')
             ->whereDate('from_date', '<=', $today)
             ->whereDate('to_date', '>=', $today)
             ->count();
-        
+
         // Get pending leave requests for display
         $pendingLeaveRequests = Leave::with(['employee', 'leaveType'])
             ->where('status', 'pending')
@@ -70,19 +69,19 @@ class HRMDashboardController extends Controller
                     'status' => $leave->status,
                 ];
             });
-        
+
         // Get attendance stats for today
         $presentToday = Attendance::whereDate('date', $today)
             ->whereNotNull('punchin')
             ->count();
-        
+
         $absentToday = $activeEmployees - $presentToday - $onLeaveToday;
         $absentToday = max(0, $absentToday);
-        
+
         $lateToday = Attendance::whereDate('date', $today)
             ->where('is_late', true)
             ->count();
-        
+
         // Calculate average attendance rate for the month
         $workingDays = $this->getWorkingDaysInMonth($today);
         $totalPossibleAttendance = $activeEmployees * $workingDays;
@@ -90,17 +89,17 @@ class HRMDashboardController extends Controller
             ->whereYear('date', $today->year)
             ->whereNotNull('punchin')
             ->count();
-        $averageAttendance = $totalPossibleAttendance > 0 
+        $averageAttendance = $totalPossibleAttendance > 0
             ? round(($actualAttendance / $totalPossibleAttendance) * 100)
             : 0;
-        
+
         // Get department stats
         $departments = Department::withCount(['employees' => function ($query) {
-                $query->where('status', 'active');
-            }])
+            $query->where('status', 'active');
+        }])
             ->take(10)
             ->get()
-            ->map(function ($dept) use ($today, $activeEmployees) {
+            ->map(function ($dept) use ($today) {
                 // Calculate department attendance rate
                 $deptEmployees = $dept->employees_count;
                 if ($deptEmployees > 0) {
@@ -114,7 +113,7 @@ class HRMDashboardController extends Controller
                 } else {
                     $attendanceRate = 0;
                 }
-                
+
                 return [
                     'id' => $dept->id,
                     'name' => $dept->name,
@@ -122,7 +121,7 @@ class HRMDashboardController extends Controller
                     'attendance_rate' => $attendanceRate,
                 ];
             });
-        
+
         // Performance review stats - Temporarily disabled due to missing column
         // $upcomingReviews = PerformanceReview::with(['employee'])
         //     ->where('status', 'scheduled')
@@ -131,7 +130,7 @@ class HRMDashboardController extends Controller
         //     ->take(5)
         //     ->get();
         $upcomingReviews = collect(); // Empty collection for now
-        
+
         // Additional HR metrics
         $openPositions = 0; // Can be integrated with recruitment module
         $pendingExpenses = 0; // Can be integrated with expense module
@@ -171,18 +170,18 @@ class HRMDashboardController extends Controller
     public function stats(Request $request)
     {
         $today = Carbon::today();
-        
+
         // Get employee stats
         $totalEmployees = Employee::count();
         $activeEmployees = Employee::where('status', 'active')->count();
-        
+
         // Leave stats
         $pendingLeaves = Leave::where('status', 'pending')->count();
         $onLeaveToday = Leave::where('status', 'approved')
             ->whereDate('from_date', '<=', $today)
             ->whereDate('to_date', '>=', $today)
             ->count();
-        
+
         // Attendance stats
         $presentToday = Attendance::whereDate('date', $today)
             ->whereNotNull('punchin')
@@ -191,7 +190,7 @@ class HRMDashboardController extends Controller
             ->where('is_late', true)
             ->count();
         $absentToday = max(0, $activeEmployees - $presentToday - $onLeaveToday);
-        
+
         // Average attendance
         $workingDays = $this->getWorkingDaysInMonth($today);
         $totalPossibleAttendance = $activeEmployees * $workingDays;
@@ -199,14 +198,14 @@ class HRMDashboardController extends Controller
             ->whereYear('date', $today->year)
             ->whereNotNull('punchin')
             ->count();
-        $averageAttendance = $totalPossibleAttendance > 0 
+        $averageAttendance = $totalPossibleAttendance > 0
             ? round(($actualAttendance / $totalPossibleAttendance) * 100)
             : 0;
-        
+
         // Department stats
         $departments = Department::withCount(['employees' => function ($query) {
-                $query->where('status', 'active');
-            }])
+            $query->where('status', 'active');
+        }])
             ->take(10)
             ->get()
             ->map(function ($dept) use ($today) {
@@ -222,7 +221,7 @@ class HRMDashboardController extends Controller
                 } else {
                     $attendanceRate = 0;
                 }
-                
+
                 return [
                     'id' => $dept->id,
                     'name' => $dept->name,
@@ -230,10 +229,10 @@ class HRMDashboardController extends Controller
                     'attendance_rate' => $attendanceRate,
                 ];
             });
-        
+
         // Recent activities (simplified)
         $recentActivities = [];
-        
+
         return response()->json([
             'stats' => [
                 'totalEmployees' => $totalEmployees,
@@ -263,14 +262,14 @@ class HRMDashboardController extends Controller
         $start = $date->copy()->startOfMonth();
         $end = $date->copy()->endOfMonth();
         $workingDays = 0;
-        
+
         while ($start->lte($end)) {
-            if (!$start->isWeekend()) {
+            if (! $start->isWeekend()) {
                 $workingDays++;
             }
             $start->addDay();
         }
-        
+
         return $workingDays;
     }
 }

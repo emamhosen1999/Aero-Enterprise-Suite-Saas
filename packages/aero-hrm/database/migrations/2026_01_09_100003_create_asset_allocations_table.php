@@ -27,7 +27,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();
-            
+
             // Indexes
             $table->index('allocated_date');
             $table->index('is_active');

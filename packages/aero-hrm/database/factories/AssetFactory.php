@@ -14,7 +14,7 @@ class AssetFactory extends Factory
     {
         return [
             'asset_category_id' => AssetCategory::factory(),
-            'asset_tag' => 'AST' . now()->format('Y') . str_pad($this->faker->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
+            'asset_tag' => 'AST'.now()->format('Y').str_pad($this->faker->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
             'name' => $this->faker->words(3, true),
             'description' => $this->faker->optional()->sentence(),
             'serial_number' => strtoupper($this->faker->bothify('??-####-??##')),

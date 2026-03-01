@@ -2,10 +2,10 @@
 
 namespace Aero\RealEstate\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class PropertyValuation extends Model
 {
@@ -17,7 +17,7 @@ class PropertyValuation extends Model
         'property_id', 'valuation_type', 'valuation_date', 'appraiser_name',
         'appraiser_license', 'estimated_value', 'low_estimate', 'high_estimate',
         'price_per_sqft', 'comparable_properties', 'valuation_method',
-        'market_conditions', 'notes', 'report_url', 'status', 'created_by'
+        'market_conditions', 'notes', 'report_url', 'status', 'created_by',
     ];
 
     protected $casts = [
@@ -33,21 +33,33 @@ class PropertyValuation extends Model
     ];
 
     const TYPE_APPRAISAL = 'appraisal';
+
     const TYPE_CMA = 'cma'; // Comparative Market Analysis
+
     const TYPE_BROKER_PRICE_OPINION = 'bpo';
+
     const TYPE_AUTOMATED = 'automated';
+
     const TYPE_INSURANCE = 'insurance';
+
     const TYPE_TAX_ASSESSMENT = 'tax_assessment';
 
     const METHOD_SALES_COMPARISON = 'sales_comparison';
+
     const METHOD_COST_APPROACH = 'cost_approach';
+
     const METHOD_INCOME_APPROACH = 'income_approach';
+
     const METHOD_HYBRID = 'hybrid';
 
     const STATUS_DRAFT = 'draft';
+
     const STATUS_PENDING = 'pending';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_REVIEWED = 'reviewed';
+
     const STATUS_EXPIRED = 'expired';
 
     public function property()
@@ -63,31 +75,35 @@ class PropertyValuation extends Model
     public function getValueRangeAttribute()
     {
         if ($this->low_estimate && $this->high_estimate) {
-            return '$' . number_format($this->low_estimate) . ' - $' . number_format($this->high_estimate);
+            return '$'.number_format($this->low_estimate).' - $'.number_format($this->high_estimate);
         }
-        return '$' . number_format($this->estimated_value);
+
+        return '$'.number_format($this->estimated_value);
     }
 
     public function getVarianceFromListingAttribute()
     {
         $property = $this->property;
-        if (!$property || !$property->current_value || !$this->estimated_value) {
+        if (! $property || ! $property->current_value || ! $this->estimated_value) {
             return null;
         }
-        
+
         $variance = (($this->estimated_value - $property->current_value) / $property->current_value) * 100;
+
         return round($variance, 2);
     }
 
     public function isOverpriced()
     {
         $variance = $this->getVarianceFromListingAttribute();
+
         return $variance !== null && $variance < -10; // Listing is 10%+ above valuation
     }
 
     public function isUnderpriced()
     {
         $variance = $this->getVarianceFromListingAttribute();
+
         return $variance !== null && $variance > 10; // Listing is 10%+ below valuation
     }
 
@@ -99,14 +115,14 @@ class PropertyValuation extends Model
 
     public function getAccuracyRatingAttribute()
     {
-        if (!$this->low_estimate || !$this->high_estimate || !$this->estimated_value) {
+        if (! $this->low_estimate || ! $this->high_estimate || ! $this->estimated_value) {
             return null;
         }
-        
+
         $range = $this->high_estimate - $this->low_estimate;
         $percentageRange = ($range / $this->estimated_value) * 100;
-        
-        return match(true) {
+
+        return match (true) {
             $percentageRange <= 5 => 'Very High',
             $percentageRange <= 10 => 'High',
             $percentageRange <= 15 => 'Medium',
@@ -122,9 +138,12 @@ class PropertyValuation extends Model
 
     public function getAverageComparablePriceAttribute()
     {
-        if (!is_array($this->comparable_properties)) return null;
-        
+        if (! is_array($this->comparable_properties)) {
+            return null;
+        }
+
         $prices = array_column($this->comparable_properties, 'sale_price');
+
         return $prices ? array_sum($prices) / count($prices) : null;
     }
 

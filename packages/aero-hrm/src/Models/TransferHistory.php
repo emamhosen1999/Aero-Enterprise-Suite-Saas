@@ -4,8 +4,8 @@ namespace Aero\HRM\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Transfer History Model
@@ -60,19 +60,28 @@ class TransferHistory extends Model
      * Transfer types.
      */
     public const TYPE_DEPARTMENT = 'department';
+
     public const TYPE_LOCATION = 'location';
+
     public const TYPE_BRANCH = 'branch';
+
     public const TYPE_INTERNATIONAL = 'international';
+
     public const TYPE_PROJECT = 'project';
 
     /**
      * Status options.
      */
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_APPROVED = 'approved';
+
     public const STATUS_REJECTED = 'rejected';
+
     public const STATUS_IN_PROGRESS = 'in_progress';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     public function employee(): BelongsTo

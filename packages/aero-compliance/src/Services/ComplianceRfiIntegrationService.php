@@ -9,9 +9,9 @@ use Aero\Rfi\Models\Rfi;
 
 /**
  * ComplianceRfiIntegrationService
- * 
+ *
  * PATENTABLE: "Automated regulatory compliance verification for construction RFIs"
- * 
+ *
  * This service:
  * 1. Auto-scans RFI descriptions for compliance keywords
  * 2. Checks if regulatory requirements block RFI submission at specific chainages
@@ -22,7 +22,7 @@ class ComplianceRfiIntegrationService
     /**
      * Run compliance checks on an RFI before submission.
      * PATENTABLE: "Pre-submission regulatory validation for construction requests"
-     * 
+     *
      * @return array{can_submit: bool, checks: array, blockers: array, warnings: array}
      */
     public function runPreSubmissionChecks(Rfi $rfi): array
@@ -83,7 +83,7 @@ class ComplianceRfiIntegrationService
 
         $description = strtolower($rfi->description ?? '');
         $location = strtolower($rfi->location ?? '');
-        $searchText = $description . ' ' . $location;
+        $searchText = $description.' '.$location;
 
         // Get all requirements with trigger keywords
         $requirements = RegulatoryRequirement::query()
@@ -97,7 +97,7 @@ class ComplianceRfiIntegrationService
 
         foreach ($requirements as $req) {
             $keywords = $req->trigger_keywords ?? [];
-            
+
             foreach ($keywords as $keyword) {
                 if (str_contains($searchText, strtolower($keyword))) {
                     $check = [
@@ -185,7 +185,7 @@ class ComplianceRfiIntegrationService
     /**
      * Predict RFI failure probability based on historical data.
      * PATENTABLE: "AI-based construction inspection outcome prediction"
-     * 
+     *
      * @return array{probability: float, factors: array}
      */
     protected function predictRfiRisk(

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Employee Risk Scores Model
- * 
+ *
  * Central tracking of AI-computed risk metrics for each employee.
  * Aggregates attrition risk, burnout risk, and engagement scores.
  */

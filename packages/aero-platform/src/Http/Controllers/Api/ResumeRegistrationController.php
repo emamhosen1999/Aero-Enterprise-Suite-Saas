@@ -25,8 +25,19 @@ class ResumeRegistrationController extends Controller
         $validated = $request->validate([
             'email' => ['required', 'email', 'max:255'],
             'step' => ['required', 'string', 'max:50'],
+            // Fix #17: Whitelist the allowed keys inside the data array so an attacker cannot
+            // inject arbitrary keys that are later written to the session and acted upon.
             'data' => ['required', 'array'],
+            'data.account' => ['sometimes', 'array'],
+            'data.details' => ['sometimes', 'array'],
+            'data.verification' => ['sometimes', 'array'],
+            'data.plan' => ['sometimes', 'array'],
+            'data.trial' => ['sometimes', 'array'],
         ]);
+
+        // Strip any non-whitelisted keys that might have slipped through
+        $allowedDataKeys = ['account', 'details', 'verification', 'plan', 'trial'];
+        $validated['data'] = array_intersect_key($validated['data'], array_flip($allowedDataKeys));
 
         // Generate secure token
         $token = Str::random(64);

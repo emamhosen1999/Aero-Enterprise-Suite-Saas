@@ -49,7 +49,7 @@ class SimpleLoginController extends Controller
         $remember = $request->boolean('remember');
 
         // Rate limiting
-        $key = 'login.' . $request->ip();
+        $key = 'login.'.$request->ip();
         if (RateLimiter::tooManyAttempts($key, 5)) {
             $seconds = RateLimiter::availableIn($key);
 

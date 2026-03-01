@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Approval Action Model
- * 
+ *
  * Individual approval step actions within a workflow.
  */
 class ApprovalAction extends Model
@@ -63,7 +63,7 @@ class ApprovalAction extends Model
 
     public function checkOverdue(): void
     {
-        if ($this->isOverdue() && !$this->is_overdue) {
+        if ($this->isOverdue() && ! $this->is_overdue) {
             $this->update(['is_overdue' => true]);
         }
     }

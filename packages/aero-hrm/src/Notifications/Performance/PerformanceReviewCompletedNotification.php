@@ -20,15 +20,15 @@ class PerformanceReviewCompletedNotification extends Notification implements Sho
     public function via($notifiable): array
     {
         $channels = ['database'];
-        
+
         if ($this->isChannelEnabled('mail', $notifiable)) {
             $channels[] = 'mail';
         }
-        
+
         if ($this->isChannelEnabled('push', $notifiable)) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels;
     }
 
@@ -36,7 +36,7 @@ class PerformanceReviewCompletedNotification extends Notification implements Sho
     {
         $employee = $this->review->employee;
         $ratingText = $this->getRatingText($this->review->overall_rating);
-        
+
         return (new MailMessage)
             ->subject('Performance Review Completed')
             ->greeting("Hello {$employee->full_name}!")
@@ -71,7 +71,7 @@ class PerformanceReviewCompletedNotification extends Notification implements Sho
     public function toBroadcast($notifiable): array
     {
         $ratingText = $this->getRatingText($this->review->overall_rating);
-        
+
         return [
             'title' => '📊 Performance Review Complete',
             'body' => "Your review is ready. Rating: {$this->review->overall_rating}/5 ({$ratingText})",
@@ -82,10 +82,19 @@ class PerformanceReviewCompletedNotification extends Notification implements Sho
 
     protected function getRatingText(float $rating): string
     {
-        if ($rating >= 4.5) return 'Outstanding';
-        if ($rating >= 4.0) return 'Exceeds Expectations';
-        if ($rating >= 3.0) return 'Meets Expectations';
-        if ($rating >= 2.0) return 'Needs Improvement';
+        if ($rating >= 4.5) {
+            return 'Outstanding';
+        }
+        if ($rating >= 4.0) {
+            return 'Exceeds Expectations';
+        }
+        if ($rating >= 3.0) {
+            return 'Meets Expectations';
+        }
+        if ($rating >= 2.0) {
+            return 'Needs Improvement';
+        }
+
         return 'Unsatisfactory';
     }
 
@@ -94,15 +103,15 @@ class PerformanceReviewCompletedNotification extends Notification implements Sho
         $globalSetting = DB::table('notification_settings')
             ->where('key', "channels.{$channel}.enabled")
             ->first();
-        
-        if (!$globalSetting || !json_decode($globalSetting->value)) {
+
+        if (! $globalSetting || ! json_decode($globalSetting->value)) {
             return false;
         }
-        
+
         if (method_exists($notifiable, 'prefersNotificationChannel')) {
             return $notifiable->prefersNotificationChannel($channel, 'performance.review_completed');
         }
-        
+
         return true;
     }
 }

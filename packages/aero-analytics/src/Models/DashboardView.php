@@ -2,9 +2,9 @@
 
 namespace Aero\Analytics\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Aero\Core\Models\User;
 
 class DashboardView extends Model
 {
@@ -14,7 +14,7 @@ class DashboardView extends Model
 
     protected $fillable = [
         'dashboard_id', 'user_id', 'viewed_at', 'session_id',
-        'ip_address', 'user_agent', 'duration_seconds', 'device_type'
+        'ip_address', 'user_agent', 'duration_seconds', 'device_type',
     ];
 
     protected $casts = [
@@ -25,7 +25,9 @@ class DashboardView extends Model
     ];
 
     const DEVICE_DESKTOP = 'desktop';
+
     const DEVICE_MOBILE = 'mobile';
+
     const DEVICE_TABLET = 'tablet';
 
     public function dashboard()

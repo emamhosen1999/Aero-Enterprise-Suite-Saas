@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
  * Audit Log Model
- * 
+ *
  * Tracks all user management actions for compliance and security auditing.
- * 
+ *
  * @property int $id
  * @property int|null $user_id
  * @property string|null $user_name
@@ -100,6 +100,7 @@ class AuditLog extends Model
         if ($to) {
             $query->where('created_at', '<=', $to);
         }
+
         return $query;
     }
 
@@ -117,11 +118,11 @@ class AuditLog extends Model
     public function getFormattedChangesAttribute(): array
     {
         $changes = [];
-        
+
         if ($this->old_values && $this->new_values) {
             foreach ($this->new_values as $key => $newValue) {
                 $oldValue = $this->old_values[$key] ?? null;
-                
+
                 if ($oldValue !== $newValue) {
                     $changes[$key] = [
                         'old' => $oldValue,
@@ -130,7 +131,7 @@ class AuditLog extends Model
                 }
             }
         }
-        
+
         return $changes;
     }
 

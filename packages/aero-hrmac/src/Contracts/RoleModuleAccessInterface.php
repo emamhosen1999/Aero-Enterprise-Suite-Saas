@@ -45,11 +45,10 @@ interface RoleModuleAccessInterface
     /**
      * Check if a user (through their roles) can perform a specific action by codes.
      *
-     * @param mixed $user The user to check
-     * @param string $moduleCode The module code (e.g., 'hrm')
-     * @param string $subModuleCode The sub-module code (e.g., 'leaves')
-     * @param string $actionCode The action code (e.g., 'view_all', 'approve', 'manage')
-     * @return bool
+     * @param  mixed  $user  The user to check
+     * @param  string  $moduleCode  The module code (e.g., 'hrm')
+     * @param  string  $subModuleCode  The sub-module code (e.g., 'leaves')
+     * @param  string  $actionCode  The action code (e.g., 'view_all', 'approve', 'manage')
      */
     public function userCanAccessAction(mixed $user, string $moduleCode, string $subModuleCode, string $actionCode): bool;
 
@@ -91,9 +90,9 @@ interface RoleModuleAccessInterface
     /**
      * Get all users who have access to a specific sub-module.
      *
-     * @param string $moduleCode The module code (e.g., 'hrm')
-     * @param string $subModuleCode The sub-module code (e.g., 'leaves')
-     * @param string|null $actionCode Optional action code to check specific action access
+     * @param  string  $moduleCode  The module code (e.g., 'hrm')
+     * @param  string  $subModuleCode  The sub-module code (e.g., 'leaves')
+     * @param  string|null  $actionCode  Optional action code to check specific action access
      * @return \Illuminate\Support\Collection Collection of User models
      */
     public function getUsersWithSubModuleAccess(string $moduleCode, string $subModuleCode, ?string $actionCode = null): \Illuminate\Support\Collection;
@@ -101,10 +100,10 @@ interface RoleModuleAccessInterface
     /**
      * Get all users who have access to perform a specific action.
      *
-     * @param string $moduleCode The module code (e.g., 'hrm')
-     * @param string $subModuleCode The sub-module code (e.g., 'leaves')
-     * @param string $componentCode The component code (e.g., 'leave-requests')
-     * @param string $actionCode The action code (e.g., 'approve')
+     * @param  string  $moduleCode  The module code (e.g., 'hrm')
+     * @param  string  $subModuleCode  The sub-module code (e.g., 'leaves')
+     * @param  string  $componentCode  The component code (e.g., 'leave-requests')
+     * @param  string  $actionCode  The action code (e.g., 'approve')
      * @return \Illuminate\Support\Collection Collection of User models
      */
     public function getUsersWithActionAccess(string $moduleCode, string $subModuleCode, string $componentCode, string $actionCode): \Illuminate\Support\Collection;

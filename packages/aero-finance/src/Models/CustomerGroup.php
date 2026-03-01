@@ -13,8 +13,8 @@ class CustomerGroup extends Model
     protected $table = 'finance_customer_groups';
 
     protected $fillable = [
-        'name', 'description', 'discount_percentage', 
-        'credit_limit', 'payment_terms', 'is_active'
+        'name', 'description', 'discount_percentage',
+        'credit_limit', 'payment_terms', 'is_active',
     ];
 
     protected $casts = [

@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Aero\Dms\Http\Controllers\DMSController;
 use Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral;
+use Aero\Dms\Http\Controllers\DMSController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,10 +19,10 @@ Route::middleware(['api', InitializeTenancyIfNotCentral::class, 'tenant', 'auth:
     Route::prefix('dms')->name('api.dms.')->group(function () {
         // Document CRUD
         Route::apiResource('documents', DMSController::class);
-        
+
         // Search
         Route::get('/search', [DMSController::class, 'search'])->name('search');
-        
+
         // Statistics
         Route::get('/statistics', [DMSController::class, 'statistics'])->name('statistics');
     });

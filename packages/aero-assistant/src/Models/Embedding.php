@@ -2,8 +2,8 @@
 
 namespace Aero\Assistant\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
 class Embedding extends Model
@@ -46,17 +46,17 @@ class Embedding extends Model
     /**
      * Find similar embeddings using vector similarity search.
      *
-     * @param array $queryEmbedding The query embedding vector
-     * @param int $limit Number of results to return
-     * @param float $threshold Minimum similarity threshold (0-1)
+     * @param  array  $queryEmbedding  The query embedding vector
+     * @param  int  $limit  Number of results to return
+     * @param  float  $threshold  Minimum similarity threshold (0-1)
      * @return \Illuminate\Database\Eloquent\Collection
      */
     public static function findSimilar(array $queryEmbedding, int $limit = 5, float $threshold = 0.7)
     {
         if (DB::connection()->getDriverName() === 'pgsql') {
             // Use pgvector's cosine similarity
-            $embeddingString = '[' . implode(',', $queryEmbedding) . ']';
-            
+            $embeddingString = '['.implode(',', $queryEmbedding).']';
+
             return static::select('*')
                 ->selectRaw('1 - (embedding <=> ?::vector) as similarity', [$embeddingString])
                 ->whereRaw('1 - (embedding <=> ?::vector) > ?', [$embeddingString, $threshold])
@@ -68,6 +68,7 @@ class Embedding extends Model
             return static::all()
                 ->map(function ($item) use ($queryEmbedding) {
                     $item->similarity = static::cosineSimilarity($queryEmbedding, $item->embedding);
+
                     return $item;
                 })
                 ->where('similarity', '>', $threshold)

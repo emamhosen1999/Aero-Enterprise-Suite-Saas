@@ -181,7 +181,7 @@ class SettingsController extends Controller
      */
     private function getSettings(string $category): array
     {
-        $key = $this->getConfigPrefix() . $category;
+        $key = $this->getConfigPrefix().$category;
 
         return Cache::remember($key, 3600, function () use ($category) {
             // In a real implementation, this would load from database
@@ -193,11 +193,11 @@ class SettingsController extends Controller
     /**
      * Save settings for a specific category.
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     private function saveSettings(string $category, array $data): void
     {
-        $key = $this->getConfigPrefix() . $category;
+        $key = $this->getConfigPrefix().$category;
 
         // Merge with existing settings
         $existing = $this->getSettings($category);

@@ -27,7 +27,7 @@ class AssetCategoryFactory extends Factory
                 'Network Equipment',
                 'Vehicles',
                 'Furniture',
-                'Tools'
+                'Tools',
             ]),
             'description' => $this->faker->sentence(),
             'icon' => $this->faker->randomElement(['laptop', 'monitor', 'keyboard', 'mouse', 'desk', 'chair', 'phone', 'tablet', 'printer']),

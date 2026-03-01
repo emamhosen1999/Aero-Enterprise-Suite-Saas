@@ -2,10 +2,10 @@
 
 namespace Aero\Education\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class Assignment extends Model
 {
@@ -18,7 +18,7 @@ class Assignment extends Model
         'due_date', 'available_date', 'points_possible', 'weight_percentage',
         'instructions', 'rubric', 'submission_type', 'allow_late_submission',
         'late_penalty_per_day', 'max_late_days', 'is_extra_credit',
-        'group_assignment', 'peer_review', 'created_by'
+        'group_assignment', 'peer_review', 'created_by',
     ];
 
     protected $casts = [
@@ -38,19 +38,31 @@ class Assignment extends Model
     ];
 
     const TYPE_HOMEWORK = 'homework';
+
     const TYPE_QUIZ = 'quiz';
+
     const TYPE_EXAM = 'exam';
+
     const TYPE_PROJECT = 'project';
+
     const TYPE_PAPER = 'paper';
+
     const TYPE_PRESENTATION = 'presentation';
+
     const TYPE_LAB = 'lab';
+
     const TYPE_DISCUSSION = 'discussion';
+
     const TYPE_PORTFOLIO = 'portfolio';
+
     const TYPE_CASE_STUDY = 'case_study';
 
     const SUBMISSION_ONLINE = 'online';
+
     const SUBMISSION_PAPER = 'paper';
+
     const SUBMISSION_BOTH = 'both';
+
     const SUBMISSION_NO_SUBMISSION = 'no_submission';
 
     public function courseSection()
@@ -86,6 +98,7 @@ class Assignment extends Model
     public function getAverageScoreAttribute()
     {
         $grades = $this->grades();
+
         return $grades->count() > 0 ? round($grades->avg('percentage'), 2) : null;
     }
 
@@ -96,7 +109,7 @@ class Assignment extends Model
 
     public function isAvailable()
     {
-        return !$this->available_date || $this->available_date <= now();
+        return ! $this->available_date || $this->available_date <= now();
     }
 
     public function isOverdue()
@@ -106,40 +119,44 @@ class Assignment extends Model
 
     public function canAcceptLateSubmission()
     {
-        if (!$this->allow_late_submission || !$this->isOverdue()) {
+        if (! $this->allow_late_submission || ! $this->isOverdue()) {
             return false;
         }
-        
+
         if ($this->max_late_days) {
             $daysPastDue = now()->diffInDays($this->due_date);
+
             return $daysPastDue <= $this->max_late_days;
         }
-        
+
         return true;
     }
 
     public function calculateLatePenalty($submissionDate = null)
     {
         $submissionDate = $submissionDate ?: now();
-        
-        if (!$this->isOverdue() || !$this->late_penalty_per_day) {
+
+        if (! $this->isOverdue() || ! $this->late_penalty_per_day) {
             return 0;
         }
-        
+
         $daysPastDue = $submissionDate->diffInDays($this->due_date);
-        
+
         if ($this->max_late_days && $daysPastDue > $this->max_late_days) {
             return $this->points_possible; // Full penalty if beyond max late days
         }
-        
+
         return min($this->late_penalty_per_day * $daysPastDue, $this->points_possible);
     }
 
     public function getDaysUntilDueAttribute()
     {
-        if (!$this->due_date) return null;
-        
+        if (! $this->due_date) {
+            return null;
+        }
+
         $days = now()->diffInDays($this->due_date, false);
+
         return $days >= 0 ? $days : null;
     }
 
@@ -147,7 +164,7 @@ class Assignment extends Model
     {
         $totalStudents = $this->courseSection->current_enrollment;
         $submittedCount = $this->getSubmissionCountAttribute();
-        
+
         return $totalStudents > 0 ? round(($submittedCount / $totalStudents) * 100, 2) : 0;
     }
 
@@ -178,9 +195,9 @@ class Assignment extends Model
 
     public function scopeAvailable($query)
     {
-        return $query->where(function($q) {
+        return $query->where(function ($q) {
             $q->whereNull('available_date')
-              ->orWhere('available_date', '<=', now());
+                ->orWhere('available_date', '<=', now());
         });
     }
 }

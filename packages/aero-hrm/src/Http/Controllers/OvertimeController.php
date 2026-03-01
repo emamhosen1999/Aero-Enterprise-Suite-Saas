@@ -2,10 +2,10 @@
 
 namespace Aero\HRM\Http\Controllers;
 
-use Aero\HRM\Models\OvertimeRecord;
 use Aero\HRM\Models\Employee;
-use Illuminate\Http\Request;
+use Aero\HRM\Models\OvertimeRecord;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Inertia\Response;

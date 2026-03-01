@@ -18,7 +18,6 @@ interface EmployeeResolverContract
     /**
      * Create an employee record for a user.
      *
-     * @param int $userId
      * @param array{
      *     department_id?: int|null,
      *     designation_id?: int|null,
@@ -33,23 +32,17 @@ interface EmployeeResolverContract
     /**
      * Get employee by user ID.
      *
-     * @param int $userId
      * @return array{id: int, employee_code: string, department_id: ?int, designation_id: ?int}|null
      */
     public function getEmployeeByUserId(int $userId): ?array;
 
     /**
      * Check if employee exists for user.
-     *
-     * @param int $userId
-     * @return bool
      */
     public function hasEmployee(int $userId): bool;
 
     /**
      * Generate a unique employee code.
-     *
-     * @return string
      */
     public function generateEmployeeCode(): string;
 }

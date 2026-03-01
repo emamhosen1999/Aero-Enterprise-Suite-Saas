@@ -2,9 +2,9 @@
 
 namespace Aero\Manufacturing\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Aero\Core\Models\User;
 
 class WorkOrderMaterial extends Model
 {
@@ -15,7 +15,7 @@ class WorkOrderMaterial extends Model
     protected $fillable = [
         'work_order_id', 'product_id', 'planned_quantity', 'consumed_quantity',
         'unit_cost', 'warehouse_id', 'lot_number', 'serial_number',
-        'consumed_by', 'consumed_at', 'notes'
+        'consumed_by', 'consumed_at', 'notes',
     ];
 
     protected $casts = [

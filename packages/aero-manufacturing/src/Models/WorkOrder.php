@@ -2,10 +2,10 @@
 
 namespace Aero\Manufacturing\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class WorkOrder extends Model
 {
@@ -17,7 +17,7 @@ class WorkOrder extends Model
         'work_order_number', 'product_id', 'bom_id', 'quantity_to_produce',
         'quantity_produced', 'quantity_scrapped', 'priority', 'status',
         'planned_start_date', 'planned_end_date', 'actual_start_date', 'actual_end_date',
-        'route_id', 'cost_center_id', 'notes', 'created_by', 'assigned_to'
+        'route_id', 'cost_center_id', 'notes', 'created_by', 'assigned_to',
     ];
 
     protected $casts = [
@@ -37,15 +37,23 @@ class WorkOrder extends Model
     ];
 
     const PRIORITY_LOW = 'low';
+
     const PRIORITY_NORMAL = 'normal';
+
     const PRIORITY_HIGH = 'high';
+
     const PRIORITY_URGENT = 'urgent';
 
     const STATUS_PLANNED = 'planned';
+
     const STATUS_RELEASED = 'released';
+
     const STATUS_IN_PROGRESS = 'in_progress';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_CANCELLED = 'cancelled';
+
     const STATUS_ON_HOLD = 'on_hold';
 
     public function product()
@@ -95,7 +103,7 @@ class WorkOrder extends Model
 
     public function getCompletionPercentageAttribute()
     {
-        return $this->quantity_to_produce > 0 ? 
+        return $this->quantity_to_produce > 0 ?
             ($this->quantity_produced / $this->quantity_to_produce) * 100 : 0;
     }
 }

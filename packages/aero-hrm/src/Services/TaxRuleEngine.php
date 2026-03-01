@@ -2,8 +2,8 @@
 
 namespace Aero\HRM\Services;
 
-use Aero\HRM\Models\TaxSlab;
 use Aero\Core\Support\TenantCache;
+use Aero\HRM\Models\TaxSlab;
 use Illuminate\Support\Facades\Log;
 
 /**

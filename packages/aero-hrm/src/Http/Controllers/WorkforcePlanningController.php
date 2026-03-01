@@ -2,11 +2,9 @@
 
 namespace Aero\HRM\Http\Controllers;
 
+use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\WorkforcePlan;
 use Aero\HRM\Models\WorkforcePlanPosition;
-use Aero\HRM\Models\Department;
-use Aero\HRM\Models\Designation;
-use Aero\HRM\Models\Employee;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;

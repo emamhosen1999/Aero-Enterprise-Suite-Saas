@@ -2,17 +2,17 @@
 
 namespace Aero\HRM\Http\Controllers\Leave;
 
+use Aero\HRM\Events\Leave\LeaveApproved;
+use Aero\HRM\Events\Leave\LeaveCancelled;
+use Aero\HRM\Events\Leave\LeaveRejected;
+use Aero\HRM\Events\Leave\LeaveRequested;
+use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Http\Resources\LeaveResource;
 use Aero\HRM\Http\Resources\LeaveResourceCollection;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Leave;
 use Aero\HRM\Models\LeaveSetting;
-use Aero\HRM\Events\Leave\LeaveApproved;
-use Aero\HRM\Events\Leave\LeaveCancelled;
-use Aero\HRM\Events\Leave\LeaveRejected;
-use Aero\HRM\Events\Leave\LeaveRequested;
-use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Services\EmployeeResolutionService;
 use Aero\HRM\Services\LeaveApprovalService;
 use Aero\HRM\Services\LeaveBalanceService;

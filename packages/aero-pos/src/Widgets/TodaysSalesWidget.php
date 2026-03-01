@@ -18,10 +18,15 @@ use Aero\Core\Contracts\CoreWidgetCategory;
 class TodaysSalesWidget extends AbstractDashboardWidget
 {
     protected string $position = 'main_left';
+
     protected int $order = 50;
+
     protected int|string $span = 1;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::STAT;
+
     protected array $requiredPermissions = ['pos.sales'];
+
     protected array $dashboards = ['pos'];
 
     public function getKey(): string

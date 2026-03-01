@@ -4,8 +4,8 @@ namespace Aero\HRM\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Overtime Record Model
@@ -58,24 +58,33 @@ class OvertimeRecord extends Model
      * Overtime types.
      */
     public const TYPE_WEEKDAY = 'weekday';
+
     public const TYPE_WEEKEND = 'weekend';
+
     public const TYPE_HOLIDAY = 'holiday';
+
     public const TYPE_NIGHT = 'night';
+
     public const TYPE_EMERGENCY = 'emergency';
 
     /**
      * Status options.
      */
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_APPROVED = 'approved';
+
     public const STATUS_REJECTED = 'rejected';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     /**
      * Compensation types.
      */
     public const COMP_MONETARY = 'monetary';
+
     public const COMP_TIME_OFF = 'time_off';
+
     public const COMP_BOTH = 'both';
 
     public function employee(): BelongsTo

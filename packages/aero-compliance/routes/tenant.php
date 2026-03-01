@@ -1,12 +1,12 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Aero\Compliance\Http\Controllers\ComplianceController;
-use Aero\Compliance\Http\Controllers\RegulatoryRequirementController;
 use Aero\Compliance\Http\Controllers\AuditController;
+use Aero\Compliance\Http\Controllers\ComplianceController;
 use Aero\Compliance\Http\Controllers\CompliancePolicyController;
-use Aero\Compliance\Http\Controllers\JurisdictionController;
 use Aero\Compliance\Http\Controllers\DocumentController;
+use Aero\Compliance\Http\Controllers\JurisdictionController;
+use Aero\Compliance\Http\Controllers\RegulatoryRequirementController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,7 +30,7 @@ Route::middleware(['auth', 'module:compliance'])->group(function () {
 Route::middleware(['auth', 'module:compliance,regulatory-tracker'])->group(function () {
     Route::resource('requirements', RegulatoryRequirementController::class);
     Route::post('requirements/{id}/assess', [RegulatoryRequirementController::class, 'assess'])->name('requirements.assess');
-    
+
     // Jurisdictions
     Route::resource('jurisdictions', JurisdictionController::class);
 });

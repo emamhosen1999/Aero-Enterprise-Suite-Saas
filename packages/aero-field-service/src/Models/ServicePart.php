@@ -16,7 +16,7 @@ class ServicePart extends Model
         'part_number', 'part_name', 'description', 'category', 'manufacturer',
         'unit_cost', 'selling_price', 'unit_of_measure', 'stock_quantity',
         'minimum_stock_level', 'maximum_stock_level', 'location', 'status',
-        'weight', 'dimensions', 'warranty_period_months'
+        'weight', 'dimensions', 'warranty_period_months',
     ];
 
     protected $casts = [
@@ -31,13 +31,19 @@ class ServicePart extends Model
     ];
 
     const STATUS_ACTIVE = 'active';
+
     const STATUS_DISCONTINUED = 'discontinued';
+
     const STATUS_OUT_OF_STOCK = 'out_of_stock';
 
     const UNIT_EACH = 'each';
+
     const UNIT_FOOT = 'foot';
+
     const UNIT_METER = 'meter';
+
     const UNIT_POUND = 'pound';
+
     const UNIT_KILOGRAM = 'kilogram';
 
     public function workOrderParts()
@@ -48,13 +54,13 @@ class ServicePart extends Model
     public function equipment()
     {
         return $this->belongsToMany(Equipment::class, 'field_service_equipment_parts')
-                    ->withPivot('quantity', 'installed_date', 'warranty_end_date');
+            ->withPivot('quantity', 'installed_date', 'warranty_end_date');
     }
 
     public function suppliers()
     {
         return $this->belongsToMany(ServiceSupplier::class, 'field_service_part_suppliers')
-                    ->withPivot('supplier_part_number', 'cost', 'lead_time_days');
+            ->withPivot('supplier_part_number', 'cost', 'lead_time_days');
     }
 
     public function isLowStock()
@@ -72,6 +78,7 @@ class ServicePart extends Model
         if ($this->unit_cost > 0) {
             return (($this->selling_price - $this->unit_cost) / $this->unit_cost) * 100;
         }
+
         return 0;
     }
 

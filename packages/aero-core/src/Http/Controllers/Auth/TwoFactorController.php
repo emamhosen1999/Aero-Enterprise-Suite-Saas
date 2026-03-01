@@ -26,9 +26,6 @@ class TwoFactorController extends Controller
 
     /**
      * Show 2FA settings page.
-     *
-     * @param Request $request
-     * @return Response
      */
     public function index(Request $request): Response
     {
@@ -44,9 +41,6 @@ class TwoFactorController extends Controller
 
     /**
      * Start 2FA setup - generate secret and QR code.
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function setup(Request $request): JsonResponse
     {
@@ -69,9 +63,6 @@ class TwoFactorController extends Controller
 
     /**
      * Confirm 2FA setup by verifying the code.
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function confirm(Request $request): JsonResponse
     {
@@ -106,9 +97,6 @@ class TwoFactorController extends Controller
 
     /**
      * Disable 2FA.
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function disable(Request $request): JsonResponse
     {
@@ -137,8 +125,6 @@ class TwoFactorController extends Controller
 
     /**
      * Show 2FA challenge page.
-     *
-     * @return Response
      */
     public function challenge(): Response
     {
@@ -147,9 +133,6 @@ class TwoFactorController extends Controller
 
     /**
      * Verify 2FA code during login.
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function verify(Request $request): JsonResponse
     {
@@ -194,9 +177,6 @@ class TwoFactorController extends Controller
 
     /**
      * Regenerate recovery codes.
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function regenerateRecoveryCodes(Request $request): JsonResponse
     {

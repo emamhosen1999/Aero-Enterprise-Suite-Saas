@@ -14,7 +14,7 @@ class ProductCategory extends Model
 
     protected $fillable = [
         'name', 'description', 'slug', 'parent_id', 'sort_order',
-        'image', 'is_active', 'seo_title', 'seo_description', 'meta_keywords'
+        'image', 'is_active', 'seo_title', 'seo_description', 'meta_keywords',
     ];
 
     protected $casts = [
@@ -42,12 +42,12 @@ class ProductCategory extends Model
     {
         $path = collect([$this->name]);
         $parent = $this->parent;
-        
+
         while ($parent) {
             $path->prepend($parent->name);
             $parent = $parent->parent;
         }
-        
+
         return $path->implode(' > ');
     }
 

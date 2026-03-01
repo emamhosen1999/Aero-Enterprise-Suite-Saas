@@ -500,7 +500,7 @@ return [
                     'code' => 'conflict-checker', // Added
                     'name' => 'Conflict Checker',
                     'type' => 'feature',
-                    'route' => null, 
+                    'route' => null,
                     'actions' => [['code' => 'view', 'name' => 'Check Conflicts']],
                 ],
                 [
@@ -1389,4 +1389,3 @@ return [
         ],
     ],
 ];
-

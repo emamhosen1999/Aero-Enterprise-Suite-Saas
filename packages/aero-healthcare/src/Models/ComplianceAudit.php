@@ -2,9 +2,9 @@
 
 namespace Aero\Healthcare\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Aero\Core\Models\User;
 
 class ComplianceAudit extends Model
 {
@@ -15,7 +15,7 @@ class ComplianceAudit extends Model
     protected $fillable = [
         'user_id', 'patient_id', 'action_type', 'resource_type', 'resource_id',
         'ip_address', 'user_agent', 'accessed_data', 'purpose',
-        'audit_timestamp', 'session_id'
+        'audit_timestamp', 'session_id',
     ];
 
     protected $casts = [
@@ -27,25 +27,41 @@ class ComplianceAudit extends Model
     ];
 
     const ACTION_VIEW = 'view';
+
     const ACTION_CREATE = 'create';
+
     const ACTION_UPDATE = 'update';
+
     const ACTION_DELETE = 'delete';
+
     const ACTION_PRINT = 'print';
+
     const ACTION_EXPORT = 'export';
+
     const ACTION_LOGIN = 'login';
+
     const ACTION_LOGOUT = 'logout';
 
     const RESOURCE_PATIENT = 'patient';
+
     const RESOURCE_MEDICAL_RECORD = 'medical_record';
+
     const RESOURCE_LAB_RESULT = 'lab_result';
+
     const RESOURCE_PRESCRIPTION = 'prescription';
+
     const RESOURCE_APPOINTMENT = 'appointment';
+
     const RESOURCE_BILLING = 'billing';
 
     const PURPOSE_TREATMENT = 'treatment';
+
     const PURPOSE_PAYMENT = 'payment';
+
     const PURPOSE_OPERATIONS = 'healthcare_operations';
+
     const PURPOSE_RESEARCH = 'research';
+
     const PURPOSE_LEGAL = 'legal_requirement';
 
     public function user()

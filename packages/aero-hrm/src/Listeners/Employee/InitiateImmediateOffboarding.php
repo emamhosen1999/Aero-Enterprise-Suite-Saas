@@ -33,7 +33,7 @@ class InitiateImmediateOffboarding implements ShouldQueue
             if ($event->immediate) {
                 $existingOffboarding->update([
                     'is_urgent' => true,
-                    'notes' => ($existingOffboarding->notes ?? '') . "\n[Immediate termination - expedited processing required]",
+                    'notes' => ($existingOffboarding->notes ?? '')."\n[Immediate termination - expedited processing required]",
                 ]);
             }
 

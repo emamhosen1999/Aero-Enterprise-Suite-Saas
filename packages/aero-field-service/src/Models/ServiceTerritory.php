@@ -2,10 +2,10 @@
 
 namespace Aero\FieldService\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class ServiceTerritory extends Model
 {
@@ -15,7 +15,7 @@ class ServiceTerritory extends Model
 
     protected $fillable = [
         'territory_name', 'territory_code', 'description', 'manager_id',
-        'geographic_boundaries', 'zip_codes', 'is_active'
+        'geographic_boundaries', 'zip_codes', 'is_active',
     ];
 
     protected $casts = [

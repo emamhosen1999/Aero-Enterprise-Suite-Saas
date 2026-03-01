@@ -6,7 +6,6 @@ use Aero\Core\Models\User;
 use Aero\Core\Models\UserDevice;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\Session;
 
 class DeviceSessionService

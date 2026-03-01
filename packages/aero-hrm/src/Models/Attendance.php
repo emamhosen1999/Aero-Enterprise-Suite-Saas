@@ -3,7 +3,7 @@
 namespace Aero\HRM\Models;
 
 use Aero\Core\Models\User;
-use Aero\HRM\Models\Employee;
+use Aero\HRM\Database\Factories\AttendanceFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
@@ -34,12 +34,16 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property string|null $notes
  * @property \Carbon\Carbon|null $created_at
  * @property \Carbon\Carbon|null $updated_at
- *
  * @property-read User $user
  */
 class Attendance extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia;
+
+    protected static function newFactory(): AttendanceFactory
+    {
+        return AttendanceFactory::new();
+    }
 
     protected $fillable = [
         'user_id',

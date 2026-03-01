@@ -14,9 +14,9 @@ class BankAccount extends Model
 
     protected $fillable = [
         'account_name', 'bank_name', 'account_number', 'routing_number',
-        'iban', 'swift_code', 'account_type', 'currency', 
+        'iban', 'swift_code', 'account_type', 'currency',
         'opening_balance', 'current_balance', 'account_id',
-        'is_active', 'is_default', 'branch_address', 'contact_info'
+        'is_active', 'is_default', 'branch_address', 'contact_info',
     ];
 
     protected $casts = [
@@ -29,9 +29,13 @@ class BankAccount extends Model
     ];
 
     const TYPE_CHECKING = 'checking';
+
     const TYPE_SAVINGS = 'savings';
+
     const TYPE_MONEY_MARKET = 'money_market';
+
     const TYPE_CREDIT_LINE = 'credit_line';
+
     const TYPE_PETTY_CASH = 'petty_cash';
 
     public function account()

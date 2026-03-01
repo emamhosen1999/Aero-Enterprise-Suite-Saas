@@ -2,11 +2,11 @@
 
 namespace Aero\Scm\Http\Controllers;
 
-use Illuminate\Routing\Controller;
-use App\Models\Tenant\SCM\LogisticsShipment;
 use App\Models\Tenant\Procurement\PurchaseOrder;
+use App\Models\Tenant\SCM\LogisticsShipment;
 use App\Models\Tenant\SCM\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 
 class SupplierController extends Controller

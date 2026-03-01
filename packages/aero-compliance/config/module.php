@@ -30,14 +30,13 @@ return [
             'code' => 'compliance-dashboard',
             'name' => 'Compliance Dashboard',
             'route' => '/compliance',
-           
+
             'type' => 'dashboard',
             'description' => 'Main compliance dashboard with key metrics and alerts.',
             'icon' => 'ChartPieIcon',
             'priority' => 1,
             'is_active' => true,
 
-            
         ],
 
         // ==================== 1. HEALTH & SAFETY (HSE) OPERATIONS ====================

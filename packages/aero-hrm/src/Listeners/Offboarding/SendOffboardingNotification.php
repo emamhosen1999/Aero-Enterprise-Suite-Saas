@@ -55,6 +55,7 @@ class SendOffboardingNotification implements ShouldQueue
             Log::warning('HRMAC not available, falling back to empty collection', [
                 'error' => $e->getMessage(),
             ]);
+
             return collect();
         }
     }

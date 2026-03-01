@@ -23,7 +23,7 @@ return new class extends Migration
 
             // Composite unique index to prevent duplicate rates for same currency pair on same date
             $table->unique(['from_currency', 'to_currency', 'effective_date']);
-            
+
             // Index for quick rate lookups
             $table->index(['from_currency', 'to_currency', 'effective_date']);
         });
@@ -36,7 +36,7 @@ return new class extends Migration
             ['from_currency' => 'USD', 'to_currency' => 'CAD', 'rate' => 1.35, 'effective_date' => now()->toDateString(), 'source' => 'manual', 'created_at' => now(), 'updated_at' => now()],
             ['from_currency' => 'USD', 'to_currency' => 'AUD', 'rate' => 1.52, 'effective_date' => now()->toDateString(), 'source' => 'manual', 'created_at' => now(), 'updated_at' => now()],
             ['from_currency' => 'USD', 'to_currency' => 'JPY', 'rate' => 148.50, 'effective_date' => now()->toDateString(), 'source' => 'manual', 'created_at' => now(), 'updated_at' => now()],
-            
+
             // Reverse rates (other currencies to USD)
             ['from_currency' => 'EUR', 'to_currency' => 'USD', 'rate' => 1.087, 'effective_date' => now()->toDateString(), 'source' => 'manual', 'created_at' => now(), 'updated_at' => now()],
             ['from_currency' => 'GBP', 'to_currency' => 'USD', 'rate' => 1.266, 'effective_date' => now()->toDateString(), 'source' => 'manual', 'created_at' => now(), 'updated_at' => now()],

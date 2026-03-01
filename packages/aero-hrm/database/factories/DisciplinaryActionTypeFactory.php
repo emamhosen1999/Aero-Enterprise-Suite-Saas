@@ -22,7 +22,7 @@ class DisciplinaryActionTypeFactory extends Factory
                 'Termination',
                 'Counseling',
                 'Training Required',
-                'Performance Improvement Plan'
+                'Performance Improvement Plan',
             ]),
             'description' => $this->faker->sentence(),
             'severity' => $this->faker->randomElement(['minor', 'moderate', 'major', 'critical']),

@@ -17,10 +17,10 @@ use Illuminate\Support\Facades\Log;
  * Usage:
  * ```php
  * $geolocation = app(IpGeolocationService::class);
- * 
+ *
  * $location = $geolocation->getLocation('192.168.1.1');
  * // Returns: ['country' => 'US', 'country_code' => 'US', 'city' => 'New York', ...]
- * 
+ *
  * $distance = $geolocation->calculateDistance($location1, $location2);
  * // Returns: distance in kilometers
  * ```
@@ -28,7 +28,9 @@ use Illuminate\Support\Facades\Log;
 class IpGeolocationService
 {
     protected string $provider;
+
     protected bool $cacheEnabled;
+
     protected int $cacheTtl;
 
     public function __construct()
@@ -41,7 +43,7 @@ class IpGeolocationService
     /**
      * Get location information for an IP address.
      *
-     * @param string $ip IP address to lookup
+     * @param  string  $ip  IP address to lookup
      * @return array Location information
      */
     public function getLocation(string $ip): array
@@ -53,9 +55,9 @@ class IpGeolocationService
 
         // Check cache first
         if ($this->cacheEnabled) {
-            $cacheKey = "geolocation:{$this->provider}:" . md5($ip);
+            $cacheKey = "geolocation:{$this->provider}:".md5($ip);
             $cached = Cache::get($cacheKey);
-            
+
             if ($cached) {
                 return $cached;
             }
@@ -70,7 +72,7 @@ class IpGeolocationService
             };
 
             // Cache the result
-            if ($this->cacheEnabled && !empty($location['country'])) {
+            if ($this->cacheEnabled && ! empty($location['country'])) {
                 Cache::put($cacheKey, $location, $this->cacheTtl);
             }
 
@@ -79,7 +81,7 @@ class IpGeolocationService
             Log::warning('IP geolocation failed', [
                 'ip' => $ip,
                 'provider' => $this->provider,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return $this->getDefaultLocation();
@@ -89,8 +91,8 @@ class IpGeolocationService
     /**
      * Calculate distance between two locations in kilometers.
      *
-     * @param array $location1 First location with lat/lng
-     * @param array $location2 Second location with lat/lng
+     * @param  array  $location1  First location with lat/lng
+     * @param  array  $location2  Second location with lat/lng
      * @return float Distance in kilometers
      */
     public function calculateDistance(array $location1, array $location2): float
@@ -100,10 +102,10 @@ class IpGeolocationService
             return 0.0;
         }
 
-        $lat1 = deg2rad((float)$location1['latitude']);
-        $lon1 = deg2rad((float)$location1['longitude']);
-        $lat2 = deg2rad((float)$location2['latitude']);
-        $lon2 = deg2rad((float)$location2['longitude']);
+        $lat1 = deg2rad((float) $location1['latitude']);
+        $lon1 = deg2rad((float) $location1['longitude']);
+        $lat2 = deg2rad((float) $location2['latitude']);
+        $lon2 = deg2rad((float) $location2['longitude']);
 
         $deltaLat = $lat2 - $lat1;
         $deltaLon = $lon2 - $lon1;
@@ -133,9 +135,9 @@ class IpGeolocationService
     /**
      * Check if travel between two locations within given time is impossible.
      *
-     * @param array $location1 Starting location
-     * @param array $location2 Ending location
-     * @param int $timeSeconds Time between locations in seconds
+     * @param  array  $location1  Starting location
+     * @param  array  $location2  Ending location
+     * @param  int  $timeSeconds  Time between locations in seconds
      * @return bool True if travel is impossible
      */
     public function isImpossibleTravel(array $location1, array $location2, int $timeSeconds): bool
@@ -157,12 +159,12 @@ class IpGeolocationService
     protected function getLocationFromMaxMind(string $ip): array
     {
         $dbPath = config('security.ip_geolocation.database_path', storage_path('app/geoip'));
-        
-        if (!class_exists(\GeoIp2\Database\Reader::class)) {
+
+        if (! class_exists(\GeoIp2\Database\Reader::class)) {
             throw new \Exception('MaxMind GeoIP2 library not installed. Run: composer require geoip2/geoip2');
         }
 
-        $reader = new \GeoIp2\Database\Reader($dbPath . '/GeoLite2-City.mmdb');
+        $reader = new \GeoIp2\Database\Reader($dbPath.'/GeoLite2-City.mmdb');
         $record = $reader->city($ip);
 
         return [
@@ -176,7 +178,7 @@ class IpGeolocationService
             'latitude' => $record->location->latitude ?? 0,
             'longitude' => $record->location->longitude ?? 0,
             'timezone' => $record->location->timeZone ?? 'UTC',
-            'provider' => 'maxmind'
+            'provider' => 'maxmind',
         ];
     }
 
@@ -186,15 +188,15 @@ class IpGeolocationService
     protected function getLocationFromIpApi(string $ip): array
     {
         $response = Http::timeout(5)->get("http://ip-api.com/json/{$ip}");
-        
-        if (!$response->successful()) {
+
+        if (! $response->successful()) {
             throw new \Exception('IP-API request failed');
         }
 
         $data = $response->json();
-        
+
         if ($data['status'] !== 'success') {
-            throw new \Exception('IP-API returned error: ' . ($data['message'] ?? 'Unknown error'));
+            throw new \Exception('IP-API returned error: '.($data['message'] ?? 'Unknown error'));
         }
 
         return [
@@ -209,7 +211,7 @@ class IpGeolocationService
             'longitude' => $data['lon'] ?? 0,
             'timezone' => $data['timezone'] ?? 'UTC',
             'isp' => $data['isp'] ?? 'Unknown',
-            'provider' => 'ipapi'
+            'provider' => 'ipapi',
         ];
     }
 
@@ -229,7 +231,7 @@ class IpGeolocationService
     protected function isPrivateOrLocalhost(string $ip): bool
     {
         return in_array($ip, ['127.0.0.1', '::1', 'localhost']) ||
-               !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
+               ! filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
     }
 
     /**
@@ -248,7 +250,7 @@ class IpGeolocationService
             'latitude' => 0,
             'longitude' => 0,
             'timezone' => 'UTC',
-            'provider' => 'local'
+            'provider' => 'local',
         ];
     }
 }

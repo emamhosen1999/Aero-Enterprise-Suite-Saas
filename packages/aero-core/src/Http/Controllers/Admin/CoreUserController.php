@@ -7,6 +7,7 @@ use Aero\Core\Models\User;
 use Aero\Core\Services\AuditService;
 use Aero\Core\Services\Auth\SessionManagementService;
 use Aero\Core\Services\UserInvitationService;
+use Aero\HRMAC\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -14,7 +15,6 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
-use Aero\HRMAC\Models\Role;
 
 /**
  * Core User Controller
@@ -25,7 +25,9 @@ use Aero\HRMAC\Models\Role;
 class CoreUserController extends Controller
 {
     protected UserInvitationService $invitationService;
+
     protected AuditService $auditService;
+
     protected SessionManagementService $sessionManagementService;
 
     public function __construct(
@@ -118,8 +120,8 @@ class CoreUserController extends Controller
                     $q->where('name', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%")
                         ->orWhere('user_name', 'like', "%{$search}%");
-                    
-                    if (in_array('phone', (new User())->getFillable())) {
+
+                    if (in_array('phone', (new User)->getFillable())) {
                         $q->orWhere('phone', 'like', "%{$search}%");
                     }
                 });
@@ -151,7 +153,7 @@ class CoreUserController extends Controller
 
     /**
      * Get user statistics
-     * 
+     *
      * Optimized to use a single query with conditional aggregation
      * to reduce database round trips from 10+ queries to 2.
      */
@@ -162,7 +164,7 @@ class CoreUserController extends Controller
             $totalUsers = User::withTrashed()->count();
             $activeUsers = User::count(); // Active = not soft-deleted
             $deactivatedUsers = User::onlyTrashed()->count(); // Deactivated = soft-deleted
-            
+
             // Additional stats that don't depend on active column
             $verifiedUsers = User::where('email_verified_at', '!=', null)->count();
             $unverifiedUsers = User::whereNull('email_verified_at')->count();
@@ -172,7 +174,7 @@ class CoreUserController extends Controller
             // Separate queries for role-related stats (requires join)
             $usersWithRoles = User::has('roles')->count();
             $usersWithoutRoles = User::doesntHave('roles')->count();
-            
+
             // Total roles count
             $totalRoles = Role::count();
 
@@ -284,12 +286,12 @@ class CoreUserController extends Controller
             ], 201);
         } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
             DB::rollBack();
-            
+
             // Determine which field caused the constraint violation
             // Check constraint name first (more reliable), then fall back to field name in "Duplicate entry" message
             $errorMessage = $e->getMessage();
             $errors = [];
-            
+
             // Check for specific constraint names first (most reliable)
             if (stripos($errorMessage, 'users_phone_unique') !== false || stripos($errorMessage, "'phone'") !== false) {
                 $errors['phone'] = ['This phone number is already in use.'];
@@ -308,7 +310,7 @@ class CoreUserController extends Controller
                     $errors['email'] = ['A user with this information already exists.'];
                 }
             }
-            
+
             return response()->json([
                 'message' => 'The given data was invalid.',
                 'errors' => $errors,
@@ -362,12 +364,12 @@ class CoreUserController extends Controller
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
-        
+
         $this->authorize('update', $user);
-        
+
         // Store old values for audit
         $oldValues = $user->only(['name', 'email', 'user_name', 'phone', 'active']);
-        
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($id)],
@@ -428,13 +430,13 @@ class CoreUserController extends Controller
     public function destroy(Request $request, $id)
     {
         $user = User::withTrashed()->findOrFail($id);
-        
+
         $this->authorize('delete', $user);
-        
+
         // Prevent self-deletion
         if ($user->id === auth()->id()) {
             return response()->json([
-                'error' => 'You cannot delete your own account.'
+                'error' => 'You cannot delete your own account.',
             ], 403);
         }
 
@@ -442,18 +444,18 @@ class CoreUserController extends Controller
             // Check if force delete is requested
             if ($request->input('force', false)) {
                 // Permanent delete - only allowed for already soft-deleted users
-                if (!$user->trashed()) {
+                if (! $user->trashed()) {
                     return response()->json([
                         'error' => 'User must be deactivated before permanent deletion.',
                     ], 422);
                 }
                 $user->forceDelete();
-                
+
                 // Log the action
                 $this->auditService->logUserDeleted($user);
-                
+
                 return response()->json([
-                    'message' => 'User permanently deleted.'
+                    'message' => 'User permanently deleted.',
                 ]);
             }
 
@@ -464,7 +466,7 @@ class CoreUserController extends Controller
             $this->auditService->logUserDeleted($user);
 
             return response()->json([
-                'message' => 'User deactivated successfully.'
+                'message' => 'User deactivated successfully.',
             ]);
         } catch (\Exception $e) {
             report($e);
@@ -482,13 +484,13 @@ class CoreUserController extends Controller
     public function toggleStatus(Request $request, $id)
     {
         $user = User::withTrashed()->findOrFail($id);
-        
+
         $this->authorize('toggleStatus', $user);
-        
+
         // Prevent self-deactivation
         if ($user->id === auth()->id()) {
             return response()->json([
-                'error' => 'You cannot deactivate your own account.'
+                'error' => 'You cannot deactivate your own account.',
             ], 403);
         }
 
@@ -503,7 +505,7 @@ class CoreUserController extends Controller
                 // Soft delete the user (deactivate)
                 $user->delete();
                 $status = 'deactivated';
-                
+
                 // Terminate all sessions when deactivating user
                 $this->sessionManagementService->terminateAllSessions($user);
             }
@@ -526,14 +528,13 @@ class CoreUserController extends Controller
         }
     }
 
- 
     /**
      * Update user roles
      */
     public function updateUserRole(Request $request, $id)
     {
         $user = User::findOrFail($id);
-        
+
         $this->authorize('updateRoles', $user);
 
         $request->validate([
@@ -721,7 +722,7 @@ class CoreUserController extends Controller
 
         try {
             $totalCount = 0;
-            
+
             // Use chunking to prevent memory issues with large user sets
             User::whereIn('id', $validated['user_ids'])
                 ->chunk(100, function ($users) use ($validated, &$totalCount) {
@@ -836,7 +837,7 @@ class CoreUserController extends Controller
             $users = $query->get();
 
             // Generate CSV
-            $filename = 'users_export_' . now()->format('Y-m-d_His') . '.csv';
+            $filename = 'users_export_'.now()->format('Y-m-d_His').'.csv';
             $headers = [
                 'Content-Type' => 'text/csv',
                 'Content-Disposition' => "attachment; filename=\"{$filename}\"",
@@ -844,11 +845,11 @@ class CoreUserController extends Controller
 
             $callback = function () use ($users) {
                 $file = fopen('php://output', 'w');
-                
+
                 // CSV Headers
                 fputcsv($file, [
-                    'ID', 'Name', 'Username', 'Email', 'Phone', 
-                    'Active', 'Roles', 'Email Verified', 'Created At'
+                    'ID', 'Name', 'Username', 'Email', 'Phone',
+                    'Active', 'Roles', 'Email Verified', 'Created At',
                 ]);
 
                 // CSV Data
@@ -1109,15 +1110,15 @@ class CoreUserController extends Controller
     public function startImpersonation(Request $request, $id)
     {
         $user = User::findOrFail($id);
-        
+
         $this->authorize('impersonate', $user);
 
         try {
             $impersonationService = app(\Aero\Core\Services\Auth\UserImpersonationService::class);
-            
+
             $reason = $request->input('reason', 'Administrative support');
             $duration = $request->input('duration', 60);
-            
+
             $impersonationService->impersonate($user, $reason, $duration);
 
             // Log the action
@@ -1149,8 +1150,8 @@ class CoreUserController extends Controller
     {
         try {
             $impersonationService = app(\Aero\Core\Services\Auth\UserImpersonationService::class);
-            
-            if (!$impersonationService->isImpersonating()) {
+
+            if (! $impersonationService->isImpersonating()) {
                 return response()->json([
                     'error' => 'Not currently impersonating any user.',
                 ], 400);
@@ -1179,4 +1180,3 @@ class CoreUserController extends Controller
         }
     }
 }
-

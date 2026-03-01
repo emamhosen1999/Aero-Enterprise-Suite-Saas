@@ -64,7 +64,7 @@ class CoreModuleProvider extends AbstractModuleProvider
 
     /**
      * Register the service provider.
-     * 
+     *
      * This runs BEFORE boot() and before route matching.
      * We register the global bootstrap middleware here so it intercepts ALL requests first.
      */
@@ -74,7 +74,7 @@ class CoreModuleProvider extends AbstractModuleProvider
 
         // Register DashboardRegistry as singleton
         $this->app->singleton(\Aero\Core\Services\DashboardRegistry::class, function ($app) {
-            return new \Aero\Core\Services\DashboardRegistry();
+            return new \Aero\Core\Services\DashboardRegistry;
         });
 
         // In standalone mode, push the global BootstrapGuard middleware
@@ -90,7 +90,7 @@ class CoreModuleProvider extends AbstractModuleProvider
 
     /**
      * Boot the service provider.
-     * 
+     *
      * Conditionally load installation or app routes based on installation status.
      */
     public function boot(): void
@@ -106,7 +106,7 @@ class CoreModuleProvider extends AbstractModuleProvider
         }
 
         // In standalone mode, load installation routes if not installed
-        if (config('aero.mode') === 'standalone' && !file_exists(storage_path('app/aeos.installed'))) {
+        if (config('aero.mode') === 'standalone' && ! file_exists(storage_path('app/aeos.installed'))) {
             // Load installation routes WITHOUT module prefix
             \Illuminate\Support\Facades\Route::middleware(['web'])
                 ->group(__DIR__.'/../../routes/installation.php');
@@ -173,7 +173,8 @@ class CoreModuleProvider extends AbstractModuleProvider
     protected function getModulePath(string $path = ''): string
     {
         $basePath = dirname(__DIR__, 2);
-        return $path ? $basePath . '/' . $path : $basePath;
+
+        return $path ? $basePath.'/'.$path : $basePath;
     }
 
     /**
@@ -183,10 +184,10 @@ class CoreModuleProvider extends AbstractModuleProvider
     {
         // Register middleware
         $this->registerMiddleware();
-        
+
         // Register policies
         $this->registerPolicies();
-        
+
         // Register commands
         $this->registerCommands();
 
@@ -202,7 +203,7 @@ class CoreModuleProvider extends AbstractModuleProvider
      */
     protected function registerDashboards(): void
     {
-        if (!$this->app->bound(\Aero\Core\Services\DashboardRegistry::class)) {
+        if (! $this->app->bound(\Aero\Core\Services\DashboardRegistry::class)) {
             return;
         }
 
@@ -249,7 +250,7 @@ class CoreModuleProvider extends AbstractModuleProvider
         $router->aliasMiddleware('role', \Aero\Core\Http\Middleware\EnsureUserHasRole::class);
         $router->aliasMiddleware('prevent.installed', \Aero\Core\Http\Middleware\PreventInstalledAccess::class);
         $router->aliasMiddleware('dashboard.redirect', \Aero\Core\Http\Middleware\DashboardRedirectMiddleware::class);
-        
+
         // Note: BootstrapGuard is registered globally in register() method for standalone mode.
         // No additional installation middleware is needed in the web group.
     }
@@ -265,7 +266,7 @@ class CoreModuleProvider extends AbstractModuleProvider
                 \Aero\Core\Models\User::class,
                 \Aero\Core\Policies\UserPolicy::class
             );
-            
+
             \Illuminate\Support\Facades\Gate::policy(
                 \Aero\HRMAC\Models\Role::class,
                 \Aero\Core\Policies\RolePolicy::class

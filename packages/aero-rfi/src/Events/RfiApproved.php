@@ -8,7 +8,7 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * RfiApproved Event
- * 
+ *
  * Dispatched when an RFI is approved after inspection.
  * Triggers:
  * - Auto-generation of BoqMeasurement

@@ -105,10 +105,8 @@ class NotificationPreferenceService
     /**
      * Check if a user should receive a notification via a specific channel.
      *
-     * @param User $user
-     * @param string $event The notification event (e.g., 'leave_approved')
-     * @param string $channel The channel (email, push, sms, in_app)
-     * @return bool
+     * @param  string  $event  The notification event (e.g., 'leave_approved')
+     * @param  string  $channel  The channel (email, push, sms, in_app)
      */
     public function shouldNotify(User $user, string $event, string $channel): bool
     {
@@ -132,9 +130,6 @@ class NotificationPreferenceService
 
     /**
      * Get all notification preferences for a user.
-     *
-     * @param User $user
-     * @return array
      */
     public function getPreferences(User $user): array
     {
@@ -149,8 +144,6 @@ class NotificationPreferenceService
 
     /**
      * Get default preferences structure.
-     *
-     * @return array
      */
     public function getDefaultPreferences(): array
     {
@@ -179,10 +172,6 @@ class NotificationPreferenceService
 
     /**
      * Update notification preferences for a user.
-     *
-     * @param User $user
-     * @param array $preferences
-     * @return void
      */
     public function updatePreferences(User $user, array $preferences): void
     {
@@ -197,11 +186,6 @@ class NotificationPreferenceService
 
     /**
      * Enable or disable a specific channel globally.
-     *
-     * @param User $user
-     * @param string $channel
-     * @param bool $enabled
-     * @return void
      */
     public function setChannelEnabled(User $user, string $channel, bool $enabled): void
     {
@@ -217,12 +201,6 @@ class NotificationPreferenceService
 
     /**
      * Set event-specific preference.
-     *
-     * @param User $user
-     * @param string $event
-     * @param string $channel
-     * @param bool $enabled
-     * @return void
      */
     public function setEventPreference(
         User $user,
@@ -244,13 +222,6 @@ class NotificationPreferenceService
 
     /**
      * Configure quiet hours for a user.
-     *
-     * @param User $user
-     * @param bool $enabled
-     * @param string|null $start
-     * @param string|null $end
-     * @param string|null $timezone
-     * @return void
      */
     public function setQuietHours(
         User $user,
@@ -274,12 +245,7 @@ class NotificationPreferenceService
     /**
      * Configure digest settings.
      *
-     * @param User $user
-     * @param bool $enabled
-     * @param string $frequency daily|weekly
-     * @param string|null $time
-     * @param string|null $day
-     * @return void
+     * @param  string  $frequency  daily|weekly
      */
     public function setDigestSettings(
         User $user,
@@ -302,8 +268,6 @@ class NotificationPreferenceService
 
     /**
      * Get available notification categories with events.
-     *
-     * @return array
      */
     public function getAvailableCategories(): array
     {
@@ -313,9 +277,7 @@ class NotificationPreferenceService
     /**
      * Get users who should receive a specific notification.
      *
-     * @param array $users Array of User models or IDs
-     * @param string $event
-     * @param string $channel
+     * @param  array  $users  Array of User models or IDs
      * @return array Filtered array of users
      */
     public function filterUsersForNotification(array $users, string $event, string $channel): array
@@ -331,9 +293,6 @@ class NotificationPreferenceService
 
     /**
      * Check if user is in quiet hours.
-     *
-     * @param User $user
-     * @return bool
      */
     protected function isInQuietHours(User $user): bool
     {
@@ -358,9 +317,6 @@ class NotificationPreferenceService
 
     /**
      * Check if an event is urgent (bypasses quiet hours).
-     *
-     * @param string $event
-     * @return bool
      */
     protected function isUrgent(string $event): bool
     {
@@ -376,10 +332,6 @@ class NotificationPreferenceService
 
     /**
      * Merge preferences deeply.
-     *
-     * @param array $current
-     * @param array $new
-     * @return array
      */
     protected function mergePreferences(array $current, array $new): array
     {
@@ -396,9 +348,6 @@ class NotificationPreferenceService
 
     /**
      * Reset preferences to defaults.
-     *
-     * @param User $user
-     * @return void
      */
     public function resetToDefaults(User $user): void
     {

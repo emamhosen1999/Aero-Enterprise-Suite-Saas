@@ -15,7 +15,7 @@ class ProductVariant extends Model
     protected $fillable = [
         'product_id', 'sku', 'name', 'price', 'sale_price', 'cost_price',
         'weight', 'dimensions', 'stock_quantity', 'stock_status',
-        'is_active', 'image', 'attributes'
+        'is_active', 'image', 'attributes',
     ];
 
     protected $casts = [
@@ -52,7 +52,7 @@ class ProductVariant extends Model
 
     public function getDisplayNameAttribute()
     {
-        return $this->product->name . ' - ' . $this->name;
+        return $this->product->name.' - '.$this->name;
     }
 
     public function isInStock()

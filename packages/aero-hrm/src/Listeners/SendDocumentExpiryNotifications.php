@@ -45,23 +45,38 @@ class SendDocumentExpiryNotifications implements ShouldQueue
     }
 
     /**
-     * Notify users with HRM employees access using HRMAC.
+     * Notify users with HRM employees access using HRMAC,
+     * falling back to users with the "HR Admin" role when HRMAC is unavailable.
      */
     protected function notifyHr($document, int $daysUntilExpiry): void
     {
-        try {
-            $hrUsers = \Aero\HRMAC\Facades\HRMAC::getUsersWithSubModuleAccess('hrm', 'employees');
+        if (app()->bound('Aero\HRMAC\Contracts\RoleModuleAccessInterface')) {
+            try {
+                $hrUsers = \Aero\HRMAC\Facades\HRMAC::getUsersWithSubModuleAccess('hrm', 'employees');
 
-            foreach ($hrUsers as $hrUser) {
+                if ($hrUsers->isNotEmpty()) {
+                    foreach ($hrUsers as $hrUser) {
+                        if ($hrUser->id !== $document->user_id) {
+                            $hrUser->notify(new DocumentExpiryNotification($document, $daysUntilExpiry));
+                        }
+                    }
+
+                    return;
+                }
+            } catch (\Throwable $e) {
+                Log::warning('HRMAC not available for document expiry notification', [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // Fallback: notify users with the HR Admin role
+        \Aero\Core\Models\User::role('HR Admin')->get()
+            ->each(function ($hrUser) use ($document, $daysUntilExpiry) {
                 if ($hrUser->id !== $document->user_id) {
                     $hrUser->notify(new DocumentExpiryNotification($document, $daysUntilExpiry));
                 }
-            }
-        } catch (\Exception $e) {
-            Log::warning('HRMAC not available for document expiry notification', [
-                'error' => $e->getMessage(),
-            ]);
-        }
+            });
     }
 
     /**
@@ -71,7 +86,7 @@ class SendDocumentExpiryNotifications implements ShouldQueue
     {
         // Find the employee record for the document owner
         $employee = \Aero\HRM\Models\Employee::where('user_id', $document->user_id)->first();
-        
+
         if ($employee && $employee->manager_id) {
             $manager = \Aero\Core\Models\User::find($employee->manager_id);
             if ($manager) {

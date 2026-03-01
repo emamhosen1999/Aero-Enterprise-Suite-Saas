@@ -41,7 +41,7 @@ class ManagerOnboardingReminderNotification extends BaseHrmNotification
             ->line('The employee has not yet completed their onboarding process. You may want to follow up with them.')
             ->action('View Onboarding', url("/hrm/onboarding/{$this->onboarding->id}"))
             ->line('Thank you for helping new team members get onboarded successfully.')
-            ->salutation('Best regards, ' . config('app.name'));
+            ->salutation('Best regards, '.config('app.name'));
     }
 
     /**

@@ -2,12 +2,12 @@
 
 namespace AeroHRM\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Inertia\Inertia;
-use AeroHRM\Models\TaskTemplate;
-use AeroHRM\Models\Department;
 use AeroHRM\Http\Requests\TaskTemplateFormRequest;
+use AeroHRM\Models\Department;
+use AeroHRM\Models\TaskTemplate;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class TaskTemplateController extends Controller
 {
@@ -28,7 +28,7 @@ class TaskTemplateController extends Controller
 
         // Search
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%'.$request->search.'%');
         }
 
         // Filter by department
@@ -146,7 +146,7 @@ class TaskTemplateController extends Controller
         $this->authorize('create', TaskTemplate::class);
 
         $newTemplate = $taskTemplate->replicate();
-        $newTemplate->name = $taskTemplate->name . ' (Copy)';
+        $newTemplate->name = $taskTemplate->name.' (Copy)';
         $newTemplate->is_default = false;
         $newTemplate->created_by = Auth::id();
         $newTemplate->save();

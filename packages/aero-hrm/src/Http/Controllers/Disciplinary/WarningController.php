@@ -2,8 +2,8 @@
 
 namespace Aero\HRM\Http\Controllers\Disciplinary;
 
-use App\Http\Controllers\Controller;
 use Aero\HRM\Models\Warning;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

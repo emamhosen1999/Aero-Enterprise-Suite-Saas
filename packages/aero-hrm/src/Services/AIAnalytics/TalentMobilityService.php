@@ -2,26 +2,26 @@
 
 namespace Aero\HRM\Services\AIAnalytics;
 
-use Aero\HRM\Models\Employee;
-use Aero\HRM\Models\TalentMobilityRecommendation;
 use Aero\HRM\Models\AIInsight;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Designation;
+use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Skill;
+use Aero\HRM\Models\TalentMobilityRecommendation;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 /**
  * Talent Mobility Recommendation Service
- * 
+ *
  * AI-driven internal talent mobility analysis that:
  * - Identifies promotion-ready employees
  * - Recommends lateral moves for skill development
  * - Matches employees to open positions
  * - Suggests mentorship pairings
  * - Identifies high-potential leadership candidates
- * 
+ *
  * Uses skill matching, performance trends, and organizational needs.
  */
 class TalentMobilityService
@@ -85,7 +85,7 @@ class TalentMobilityService
                 'employee_name' => $employee->full_name,
                 'recommendations' => $this->generateRecommendations($employee),
             ];
-        })->filter(fn ($item) => !empty($item['recommendations']));
+        })->filter(fn ($item) => ! empty($item['recommendations']));
     }
 
     /**
@@ -102,10 +102,10 @@ class TalentMobilityService
             ->where('designation_id', '!=', $designation->id)
             ->with(['skills', 'performanceReviews', 'department', 'designation'])
             ->get()
-            ->map(function (Employee $employee) use ($requiredSkills, $designation) {
+            ->map(function (Employee $employee) use ($requiredSkills) {
                 $matchScore = $this->calculateSkillMatchScore($employee, $requiredSkills);
                 $skillGaps = $this->identifySkillGaps($employee, $requiredSkills);
-                
+
                 return [
                     'employee' => $employee,
                     'match_score' => $matchScore,
@@ -148,8 +148,8 @@ class TalentMobilityService
         // Check tenure in current role
         $roleMonths = $employee->designation_change_date
             ? Carbon::parse($employee->designation_change_date)->diffInMonths(now())
-            : ($employee->joining_date 
-                ? Carbon::parse($employee->joining_date)->diffInMonths(now()) 
+            : ($employee->joining_date
+                ? Carbon::parse($employee->joining_date)->diffInMonths(now())
                 : 0);
 
         if ($roleMonths >= 18) {
@@ -187,12 +187,12 @@ class TalentMobilityService
         if ($score >= 65) {
             // Find next level designation
             $nextLevel = $this->findNextLevelDesignation($employee->designation);
-            
+
             return [
                 'type' => 'promotion',
                 'match_score' => $score,
                 'target_designation_id' => $nextLevel?->id,
-                'target_role_name' => $nextLevel?->name ?? 'Senior ' . $employee->designation?->name,
+                'target_role_name' => $nextLevel?->name ?? 'Senior '.$employee->designation?->name,
                 'matching_skills' => $factors,
                 'skill_gaps' => $this->identifySkillGapsForPromotion($employee, $nextLevel),
                 'rationale' => 'Employee demonstrates readiness for promotion based on performance, tenure, and skill development.',
@@ -215,7 +215,7 @@ class TalentMobilityService
 
         // Find related designations at same level
         $currentGradeLevel = $employee->designation?->grade_level ?? $employee->grade?->level ?? 1;
-        
+
         $relatedDesignations = Designation::query()
             ->where('id', '!=', $employee->designation_id)
             ->where(function ($q) use ($currentGradeLevel) {
@@ -227,7 +227,7 @@ class TalentMobilityService
         foreach ($relatedDesignations as $designation) {
             $requiredSkills = $this->getRequiredSkillsForDesignation($designation);
             $matchScore = $this->calculateSkillMatchScore($employee, $requiredSkills);
-            
+
             if ($matchScore >= 60 && $matchScore < 90) { // Good fit but needs some growth
                 $opportunities[] = [
                     'type' => 'lateral_move',
@@ -245,7 +245,7 @@ class TalentMobilityService
 
         // Sort by match score and take top 3
         usort($opportunities, fn ($a, $b) => $b['match_score'] <=> $a['match_score']);
-        
+
         return array_slice($opportunities, 0, 3);
     }
 
@@ -254,7 +254,7 @@ class TalentMobilityService
      */
     protected function checkMentorshipOpportunity(Employee $employee): ?array
     {
-        $tenureYears = $employee->joining_date 
+        $tenureYears = $employee->joining_date
             ? Carbon::parse($employee->joining_date)->diffInYears(now())
             : 0;
 
@@ -332,7 +332,7 @@ class TalentMobilityService
         }
 
         // Check tenure
-        $tenureYears = $employee->joining_date 
+        $tenureYears = $employee->joining_date
             ? Carbon::parse($employee->joining_date)->diffInYears(now())
             : 0;
 
@@ -353,8 +353,8 @@ class TalentMobilityService
                 'type' => 'leadership_track',
                 'match_score' => $score,
                 'matching_skills' => $indicators,
-                'skill_gaps' => $directReports == 0 
-                    ? ['People management', 'Leadership training'] 
+                'skill_gaps' => $directReports == 0
+                    ? ['People management', 'Leadership training']
                     : [],
                 'rationale' => 'High-potential candidate for leadership development track.',
                 'estimated_readiness_months' => $directReports == 0 ? 6 : 0,
@@ -417,7 +417,7 @@ class TalentMobilityService
     {
         // Compare current skills to 6 months ago
         $currentSkillCount = $employee->skills?->count() ?? 0;
-        
+
         // This would ideally track historical skill data
         // For now, use a simplified calculation
         return min(100, $currentSkillCount * 10);
@@ -430,7 +430,7 @@ class TalentMobilityService
     {
         // Check for team lead or project lead assignments
         $directReports = Employee::where('manager_id', $employee->id)->count();
-        
+
         if ($directReports > 0) {
             return true;
         }
@@ -449,7 +449,7 @@ class TalentMobilityService
      */
     protected function findNextLevelDesignation(?Designation $current): ?Designation
     {
-        if (!$current) {
+        if (! $current) {
             return null;
         }
 
@@ -474,7 +474,7 @@ class TalentMobilityService
         // This would ideally come from a skills requirement matrix
         // For now, return common skills based on designation name
         $name = strtolower($designation->name);
-        
+
         $skillSets = [
             'manager' => ['Leadership', 'Communication', 'Strategic Planning', 'Team Management'],
             'engineer' => ['Programming', 'Problem Solving', 'Technical Design', 'Code Review'],
@@ -504,7 +504,7 @@ class TalentMobilityService
         $requiredLower = array_map('strtolower', $requiredSkills);
 
         $matchCount = count(array_intersect($employeeSkills, $requiredLower));
-        
+
         return ($matchCount / count($requiredSkills)) * 100;
     }
 
@@ -535,7 +535,7 @@ class TalentMobilityService
      */
     protected function identifySkillGapsForPromotion(Employee $employee, ?Designation $nextLevel): array
     {
-        if (!$nextLevel) {
+        if (! $nextLevel) {
             return ['Leadership skills', 'Strategic thinking'];
         }
 
@@ -602,7 +602,7 @@ class TalentMobilityService
                     'scope' => 'employee',
                     'employee_id' => $employee->id,
                     'department_id' => $employee->department_id,
-                    'title' => ucfirst(str_replace('_', ' ', $recommendation['type'])) . ": {$employee->full_name}",
+                    'title' => ucfirst(str_replace('_', ' ', $recommendation['type'])).": {$employee->full_name}",
                     'description' => $recommendation['rationale'],
                     'recommended_actions' => $recommendation['development_path'] ?? [],
                     'confidence_score' => $recommendation['match_score'],

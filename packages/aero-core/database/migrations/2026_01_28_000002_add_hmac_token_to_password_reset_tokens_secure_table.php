@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('password_reset_tokens_secure', function (Blueprint $table) {
-            $table->string('hmac_token', 255)->nullable()->after('token');
-            $table->index('hmac_token');
-        });
+        if (Schema::hasTable('password_reset_tokens_secure')) {
+            Schema::table('password_reset_tokens_secure', function (Blueprint $table) {
+                $table->string('hmac_token', 255)->nullable()->after('token');
+                $table->index('hmac_token');
+            });
+        }
     }
 
     /**
@@ -22,9 +24,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('password_reset_tokens_secure', function (Blueprint $table) {
-            $table->dropIndex(['hmac_token']);
-            $table->dropColumn('hmac_token');
-        });
+        if (Schema::hasTable('password_reset_tokens_secure')) {
+            Schema::table('password_reset_tokens_secure', function (Blueprint $table) {
+                $table->dropIndex(['hmac_token']);
+                $table->dropColumn('hmac_token');
+            });
+        }
     }
 };

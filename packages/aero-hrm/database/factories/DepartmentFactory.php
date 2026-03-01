@@ -35,7 +35,7 @@ class DepartmentFactory extends Factory
                 'Customer Support',
                 'Product',
                 'Design',
-                'Legal'
+                'Legal',
             ]),
             'code' => strtoupper($this->faker->lexify('DEPT???')),
             'description' => $this->faker->sentence(),

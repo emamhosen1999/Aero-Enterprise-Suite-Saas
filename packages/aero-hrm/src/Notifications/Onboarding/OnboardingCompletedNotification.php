@@ -21,22 +21,22 @@ class OnboardingCompletedNotification extends Notification implements ShouldQueu
     public function via($notifiable): array
     {
         $channels = ['database'];
-        
+
         if ($this->isChannelEnabled('mail', $notifiable)) {
             $channels[] = 'mail';
         }
-        
+
         if ($this->isChannelEnabled('push', $notifiable)) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels;
     }
 
     public function toMail($notifiable): MailMessage
     {
         $employee = $this->onboarding->employee;
-        
+
         return (new MailMessage)
             ->subject('Congratulations! Onboarding Complete')
             ->greeting("Congratulations {$employee->full_name}!")
@@ -78,15 +78,15 @@ class OnboardingCompletedNotification extends Notification implements ShouldQueu
         $globalSetting = DB::table('notification_settings')
             ->where('key', "channels.{$channel}.enabled")
             ->first();
-        
-        if (!$globalSetting || !json_decode($globalSetting->value)) {
+
+        if (! $globalSetting || ! json_decode($globalSetting->value)) {
             return false;
         }
-        
+
         if (method_exists($notifiable, 'prefersNotificationChannel')) {
             return $notifiable->prefersNotificationChannel($channel, 'onboarding.completed');
         }
-        
+
         return true;
     }
 }

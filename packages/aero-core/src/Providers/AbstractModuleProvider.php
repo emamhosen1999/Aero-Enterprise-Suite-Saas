@@ -12,7 +12,7 @@ use Illuminate\Support\ServiceProvider;
  *
  * Base class for all module providers. Reads module configuration from
  * config/module.php which serves as the single source of truth.
- * 
+ *
  * Child classes only need to:
  * 1. Set $moduleCode property
  * 2. Implement getModulePath() method
@@ -44,9 +44,10 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
         // First try to load from merged config
         $configKey = "modules.{$this->moduleCode}";
         $config = config($configKey);
-        
-        if (is_array($config) && !empty($config)) {
+
+        if (is_array($config) && ! empty($config)) {
             $this->moduleConfig = $config;
+
             return $this->moduleConfig;
         }
 
@@ -54,6 +55,7 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
         $configPath = $this->getModulePath('config/module.php');
         if (file_exists($configPath)) {
             $this->moduleConfig = require $configPath;
+
             return $this->moduleConfig;
         }
 
@@ -138,7 +140,7 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
     public function getModuleHierarchy(): array
     {
         $config = $this->getModuleConfig();
-        
+
         return [
             'code' => $config['code'] ?? $this->moduleCode,
             'name' => $config['name'] ?? ucfirst($this->moduleCode),
@@ -164,11 +166,11 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
         // Build navigation from submodules in config
         foreach ($config['submodules'] ?? [] as $submodule) {
             $items[] = [
-                'code' => $this->moduleCode . '_' . ($submodule['code'] ?? ''),
+                'code' => $this->moduleCode.'_'.($submodule['code'] ?? ''),
                 'name' => $submodule['name'] ?? '',
                 'icon' => $submodule['icon'] ?? 'FolderIcon',
                 'route' => $submodule['route'] ?? null,
-                'access' => $this->moduleCode . '.' . ($submodule['code'] ?? ''),
+                'access' => $this->moduleCode.'.'.($submodule['code'] ?? ''),
                 'priority' => $submodule['priority'] ?? 100,
             ];
         }
@@ -258,7 +260,7 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
         } catch (\Throwable $e) {
             // Log error instead of silently failing
             if ($this->app->bound('log')) {
-                \Log::error("Module {$this->moduleCode} boot failed: " . $e->getMessage(), [
+                \Log::error("Module {$this->moduleCode} boot failed: ".$e->getMessage(), [
                     'exception' => $e,
                     'file' => $e->getFile(),
                     'line' => $e->getLine(),
@@ -303,7 +305,7 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
         $isSaaSMode = $this->isPlatformActive();
 
         // Load tenant routes (tenant.php takes priority over web.php for tenant-scoped routes)
-        if (file_exists($routesPath . '/tenant.php')) {
+        if (file_exists($routesPath.'/tenant.php')) {
             if ($isSaaSMode) {
                 // SaaS: InitializeTenancyIfNotCentral MUST come BEFORE 'tenant'
                 // to gracefully return 404 on central domains instead of crashing
@@ -313,19 +315,19 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
                     'tenant',
                 ])
                     ->prefix($this->moduleCode)
-                    ->name($this->moduleCode . '.')
-                    ->group($routesPath . '/tenant.php');
+                    ->name($this->moduleCode.'.')
+                    ->group($routesPath.'/tenant.php');
             } else {
                 // Standalone: Standard web middleware
                 Route::middleware(['web'])
                     ->prefix($this->moduleCode)
-                    ->name($this->moduleCode . '.')
-                    ->group($routesPath . '/tenant.php');
+                    ->name($this->moduleCode.'.')
+                    ->group($routesPath.'/tenant.php');
             }
         }
 
         // Load web routes (public routes without auth)
-        if (file_exists($routesPath . '/web.php')) {
+        if (file_exists($routesPath.'/web.php')) {
             if ($isSaaSMode) {
                 // SaaS: InitializeTenancyIfNotCentral MUST come BEFORE 'tenant'
                 // to gracefully return 404 on central domains instead of crashing
@@ -335,38 +337,38 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
                     'tenant',
                 ])
                     ->prefix($this->moduleCode)
-                    ->name($this->moduleCode . '.')
-                    ->group($routesPath . '/web.php');
+                    ->name($this->moduleCode.'.')
+                    ->group($routesPath.'/web.php');
             } else {
                 // Standalone: Standard web middleware
                 Route::middleware(['web'])
                     ->prefix($this->moduleCode)
-                    ->name($this->moduleCode . '.')
-                    ->group($routesPath . '/web.php');
+                    ->name($this->moduleCode.'.')
+                    ->group($routesPath.'/web.php');
             }
         }
 
         // Load admin routes (landlord/platform routes - only for central domains)
-        if (file_exists($routesPath . '/admin.php')) {
+        if (file_exists($routesPath.'/admin.php')) {
             if ($isSaaSMode) {
                 // SaaS: Restrict to admin domain
-                $adminDomain = env('ADMIN_DOMAIN', 'admin.' . env('PLATFORM_DOMAIN', 'localhost'));
+                $adminDomain = env('ADMIN_DOMAIN', 'admin.'.env('PLATFORM_DOMAIN', 'localhost'));
                 Route::middleware(['web'])
                     ->domain($adminDomain)
-                    ->prefix('admin/' . $this->moduleCode)
-                    ->name('admin.' . $this->moduleCode . '.')
-                    ->group($routesPath . '/admin.php');
+                    ->prefix('admin/'.$this->moduleCode)
+                    ->name('admin.'.$this->moduleCode.'.')
+                    ->group($routesPath.'/admin.php');
             } else {
                 // Standalone: No domain constraint
                 Route::middleware(['web'])
-                    ->prefix('admin/' . $this->moduleCode)
-                    ->name('admin.' . $this->moduleCode . '.')
-                    ->group($routesPath . '/admin.php');
+                    ->prefix('admin/'.$this->moduleCode)
+                    ->name('admin.'.$this->moduleCode.'.')
+                    ->group($routesPath.'/admin.php');
             }
         }
 
         // Load API routes
-        if (file_exists($routesPath . '/api.php')) {
+        if (file_exists($routesPath.'/api.php')) {
             if ($isSaaSMode) {
                 // SaaS: InitializeTenancyIfNotCentral MUST come BEFORE 'tenant'
                 // to gracefully return 404 on central domains instead of crashing
@@ -375,15 +377,15 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
                     \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
                     'tenant',
                 ])
-                    ->prefix('api/' . $this->moduleCode)
-                    ->name('api.' . $this->moduleCode . '.')
-                    ->group($routesPath . '/api.php');
+                    ->prefix('api/'.$this->moduleCode)
+                    ->name('api.'.$this->moduleCode.'.')
+                    ->group($routesPath.'/api.php');
             } else {
                 // Standalone: Standard API middleware
                 Route::middleware(['api'])
-                    ->prefix('api/' . $this->moduleCode)
-                    ->name('api.' . $this->moduleCode . '.')
-                    ->group($routesPath . '/api.php');
+                    ->prefix('api/'.$this->moduleCode)
+                    ->name('api.'.$this->moduleCode.'.')
+                    ->group($routesPath.'/api.php');
             }
         }
     }
@@ -405,7 +407,7 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
      */
     protected function registerNavigation(): void
     {
-        if (!$this->app->bound(NavigationRegistry::class)) {
+        if (! $this->app->bound(NavigationRegistry::class)) {
             return;
         }
 
@@ -431,7 +433,7 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
                     'name' => $component['name'] ?? ucfirst($component['code'] ?? ''),
                     'path' => $component['route'] ?? '',
                     'icon' => $component['icon'] ?? $submoduleIcon,
-                    'access' => $this->moduleCode . '.' . $submoduleCode . '.' . ($component['code'] ?? ''),
+                    'access' => $this->moduleCode.'.'.$submoduleCode.'.'.($component['code'] ?? ''),
                     'type' => $component['type'] ?? 'page',
                 ];
             }
@@ -440,14 +442,14 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
                 'name' => $submodule['name'] ?? ucfirst($submoduleCode),
                 'path' => $submodule['route'] ?? '',
                 'icon' => $submoduleIcon,
-                'access' => $this->moduleCode . '.' . $submoduleCode,
+                'access' => $this->moduleCode.'.'.$submoduleCode,
                 'priority' => $submodule['priority'] ?? 100,
                 'children' => $componentNav,
             ];
         }
 
         // Sort submodules by priority
-        usort($submoduleNav, fn($a, $b) => ($a['priority'] ?? 100) <=> ($b['priority'] ?? 100));
+        usort($submoduleNav, fn ($a, $b) => ($a['priority'] ?? 100) <=> ($b['priority'] ?? 100));
 
         // Register main module navigation with module as parent wrapper
         // Scope: 'tenant' - modules are for tenant users by default
@@ -471,7 +473,6 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
      * Reads from config/module.php 'self_service' array and registers
      * items under the unified "My Workspace" menu.
      *
-     * @param  NavigationRegistry  $navRegistry
      * @param  array  $config  Module configuration
      * @param  int  $modulePriority  Module priority for ordering
      */
@@ -490,13 +491,13 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
                 'name' => $item['name'] ?? ucfirst($item['code'] ?? 'Item'),
                 'path' => $item['route'] ?? '',
                 'icon' => $item['icon'] ?? 'UserIcon',
-                'access' => $this->moduleCode . '.self-service.' . ($item['code'] ?? ''),
+                'access' => $this->moduleCode.'.self-service.'.($item['code'] ?? ''),
                 'priority' => $item['priority'] ?? 100,
             ];
         }
 
         // Sort by priority
-        usort($processedItems, fn($a, $b) => ($a['priority'] ?? 100) <=> ($b['priority'] ?? 100));
+        usort($processedItems, fn ($a, $b) => ($a['priority'] ?? 100) <=> ($b['priority'] ?? 100));
 
         // Register with the self-service registry
         $navRegistry->registerSelfService($this->moduleCode, $processedItems, $modulePriority);
@@ -507,7 +508,7 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
      */
     protected function publishAssets(): void
     {
-        if (!$this->app->runningInConsole()) {
+        if (! $this->app->runningInConsole()) {
             return;
         }
 

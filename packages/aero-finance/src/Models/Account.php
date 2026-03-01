@@ -13,7 +13,7 @@ class Account extends Model
     protected $table = 'finance_accounts';
 
     protected $fillable = [
-        'code', 'name', 'type', 'parent_id', 'description', 
+        'code', 'name', 'type', 'parent_id', 'description',
         'currency', 'is_active', 'balance',
     ];
 

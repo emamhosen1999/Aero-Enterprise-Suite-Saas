@@ -197,11 +197,10 @@ class RoleModuleAccessService implements RoleModuleAccessInterface
     /**
      * Check if a user (through their roles) can perform a specific action by codes.
      *
-     * @param mixed $user The user to check
-     * @param string $moduleCode The module code (e.g., 'hrm')
-     * @param string $subModuleCode The sub-module code (e.g., 'leaves')
-     * @param string $actionCode The action code (e.g., 'view_all', 'approve', 'manage')
-     * @return bool
+     * @param  mixed  $user  The user to check
+     * @param  string  $moduleCode  The module code (e.g., 'hrm')
+     * @param  string  $subModuleCode  The sub-module code (e.g., 'leaves')
+     * @param  string  $actionCode  The action code (e.g., 'view_all', 'approve', 'manage')
      */
     public function userCanAccessAction(mixed $user, string $moduleCode, string $subModuleCode, string $actionCode): bool
     {
@@ -534,9 +533,9 @@ class RoleModuleAccessService implements RoleModuleAccessInterface
      * Get all users who have access to a specific sub-module.
      * This is used for sending notifications to users with module access.
      *
-     * @param string $moduleCode The module code (e.g., 'hrm')
-     * @param string $subModuleCode The sub-module code (e.g., 'leaves')
-     * @param string|null $actionCode Optional action code to check specific action access (e.g., 'approve')
+     * @param  string  $moduleCode  The module code (e.g., 'hrm')
+     * @param  string  $subModuleCode  The sub-module code (e.g., 'leaves')
+     * @param  string|null  $actionCode  Optional action code to check specific action access (e.g., 'approve')
      * @return \Illuminate\Support\Collection Collection of User models
      */
     public function getUsersWithSubModuleAccess(string $moduleCode, string $subModuleCode, ?string $actionCode = null): \Illuminate\Support\Collection
@@ -567,11 +566,11 @@ class RoleModuleAccessService implements RoleModuleAccessInterface
                         ->whereNull('action_id');
                 })
                 // Direct sub-module access
-                ->orWhere(function ($q) use ($subModule) {
-                    $q->where('sub_module_id', $subModule->id)
-                        ->whereNull('component_id')
-                        ->whereNull('action_id');
-                });
+                    ->orWhere(function ($q) use ($subModule) {
+                        $q->where('sub_module_id', $subModule->id)
+                            ->whereNull('component_id')
+                            ->whereNull('action_id');
+                    });
             });
 
         // If action code is specified, also include component/action level access
@@ -619,10 +618,10 @@ class RoleModuleAccessService implements RoleModuleAccessInterface
     /**
      * Get all users who have access to perform a specific action.
      *
-     * @param string $moduleCode The module code (e.g., 'hrm')
-     * @param string $subModuleCode The sub-module code (e.g., 'leaves')
-     * @param string $componentCode The component code (e.g., 'leave-requests')
-     * @param string $actionCode The action code (e.g., 'approve')
+     * @param  string  $moduleCode  The module code (e.g., 'hrm')
+     * @param  string  $subModuleCode  The sub-module code (e.g., 'leaves')
+     * @param  string  $componentCode  The component code (e.g., 'leave-requests')
+     * @param  string  $actionCode  The action code (e.g., 'approve')
      * @return \Illuminate\Support\Collection Collection of User models
      */
     public function getUsersWithActionAccess(string $moduleCode, string $subModuleCode, string $componentCode, string $actionCode): \Illuminate\Support\Collection
@@ -665,16 +664,16 @@ class RoleModuleAccessService implements RoleModuleAccessInterface
                         ->whereNull('action_id');
                 })
                 // Sub-module level access
-                ->orWhere(function ($q) use ($subModule) {
-                    $q->where('sub_module_id', $subModule->id)
-                        ->whereNull('component_id')
-                        ->whereNull('action_id');
-                })
+                    ->orWhere(function ($q) use ($subModule) {
+                        $q->where('sub_module_id', $subModule->id)
+                            ->whereNull('component_id')
+                            ->whereNull('action_id');
+                    })
                 // Component level access
-                ->orWhere(function ($q) use ($component) {
-                    $q->where('component_id', $component->id)
-                        ->whereNull('action_id');
-                });
+                    ->orWhere(function ($q) use ($component) {
+                        $q->where('component_id', $component->id)
+                            ->whereNull('action_id');
+                    });
 
                 // Specific action access (if action exists)
                 if ($action) {

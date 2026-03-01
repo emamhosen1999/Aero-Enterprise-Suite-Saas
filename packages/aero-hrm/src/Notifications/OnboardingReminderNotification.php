@@ -40,7 +40,7 @@ class OnboardingReminderNotification extends BaseHrmNotification
             ->line("Days since onboarding started: **{$daysElapsed}** days")
             ->action('Complete Onboarding', url("/hrm/onboarding/{$this->onboarding->id}"))
             ->line('Completing your onboarding helps you get started more quickly and ensures you have all the information you need.')
-            ->salutation('Best regards, ' . config('app.name'));
+            ->salutation('Best regards, '.config('app.name'));
     }
 
     /**

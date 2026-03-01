@@ -9,7 +9,6 @@ use Aero\HRM\Events\ProbationEnding;
 use Aero\HRM\Events\WorkAnniversary;
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\EmployeePersonalDocument;
-use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Events\Dispatchable;
 use Mockery;
 use PHPUnit\Framework\TestCase;
@@ -151,7 +150,7 @@ class HrmEventsTest extends TestCase
             $this->assertContains(
                 \Illuminate\Queue\SerializesModels::class,
                 $traits,
-                get_class($event) . ' should use SerializesModels trait'
+                get_class($event).' should use SerializesModels trait'
             );
         }
     }

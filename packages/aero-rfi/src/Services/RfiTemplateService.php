@@ -2,8 +2,6 @@
 
 namespace Aero\RFI\Services;
 
-use Carbon\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -20,26 +18,42 @@ class RfiTemplateService
      * Template types.
      */
     public const TYPE_INSPECTION = 'inspection';
+
     public const TYPE_CHECKLIST = 'checklist';
+
     public const TYPE_AUDIT = 'audit';
+
     public const TYPE_SURVEY = 'survey';
+
     public const TYPE_COMPLIANCE = 'compliance';
 
     /**
      * Field types for template sections.
      */
     public const FIELD_TEXT = 'text';
+
     public const FIELD_TEXTAREA = 'textarea';
+
     public const FIELD_NUMBER = 'number';
+
     public const FIELD_DATE = 'date';
+
     public const FIELD_SELECT = 'select';
+
     public const FIELD_MULTISELECT = 'multiselect';
+
     public const FIELD_CHECKBOX = 'checkbox';
+
     public const FIELD_RADIO = 'radio';
+
     public const FIELD_FILE = 'file';
+
     public const FIELD_PHOTO = 'photo';
+
     public const FIELD_SIGNATURE = 'signature';
+
     public const FIELD_RATING = 'rating';
+
     public const FIELD_GPS = 'gps';
 
     /**
@@ -87,7 +101,7 @@ class RfiTemplateService
         // In production, fetch from database
         $sourceTemplate = $this->getTemplate($templateId);
 
-        if (!$sourceTemplate) {
+        if (! $sourceTemplate) {
             return [
                 'success' => false,
                 'error' => 'Source template not found',
@@ -96,7 +110,7 @@ class RfiTemplateService
 
         $newTemplate = array_merge($sourceTemplate, [
             'id' => Str::uuid()->toString(),
-            'name' => $overrides['name'] ?? $sourceTemplate['name'] . ' (Copy)',
+            'name' => $overrides['name'] ?? $sourceTemplate['name'].' (Copy)',
             'version' => 1,
             'is_default' => false,
             'parent_template_id' => $templateId,
@@ -128,7 +142,7 @@ class RfiTemplateService
     {
         $template = $this->getTemplate($templateId);
 
-        if (!$template) {
+        if (! $template) {
             return [
                 'success' => false,
                 'error' => 'Template not found',
@@ -350,7 +364,7 @@ class RfiTemplateService
             }
         }
 
-        if (!$template) {
+        if (! $template) {
             return [
                 'success' => false,
                 'error' => 'Library template not found',
@@ -371,7 +385,7 @@ class RfiTemplateService
     {
         $template = $this->getTemplate($templateId);
 
-        if (!$template) {
+        if (! $template) {
             return [
                 'success' => false,
                 'error' => 'Template not found',
@@ -387,7 +401,7 @@ class RfiTemplateService
         return [
             'success' => true,
             'data' => $export,
-            'filename' => Str::slug($template['name']) . '-template.json',
+            'filename' => Str::slug($template['name']).'-template.json',
         ];
     }
 
@@ -396,7 +410,7 @@ class RfiTemplateService
      */
     public function importTemplate(array $importData, array $options = []): array
     {
-        if (!isset($importData['template'])) {
+        if (! isset($importData['template'])) {
             return [
                 'success' => false,
                 'error' => 'Invalid import format',
@@ -406,7 +420,7 @@ class RfiTemplateService
         $template = $importData['template'];
 
         // Generate new ID unless overwriting
-        if (!($options['overwrite'] ?? false)) {
+        if (! ($options['overwrite'] ?? false)) {
             $template['id'] = Str::uuid()->toString();
             $template['version'] = 1;
         }

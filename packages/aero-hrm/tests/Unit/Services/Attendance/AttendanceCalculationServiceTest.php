@@ -2,9 +2,9 @@
 
 namespace Aero\HRM\Tests\Unit\Services\Attendance;
 
+use Aero\HRM\Models\Attendance;
+use Aero\HRM\Models\AttendanceSetting;
 use Aero\HRM\Services\AttendanceCalculationService;
-use Aero\HRM\Models\{Attendance, AttendanceSetting};
-use Aero\Core\Models\User;
 use Aero\HRM\Tests\TestCase;
 use Carbon\Carbon;
 
@@ -18,7 +18,7 @@ class AttendanceCalculationServiceTest extends TestCase
         $this->service = app(AttendanceCalculationService::class);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_calculates_work_hours_correctly()
     {
         $punchin = Carbon::parse('2026-01-09 09:00:00');
@@ -34,7 +34,7 @@ class AttendanceCalculationServiceTest extends TestCase
         $this->assertEquals(9.0, $hours);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_deducts_break_time_from_work_hours()
     {
         AttendanceSetting::create([
@@ -56,7 +56,7 @@ class AttendanceCalculationServiceTest extends TestCase
         $this->assertEquals(8.0, $hours);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_returns_zero_hours_for_missing_punchout()
     {
         $attendance = Attendance::factory()->noPunchout()->create([
@@ -69,7 +69,7 @@ class AttendanceCalculationServiceTest extends TestCase
         $this->assertEquals(0, $hours);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_calculates_overtime_correctly()
     {
         $punchin = Carbon::parse('2026-01-09 09:00:00');
@@ -85,7 +85,7 @@ class AttendanceCalculationServiceTest extends TestCase
         $this->assertEquals(2.0, $overtime);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_detects_late_arrival()
     {
         AttendanceSetting::create([
@@ -105,7 +105,7 @@ class AttendanceCalculationServiceTest extends TestCase
         $this->assertTrue($isLate);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_determines_status_as_present()
     {
         AttendanceSetting::create([

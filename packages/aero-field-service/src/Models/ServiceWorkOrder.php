@@ -2,10 +2,10 @@
 
 namespace Aero\FieldService\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class ServiceWorkOrder extends Model
 {
@@ -19,7 +19,7 @@ class ServiceWorkOrder extends Model
         'resolution_description', 'scheduled_date', 'scheduled_time_from', 'scheduled_time_to',
         'actual_start_time', 'actual_end_time', 'assigned_technician_id', 'created_by',
         'service_agreement_id', 'estimated_duration', 'labor_cost', 'parts_cost',
-        'total_cost', 'customer_signature', 'technician_notes', 'internal_notes'
+        'total_cost', 'customer_signature', 'technician_notes', 'internal_notes',
     ];
 
     protected $casts = [
@@ -42,24 +42,39 @@ class ServiceWorkOrder extends Model
     ];
 
     const TYPE_INSTALLATION = 'installation';
+
     const TYPE_MAINTENANCE = 'maintenance';
+
     const TYPE_REPAIR = 'repair';
+
     const TYPE_INSPECTION = 'inspection';
+
     const TYPE_EMERGENCY = 'emergency';
+
     const TYPE_WARRANTY = 'warranty';
 
     const PRIORITY_LOW = 'low';
+
     const PRIORITY_NORMAL = 'normal';
+
     const PRIORITY_HIGH = 'high';
+
     const PRIORITY_URGENT = 'urgent';
+
     const PRIORITY_EMERGENCY = 'emergency';
 
     const STATUS_DRAFT = 'draft';
+
     const STATUS_SCHEDULED = 'scheduled';
+
     const STATUS_DISPATCHED = 'dispatched';
+
     const STATUS_IN_PROGRESS = 'in_progress';
+
     const STATUS_ON_HOLD = 'on_hold';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_CANCELLED = 'cancelled';
 
     public function customer()
@@ -117,13 +132,14 @@ class ServiceWorkOrder extends Model
         if ($this->actual_start_time && $this->actual_end_time) {
             return $this->actual_start_time->diffInMinutes($this->actual_end_time);
         }
+
         return null;
     }
 
     public function isOverdue()
     {
-        return $this->scheduled_date < now()->toDateString() && 
-               !in_array($this->status, [self::STATUS_COMPLETED, self::STATUS_CANCELLED]);
+        return $this->scheduled_date < now()->toDateString() &&
+               ! in_array($this->status, [self::STATUS_COMPLETED, self::STATUS_CANCELLED]);
     }
 
     public function canBeCompleted()

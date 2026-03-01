@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Aero\HRM\Tests\Unit\Services;
 
-use Aero\HRM\Services\HRMAuthorizationService;
-use Aero\HRM\Models\Employee;
-use Aero\HRM\Models\Department;
-use Aero\HRMAC\Services\RoleModuleAccessService;
 use Aero\Core\Models\User;
+use Aero\HRM\Models\Department;
+use Aero\HRM\Models\Employee;
+use Aero\HRM\Services\HRMAuthorizationService;
+use Aero\HRMAC\Services\RoleModuleAccessService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use Mockery;
+use Tests\TestCase;
 
 /**
  * HRM Authorization Service Tests
@@ -23,6 +23,7 @@ class HRMAuthorizationServiceTest extends TestCase
     use RefreshDatabase;
 
     private HRMAuthorizationService $service;
+
     private RoleModuleAccessService $mockRoleService;
 
     protected function setUp(): void
@@ -42,7 +43,7 @@ class HRMAuthorizationServiceTest extends TestCase
         parent::tearDown();
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_checks_module_access_via_role_service()
     {
         // Arrange
@@ -62,7 +63,7 @@ class HRMAuthorizationServiceTest extends TestCase
         $this->assertTrue($hasAccess);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_checks_module_action_via_role_service()
     {
         // Arrange
@@ -82,7 +83,7 @@ class HRMAuthorizationServiceTest extends TestCase
         $this->assertTrue($canManage);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_checks_leave_management_permission()
     {
         // Arrange
@@ -102,7 +103,7 @@ class HRMAuthorizationServiceTest extends TestCase
         $this->assertTrue($canManage);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_checks_leave_approval_permission()
     {
         // Arrange
@@ -122,7 +123,7 @@ class HRMAuthorizationServiceTest extends TestCase
         $this->assertTrue($canApprove);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_falls_back_to_manage_permission_for_approval()
     {
         // Arrange
@@ -149,7 +150,7 @@ class HRMAuthorizationServiceTest extends TestCase
         $this->assertTrue($canApprove);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_identifies_department_manager()
     {
         // Arrange
@@ -164,7 +165,7 @@ class HRMAuthorizationServiceTest extends TestCase
         $this->assertTrue($isManager);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_identifies_non_manager()
     {
         // Arrange
@@ -179,7 +180,7 @@ class HRMAuthorizationServiceTest extends TestCase
         $this->assertFalse($isManager);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_checks_department_approval_permission()
     {
         // Arrange
@@ -201,7 +202,7 @@ class HRMAuthorizationServiceTest extends TestCase
         $this->assertTrue($canApprove);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_gets_managed_department_ids_for_manager()
     {
         // Arrange
@@ -216,7 +217,7 @@ class HRMAuthorizationServiceTest extends TestCase
         $this->assertContains($department->id, $departmentIds);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_returns_empty_managed_departments_for_non_manager()
     {
         // Arrange
@@ -236,7 +237,7 @@ class HRMAuthorizationServiceTest extends TestCase
         $this->assertEmpty($departmentIds);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_identifies_manager_with_direct_reports()
     {
         // Arrange
@@ -253,7 +254,7 @@ class HRMAuthorizationServiceTest extends TestCase
         $this->assertTrue($isManager);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_gets_managed_employee_ids()
     {
         // Arrange
@@ -278,7 +279,7 @@ class HRMAuthorizationServiceTest extends TestCase
         $this->assertContains($report2->id, $employeeIds);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_never_uses_hardcoded_role_checks()
     {
         // This is a meta-test to ensure the service never calls hasRole()

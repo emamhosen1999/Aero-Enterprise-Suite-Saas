@@ -37,8 +37,8 @@ class PayslipReadyNotification extends BaseHrmNotification
             ->line("Your payslip for {$period} has been generated and is ready for viewing.")
             ->line('**Payslip Summary:**')
             ->line("Period: {$period}")
-            ->line("Net Pay: " . number_format($this->payslip->net_salary ?? 0, 2))
-            ->line("Generated on: " . ($this->payslip->created_at?->format('d M Y') ?? now()->format('d M Y')))
+            ->line('Net Pay: '.number_format($this->payslip->net_salary ?? 0, 2))
+            ->line('Generated on: '.($this->payslip->created_at?->format('d M Y') ?? now()->format('d M Y')))
             ->action('View Payslip', url("/hrm/payslips/{$this->payslip->id}"))
             ->line('If you have any questions about your payslip, please contact HR.');
     }
@@ -93,7 +93,7 @@ class PayslipReadyNotification extends BaseHrmNotification
             ? date('M Y', strtotime($this->payslip->month))
             : 'this month';
 
-        return "Your payslip for {$period} is ready. Net pay: " . number_format($this->payslip->net_salary ?? 0, 2);
+        return "Your payslip for {$period} is ready. Net pay: ".number_format($this->payslip->net_salary ?? 0, 2);
     }
 
     /**

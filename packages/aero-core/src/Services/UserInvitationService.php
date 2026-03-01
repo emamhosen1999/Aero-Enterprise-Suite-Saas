@@ -55,6 +55,7 @@ class UserInvitationService
                 ->send(new UserInvitationMail($invitation));
 
             DB::commit();
+
             return $invitation;
         } catch (\Exception $e) {
             DB::rollBack();
@@ -84,7 +85,7 @@ class UserInvitationService
             ]);
 
             // Assign roles
-            if (!empty($invitation->roles)) {
+            if (! empty($invitation->roles)) {
                 $user->syncRoles($invitation->roles);
             }
 
@@ -92,6 +93,7 @@ class UserInvitationService
             $invitation->markAsAccepted();
 
             DB::commit();
+
             return $user;
         } catch (\Exception $e) {
             DB::rollBack();

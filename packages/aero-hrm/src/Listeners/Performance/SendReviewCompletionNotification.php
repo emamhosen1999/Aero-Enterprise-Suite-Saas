@@ -16,10 +16,11 @@ class SendReviewCompletionNotification implements ShouldQueue
         $employee = $review->employee;
         $user = $employee?->user;
 
-        if (!$user) {
+        if (! $user) {
             Log::warning('Employee has no user for review completion notification', [
                 'review_id' => $review->id,
             ]);
+
             return;
         }
 

@@ -4,8 +4,8 @@ namespace Aero\Crm\Services;
 
 use Aero\Crm\Models\Customer;
 use Aero\Crm\Models\Lead;
-use App\Models\CRM\LeadSource;
 use Aero\Crm\Models\Opportunity;
+use App\Models\CRM\LeadSource;
 use App\Models\CRM\SalesStage;
 use Illuminate\Support\Facades\DB;
 

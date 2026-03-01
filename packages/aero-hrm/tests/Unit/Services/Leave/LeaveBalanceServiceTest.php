@@ -2,11 +2,11 @@
 
 namespace Aero\HRM\Tests\Unit\Services\Leave;
 
-use Aero\HRM\Services\LeaveBalanceService;
-use Aero\HRM\Models\{Leave, LeaveType};
 use Aero\Core\Models\User;
+use Aero\HRM\Models\Leave;
+use Aero\HRM\Models\LeaveType;
+use Aero\HRM\Services\LeaveBalanceService;
 use Aero\HRM\Tests\TestCase;
-use Carbon\Carbon;
 
 class LeaveBalanceServiceTest extends TestCase
 {
@@ -18,13 +18,13 @@ class LeaveBalanceServiceTest extends TestCase
         $this->service = app(LeaveBalanceService::class);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_calculates_remaining_balance_correctly()
     {
         $user = User::factory()->create();
         $leaveType = LeaveType::factory()->create([
             'name' => 'Annual',
-            'total_days' => 15
+            'total_days' => 15,
         ]);
 
         // Create 3 approved leaves of 1 day each
@@ -32,7 +32,7 @@ class LeaveBalanceServiceTest extends TestCase
             'user_id' => $user->id,
             'leave_type' => $leaveType->name,
             'status' => 'approved',
-            'no_of_days' => 1
+            'no_of_days' => 1,
         ]);
 
         $balance = $this->service->calculateBalance($user, $leaveType);
@@ -40,7 +40,7 @@ class LeaveBalanceServiceTest extends TestCase
         $this->assertEquals(12, $balance);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_half_day_leaves()
     {
         $user = User::factory()->create();
@@ -57,7 +57,7 @@ class LeaveBalanceServiceTest extends TestCase
         $this->assertEquals(9.5, $balance);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_excludes_rejected_leaves_from_calculation()
     {
         $user = User::factory()->create();
@@ -66,7 +66,7 @@ class LeaveBalanceServiceTest extends TestCase
         Leave::factory()->rejected()->create([
             'user_id' => $user->id,
             'leave_type' => $leaveType->name,
-            'no_of_days' => 5
+            'no_of_days' => 5,
         ]);
 
         $balance = $this->service->calculateBalance($user, $leaveType);
@@ -74,7 +74,7 @@ class LeaveBalanceServiceTest extends TestCase
         $this->assertEquals(15, $balance);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_excludes_pending_leaves_from_balance()
     {
         $user = User::factory()->create();
@@ -84,19 +84,19 @@ class LeaveBalanceServiceTest extends TestCase
             'user_id' => $user->id,
             'leave_type' => $leaveType->name,
             'status' => 'pending',
-            'no_of_days' => 3
+            'no_of_days' => 3,
         ]);
 
         // Balance should show 15 (pending doesn't reduce total)
         $balance = $this->service->calculateBalance($user, $leaveType);
         $this->assertEquals(15, $balance);
-        
+
         // But available balance should show 12 (pending blocks availability)
         $available = $this->service->calculateAvailableBalance($user, $leaveType);
         $this->assertEquals(12, $available);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_throws_exception_for_insufficient_balance()
     {
         $this->expectException(\Exception::class);
@@ -110,18 +110,18 @@ class LeaveBalanceServiceTest extends TestCase
             'user_id' => $user->id,
             'leave_type' => $leaveType->name,
             'status' => 'approved',
-            'no_of_days' => 1
+            'no_of_days' => 1,
         ]);
 
         // Try to request more
         $this->service->validateBalance($user, $leaveType, 1);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_calculates_balance_across_leave_types()
     {
         $user = User::factory()->create();
-        
+
         $annualLeave = LeaveType::factory()->create(['name' => 'Annual', 'total_days' => 15]);
         $sickLeave = LeaveType::factory()->create(['name' => 'Sick', 'total_days' => 10]);
 
@@ -130,14 +130,14 @@ class LeaveBalanceServiceTest extends TestCase
             'user_id' => $user->id,
             'leave_type' => $annualLeave->name,
             'status' => 'approved',
-            'no_of_days' => 1
+            'no_of_days' => 1,
         ]);
 
         Leave::factory()->count(2)->create([
             'user_id' => $user->id,
             'leave_type' => $sickLeave->name,
             'status' => 'approved',
-            'no_of_days' => 1
+            'no_of_days' => 1,
         ]);
 
         $balances = $this->service->calculateAllBalances($user);

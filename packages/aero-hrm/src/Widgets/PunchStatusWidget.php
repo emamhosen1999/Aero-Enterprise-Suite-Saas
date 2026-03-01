@@ -20,10 +20,15 @@ use Illuminate\Support\Facades\Auth;
 class PunchStatusWidget extends AbstractDashboardWidget
 {
     protected string $position = 'main_left';
+
     protected int $order = 1; // Highest priority - show first
+
     protected int|string $span = 1;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::ACTION;
+
     protected array $requiredPermissions = ['hrm.attendance']; // HRMAC format: module.submodule
+
     protected array $dashboards = ['hrm.employee'];
 
     public function getKey(): string
@@ -63,7 +68,7 @@ class PunchStatusWidget extends AbstractDashboardWidget
             return true;
         }
 
-        if (!$this->isModuleActive()) {
+        if (! $this->isModuleActive()) {
             return false;
         }
 
@@ -75,7 +80,7 @@ class PunchStatusWidget extends AbstractDashboardWidget
     {
         return $this->safeResolve(function () {
             $user = Auth::user();
-            if (!$user) {
+            if (! $user) {
                 return $this->getEmptyState();
             }
 
@@ -86,7 +91,7 @@ class PunchStatusWidget extends AbstractDashboardWidget
                 ->whereDate('date', $today)
                 ->first();
 
-            if (!$attendance) {
+            if (! $attendance) {
                 return [
                     'status' => 'not_punched',
                     'message' => 'Not clocked in yet',
@@ -98,15 +103,15 @@ class PunchStatusWidget extends AbstractDashboardWidget
                 ];
             }
 
-            $isPunchedIn = $attendance->punch_in_time && !$attendance->punch_out_time;
+            $isPunchedIn = $attendance->punch_in_time && ! $attendance->punch_out_time;
             $isPunchedOut = $attendance->punch_in_time && $attendance->punch_out_time;
 
             return [
                 'status' => $isPunchedOut ? 'completed' : ($isPunchedIn ? 'working' : 'not_punched'),
-                'message' => $isPunchedOut 
-                    ? 'Day completed' 
+                'message' => $isPunchedOut
+                    ? 'Day completed'
                     : ($isPunchedIn ? 'Currently working' : 'Not clocked in'),
-                'canPunchIn' => !$attendance->punch_in_time,
+                'canPunchIn' => ! $attendance->punch_in_time,
                 'canPunchOut' => $isPunchedIn,
                 'punchInTime' => $attendance->punch_in_time?->format('h:i A'),
                 'punchOutTime' => $attendance->punch_out_time?->format('h:i A'),

@@ -2,10 +2,10 @@
 
 namespace Aero\Manufacturing\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class ProductionPlan extends Model
 {
@@ -16,7 +16,7 @@ class ProductionPlan extends Model
     protected $fillable = [
         'plan_number', 'name', 'description', 'plan_type', 'status',
         'start_date', 'end_date', 'total_planned_quantity', 'total_actual_quantity',
-        'created_by', 'approved_by', 'approved_at'
+        'created_by', 'approved_by', 'approved_at',
     ];
 
     protected $casts = [
@@ -30,13 +30,19 @@ class ProductionPlan extends Model
     ];
 
     const TYPE_MASTER = 'master';
+
     const TYPE_WEEKLY = 'weekly';
+
     const TYPE_DAILY = 'daily';
+
     const TYPE_RUSH = 'rush';
 
     const STATUS_DRAFT = 'draft';
+
     const STATUS_ACTIVE = 'active';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_CANCELLED = 'cancelled';
 
     public function creator()
@@ -61,7 +67,7 @@ class ProductionPlan extends Model
 
     public function getCompletionPercentageAttribute()
     {
-        return $this->total_planned_quantity > 0 ? 
+        return $this->total_planned_quantity > 0 ?
             ($this->total_actual_quantity / $this->total_planned_quantity) * 100 : 0;
     }
 }

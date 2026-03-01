@@ -36,9 +36,9 @@ class TeamBirthdayAlertNotification extends BaseHrmNotification
             ->greeting("Hello {$notifiable->name},")
             ->line("Today is **{$name}'s** birthday! 🎉")
             ->line("**Department:** {$department}")
-            ->line("Take a moment to wish them a happy birthday and make their day special!")
+            ->line('Take a moment to wish them a happy birthday and make their day special!')
             ->action('View Employee Profile', url("/hrm/employees/{$this->employee->id}"))
-            ->line("A small gesture can make a big difference.");
+            ->line('A small gesture can make a big difference.');
     }
 
     /**

@@ -44,7 +44,7 @@ class RegistrationController extends Controller
      * If a pending/failed tenant with the same email or subdomain exists,
      * we "take over" that record and continue from where they left off.
      */
-    public function storeDetails(RegistrationDetailsRequest $request): RedirectResponse
+    public function storeDetails(RegistrationDetailsRequest $request): RedirectResponse|JsonResponse
     {
         if (! $this->registrationSession->hasStep('account')) {
             return to_route('platform.register.index');
@@ -54,11 +54,10 @@ class RegistrationController extends Controller
         $email = $validated['email'];
         $subdomain = $validated['subdomain'];
 
-        // Check for existing incomplete registration that can be resumed
-        $existingTenant = Tenant::where(function ($query) use ($email, $subdomain) {
-            $query->where('email', $email)
-                ->orWhere('subdomain', $subdomain);
-        })
+        // Fix #24: Require BOTH email AND subdomain to match the same record before resuming.
+        // The previous orWhere allowed an attacker to claim any pending tenant that merely shares a subdomain.
+        $existingTenant = Tenant::where('email', $email)
+            ->where('subdomain', $subdomain)
             ->whereIn('status', [Tenant::STATUS_PENDING, Tenant::STATUS_FAILED])
             ->first();
 
@@ -86,18 +85,19 @@ class RegistrationController extends Controller
 
         $this->registrationSession->putStep('details', $validated);
 
-        // Check if maintenance mode is enabled with skip verification OR debug mode is enabled
+        // Check if verification should be skipped:
+        // - Always skip in debug mode (APP_DEBUG=true) for easier local development/testing
+        // - Skip in maintenance mode when explicitly configured to do so (maintenance_skip_verification)
         $platformSettings = PlatformSetting::current();
-        $skipVerification = ($platformSettings->maintenance_mode && $platformSettings->maintenance_skip_verification)
-            || config('app.debug', false);
+        $skipVerification = config('app.debug')
+            || ($platformSettings->maintenance_mode && $platformSettings->maintenance_skip_verification);
 
         if ($skipVerification) {
-            // Skip verification steps during maintenance mode or debug mode
-            Log::info('Skipping verification due to maintenance/debug mode', [
+            $reason = config('app.debug') ? 'debug mode (APP_DEBUG=true)' : 'maintenance mode';
+            Log::info('Skipping verification due to ' . $reason, [
                 'email' => $email,
                 'subdomain' => $subdomain,
                 'maintenance_mode' => $platformSettings->maintenance_mode,
-                'debug_mode' => config('app.debug', false),
             ]);
 
             // Mark verification as complete
@@ -112,15 +112,26 @@ class RegistrationController extends Controller
                 'tenant_id' => $tenant->id,
                 'email_verified' => true,
                 'phone_verified' => true,
-                'skipped_due_to_maintenance' => true,
+                'skipped_due_to_debug' => config('app.debug'),
+                'skipped_due_to_maintenance' => $platformSettings->maintenance_mode && $platformSettings->maintenance_skip_verification,
             ]);
 
             // Go directly to plan selection
-            return to_route('platform.register.plan');
+            $planUrl = route('platform.register.plan');
+            if ($request->wantsJson()) {
+                return response()->json(['redirect' => $planUrl, 'message' => 'Details saved. Verification skipped.']);
+            }
+
+            return redirect($planUrl);
         }
 
         // Go directly to email verification (admin setup moved to after provisioning)
-        return to_route('platform.register.verify-email');
+        $verifyUrl = route('platform.register.verify-email');
+        if ($request->wantsJson()) {
+            return response()->json(['redirect' => $verifyUrl, 'message' => 'Details saved. Please verify your email.']);
+        }
+
+        return redirect($verifyUrl);
     }
 
     /**
@@ -201,6 +212,11 @@ class RegistrationController extends Controller
                         'tenant_id' => $tenant->id,
                         'error' => $e->getMessage(),
                     ]);
+
+                    // Fix #20: Surface the cleanup failure to the caller rather than silently returning 200.
+                    return response()->json([
+                        'message' => 'Could not cancel registration. Please try again.',
+                    ], 500);
                 }
             }
         }
@@ -338,8 +354,13 @@ class RegistrationController extends Controller
 
     public function storePlan(RegistrationPlanRequest $request): RedirectResponse
     {
-        // Only require account and details (admin setup moved to after provisioning)
-        if (! $this->registrationSession->ensureSteps(['account', 'details'])) {
+        // Fix #13: verification must precede plan selection — without this check the user
+        // can jump directly from details to plan, bypassing email/phone verification.
+        if (! $this->registrationSession->ensureSteps(['account', 'details', 'verification'])) {
+            Log::warning('storePlan: missing required session steps', [
+                'present_steps' => array_keys($this->registrationSession->get()),
+            ]);
+
             return to_route('platform.register.index');
         }
 
@@ -392,8 +413,9 @@ class RegistrationController extends Controller
      */
     public function activateTrial(RegistrationTrialRequest $request): RedirectResponse
     {
-        // Only require account, details, and plan (admin setup moved to after provisioning)
-        if (! $this->registrationSession->ensureSteps(['account', 'details', 'plan'])) {
+        // Fix #13: verification step must be present before a tenant can be activated.
+        // Without this guard the trial activation step is reachable without completing verification.
+        if (! $this->registrationSession->ensureSteps(['account', 'details', 'verification', 'plan'])) {
             return to_route('platform.register.index');
         }
 
@@ -404,8 +426,9 @@ class RegistrationController extends Controller
         $subdomain = $payload['details']['subdomain'] ?? null;
         $email = $payload['details']['email'] ?? null;
 
-        // Idempotency check: Prevent duplicate submissions
-        $idempotencyKey = 'registration_trial_'.hash('sha256', $email.$subdomain.$request->session()->getId());
+        // Fix #15: Idempotency key must NOT include the session ID — the session can be
+        // rotated, causing duplicate provisioning jobs for the same account. Key on stable fields only.
+        $idempotencyKey = 'registration_trial_'.hash('sha256', $email.$subdomain);
         if (Cache::has($idempotencyKey)) {
             $cachedTenantId = Cache::get($idempotencyKey);
             Log::info('Duplicate trial activation prevented', [
@@ -518,6 +541,14 @@ class RegistrationController extends Controller
      */
     public function retryProvisioning(Tenant $tenant): RedirectResponse
     {
+        // Fix #4: Verify that the tenant being retried is owned by the current registration session.
+        // Without this check any anonymous user could trigger a retry on any failed tenant by guessing IDs.
+        $sessionTenantId = $this->registrationSession->getStep('verification')['tenant_id'] ?? null;
+
+        if ((string) $sessionTenantId !== (string) $tenant->id) {
+            abort(403, 'You are not authorised to retry this provisioning.');
+        }
+
         // Only allow retry for failed tenants
         if ($tenant->status !== Tenant::STATUS_FAILED) {
             return back()->with('error', 'Only failed provisioning can be retried.');
@@ -566,64 +597,66 @@ class RegistrationController extends Controller
         $email = $payload['details']['email'];
         $subdomain = $payload['details']['subdomain'];
 
-        // Check for existing tenant in session
-        $verification = $this->registrationSession->getStep('verification');
-        if (! empty($verification['tenant_id'])) {
-            $existingTenant = Tenant::find($verification['tenant_id']);
+        // Fix #21: Wrap the read-then-write in a DB transaction with pessimistic locks
+        // to prevent TOCTOU race conditions that create duplicate pending tenants.
+        return DB::transaction(function () use ($payload, $email, $subdomain) {
+            $verification = $this->registrationSession->getStep('verification');
+
+            if (! empty($verification['tenant_id'])) {
+                $existingTenant = Tenant::lockForUpdate()->find($verification['tenant_id']);
+
+                if ($existingTenant) {
+                    $existingTenant->update([
+                        'name' => $payload['details']['name'],
+                        'email' => $email,
+                        'subdomain' => $subdomain,
+                        'phone' => $payload['details']['phone'] ?? null,
+                        'type' => $payload['account']['type'] ?? 'company',
+                    ]);
+                    $existingTenant->touch();
+
+                    return $existingTenant;
+                }
+            }
+
+            // Fix #24 (helper): Use strict email+subdomain match — not OR — to avoid tenant
+            // takeover by anyone who happens to share a subdomain with a pending registration.
+            $existingTenant = Tenant::where('email', $email)
+                ->where('subdomain', $subdomain)
+                ->whereIn('status', [Tenant::STATUS_PENDING, Tenant::STATUS_FAILED])
+                ->lockForUpdate()
+                ->first();
+
             if ($existingTenant) {
-                // Update with latest data
                 $existingTenant->update([
                     'name' => $payload['details']['name'],
                     'email' => $email,
                     'subdomain' => $subdomain,
                     'phone' => $payload['details']['phone'] ?? null,
                     'type' => $payload['account']['type'] ?? 'company',
+                    'status' => Tenant::STATUS_PENDING,
                 ]);
                 $existingTenant->touch();
 
+                Log::info('Reusing existing pending tenant for registration', [
+                    'tenant_id' => $existingTenant->id,
+                    'email' => $email,
+                ]);
+
                 return $existingTenant;
             }
-        }
 
-        // Check for existing incomplete tenant with same email or subdomain
-        $existingTenant = Tenant::where(function ($query) use ($email, $subdomain) {
-            $query->where('email', $email)
-                ->orWhere('subdomain', $subdomain);
-        })
-            ->whereIn('status', [Tenant::STATUS_PENDING, Tenant::STATUS_FAILED])
-            ->first();
-
-        if ($existingTenant) {
-            // Update and reuse existing pending tenant
-            $existingTenant->update([
+            return Tenant::create([
+                'id' => Str::uuid(),
                 'name' => $payload['details']['name'],
                 'email' => $email,
                 'subdomain' => $subdomain,
                 'phone' => $payload['details']['phone'] ?? null,
                 'type' => $payload['account']['type'] ?? 'company',
                 'status' => Tenant::STATUS_PENDING,
+                'registration_step' => Tenant::REG_STEP_VERIFY_EMAIL,
             ]);
-            $existingTenant->touch();
-
-            Log::info('Reusing existing pending tenant for registration', [
-                'tenant_id' => $existingTenant->id,
-                'email' => $email,
-            ]);
-
-            return $existingTenant;
-        }
-
-        // Create new pending tenant
-        return Tenant::create([
-            'id' => Str::uuid(),
-            'name' => $payload['details']['name'],
-            'email' => $email,
-            'subdomain' => $subdomain,
-            'phone' => $payload['details']['phone'] ?? null,
-            'type' => $payload['account']['type'] ?? 'company',
-            'status' => Tenant::STATUS_PENDING,
-            'registration_step' => Tenant::REG_STEP_VERIFY_EMAIL,
-        ]);
+        });
     }
 
     /**
@@ -648,6 +681,16 @@ class RegistrationController extends Controller
             $databaseName = $tenant->database()->getName();
 
             if (empty($databaseName)) {
+                return;
+            }
+
+            // Fix #3: Validate the database name against a strict whitelist to prevent SQL injection.
+            if (! preg_match('/^[a-zA-Z0-9_]+$/', $databaseName)) {
+                Log::warning('Rejected unsafe database name in cleanupOrphanedDatabase', [
+                    'tenant_id' => $tenant->id,
+                    'database' => $databaseName,
+                ]);
+
                 return;
             }
 

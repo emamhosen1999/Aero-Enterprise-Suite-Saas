@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace Aero\HRM\Services;
 
+use Aero\HRM\Exceptions\UserNotOnboardedException;
+use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Holiday;
 use Aero\HRM\Models\Leave;
 use Aero\HRM\Models\LeaveSetting;
-use Aero\HRM\Models\Employee;
-use Aero\HRM\Services\EmployeeResolutionService;
-use Aero\HRM\Services\HRMAuthorizationService;
-use Aero\HRM\Exceptions\UserNotOnboardedException;
 use Aero\HRMAC\Services\RoleModuleAccessService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -36,6 +34,7 @@ class LeaveQueryService
             $this->moduleAccessService = app(RoleModuleAccessService::class);
         }
     }
+
     /**
      * Get leave records with pagination and filtering
      *
@@ -379,7 +378,7 @@ class LeaveQueryService
             // Calculate for specific employee only
             try {
                 $targetEmployee = $this->employeeResolver->resolveFromUserId($targetUserId);
-                
+
                 // Note: leaves table has user_id, not employee_id - filter by user_id
                 $allLeaves = Leave::with('leaveSetting')
                     ->join('leave_settings', 'leaves.leave_type', '=', 'leave_settings.id')

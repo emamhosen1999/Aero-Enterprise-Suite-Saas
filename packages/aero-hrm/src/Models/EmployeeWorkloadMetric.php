@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Employee Workload Metrics Model
- * 
+ *
  * Tracks daily/weekly/monthly workload for burnout risk analysis.
  */
 class EmployeeWorkloadMetric extends Model
@@ -63,7 +63,7 @@ class EmployeeWorkloadMetric extends Model
 
     public function hasBurnoutIndicators(): bool
     {
-        return $this->consecutive_overtime_flag || 
+        return $this->consecutive_overtime_flag ||
                $this->days_without_leave > 60 ||
                ($this->weekend_work_flag && $this->overtime_hours > 10);
     }
@@ -73,7 +73,7 @@ class EmployeeWorkloadMetric extends Model
         if ($this->tasks_assigned === 0) {
             return 100;
         }
-        
+
         return min(100, ($this->tasks_completed / $this->tasks_assigned) * 100);
     }
 }

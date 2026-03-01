@@ -32,11 +32,15 @@ class JournalEntry extends Model
     ];
 
     public const TYPE_STANDARD = 'standard';
+
     public const TYPE_ADJUSTING = 'adjusting';
+
     public const TYPE_CLOSING = 'closing';
 
     public const STATUS_DRAFT = 'draft';
+
     public const STATUS_POSTED = 'posted';
+
     public const STATUS_VOIDED = 'voided';
 
     public function lines()
@@ -58,7 +62,7 @@ class JournalEntry extends Model
     {
         $totalDebit = $this->lines()->sum('debit');
         $totalCredit = $this->lines()->sum('credit');
-        
+
         return abs($totalDebit - $totalCredit) < 0.01;
     }
 }

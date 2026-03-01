@@ -13,10 +13,10 @@ class Product extends Model
     protected $table = 'finance_products';
 
     protected $fillable = [
-        'sku', 'name', 'description', 'product_type', 
+        'sku', 'name', 'description', 'product_type',
         'unit_price', 'cost_price', 'currency', 'unit_of_measure',
         'category_id', 'income_account_id', 'expense_account_id',
-        'tax_rate', 'is_active', 'track_inventory'
+        'tax_rate', 'is_active', 'track_inventory',
     ];
 
     protected $casts = [
@@ -31,6 +31,7 @@ class Product extends Model
     ];
 
     const TYPE_PRODUCT = 'product';
+
     const TYPE_SERVICE = 'service';
 
     public function category()

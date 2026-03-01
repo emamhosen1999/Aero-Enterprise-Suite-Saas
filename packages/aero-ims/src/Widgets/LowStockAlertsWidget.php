@@ -18,10 +18,15 @@ use Aero\Core\Contracts\CoreWidgetCategory;
 class LowStockAlertsWidget extends AbstractDashboardWidget
 {
     protected string $position = 'main_left';
+
     protected int $order = 40;
+
     protected int|string $span = 1;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
+
     protected array $requiredPermissions = ['ims.inventory'];
+
     protected array $dashboards = ['ims'];
 
     public function getKey(): string

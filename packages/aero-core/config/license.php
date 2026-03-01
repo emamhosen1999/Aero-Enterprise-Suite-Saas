@@ -13,7 +13,7 @@ return [
     */
 
     'providers' => [
-        
+
         /*
         |--------------------------------------------------------------------------
         | Aero Platform (Primary Provider)
@@ -30,7 +30,7 @@ return [
             'timeout' => env('LICENSE_PROVIDER_AERO_TIMEOUT', 10),
             'retry_attempts' => env('LICENSE_PROVIDER_AERO_RETRY', 3),
         ],
-        
+
         /*
         |--------------------------------------------------------------------------
         | CodeCanyon/Envato
@@ -46,7 +46,7 @@ return [
             'personal_token' => env('LICENSE_PROVIDER_CODECANYON_TOKEN'),
             'timeout' => env('LICENSE_PROVIDER_CODECANYON_TIMEOUT', 10),
         ],
-        
+
         /*
         |--------------------------------------------------------------------------
         | Enterprise Licenses (Offline Validation)
@@ -61,7 +61,7 @@ return [
             'secret_key' => env('LICENSE_PROVIDER_ENTERPRISE_SECRET', 'change-this-in-production'),
             'offline_mode' => true,
         ],
-        
+
     ],
 
     /*
@@ -74,19 +74,19 @@ return [
     */
 
     'verification' => [
-        
+
         // How often to verify license with remote server (in seconds)
         'frequency' => env('LICENSE_VERIFICATION_FREQUENCY', 86400), // 24 hours
-        
+
         // Grace period when verification fails (in seconds)
         'grace_period' => env('LICENSE_GRACE_PERIOD', 604800), // 7 days
-        
+
         // Enable offline mode (use cached validation)
         'offline_mode' => env('LICENSE_OFFLINE_MODE', false),
-        
+
         // Strict mode - fail immediately if verification fails
         'strict_mode' => env('LICENSE_STRICT_MODE', false),
-        
+
     ],
 
     /*
@@ -203,16 +203,16 @@ return [
     */
 
     'expiry_actions' => [
-        
+
         // Redirect to license page on expiry
         'redirect_to_license' => env('LICENSE_EXPIRY_REDIRECT', true),
-        
+
         // Allow read-only access during grace period
         'read_only_mode' => env('LICENSE_GRACE_READ_ONLY', true),
-        
+
         // Show banner notification before expiry (days)
         'warning_days' => env('LICENSE_WARNING_DAYS', 30),
-        
+
         // Disable specific features on expiry
         'disable_features' => [
             'api_access' => false,

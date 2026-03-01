@@ -2,9 +2,9 @@
 
 namespace Aero\Healthcare\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Aero\Core\Models\User;
 
 class BillingPayment extends Model
 {
@@ -14,7 +14,7 @@ class BillingPayment extends Model
 
     protected $fillable = [
         'billing_id', 'payment_method', 'amount', 'payment_date',
-        'reference_number', 'payer_type', 'notes', 'processed_by'
+        'reference_number', 'payer_type', 'notes', 'processed_by',
     ];
 
     protected $casts = [
@@ -25,13 +25,19 @@ class BillingPayment extends Model
     ];
 
     const METHOD_CASH = 'cash';
+
     const METHOD_CHECK = 'check';
+
     const METHOD_CREDIT_CARD = 'credit_card';
+
     const METHOD_BANK_TRANSFER = 'bank_transfer';
+
     const METHOD_INSURANCE = 'insurance';
 
     const PAYER_PATIENT = 'patient';
+
     const PAYER_INSURANCE = 'insurance';
+
     const PAYER_THIRD_PARTY = 'third_party';
 
     public function billing()

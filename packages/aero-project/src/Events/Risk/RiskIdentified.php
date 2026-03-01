@@ -22,11 +22,11 @@ use Aero\Project\Events\BaseProjectEvent;
 class RiskIdentified extends BaseProjectEvent
 {
     /**
-     * @param int $riskId The project risk ID
-     * @param int $projectId The project ID
-     * @param string $severity Risk severity (low, medium, high, critical)
-     * @param string $title Risk title
-     * @param string|null $source Source of risk identification (manual, ai_prediction, threshold_breach)
+     * @param  int  $riskId  The project risk ID
+     * @param  int  $projectId  The project ID
+     * @param  string  $severity  Risk severity (low, medium, high, critical)
+     * @param  string  $title  Risk title
+     * @param  string|null  $source  Source of risk identification (manual, ai_prediction, threshold_breach)
      */
     public function __construct(
         public int $riskId,

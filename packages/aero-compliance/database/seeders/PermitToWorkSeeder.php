@@ -2,14 +2,14 @@
 
 namespace Aero\Compliance\Database\Seeders;
 
+use Aero\Compliance\Models\PermitToWork;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
-use Aero\Compliance\Models\PermitToWork;
 
 /**
  * PermitToWorkSeeder - PATENTABLE CORE IP
- * 
+ *
  * Seeds demo permits for testing RequiresPermit trait validation.
  * Creates sample permits covering different work types and chainages.
  */
@@ -19,9 +19,10 @@ class PermitToWorkSeeder extends Seeder
     {
         // Check if any project exists
         $project = DB::table('projects')->first();
-        
-        if (!$project) {
+
+        if (! $project) {
             $this->command->warn('No projects found. Please create a project first.');
+
             return;
         }
 
@@ -207,10 +208,10 @@ class PermitToWorkSeeder extends Seeder
             PermitToWork::create($permitData);
         }
 
-        $this->command->info("✓ Created " . count($permits) . " sample permits");
-        $this->command->info("  - 3 Active permits (Hot Work, Work at Height, Excavation)");
-        $this->command->info("  - 1 Expired permit (for testing alerts)");
-        $this->command->info("  - 1 Expiring soon (for proactive monitoring)");
-        $this->command->info("  Permit validation is now functional!");
+        $this->command->info('✓ Created '.count($permits).' sample permits');
+        $this->command->info('  - 3 Active permits (Hot Work, Work at Height, Excavation)');
+        $this->command->info('  - 1 Expired permit (for testing alerts)');
+        $this->command->info('  - 1 Expiring soon (for proactive monitoring)');
+        $this->command->info('  Permit validation is now functional!');
     }
 }

@@ -43,7 +43,7 @@ class RfiWebController extends Controller
 
         // Get users
         $users = User::select(['id', 'name'])->orderBy('name')->get();
-        
+
         // Prepare allData structure expected by the Inertia page
         $allData = [
             'juniors' => $users, // Junior engineers/staff

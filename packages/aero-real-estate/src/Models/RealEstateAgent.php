@@ -2,10 +2,10 @@
 
 namespace Aero\RealEstate\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class RealEstateAgent extends Model
 {
@@ -17,7 +17,7 @@ class RealEstateAgent extends Model
         'agent_number', 'user_id', 'first_name', 'last_name', 'email',
         'phone', 'mobile_phone', 'license_number', 'license_state',
         'license_expiry', 'brokerage_id', 'specialization', 'commission_rate',
-        'bio', 'languages_spoken', 'service_areas', 'status', 'created_by'
+        'bio', 'languages_spoken', 'service_areas', 'status', 'created_by',
     ];
 
     protected $casts = [
@@ -31,13 +31,19 @@ class RealEstateAgent extends Model
     ];
 
     const STATUS_ACTIVE = 'active';
+
     const STATUS_INACTIVE = 'inactive';
+
     const STATUS_SUSPENDED = 'suspended';
 
     const SPECIALIZATION_RESIDENTIAL = 'residential';
+
     const SPECIALIZATION_COMMERCIAL = 'commercial';
+
     const SPECIALIZATION_LUXURY = 'luxury';
+
     const SPECIALIZATION_INVESTMENT = 'investment';
+
     const SPECIALIZATION_FIRST_TIME = 'first_time_buyers';
 
     public function user()
@@ -68,7 +74,7 @@ class RealEstateAgent extends Model
     public function clients()
     {
         return $this->belongsToMany(PropertyClient::class, 'real_estate_agent_clients')
-                    ->withPivot('relationship_type', 'start_date');
+            ->withPivot('relationship_type', 'start_date');
     }
 
     public function transactions()
@@ -78,7 +84,7 @@ class RealEstateAgent extends Model
 
     public function getFullNameAttribute()
     {
-        return trim($this->first_name . ' ' . $this->last_name);
+        return trim($this->first_name.' '.$this->last_name);
     }
 
     public function isLicenseValid()
@@ -89,24 +95,24 @@ class RealEstateAgent extends Model
     public function getTotalSalesAttribute()
     {
         return $this->transactions()
-                   ->where('transaction_type', PropertyTransaction::TYPE_SALE)
-                   ->where('status', PropertyTransaction::STATUS_CLOSED)
-                   ->count();
+            ->where('transaction_type', PropertyTransaction::TYPE_SALE)
+            ->where('status', PropertyTransaction::STATUS_CLOSED)
+            ->count();
     }
 
     public function getTotalSalesVolumeAttribute()
     {
         return $this->transactions()
-                   ->where('transaction_type', PropertyTransaction::TYPE_SALE)
-                   ->where('status', PropertyTransaction::STATUS_CLOSED)
-                   ->sum('sale_price');
+            ->where('transaction_type', PropertyTransaction::TYPE_SALE)
+            ->where('status', PropertyTransaction::STATUS_CLOSED)
+            ->sum('sale_price');
     }
 
     public function getActiveListingsCountAttribute()
     {
         return $this->listings()
-                   ->where('status', PropertyListing::STATUS_ACTIVE)
-                   ->count();
+            ->where('status', PropertyListing::STATUS_ACTIVE)
+            ->count();
     }
 
     public function servesArea($area)

@@ -2,14 +2,13 @@
 
 namespace AeroHRM\Tests\Unit\Services;
 
-use AeroHRM\Models\DisciplinaryCase;
 use AeroHRM\Models\DisciplinaryActionType;
-use AeroHRM\Models\Warning;
+use AeroHRM\Models\DisciplinaryCase;
 use AeroHRM\Models\Employee;
+use AeroHRM\Models\Warning;
 use AeroHRM\Services\DisciplinaryCaseService;
 use AeroHRM\Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Carbon\Carbon;
 
 class DisciplinaryCaseServiceTest extends TestCase
 {
@@ -23,7 +22,7 @@ class DisciplinaryCaseServiceTest extends TestCase
         $this->service = app(DisciplinaryCaseService::class);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_creates_case_with_auto_generated_number()
     {
         $employee = Employee::factory()->create();
@@ -34,11 +33,11 @@ class DisciplinaryCaseServiceTest extends TestCase
             'disciplinary_action_type_id' => $actionType->id,
         ]);
 
-        $this->assertStringStartsWith('DC' . date('Y'), $case->case_number);
+        $this->assertStringStartsWith('DC'.date('Y'), $case->case_number);
         $this->assertEquals('pending', $case->status);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_tracks_investigation_workflow_correctly()
     {
         $case = DisciplinaryCase::factory()->create(['status' => 'pending']);
@@ -56,7 +55,7 @@ class DisciplinaryCaseServiceTest extends TestCase
         $this->assertNotNull($case->investigating_officer_id);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_issues_warnings_with_expiry_tracking()
     {
         $employee = Employee::factory()->create();
@@ -75,7 +74,7 @@ class DisciplinaryCaseServiceTest extends TestCase
         $this->assertFalse($warning->isExpired());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_calculates_severity_points_correctly()
     {
         $actionType = DisciplinaryActionType::factory()->minor()->create(['severity_points' => 1]);
@@ -93,7 +92,7 @@ class DisciplinaryCaseServiceTest extends TestCase
         $this->assertEquals(5, $majorCase->actionType->severity_points);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_appeal_process()
     {
         $case = DisciplinaryCase::factory()->actionTaken()->create();
@@ -110,7 +109,7 @@ class DisciplinaryCaseServiceTest extends TestCase
         $this->assertEquals('Unfair decision', $case->appeal_reason);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_prevents_closing_without_action_taken()
     {
         $pendingCase = DisciplinaryCase::factory()->create(['status' => 'pending']);
@@ -122,7 +121,7 @@ class DisciplinaryCaseServiceTest extends TestCase
         $this->assertTrue($actionTakenCase->canBeClosed());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_tracks_employee_and_witness_statements()
     {
         $employee = Employee::factory()->create();
@@ -138,7 +137,7 @@ class DisciplinaryCaseServiceTest extends TestCase
         $this->assertEquals('I witnessed the incident on Monday morning', $case->witness_statement);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_manages_evidence_attachments()
     {
         $case = DisciplinaryCase::factory()->create();

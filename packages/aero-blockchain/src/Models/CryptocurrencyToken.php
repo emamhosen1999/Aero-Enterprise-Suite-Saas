@@ -2,10 +2,10 @@
 
 namespace Aero\Blockchain\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class CryptocurrencyToken extends Model
 {
@@ -20,7 +20,7 @@ class CryptocurrencyToken extends Model
         'market_cap', 'price_usd', 'volume_24h', 'price_change_24h',
         'holders_count', 'transfers_count', 'logo_url', 'website_url',
         'description', 'social_links', 'is_verified', 'verification_tier',
-        'created_by'
+        'created_by',
     ];
 
     protected $casts = [
@@ -44,16 +44,25 @@ class CryptocurrencyToken extends Model
     ];
 
     const TYPE_ERC20 = 'erc20';
+
     const TYPE_ERC721 = 'erc721';
+
     const TYPE_ERC1155 = 'erc1155';
+
     const TYPE_BEP20 = 'bep20';
+
     const TYPE_SPL = 'spl';
+
     const TYPE_NATIVE = 'native';
 
     const TIER_UNVERIFIED = 'unverified';
+
     const TIER_BASIC = 'basic';
+
     const TIER_STANDARD = 'standard';
+
     const TIER_PREMIUM = 'premium';
+
     const TIER_ENTERPRISE = 'enterprise';
 
     public function blockchain()
@@ -100,56 +109,63 @@ class CryptocurrencyToken extends Model
     {
         if ($this->decimals && $this->total_supply) {
             $displaySupply = $this->total_supply / pow(10, $this->decimals);
-            return number_format($displaySupply, 0) . ' ' . $this->token_symbol;
+
+            return number_format($displaySupply, 0).' '.$this->token_symbol;
         }
-        
-        return number_format($this->total_supply, 0) . ' ' . $this->token_symbol;
+
+        return number_format($this->total_supply, 0).' '.$this->token_symbol;
     }
 
     public function getFormattedMarketCapAttribute()
     {
-        if (!$this->market_cap) return 'N/A';
-        
+        if (! $this->market_cap) {
+            return 'N/A';
+        }
+
         if ($this->market_cap >= 1000000000) {
-            return '$' . number_format($this->market_cap / 1000000000, 2) . 'B';
+            return '$'.number_format($this->market_cap / 1000000000, 2).'B';
         }
         if ($this->market_cap >= 1000000) {
-            return '$' . number_format($this->market_cap / 1000000, 2) . 'M';
+            return '$'.number_format($this->market_cap / 1000000, 2).'M';
         }
         if ($this->market_cap >= 1000) {
-            return '$' . number_format($this->market_cap / 1000, 2) . 'K';
+            return '$'.number_format($this->market_cap / 1000, 2).'K';
         }
-        
-        return '$' . number_format($this->market_cap, 2);
+
+        return '$'.number_format($this->market_cap, 2);
     }
 
     public function getFormattedVolumeAttribute()
     {
-        if (!$this->volume_24h) return 'N/A';
-        
+        if (! $this->volume_24h) {
+            return 'N/A';
+        }
+
         if ($this->volume_24h >= 1000000000) {
-            return '$' . number_format($this->volume_24h / 1000000000, 2) . 'B';
+            return '$'.number_format($this->volume_24h / 1000000000, 2).'B';
         }
         if ($this->volume_24h >= 1000000) {
-            return '$' . number_format($this->volume_24h / 1000000, 2) . 'M';
+            return '$'.number_format($this->volume_24h / 1000000, 2).'M';
         }
         if ($this->volume_24h >= 1000) {
-            return '$' . number_format($this->volume_24h / 1000, 2) . 'K';
+            return '$'.number_format($this->volume_24h / 1000, 2).'K';
         }
-        
-        return '$' . number_format($this->volume_24h, 2);
+
+        return '$'.number_format($this->volume_24h, 2);
     }
 
     public function getPriceChangeColorAttribute()
     {
-        if (!$this->price_change_24h) return 'default';
-        
+        if (! $this->price_change_24h) {
+            return 'default';
+        }
+
         return $this->price_change_24h > 0 ? 'success' : 'danger';
     }
 
     public function getVerificationBadgeAttribute()
     {
-        return match($this->verification_tier) {
+        return match ($this->verification_tier) {
             self::TIER_ENTERPRISE => '🏢 Enterprise',
             self::TIER_PREMIUM => '⭐ Premium',
             self::TIER_STANDARD => '✅ Standard',
@@ -162,24 +178,24 @@ class CryptocurrencyToken extends Model
     {
         // Calculate top holder concentration
         $topHolders = $this->tokenBalances()
-                          ->orderBy('balance', 'desc')
-                          ->limit(10)
-                          ->sum('balance');
-        
+            ->orderBy('balance', 'desc')
+            ->limit(10)
+            ->sum('balance');
+
         if ($this->circulating_supply > 0) {
             return round(($topHolders / $this->circulating_supply) * 100, 2);
         }
-        
+
         return 0;
     }
 
     public function getActivityScoreAttribute()
     {
         $recentTransfers = $this->tokenTransfers()
-                               ->where('timestamp', '>=', now()->subDays(7))
-                               ->count();
-        
-        return match(true) {
+            ->where('timestamp', '>=', now()->subDays(7))
+            ->count();
+
+        return match (true) {
             $recentTransfers >= 1000 => 'Very High',
             $recentTransfers >= 100 => 'High',
             $recentTransfers >= 10 => 'Medium',
@@ -191,34 +207,34 @@ class CryptocurrencyToken extends Model
     public function updatePrice($priceUsd, $volume24h = null, $priceChange24h = null)
     {
         $updateData = ['price_usd' => $priceUsd];
-        
+
         if ($volume24h !== null) {
             $updateData['volume_24h'] = $volume24h;
         }
-        
+
         if ($priceChange24h !== null) {
             $updateData['price_change_24h'] = $priceChange24h;
         }
-        
+
         if ($priceUsd && $this->circulating_supply) {
             $updateData['market_cap'] = $priceUsd * ($this->circulating_supply / pow(10, $this->decimals ?: 18));
         }
-        
+
         $this->update($updateData);
     }
 
     public function updateSupply($totalSupply, $circulatingSupply = null)
     {
         $updateData = ['total_supply' => $totalSupply];
-        
+
         if ($circulatingSupply !== null) {
             $updateData['circulating_supply'] = $circulatingSupply;
         } else {
             $updateData['circulating_supply'] = $totalSupply;
         }
-        
+
         $this->update($updateData);
-        
+
         // Update market cap if price is available
         if ($this->price_usd) {
             $this->updatePrice($this->price_usd);
@@ -228,9 +244,9 @@ class CryptocurrencyToken extends Model
     public function updateHolderCount()
     {
         $count = $this->tokenBalances()
-                     ->where('balance', '>', 0)
-                     ->count();
-        
+            ->where('balance', '>', 0)
+            ->count();
+
         $this->update(['holders_count' => $count]);
     }
 
@@ -267,7 +283,7 @@ class CryptocurrencyToken extends Model
 
     public function scopeActive($query, $days = 30)
     {
-        return $query->whereHas('tokenTransfers', function($q) use ($days) {
+        return $query->whereHas('tokenTransfers', function ($q) use ($days) {
             $q->where('timestamp', '>=', now()->subDays($days));
         });
     }
@@ -280,6 +296,6 @@ class CryptocurrencyToken extends Model
     public function scopeWithPrice($query)
     {
         return $query->whereNotNull('price_usd')
-                    ->where('price_usd', '>', 0);
+            ->where('price_usd', '>', 0);
     }
 }

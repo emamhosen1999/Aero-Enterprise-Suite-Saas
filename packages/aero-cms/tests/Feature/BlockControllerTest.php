@@ -15,14 +15,14 @@ class BlockControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->artisan('migrate', [
             '--path' => 'packages/aero-cms/database/migrations',
             '--realpath' => true,
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_list_block_types()
     {
         $this->actingAsAuthenticatedUser();
@@ -38,7 +38,7 @@ class BlockControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_add_block_to_page()
     {
         $this->actingAsAuthenticatedUser();
@@ -61,7 +61,7 @@ class BlockControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_validates_block_type()
     {
         $this->actingAsAuthenticatedUser();
@@ -77,7 +77,7 @@ class BlockControllerTest extends TestCase
         $response->assertJsonValidationErrors(['block_type']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_update_block_content()
     {
         $this->actingAsAuthenticatedUser();
@@ -97,12 +97,12 @@ class BlockControllerTest extends TestCase
         $this->assertDatabaseHas('cms_page_blocks', [
             'id' => $block->id,
         ]);
-        
+
         $updatedBlock = CmsPageBlock::find($block->id);
         $this->assertEquals('Updated text', $updatedBlock->content['text']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_delete_block()
     {
         $this->actingAsAuthenticatedUser();
@@ -116,13 +116,13 @@ class BlockControllerTest extends TestCase
         $this->assertDatabaseMissing('cms_page_blocks', ['id' => $block->id]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_reorder_blocks()
     {
         $this->actingAsAuthenticatedUser();
 
         $page = CmsPage::factory()->create();
-        
+
         $block1 = CmsPageBlock::factory()->create(['page_id' => $page->id, 'order' => 0]);
         $block2 = CmsPageBlock::factory()->create(['page_id' => $page->id, 'order' => 1]);
         $block3 = CmsPageBlock::factory()->create(['page_id' => $page->id, 'order' => 2]);
@@ -136,13 +136,13 @@ class BlockControllerTest extends TestCase
         ]);
 
         $response->assertStatus(200);
-        
+
         $this->assertEquals(0, $block3->fresh()->order);
         $this->assertEquals(1, $block1->fresh()->order);
         $this->assertEquals(2, $block2->fresh()->order);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_duplicate_block()
     {
         $this->actingAsAuthenticatedUser();
@@ -160,7 +160,7 @@ class BlockControllerTest extends TestCase
         $this->assertCount(2, $page->fresh()->blocks);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_toggle_block_visibility()
     {
         $this->actingAsAuthenticatedUser();
@@ -179,7 +179,7 @@ class BlockControllerTest extends TestCase
         $this->assertFalse($block->fresh()->is_visible);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_get_block_schema()
     {
         $this->actingAsAuthenticatedUser();
@@ -198,7 +198,7 @@ class BlockControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_returns_404_for_invalid_block_schema()
     {
         $this->actingAsAuthenticatedUser();
@@ -208,7 +208,7 @@ class BlockControllerTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_bulk_update_blocks()
     {
         $this->actingAsAuthenticatedUser();
@@ -227,7 +227,7 @@ class BlockControllerTest extends TestCase
         ]);
 
         $response->assertStatus(200);
-        
+
         foreach ($blocks as $index => $block) {
             $fresh = $block->fresh();
             $this->assertEquals("Updated Title {$index}", $fresh->content['title']);
@@ -242,6 +242,7 @@ class BlockControllerTest extends TestCase
     {
         $user = \App\Models\User::factory()->create();
         $this->actingAs($user);
+
         return $user;
     }
 }

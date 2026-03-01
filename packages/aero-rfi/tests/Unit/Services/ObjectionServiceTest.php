@@ -5,12 +5,12 @@ namespace Aero\Rfi\Tests\Unit\Services;
 use Aero\Rfi\Models\Objection;
 use Aero\Rfi\Models\Rfi;
 use Aero\Rfi\Services\ObjectionService;
-use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 /**
  * ObjectionServiceTest - Test objection/dispute handling service
- * 
+ *
  * Tests objection management functionality:
  * - Creating objections against RFIs
  * - Resolving objections
@@ -29,7 +29,7 @@ class ObjectionServiceTest extends TestCase
         $this->service = app(ObjectionService::class);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_creates_objection_against_rfi()
     {
         $rfi = Rfi::factory()->create(['status' => 'approved']);
@@ -48,7 +48,7 @@ class ObjectionServiceTest extends TestCase
         $this->assertEquals('high', $objection->severity);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_resolves_objection_with_remarks()
     {
         $objection = Objection::factory()->create(['status' => 'open']);
@@ -63,7 +63,7 @@ class ObjectionServiceTest extends TestCase
         $this->assertEquals('Work redone to satisfaction', $resolved->resolution_remarks);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_escalates_objection_to_ncr()
     {
         $objection = Objection::factory()->create([
@@ -81,7 +81,7 @@ class ObjectionServiceTest extends TestCase
         $this->assertNotNull($escalated->escalation_date);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_fetches_objections_by_rfi()
     {
         $rfi = Rfi::factory()->create();
@@ -93,7 +93,7 @@ class ObjectionServiceTest extends TestCase
         $this->assertCount(3, $objections);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_objections_by_status()
     {
         Objection::factory()->count(4)->create(['status' => 'open']);

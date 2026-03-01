@@ -4,8 +4,10 @@ namespace Aero\HRM\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany, HasOne};
 
 class Asset extends Model
 {
@@ -37,9 +39,13 @@ class Asset extends Model
      * Status constants
      */
     public const STATUS_AVAILABLE = 'available';
+
     public const STATUS_ALLOCATED = 'allocated';
+
     public const STATUS_MAINTENANCE = 'maintenance';
+
     public const STATUS_RETIRED = 'retired';
+
     public const STATUS_LOST = 'lost';
 
     /**
@@ -115,6 +121,6 @@ class Asset extends Model
 
         $nextNumber = $lastAsset ? (int) substr($lastAsset->asset_tag, -4) + 1 : 1;
 
-        return 'AST' . $year . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+        return 'AST'.$year.str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
     }
 }

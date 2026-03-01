@@ -3,13 +3,13 @@
 namespace Aero\HRM\Http\Controllers;
 
 use Aero\HRM\Models\CompensationHistory;
+use Aero\HRM\Models\Department;
+use Aero\HRM\Models\Designation;
+use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\PromotionHistory;
 use Aero\HRM\Models\TransferHistory;
-use Aero\HRM\Models\Employee;
-use Aero\HRM\Models\Designation;
-use Aero\HRM\Models\Department;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Inertia\Response;

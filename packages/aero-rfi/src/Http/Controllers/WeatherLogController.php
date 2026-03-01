@@ -2,7 +2,6 @@
 
 namespace Aero\Rfi\Http\Controllers;
 
-use Aero\Rfi\Models\Rfi;
 use Aero\Rfi\Models\WeatherLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

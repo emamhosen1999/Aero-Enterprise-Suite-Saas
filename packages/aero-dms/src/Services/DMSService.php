@@ -2,14 +2,13 @@
 
 namespace Aero\Dms\Services;
 
+use Aero\Core\Models\User;
+use Aero\Dms\Models\Category;
 use Aero\Dms\Models\Document;
 use Aero\Dms\Models\DocumentAccessLog;
 use Aero\Dms\Models\DocumentShare;
 use Aero\Dms\Models\DocumentVersion;
 use Aero\Dms\Models\Folder;
-use Aero\Dms\Models\Category;
-use Aero\Dms\Models\DocumentTemplate;
-use Aero\Core\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;

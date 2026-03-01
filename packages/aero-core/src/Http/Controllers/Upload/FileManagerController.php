@@ -31,7 +31,7 @@ class FileManagerController extends Controller
 
         try {
             $storage = Storage::disk($disk);
-            
+
             // Get directories and files
             $directories = collect($storage->directories($path))
                 ->map(fn ($dir) => [
@@ -84,16 +84,16 @@ class FileManagerController extends Controller
         try {
             $file = $request->file('file');
             $filename = $file->getClientOriginalName();
-            
+
             // Ensure unique filename
             $storage = Storage::disk($disk);
-            $fullPath = $path . '/' . $filename;
-            
+            $fullPath = $path.'/'.$filename;
+
             if ($storage->exists($fullPath)) {
-                $filename = pathinfo($filename, PATHINFO_FILENAME) 
-                    . '_' . time() 
-                    . '.' . $file->getClientOriginalExtension();
-                $fullPath = $path . '/' . $filename;
+                $filename = pathinfo($filename, PATHINFO_FILENAME)
+                    .'_'.time()
+                    .'.'.$file->getClientOriginalExtension();
+                $fullPath = $path.'/'.$filename;
             }
 
             $storedPath = $file->storeAs($path, $filename, $disk);
@@ -159,7 +159,7 @@ class FileManagerController extends Controller
 
         try {
             $storage = Storage::disk($disk);
-            
+
             // Count files and calculate total size
             $totalSize = 0;
             $fileCount = 0;
@@ -204,6 +204,6 @@ class FileManagerController extends Controller
             $bytes /= 1024;
         }
 
-        return round($bytes, $precision) . ' ' . $units[$i];
+        return round($bytes, $precision).' '.$units[$i];
     }
 }

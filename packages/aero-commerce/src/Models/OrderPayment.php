@@ -15,7 +15,7 @@ class OrderPayment extends Model
     protected $fillable = [
         'order_id', 'payment_method_id', 'payment_gateway_id', 'transaction_id',
         'amount', 'currency', 'status', 'gateway_response', 'processed_at',
-        'refunded_amount', 'refunded_at', 'notes'
+        'refunded_amount', 'refunded_at', 'notes',
     ];
 
     protected $casts = [
@@ -30,11 +30,17 @@ class OrderPayment extends Model
     ];
 
     const STATUS_PENDING = 'pending';
+
     const STATUS_PROCESSING = 'processing';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_FAILED = 'failed';
+
     const STATUS_CANCELLED = 'cancelled';
+
     const STATUS_REFUNDED = 'refunded';
+
     const STATUS_PARTIALLY_REFUNDED = 'partially_refunded';
 
     public function order()
@@ -64,7 +70,7 @@ class OrderPayment extends Model
 
     public function canBeRefunded()
     {
-        return $this->status === self::STATUS_COMPLETED && 
+        return $this->status === self::STATUS_COMPLETED &&
                $this->refunded_amount < $this->amount;
     }
 

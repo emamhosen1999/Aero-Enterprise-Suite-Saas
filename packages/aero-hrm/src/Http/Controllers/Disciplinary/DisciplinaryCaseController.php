@@ -2,10 +2,11 @@
 
 namespace Aero\HRM\Http\Controllers\Disciplinary;
 
+use Aero\HRM\Models\DisciplinaryActionType;
+use Aero\HRM\Models\DisciplinaryCase;
+use Aero\HRM\Models\Employee;
 use App\Http\Controllers\Controller;
-use Aero\HRM\Models\{DisciplinaryCase, DisciplinaryActionType, Employee};
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class DisciplinaryCaseController extends Controller
@@ -32,13 +33,13 @@ class DisciplinaryCaseController extends Controller
         $perPage = $request->get('perPage', 30);
         $query = DisciplinaryCase::with(['employee', 'actionType', 'reporter'])
             ->orderBy('created_at', 'desc');
-        
+
         if ($search = $request->get('search')) {
             $query->where('case_number', 'like', "%{$search}%")
-                  ->orWhereHas('employee', function($q) use ($search) {
-                      $q->where('first_name', 'like', "%{$search}%")
+                ->orWhereHas('employee', function ($q) use ($search) {
+                    $q->where('first_name', 'like', "%{$search}%")
                         ->orWhere('last_name', 'like', "%{$search}%");
-                  });
+                });
         }
 
         if ($status = $request->get('status')) {
@@ -121,7 +122,7 @@ class DisciplinaryCaseController extends Controller
     {
         $case = DisciplinaryCase::findOrFail($id);
 
-        if (!$case->canBeClosed()) {
+        if (! $case->canBeClosed()) {
             return response()->json(['message' => 'Case cannot be closed'], 422);
         }
 
@@ -141,7 +142,7 @@ class DisciplinaryCaseController extends Controller
     {
         $case = DisciplinaryCase::findOrFail($id);
 
-        if (!$case->canBeAppealed()) {
+        if (! $case->canBeAppealed()) {
             return response()->json(['message' => 'Case cannot be appealed'], 422);
         }
 
@@ -181,6 +182,7 @@ class DisciplinaryCaseController extends Controller
         }
 
         $case->delete();
+
         return response()->json(['message' => 'Case deleted']);
     }
 }

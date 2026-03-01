@@ -2,10 +2,10 @@
 
 namespace Aero\Education\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class Department extends Model
 {
@@ -17,7 +17,7 @@ class Department extends Model
         'department_code', 'department_name', 'description', 'college_id',
         'department_head_id', 'location', 'phone', 'email', 'website',
         'budget', 'is_active', 'accreditation_info', 'mission_statement',
-        'established_date', 'created_by'
+        'established_date', 'created_by',
     ];
 
     protected $casts = [
@@ -83,13 +83,15 @@ class Department extends Model
     public function getCurrentEnrollmentAttribute()
     {
         $currentSemester = AcademicSemester::current();
-        if (!$currentSemester) return 0;
-        
-        return Enrollment::whereHas('courseSection.course', function($query) {
+        if (! $currentSemester) {
+            return 0;
+        }
+
+        return Enrollment::whereHas('courseSection.course', function ($query) {
             $query->where('department_id', $this->id);
         })->where('semester_id', $currentSemester->id)
-          ->where('status', Enrollment::STATUS_ENROLLED)
-          ->count();
+            ->where('status', Enrollment::STATUS_ENROLLED)
+            ->count();
     }
 
     public function scopeActive($query)

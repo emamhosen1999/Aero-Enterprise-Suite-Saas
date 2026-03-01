@@ -2,9 +2,9 @@
 
 namespace Aero\Analytics\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Aero\Core\Models\User;
 
 class ReportSubscription extends Model
 {
@@ -14,7 +14,7 @@ class ReportSubscription extends Model
 
     protected $fillable = [
         'report_id', 'report_schedule_id', 'user_id', 'delivery_method',
-        'delivery_address', 'is_active', 'subscribed_at', 'unsubscribed_at'
+        'delivery_address', 'is_active', 'subscribed_at', 'unsubscribed_at',
     ];
 
     protected $casts = [
@@ -27,8 +27,11 @@ class ReportSubscription extends Model
     ];
 
     const DELIVERY_EMAIL = 'email';
+
     const DELIVERY_SLACK = 'slack';
+
     const DELIVERY_TEAMS = 'teams';
+
     const DELIVERY_SMS = 'sms';
 
     public function report()

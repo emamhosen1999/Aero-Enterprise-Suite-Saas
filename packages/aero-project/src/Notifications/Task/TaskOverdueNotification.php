@@ -16,8 +16,11 @@ use Aero\Project\Notifications\BaseProjectNotification;
 class TaskOverdueNotification extends BaseProjectNotification
 {
     protected string $eventType = 'project.task.overdue';
+
     protected string $subModuleCode = 'tasks';
+
     protected ?string $componentCode = 'task-list';
+
     protected string $actionCode = 'view';
 
     public function __construct(
@@ -28,8 +31,7 @@ class TaskOverdueNotification extends BaseProjectNotification
         public int $daysOverdue,
         public ?int $assignedToUserId,
         public string $priority
-    ) {
-    }
+    ) {}
 
     /**
      * Create from TaskOverdue event.

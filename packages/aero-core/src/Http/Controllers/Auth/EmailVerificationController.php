@@ -36,9 +36,10 @@ class EmailVerificationController extends Controller
     public function verify(EmailVerificationRequest $request)
     {
         if ($request->user()->hasVerifiedEmail()) {
-            $dashboardUrl = SafeRedirect::routeExists('core.dashboard') 
-                ? route('core.dashboard').'?verified=1' 
+            $dashboardUrl = SafeRedirect::routeExists('core.dashboard')
+                ? route('core.dashboard').'?verified=1'
                 : '/?verified=1';
+
             return redirect($dashboardUrl);
         }
 
@@ -53,9 +54,10 @@ class EmailVerificationController extends Controller
             );
         }
 
-        $dashboardUrl = SafeRedirect::routeExists('core.dashboard') 
-            ? route('core.dashboard').'?verified=1' 
+        $dashboardUrl = SafeRedirect::routeExists('core.dashboard')
+            ? route('core.dashboard').'?verified=1'
             : '/?verified=1';
+
         return redirect($dashboardUrl);
     }
 

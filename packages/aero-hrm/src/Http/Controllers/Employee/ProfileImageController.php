@@ -2,10 +2,10 @@
 
 namespace Aero\HRM\Http\Controllers\Employee;
 
+use Aero\Core\Models\User;
 use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Services\HRMAuthorizationService;
-use Aero\Core\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -42,7 +42,7 @@ class ProfileImageController extends Controller
 {
     /**
      * Upload or update user's profile image
-     * 
+     *
      * This manages the User's identity/authentication profile image,
      * which is stored on the User model in the Core package.
      */
@@ -253,7 +253,7 @@ class ProfileImageController extends Controller
 
     /**
      * Check if current user can update the given user's profile
-     * 
+     *
      * Uses HRMAuthorizationService for permission-based access control
      * instead of hardcoded role checks.
      */
@@ -269,7 +269,7 @@ class ProfileImageController extends Controller
 
         // Use HRMAuthorizationService for permission-based checks
         $authService = app(HRMAuthorizationService::class);
-        
+
         // Check if user has employee management permissions
         if ($authService->canManageEmployees($currentUser)) {
             return true;

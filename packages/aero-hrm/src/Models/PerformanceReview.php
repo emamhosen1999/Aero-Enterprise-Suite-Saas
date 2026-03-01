@@ -2,9 +2,9 @@
 
 namespace Aero\HRM\Models;
 
+use Aero\Core\Models\User;
 use App\Models\PerformanceCompetencyScore;
 use App\Models\PerformanceGoal;
-use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -32,7 +32,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property \Carbon\Carbon|null $created_at
  * @property \Carbon\Carbon|null $updated_at
  * @property \Carbon\Carbon|null $deleted_at
- *
  * @property-read User $employee
  * @property-read User $reviewer
  * @property-read string $review_period

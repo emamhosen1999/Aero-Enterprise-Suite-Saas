@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use Aero\Dms\Http\Controllers\DMSController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -50,10 +50,10 @@ Route::middleware(['auth', 'module:dms,documents'])->group(function () {
     Route::post('/folders', [DMSController::class, 'storeFolder'])->name('folders.store');
     Route::put('/folders/{id}', [DMSController::class, 'updateFolder'])->name('folders.update');
     Route::delete('/folders/{id}', [DMSController::class, 'destroyFolder'])->name('folders.destroy');
-    
+
     Route::get('/categories', [DMSController::class, 'categories'])->name('categories');
     Route::post('/categories', [DMSController::class, 'storeCategory'])->name('categories.store');
-    
+
     Route::get('/templates', [DMSController::class, 'templates'])->name('templates');
     Route::post('/templates', [DMSController::class, 'storeTemplate'])->name('templates.store');
 });

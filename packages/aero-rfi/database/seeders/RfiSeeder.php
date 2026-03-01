@@ -127,9 +127,9 @@ class RfiSeeder extends Seeder
 
         foreach ($layersToSeed as $layer) {
             foreach ($workLocations as $wl) {
-                $rfiNumber = sprintf('RFI-%s-%s-%03d', 
-                    now()->format('Ymd'), 
-                    strtoupper(substr($layer, 0, 3)), 
+                $rfiNumber = sprintf('RFI-%s-%s-%03d',
+                    now()->format('Ymd'),
+                    strtoupper(substr($layer, 0, 3)),
                     $wl->id
                 );
 

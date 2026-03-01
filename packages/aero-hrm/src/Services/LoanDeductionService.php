@@ -3,8 +3,6 @@
 namespace Aero\HRM\Services;
 
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -20,28 +18,41 @@ class LoanDeductionService
      * Loan types.
      */
     public const TYPE_SALARY_ADVANCE = 'salary_advance';
+
     public const TYPE_PERSONAL_LOAN = 'personal_loan';
+
     public const TYPE_EMERGENCY_LOAN = 'emergency_loan';
+
     public const TYPE_HOUSING_LOAN = 'housing_loan';
+
     public const TYPE_VEHICLE_LOAN = 'vehicle_loan';
+
     public const TYPE_EDUCATION_LOAN = 'education_loan';
 
     /**
      * Loan statuses.
      */
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_APPROVED = 'approved';
+
     public const STATUS_REJECTED = 'rejected';
+
     public const STATUS_ACTIVE = 'active';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_DEFAULTED = 'defaulted';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     /**
      * Repayment frequencies.
      */
     public const FREQUENCY_MONTHLY = 'monthly';
+
     public const FREQUENCY_BI_WEEKLY = 'bi_weekly';
+
     public const FREQUENCY_WEEKLY = 'weekly';
 
     /**
@@ -52,7 +63,7 @@ class LoanDeductionService
         // Validate loan eligibility
         $eligibility = $this->checkEligibility($data['employee_id'], $data['type'], $data['amount']);
 
-        if (!$eligibility['eligible']) {
+        if (! $eligibility['eligible']) {
             return [
                 'success' => false,
                 'error' => $eligibility['reason'],
@@ -125,7 +136,7 @@ class LoanDeductionService
         // In production, fetch loan from database
         $loan = $this->getLoan($loanId);
 
-        if (!$loan) {
+        if (! $loan) {
             return ['success' => false, 'error' => 'Loan not found'];
         }
 
@@ -164,7 +175,7 @@ class LoanDeductionService
     {
         $loan = $this->getLoan($loanId);
 
-        if (!$loan) {
+        if (! $loan) {
             return ['success' => false, 'error' => 'Loan not found'];
         }
 
@@ -202,7 +213,7 @@ class LoanDeductionService
     ): array {
         $loan = $this->getLoan($loanId);
 
-        if (!$loan) {
+        if (! $loan) {
             return ['success' => false, 'error' => 'Loan not found'];
         }
 
@@ -330,7 +341,7 @@ class LoanDeductionService
             }
 
             $type = $loan['type'];
-            if (!isset($summary['loans_by_type'][$type])) {
+            if (! isset($summary['loans_by_type'][$type])) {
                 $summary['loans_by_type'][$type] = [
                     'count' => 0,
                     'total_amount' => 0,
@@ -352,7 +363,7 @@ class LoanDeductionService
     {
         $loan = $this->getLoan($loanId);
 
-        if (!$loan) {
+        if (! $loan) {
             return ['success' => false, 'error' => 'Loan not found'];
         }
 
@@ -389,7 +400,7 @@ class LoanDeductionService
     {
         $loan = $this->getLoan($loanId);
 
-        if (!$loan) {
+        if (! $loan) {
             return ['success' => false, 'error' => 'Loan not found'];
         }
 
@@ -507,7 +518,7 @@ class LoanDeductionService
     {
         $policy = $this->getPolicyConfiguration()['loan_types'][$loanType] ?? null;
 
-        if (!$policy) {
+        if (! $policy) {
             return [
                 'eligible' => false,
                 'reason' => 'Invalid loan type',
@@ -524,8 +535,8 @@ class LoanDeductionService
 
         // Check existing loans
         $existingLoans = $this->getActiveLoans($employeeId);
-        $existingOfSameType = array_filter($existingLoans, fn($l) => $l['type'] === $loanType);
-        if (!empty($existingOfSameType)) {
+        $existingOfSameType = array_filter($existingLoans, fn ($l) => $l['type'] === $loanType);
+        if (! empty($existingOfSameType)) {
             $issues[] = 'You already have an active loan of this type';
         }
 
@@ -545,7 +556,7 @@ class LoanDeductionService
             : $salary * $policy['max_amount_ratio'];
 
         if ($amount > $maxAmount) {
-            $issues[] = "Maximum loan amount is " . number_format($maxAmount, 2);
+            $issues[] = 'Maximum loan amount is '.number_format($maxAmount, 2);
         }
 
         return [
@@ -647,6 +658,7 @@ class LoanDeductionService
     protected function getDefaultInterestRate(string $loanType): float
     {
         $policy = $this->getPolicyConfiguration()['loan_types'][$loanType] ?? null;
+
         return $policy['interest_rate'] ?? 10.0;
     }
 
@@ -668,13 +680,48 @@ class LoanDeductionService
     }
 
     // Placeholder methods for database operations
-    protected function getLoan(string $loanId): ?array { return null; }
-    protected function getActiveLoans(int $employeeId): array { return []; }
-    protected function getEmployeeLoans(int $employeeId): array { return []; }
-    protected function getLoanRepayments(string $loanId): array { return []; }
-    protected function getDueInstallment(array $loan, Carbon $date): ?array { return null; }
-    protected function getNextDueDate(array $loan): ?string { return null; }
-    protected function getEmployeeServiceMonths(int $employeeId): int { return 24; }
-    protected function getEmployeeSalary(int $employeeId): float { return 50000; }
-    protected function getCurrentMonthlyDeductions(int $employeeId): float { return 0; }
+    protected function getLoan(string $loanId): ?array
+    {
+        return null;
+    }
+
+    protected function getActiveLoans(int $employeeId): array
+    {
+        return [];
+    }
+
+    protected function getEmployeeLoans(int $employeeId): array
+    {
+        return [];
+    }
+
+    protected function getLoanRepayments(string $loanId): array
+    {
+        return [];
+    }
+
+    protected function getDueInstallment(array $loan, Carbon $date): ?array
+    {
+        return null;
+    }
+
+    protected function getNextDueDate(array $loan): ?string
+    {
+        return null;
+    }
+
+    protected function getEmployeeServiceMonths(int $employeeId): int
+    {
+        return 24;
+    }
+
+    protected function getEmployeeSalary(int $employeeId): float
+    {
+        return 50000;
+    }
+
+    protected function getCurrentMonthlyDeductions(int $employeeId): float
+    {
+        return 0;
+    }
 }

@@ -14,7 +14,7 @@ class ProductCategory extends Model
 
     protected $fillable = [
         'name', 'description', 'parent_id', 'default_income_account_id',
-        'default_expense_account_id', 'default_tax_rate', 'is_active'
+        'default_expense_account_id', 'default_tax_rate', 'is_active',
     ];
 
     protected $casts = [

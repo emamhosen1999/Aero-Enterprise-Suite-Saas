@@ -43,7 +43,7 @@ class LeaveRequestNotification extends BaseHrmNotification
             ->line("Leave Type: {$leaveType}")
             ->line("Duration: {$startDate} to {$endDate}")
             ->line("Days: {$days} day(s)")
-            ->line('Reason: ' . ($this->leave->reason ?? 'Not specified'))
+            ->line('Reason: '.($this->leave->reason ?? 'Not specified'))
             ->action('Review Leave Request', url("/hrm/leaves/{$this->leave->id}"))
             ->line('Please review and take appropriate action.');
     }
@@ -66,7 +66,7 @@ class LeaveRequestNotification extends BaseHrmNotification
             'from_date' => $startDate?->format('Y-m-d'),
             'to_date' => $endDate?->format('Y-m-d'),
             'days' => $this->leave->no_of_days ?? $this->leave->days ?? 1,
-            'message' => ($employee?->name ?? 'An employee') . " has requested leave from {$startDate?->format('M d')} to {$endDate?->format('M d')}",
+            'message' => ($employee?->name ?? 'An employee')." has requested leave from {$startDate?->format('M d')} to {$endDate?->format('M d')}",
             'action_url' => "/hrm/leaves/{$this->leave->id}",
         ];
     }

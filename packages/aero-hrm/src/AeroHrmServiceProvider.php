@@ -8,7 +8,7 @@ use Illuminate\Support\ServiceProvider;
 
 /**
  * AeroHrmServiceProvider
- * 
+ *
  * Main service provider for the HRM package.
  * Registers the module service provider which handles navigation, policies, etc.
  */
@@ -16,35 +16,31 @@ class AeroHrmServiceProvider extends ServiceProvider
 {
     /**
      * Register services.
-     *
-     * @return void
      */
     public function register(): void
     {
         // Register the HRM module service provider
         $this->app->register(ModuleServiceProvider::class);
-        
+
         // Register module configuration
         $this->mergeConfigFrom(
-            __DIR__ . '/../config/hrm.php',
+            __DIR__.'/../config/hrm.php',
             'hrm'
         );
-        
+
         // Module definitions are in config/module.php and loaded by ModuleDiscoveryService
     }
 
     /**
      * Bootstrap services.
-     *
-     * @return void
      */
     public function boot(): void
     {
         // Load migrations
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         // Load views (if any)
-        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'hrm');
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'hrm');
 
         // Register routes
         $this->registerRoutes();
@@ -54,7 +50,7 @@ class AeroHrmServiceProvider extends ServiceProvider
 
         // Publish compiled module library (ES module for runtime loading)
         // Built to dist/ directory via npm run build
-        $moduleLibrary = __DIR__ . '/../dist';
+        $moduleLibrary = __DIR__.'/../dist';
         if (is_dir($moduleLibrary)) {
             $this->publishes([
                 $moduleLibrary => public_path('modules/aero-hrm'),
@@ -63,7 +59,7 @@ class AeroHrmServiceProvider extends ServiceProvider
 
         // Publish configuration
         $this->publishes([
-            __DIR__ . '/../config/hrm.php' => config_path('hrm.php'),
+            __DIR__.'/../config/hrm.php' => config_path('hrm.php'),
         ], 'aero-hrm-config');
     }
 
@@ -78,12 +74,10 @@ class AeroHrmServiceProvider extends ServiceProvider
      * Domain-based routing:
      * - In SaaS mode: Routes ONLY on tenant domains (tenant.domain.com/hrm/*)
      * - In Standalone mode: Routes on main domain (domain.com/hrm/*)
-     *
-     * @return void
      */
     protected function registerRoutes(): void
     {
-        $routesPath = __DIR__ . '/../routes';
+        $routesPath = __DIR__.'/../routes';
 
         // Check if running in SaaS mode (Platform active AND stancl/tenancy available)
         // Note: isPlatformActive() checks class existence, isSaaSMode() checks runtime mode
@@ -97,21 +91,19 @@ class AeroHrmServiceProvider extends ServiceProvider
             ])
                 ->prefix('hrm')
                 ->name('hrm.')
-                ->group($routesPath . '/web.php');
+                ->group($routesPath.'/web.php');
         } else {
             // Standalone Mode: Routes with standard web middleware on domain.com
             // Also used when Platform is installed but not in SaaS mode
             Route::middleware(['web', 'auth'])
                 ->prefix('hrm')
                 ->name('hrm.')
-                ->group($routesPath . '/web.php');
+                ->group($routesPath.'/web.php');
         }
     }
 
     /**
      * Check if aero-platform is active.
-     *
-     * @return bool
      */
     protected function isPlatformActive(): bool
     {
@@ -120,8 +112,6 @@ class AeroHrmServiceProvider extends ServiceProvider
 
     /**
      * Check if running in SaaS mode.
-     *
-     * @return bool
      */
     protected function isSaaSMode(): bool
     {
@@ -130,8 +120,6 @@ class AeroHrmServiceProvider extends ServiceProvider
 
     /**
      * Register HRM dashboards with DashboardRegistry.
-     *
-     * @return void
      */
     protected function registerDashboards(): void
     {

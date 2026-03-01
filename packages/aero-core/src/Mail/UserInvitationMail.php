@@ -56,7 +56,7 @@ class UserInvitationMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'You\'ve been invited to join ' . config('app.name'),
+            subject: 'You\'ve been invited to join '.config('app.name'),
             tags: ['invitation', 'onboarding'],
             metadata: [
                 'invitation_id' => $this->invitation->id,

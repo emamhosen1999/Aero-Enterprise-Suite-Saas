@@ -11,15 +11,19 @@ use Aero\Core\Contracts\CoreWidgetCategory;
  * Storage Usage Widget
  *
  * Displays storage usage statistics and quota information.
- * 
+ *
  * Appears on: DMS Dashboard (/dms/dashboard)
  */
 class StorageUsageWidget extends AbstractDashboardWidget
 {
     protected string $position = 'sidebar';
+
     protected int $order = 10;
+
     protected int|string $span = 1;
+
     protected array $requiredPermissions = ['dms.dashboard']; // HRMAC format: module.submodule
+
     protected array $dashboards = ['dms'];
 
     public function getCategory(): CoreWidgetCategory

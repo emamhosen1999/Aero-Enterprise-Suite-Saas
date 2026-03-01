@@ -3,9 +3,10 @@
 namespace Aero\HRM\Http\Controllers\Expense;
 
 use Aero\HRM\Http\Controllers\Controller;
-use Aero\HRM\Models\{ExpenseClaim, ExpenseCategory, Employee};
+use Aero\HRM\Models\Employee;
+use Aero\HRM\Models\ExpenseCategory;
+use Aero\HRM\Models\ExpenseClaim;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class ExpenseClaimController extends Controller
@@ -22,7 +23,7 @@ class ExpenseClaimController extends Controller
     {
         $perPage = $request->get('perPage', 30);
         $query = ExpenseClaim::with(['employee', 'category'])->orderBy('created_at', 'desc');
-        
+
         if ($search = $request->get('search')) {
             $query->where('claim_number', 'like', "%{$search}%");
         }
@@ -80,6 +81,7 @@ class ExpenseClaimController extends Controller
     {
         $claim = ExpenseClaim::findOrFail($id);
         $claim->update(['status' => 'approved', 'approved_at' => now()]);
+
         return response()->json(['message' => 'Claim approved']);
     }
 
@@ -90,6 +92,7 @@ class ExpenseClaimController extends Controller
             'status' => 'rejected',
             'rejection_reason' => $request->rejection_reason,
         ]);
+
         return response()->json(['message' => 'Claim rejected']);
     }
 
@@ -110,8 +113,8 @@ class ExpenseClaimController extends Controller
     public function myExpensesPaginate(Request $request)
     {
         $employee = Employee::where('user_id', $request->user()->id)->first();
-        
-        if (!$employee) {
+
+        if (! $employee) {
             return response()->json([
                 'data' => [],
                 'stats' => ['total' => 0, 'pending' => 0, 'approved' => 0, 'rejected' => 0],
@@ -139,7 +142,7 @@ class ExpenseClaimController extends Controller
     public function update(Request $request, int $id)
     {
         $claim = ExpenseClaim::findOrFail($id);
-        
+
         $validated = $request->validate([
             'category_id' => 'required|exists:expense_categories,id',
             'amount' => 'required|numeric|min:0',
@@ -148,7 +151,7 @@ class ExpenseClaimController extends Controller
         ]);
 
         // Only allow updates if claim is in draft or submitted status
-        if (!in_array($claim->status, ['draft', 'submitted'])) {
+        if (! in_array($claim->status, ['draft', 'submitted'])) {
             return response()->json(['message' => 'Cannot update approved or paid claims'], 422);
         }
 
@@ -160,7 +163,7 @@ class ExpenseClaimController extends Controller
     public function destroy(int $id)
     {
         $claim = ExpenseClaim::findOrFail($id);
-        
+
         // Only allow deletion if claim is in draft status
         if ($claim->status !== 'draft') {
             return response()->json(['message' => 'Can only delete draft claims'], 422);

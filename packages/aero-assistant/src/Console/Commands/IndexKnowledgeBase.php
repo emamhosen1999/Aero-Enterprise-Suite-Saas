@@ -34,7 +34,7 @@ class IndexKnowledgeBase extends Command
         if ($this->option('fresh')) {
             $this->warn('Clearing existing embeddings...');
             $module = $this->option('module');
-            
+
             if ($module) {
                 $count = $indexingService->clearModuleEmbeddings($module);
                 $this->info("Cleared {$count} embeddings for module: {$module}");
@@ -52,11 +52,11 @@ class IndexKnowledgeBase extends Command
         } else {
             $this->info('Indexing all sources...');
             $results = $indexingService->indexAll();
-            
+
             $this->info("Indexed {$results['documentation']} documentation chunks");
             $this->info("Indexed {$results['code']} code chunks");
-            
-            if (!empty($results['errors'])) {
+
+            if (! empty($results['errors'])) {
                 $this->warn('Errors encountered:');
                 foreach ($results['errors'] as $error) {
                     $this->error("  - {$error}");
@@ -65,7 +65,7 @@ class IndexKnowledgeBase extends Command
         }
 
         $this->info('✅ Knowledge base indexing completed!');
-        
+
         return Command::SUCCESS;
     }
 }

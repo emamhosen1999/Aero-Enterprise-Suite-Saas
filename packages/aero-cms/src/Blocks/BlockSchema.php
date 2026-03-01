@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\Cms\Blocks;
 
-use Illuminate\Support\Arr;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class BlockSchema
 {
@@ -23,8 +22,7 @@ class BlockSchema
         protected array $settings = [],
         protected array $defaults = [],
         protected array $presets = [],
-    ) {
-    }
+    ) {}
 
     /**
      * Create a schema from config array.
@@ -274,7 +272,7 @@ class BlockSchema
                 case 'select':
                     $options = array_keys($field['options'] ?? []);
                     if (! empty($options)) {
-                        $fieldRules[] = 'in:' . implode(',', $options);
+                        $fieldRules[] = 'in:'.implode(',', $options);
                     }
                     break;
 

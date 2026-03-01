@@ -17,7 +17,7 @@ class ScheduledJobsTest extends TestCase
      */
     public function test_check_birthdays_job_is_queueable(): void
     {
-        $job = new CheckBirthdaysJob();
+        $job = new CheckBirthdaysJob;
 
         $this->assertInstanceOf(ShouldQueue::class, $job);
     }
@@ -27,7 +27,7 @@ class ScheduledJobsTest extends TestCase
      */
     public function test_check_birthdays_job_has_retry_config(): void
     {
-        $job = new CheckBirthdaysJob();
+        $job = new CheckBirthdaysJob;
 
         $this->assertObjectHasProperty('tries', $job);
         $this->assertEquals(3, $job->tries);
@@ -38,7 +38,7 @@ class ScheduledJobsTest extends TestCase
      */
     public function test_check_anniversaries_job_is_queueable(): void
     {
-        $job = new CheckWorkAnniversariesJob();
+        $job = new CheckWorkAnniversariesJob;
 
         $this->assertInstanceOf(ShouldQueue::class, $job);
     }
@@ -48,7 +48,7 @@ class ScheduledJobsTest extends TestCase
      */
     public function test_check_anniversaries_job_has_retry_config(): void
     {
-        $job = new CheckWorkAnniversariesJob();
+        $job = new CheckWorkAnniversariesJob;
 
         $this->assertObjectHasProperty('tries', $job);
         $this->assertEquals(3, $job->tries);
@@ -59,7 +59,7 @@ class ScheduledJobsTest extends TestCase
      */
     public function test_check_documents_job_is_queueable(): void
     {
-        $job = new CheckExpiringDocumentsJob();
+        $job = new CheckExpiringDocumentsJob;
 
         $this->assertInstanceOf(ShouldQueue::class, $job);
     }
@@ -69,7 +69,7 @@ class ScheduledJobsTest extends TestCase
      */
     public function test_check_documents_job_has_reminder_days(): void
     {
-        $job = new CheckExpiringDocumentsJob();
+        $job = new CheckExpiringDocumentsJob;
 
         $this->assertObjectHasProperty('reminderDays', $job);
         $reminderDays = $job->reminderDays;
@@ -88,7 +88,7 @@ class ScheduledJobsTest extends TestCase
      */
     public function test_check_probation_job_is_queueable(): void
     {
-        $job = new CheckProbationEndingJob();
+        $job = new CheckProbationEndingJob;
 
         $this->assertInstanceOf(ShouldQueue::class, $job);
     }
@@ -98,7 +98,7 @@ class ScheduledJobsTest extends TestCase
      */
     public function test_check_probation_job_has_reminder_days(): void
     {
-        $job = new CheckProbationEndingJob();
+        $job = new CheckProbationEndingJob;
 
         $this->assertObjectHasProperty('reminderDays', $job);
         $reminderDays = $job->reminderDays;
@@ -113,7 +113,7 @@ class ScheduledJobsTest extends TestCase
      */
     public function test_check_contracts_job_is_queueable(): void
     {
-        $job = new CheckExpiringContractsJob();
+        $job = new CheckExpiringContractsJob;
 
         $this->assertInstanceOf(ShouldQueue::class, $job);
     }
@@ -123,7 +123,7 @@ class ScheduledJobsTest extends TestCase
      */
     public function test_check_contracts_job_has_reminder_days(): void
     {
-        $job = new CheckExpiringContractsJob();
+        $job = new CheckExpiringContractsJob;
 
         $this->assertObjectHasProperty('reminderDays', $job);
         $reminderDays = $job->reminderDays;
@@ -139,21 +139,21 @@ class ScheduledJobsTest extends TestCase
     public function test_all_jobs_have_backoff(): void
     {
         $jobs = [
-            new CheckBirthdaysJob(),
-            new CheckWorkAnniversariesJob(),
-            new CheckExpiringDocumentsJob(),
-            new CheckProbationEndingJob(),
-            new CheckExpiringContractsJob(),
+            new CheckBirthdaysJob,
+            new CheckWorkAnniversariesJob,
+            new CheckExpiringDocumentsJob,
+            new CheckProbationEndingJob,
+            new CheckExpiringContractsJob,
         ];
 
         foreach ($jobs as $job) {
             $this->assertTrue(
                 method_exists($job, 'backoff'),
-                get_class($job) . ' should have backoff method'
+                get_class($job).' should have backoff method'
             );
 
             $backoff = $job->backoff();
-            $this->assertIsArray($backoff, get_class($job) . ' backoff should return array');
+            $this->assertIsArray($backoff, get_class($job).' backoff should return array');
         }
     }
 }

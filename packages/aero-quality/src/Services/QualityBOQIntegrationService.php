@@ -12,9 +12,9 @@ use Aero\Rfi\Models\Rfi;
 
 /**
  * QualityBOQIntegrationService
- * 
+ *
  * PATENTABLE: "Quality-gated payment certification for construction"
- * 
+ *
  * This service ensures that:
  * 1. BOQ Measurements can only be verified if Quality Inspection passes
  * 2. Payment is blocked if open NCRs exist

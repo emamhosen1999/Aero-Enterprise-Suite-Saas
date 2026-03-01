@@ -8,7 +8,7 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     * 
+     *
      * Adds lifecycle management fields to plans table:
      * - plan_type: explicit plan classification (trial/free/paid/custom)
      * - grace_days: grace period before suspension on payment failure
@@ -26,17 +26,17 @@ return new class extends Migration
             // Lifecycle policies
             $table->integer('grace_days')->default(0)->after('trial_days')
                 ->comment('Grace period days before suspension on payment failure');
-            
+
             $table->string('downgrade_policy')->default('end_of_period')->after('grace_days')
                 ->comment('Downgrade behavior: immediate, end_of_period');
-            
+
             $table->string('cancellation_policy')->default('end_of_period')->after('downgrade_policy')
                 ->comment('Cancellation behavior: immediate, end_of_period');
-            
+
             // Custom billing support
             $table->boolean('supports_custom_duration')->default(false)->after('duration_in_months')
                 ->comment('Whether plan allows custom billing cycles');
-            
+
             // Indexes for filtering
             $table->index('plan_type');
         });

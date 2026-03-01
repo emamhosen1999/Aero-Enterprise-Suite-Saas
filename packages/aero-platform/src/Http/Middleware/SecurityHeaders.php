@@ -20,13 +20,19 @@ class SecurityHeaders
         $response = $next($request);
 
         // Content Security Policy
+        // Fix #5:  Removed hardcoded client-specific domain (https://api.erp.dhakabypass.com)
+        //          from connect-src — it has no place in a shared platform package.
+        // Fix #32: Removed 'unsafe-eval' (enables JS eval() attacks). Kept 'unsafe-inline' for
+        //          now because Inertia/React hydration requires it; a nonce-based approach is
+        //          recommended as a follow-up once the frontend ships Content-Security-Policy nonces.
+        $appUrl = rtrim(config('app.url', ''), '/');
         $response->headers->set('Content-Security-Policy',
             "default-src 'self'; ".
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com; ".
+            "script-src 'self' 'unsafe-inline' https://www.gstatic.com; ".
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; ".
             "font-src 'self' https://fonts.gstatic.com; ".
             "img-src 'self' data: https:; ".
-            "connect-src 'self' https://api.erp.dhakabypass.com; ".
+            "connect-src 'self' {$appUrl}; ".
             "frame-ancestors 'none';"
         );
 

@@ -2,9 +2,9 @@
 
 namespace Aero\Commerce\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Aero\Core\Models\User;
 
 class ShoppingCart extends Model
 {
@@ -14,7 +14,7 @@ class ShoppingCart extends Model
 
     protected $fillable = [
         'session_id', 'user_id', 'customer_id', 'currency',
-        'status', 'abandoned_at', 'converted_at', 'order_id'
+        'status', 'abandoned_at', 'converted_at', 'order_id',
     ];
 
     protected $casts = [
@@ -26,8 +26,11 @@ class ShoppingCart extends Model
     ];
 
     const STATUS_ACTIVE = 'active';
+
     const STATUS_ABANDONED = 'abandoned';
+
     const STATUS_CONVERTED = 'converted';
+
     const STATUS_EXPIRED = 'expired';
 
     public function user()
@@ -57,7 +60,7 @@ class ShoppingCart extends Model
 
     public function getSubtotalAttribute()
     {
-        return $this->items->sum(fn($item) => $item->quantity * $item->price);
+        return $this->items->sum(fn ($item) => $item->quantity * $item->price);
     }
 
     public function getTaxAmountAttribute()
@@ -77,7 +80,7 @@ class ShoppingCart extends Model
 
     public function isAbandoned()
     {
-        return $this->status === self::STATUS_ABANDONED || 
+        return $this->status === self::STATUS_ABANDONED ||
                ($this->status === self::STATUS_ACTIVE && $this->updated_at < now()->subHours(24));
     }
 }

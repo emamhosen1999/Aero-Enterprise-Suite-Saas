@@ -2,10 +2,10 @@
 
 namespace Aero\Commerce\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class Product extends Model
 {
@@ -18,7 +18,7 @@ class Product extends Model
         'price', 'sale_price', 'cost_price', 'currency', 'weight', 'dimensions',
         'category_id', 'brand_id', 'vendor_id', 'stock_quantity', 'min_stock_level',
         'manage_stock', 'stock_status', 'backorders', 'featured', 'status',
-        'seo_title', 'seo_description', 'meta_keywords', 'slug', 'created_by'
+        'seo_title', 'seo_description', 'meta_keywords', 'slug', 'created_by',
     ];
 
     protected $casts = [
@@ -39,19 +39,29 @@ class Product extends Model
     ];
 
     const TYPE_SIMPLE = 'simple';
+
     const TYPE_CONFIGURABLE = 'configurable';
+
     const TYPE_GROUPED = 'grouped';
+
     const TYPE_BUNDLE = 'bundle';
+
     const TYPE_VIRTUAL = 'virtual';
+
     const TYPE_DOWNLOADABLE = 'downloadable';
 
     const STATUS_ACTIVE = 'active';
+
     const STATUS_INACTIVE = 'inactive';
+
     const STATUS_DRAFT = 'draft';
+
     const STATUS_PENDING = 'pending';
 
     const STOCK_IN_STOCK = 'in_stock';
+
     const STOCK_OUT_OF_STOCK = 'out_of_stock';
+
     const STOCK_ON_BACKORDER = 'on_backorder';
 
     public function category()
@@ -82,7 +92,7 @@ class Product extends Model
     public function attributes()
     {
         return $this->belongsToMany(ProductAttribute::class, 'commerce_product_attribute_values')
-                    ->withPivot('value', 'price_modifier');
+            ->withPivot('value', 'price_modifier');
     }
 
     public function images()
@@ -115,12 +125,16 @@ class Product extends Model
         if ($this->sale_price && $this->price > 0) {
             return (($this->price - $this->sale_price) / $this->price) * 100;
         }
+
         return 0;
     }
 
     public function isInStock()
     {
-        if (!$this->manage_stock) return true;
+        if (! $this->manage_stock) {
+            return true;
+        }
+
         return $this->stock_quantity > 0 || ($this->stock_quantity <= 0 && $this->backorders);
     }
 

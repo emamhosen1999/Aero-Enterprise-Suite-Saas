@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('purchase_code')->unique();
             $table->timestamp('purchased_at')->nullable();
             $table->timestamps();
-            
+
             $table->unique(['tenant_id', 'module_code']);
         });
     }

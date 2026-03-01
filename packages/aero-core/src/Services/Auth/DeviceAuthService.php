@@ -7,7 +7,6 @@ use Aero\Core\Models\UserDevice;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Jenssegers\Agent\Agent;
 
 class DeviceAuthService
@@ -34,14 +33,14 @@ class DeviceAuthService
 
         // Create data to sign with timestamp for additional entropy
         $timestamp = microtime(true);
-        $data = $deviceId . $userId . $saltBase64 . $timestamp . config('app.key');
+        $data = $deviceId.$userId.$saltBase64.$timestamp.config('app.key');
 
         // Generate HMAC-SHA256 token
         $token = hash_hmac('sha256', $data, config('app.key'));
 
         return [
             'token' => $token,
-            'salt' => $saltBase64
+            'salt' => $saltBase64,
         ];
     }
 
@@ -57,7 +56,7 @@ class DeviceAuthService
     public function verifyDeviceToken(string $deviceId, int $userId, string $storedToken, string $storedSalt, float $tokenTimestamp): bool
     {
         // Recreate the original data that was signed
-        $data = $deviceId . $userId . $storedSalt . $tokenTimestamp . config('app.key');
+        $data = $deviceId.$userId.$storedSalt.$tokenTimestamp.config('app.key');
         $calculatedToken = hash_hmac('sha256', $data, config('app.key'));
 
         // Use hash_equals for timing-safe comparison

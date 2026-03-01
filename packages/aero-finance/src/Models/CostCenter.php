@@ -13,8 +13,8 @@ class CostCenter extends Model
     protected $table = 'finance_cost_centers';
 
     protected $fillable = [
-        'code', 'name', 'description', 'parent_id', 
-        'cost_center_type', 'is_active', 'manager_id'
+        'code', 'name', 'description', 'parent_id',
+        'cost_center_type', 'is_active', 'manager_id',
     ];
 
     protected $casts = [
@@ -24,8 +24,11 @@ class CostCenter extends Model
     ];
 
     const TYPE_DEPARTMENT = 'department';
+
     const TYPE_PROJECT = 'project';
+
     const TYPE_LOCATION = 'location';
+
     const TYPE_PRODUCT_LINE = 'product_line';
 
     public function parent()

@@ -2,7 +2,7 @@
 
 /**
  * Unified Installation Routes
- * 
+ *
  * These routes handle the installation wizard for both SaaS (Platform) and
  * Standalone (Core) modes. The controller automatically detects the mode
  * and renders the appropriate UI from the aero-ui package.
@@ -18,11 +18,11 @@ use Aero\Core\Http\Controllers\UnifiedInstallationController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('install')->group(function () {
-    
+
     // ==========================================================================
     // Page routes (render Inertia pages from aero-ui)
     // ==========================================================================
-    
+
     // Main entry point - uses 'installation.' prefix for consistency with Platform
     Route::get('/', [UnifiedInstallationController::class, 'welcome'])->name('installation.index');
     Route::get('/license', [UnifiedInstallationController::class, 'license'])->name('installation.license');
@@ -34,11 +34,11 @@ Route::prefix('install')->group(function () {
     Route::get('/review', [UnifiedInstallationController::class, 'review'])->name('installation.review');
     Route::get('/processing', [UnifiedInstallationController::class, 'processing'])->name('installation.processing');
     Route::get('/complete', [UnifiedInstallationController::class, 'complete'])->name('installation.complete');
-    
+
     // ==========================================================================
     // API routes (AJAX calls from React UI)
     // ==========================================================================
-    
+
     Route::post('/validate-license', [UnifiedInstallationController::class, 'validateLicense'])->name('installation.validate-license');
     Route::get('/check-requirements', [UnifiedInstallationController::class, 'recheckRequirements'])->name('installation.check-requirements');
     Route::post('/recheck-requirements', [UnifiedInstallationController::class, 'recheckRequirements'])->name('installation.recheck-requirements');
@@ -56,11 +56,11 @@ Route::prefix('install')->group(function () {
     Route::post('/cleanup', [UnifiedInstallationController::class, 'cleanup'])->name('installation.cleanup');
     Route::post('/retry', [UnifiedInstallationController::class, 'retry'])->name('installation.retry');
     Route::post('/test-email', [UnifiedInstallationController::class, 'testEmail'])->name('installation.test-email');
-    
+
     // ==========================================================================
     // Legacy route aliases (backward compatibility with old install.* names)
     // ==========================================================================
-    
+
     Route::get('/', [UnifiedInstallationController::class, 'welcome'])->name('install.index');
     Route::get('/license', [UnifiedInstallationController::class, 'license'])->name('install.license');
     Route::get('/requirements', [UnifiedInstallationController::class, 'requirements'])->name('install.requirements');

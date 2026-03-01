@@ -541,7 +541,7 @@ class WorkplaceSafetyController extends Controller
             ->where('safety_incidents.id', $id)
             ->first();
 
-        if (!$incident) {
+        if (! $incident) {
             return response()->json(['message' => 'Incident not found'], 404);
         }
 

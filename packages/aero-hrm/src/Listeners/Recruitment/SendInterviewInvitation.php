@@ -17,7 +17,7 @@ class SendInterviewInvitation implements ShouldQueue
 
         // For now, log the interview notification
         // In production, this would send email to applicant
-        
+
         Log::info('Interview scheduled', [
             'interview_id' => $interview->id,
             'application_id' => $application->id,

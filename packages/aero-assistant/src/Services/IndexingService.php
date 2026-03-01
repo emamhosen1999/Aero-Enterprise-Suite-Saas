@@ -5,7 +5,6 @@ namespace Aero\Assistant\Services;
 use Aero\Assistant\Models\Embedding;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 /**
  * Knowledge Base Indexing Service
@@ -14,7 +13,9 @@ use Illuminate\Support\Str;
 class IndexingService
 {
     protected AiModelService $aiModelService;
+
     protected int $chunkSize;
+
     protected int $chunkOverlap;
 
     public function __construct(AiModelService $aiModelService)
@@ -55,8 +56,9 @@ class IndexingService
         $paths = config('assistant.knowledge_base.docs_paths', []);
 
         foreach ($paths as $path) {
-            if (!File::exists($path)) {
+            if (! File::exists($path)) {
                 Log::warning("Documentation path not found: {$path}");
+
                 continue;
             }
 
@@ -81,8 +83,9 @@ class IndexingService
         $paths = config('assistant.knowledge_base.code_paths', []);
 
         foreach ($paths as $path) {
-            if (!File::exists($path)) {
+            if (! File::exists($path)) {
                 Log::warning("Code path not found: {$path}");
+
                 continue;
             }
 
@@ -106,13 +109,14 @@ class IndexingService
         $indexed = 0;
         $modulePath = base_path("packages/aero-{$moduleName}");
 
-        if (!File::exists($modulePath)) {
+        if (! File::exists($modulePath)) {
             Log::error("Module path not found: {$modulePath}");
+
             return 0;
         }
 
         // Index module documentation
-        $docsPath = $modulePath . '/docs';
+        $docsPath = $modulePath.'/docs';
         if (File::exists($docsPath)) {
             $files = File::allFiles($docsPath);
             foreach ($files as $file) {
@@ -121,7 +125,7 @@ class IndexingService
         }
 
         // Index module code
-        $srcPath = $modulePath . '/src';
+        $srcPath = $modulePath.'/src';
         if (File::exists($srcPath)) {
             $files = File::allFiles($srcPath);
             foreach ($files as $file) {
@@ -132,7 +136,7 @@ class IndexingService
         }
 
         // Index module resources (JS/React components)
-        $resourcesPath = $modulePath . '/resources/js';
+        $resourcesPath = $modulePath.'/resources/js';
         if (File::exists($resourcesPath)) {
             $files = File::allFiles($resourcesPath);
             foreach ($files as $file) {
@@ -152,7 +156,7 @@ class IndexingService
     {
         try {
             $content = File::get($filePath);
-            
+
             // Extract meaningful content based on file type
             if ($sourceType === 'code') {
                 $content = $this->extractCodeDocumentation($content, $filePath);
@@ -169,8 +173,9 @@ class IndexingService
             // Generate embeddings for all chunks at once (more efficient)
             $embeddingResult = $this->aiModelService->generateEmbeddings($chunks);
 
-            if (!$embeddingResult['success']) {
+            if (! $embeddingResult['success']) {
                 Log::error("Failed to generate embeddings for {$filePath}");
+
                 return 0;
             }
 
@@ -199,7 +204,8 @@ class IndexingService
 
             return $indexed;
         } catch (\Exception $e) {
-            Log::error("Error indexing file {$filePath}: " . $e->getMessage());
+            Log::error("Error indexing file {$filePath}: ".$e->getMessage());
+
             return 0;
         }
     }
@@ -219,7 +225,7 @@ class IndexingService
             $position += $this->chunkSize - $this->chunkOverlap;
         }
 
-        return array_filter($chunks, fn($chunk) => !empty($chunk));
+        return array_filter($chunks, fn ($chunk) => ! empty($chunk));
     }
 
     /**
@@ -240,8 +246,8 @@ class IndexingService
 
             // Extract class/function names and signatures for context
             preg_match_all('/(class|function|public function|protected function)\s+(\w+)/i', $content, $signatures);
-            if (!empty($signatures[0])) {
-                $documentation[] = "Code signatures: " . implode(', ', $signatures[0]);
+            if (! empty($signatures[0])) {
+                $documentation[] = 'Code signatures: '.implode(', ', $signatures[0]);
             }
         } elseif (in_array($extension, ['js', 'jsx'])) {
             // Extract JSDoc comments
@@ -253,8 +259,8 @@ class IndexingService
 
             // Extract component/function names
             preg_match_all('/(function|const|export\s+(?:default\s+)?function)\s+(\w+)/i', $content, $signatures);
-            if (!empty($signatures[2])) {
-                $documentation[] = "Components/Functions: " . implode(', ', $signatures[2]);
+            if (! empty($signatures[2])) {
+                $documentation[] = 'Components/Functions: '.implode(', ', $signatures[2]);
             }
         }
 

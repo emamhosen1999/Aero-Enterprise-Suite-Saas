@@ -2,43 +2,43 @@
 
 namespace Aero\Blockchain\Providers;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\ServiceProvider;
 
 class BlockchainServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
         $this->mergeConfigFrom(
-            __DIR__ . '/../../config/blockchain.php', 'blockchain'
+            __DIR__.'/../../config/blockchain.php', 'blockchain'
         );
     }
 
     public function boot(): void
     {
         // Load routes
-        $this->loadRoutesFrom(__DIR__ . '/../../routes/web.php');
-        $this->loadRoutesFrom(__DIR__ . '/../../routes/api.php');
-        $this->loadRoutesFrom(__DIR__ . '/../../routes/tenant.php');
+        $this->loadRoutesFrom(__DIR__.'/../../routes/web.php');
+        $this->loadRoutesFrom(__DIR__.'/../../routes/api.php');
+        $this->loadRoutesFrom(__DIR__.'/../../routes/tenant.php');
 
         // Load migrations
-        $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
+        $this->loadMigrationsFrom(__DIR__.'/../../database/migrations');
 
         // Load views
-        $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'blockchain');
+        $this->loadViewsFrom(__DIR__.'/../../resources/views', 'blockchain');
 
         // Register publishable assets
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__ . '/../../config/blockchain.php' => config_path('blockchain.php'),
+                __DIR__.'/../../config/blockchain.php' => config_path('blockchain.php'),
             ], 'blockchain-config');
 
             $this->publishes([
-                __DIR__ . '/../../database/migrations' => database_path('migrations'),
+                __DIR__.'/../../database/migrations' => database_path('migrations'),
             ], 'blockchain-migrations');
 
             $this->publishes([
-                __DIR__ . '/../../resources/js' => resource_path('js/blockchain'),
+                __DIR__.'/../../resources/js' => resource_path('js/blockchain'),
             ], 'blockchain-assets');
         }
 
@@ -70,7 +70,7 @@ class BlockchainServiceProvider extends ServiceProvider
     {
         // Register blockchain-specific event listeners
         // Example: Block mined, transaction confirmed, etc.
-        
+
         // Event::listen(BlockMined::class, ProcessBlockListener::class);
         // Event::listen(TransactionConfirmed::class, UpdateBalanceListener::class);
         // Event::listen(SmartContractDeployed::class, IndexContractListener::class);

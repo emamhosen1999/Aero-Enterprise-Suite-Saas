@@ -15,7 +15,7 @@ class PageControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Run CMS migrations
         $this->artisan('migrate', [
             '--path' => 'packages/aero-cms/database/migrations',
@@ -23,7 +23,7 @@ class PageControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_list_all_pages()
     {
         $this->actingAsAuthenticatedUser();
@@ -33,13 +33,12 @@ class PageControllerTest extends TestCase
         $response = $this->get(route('cms.admin.pages.index'));
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->component('Cms/Pages/Index')
-                ->has('pages.data', 5)
+        $response->assertInertia(fn ($page) => $page->component('Cms/Pages/Index')
+            ->has('pages.data', 5)
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_show_create_page_form()
     {
         $this->actingAsAuthenticatedUser();
@@ -47,13 +46,12 @@ class PageControllerTest extends TestCase
         $response = $this->get(route('cms.admin.pages.create'));
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->component('Cms/Pages/Create')
-                ->has('blockTypes')
+        $response->assertInertia(fn ($page) => $page->component('Cms/Pages/Create')
+            ->has('blockTypes')
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_create_a_new_page()
     {
         $this->actingAsAuthenticatedUser();
@@ -76,7 +74,7 @@ class PageControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_validates_required_fields_when_creating_page()
     {
         $this->actingAsAuthenticatedUser();
@@ -86,7 +84,7 @@ class PageControllerTest extends TestCase
         $response->assertSessionHasErrors(['title']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_generates_unique_slug()
     {
         $this->actingAsAuthenticatedUser();
@@ -101,7 +99,7 @@ class PageControllerTest extends TestCase
         $response->assertSessionHasErrors(['slug']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_show_edit_page_form()
     {
         $this->actingAsAuthenticatedUser();
@@ -111,14 +109,13 @@ class PageControllerTest extends TestCase
         $response = $this->get(route('cms.admin.pages.edit', $page));
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($assert) => 
-            $assert->component('Cms/Pages/Edit')
-                ->has('page')
-                ->has('blockTypes')
+        $response->assertInertia(fn ($assert) => $assert->component('Cms/Pages/Edit')
+            ->has('page')
+            ->has('blockTypes')
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_update_a_page()
     {
         $this->actingAsAuthenticatedUser();
@@ -140,7 +137,7 @@ class PageControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_delete_a_page()
     {
         $this->actingAsAuthenticatedUser();
@@ -153,7 +150,7 @@ class PageControllerTest extends TestCase
         $this->assertDatabaseMissing('cms_pages', ['id' => $page->id]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_deletes_associated_blocks_when_deleting_page()
     {
         $this->actingAsAuthenticatedUser();
@@ -171,7 +168,7 @@ class PageControllerTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_publish_a_page()
     {
         $this->actingAsAuthenticatedUser();
@@ -187,7 +184,7 @@ class PageControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_unpublish_a_page()
     {
         $this->actingAsAuthenticatedUser();
@@ -203,7 +200,7 @@ class PageControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_duplicate_a_page()
     {
         $this->actingAsAuthenticatedUser();
@@ -215,13 +212,13 @@ class PageControllerTest extends TestCase
         $response = $this->post(route('cms.admin.pages.duplicate', $page));
 
         $response->assertRedirect();
-        
+
         $duplicatedPage = CmsPage::where('title', 'like', 'Original Page (Copy%')->first();
         $this->assertNotNull($duplicatedPage);
         $this->assertCount(2, $duplicatedPage->blocks);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_paginates_page_list()
     {
         $this->actingAsAuthenticatedUser();
@@ -231,13 +228,12 @@ class PageControllerTest extends TestCase
         $response = $this->get(route('cms.admin.pages.index', ['perPage' => 10]));
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->has('pages.data', 10)
-                ->has('pages.links')
+        $response->assertInertia(fn ($page) => $page->has('pages.data', 10)
+            ->has('pages.links')
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_pages_by_status()
     {
         $this->actingAsAuthenticatedUser();
@@ -248,12 +244,11 @@ class PageControllerTest extends TestCase
         $response = $this->get(route('cms.admin.pages.index', ['status' => 'published']));
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->has('pages.data', 3)
+        $response->assertInertia(fn ($page) => $page->has('pages.data', 3)
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_searches_pages_by_title()
     {
         $this->actingAsAuthenticatedUser();
@@ -265,8 +260,7 @@ class PageControllerTest extends TestCase
         $response = $this->get(route('cms.admin.pages.index', ['search' => 'Home']));
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->has('pages.data', 1)
+        $response->assertInertia(fn ($page) => $page->has('pages.data', 1)
         );
     }
 
@@ -277,12 +271,12 @@ class PageControllerTest extends TestCase
     {
         // Create and authenticate a user with CMS permissions
         $user = \App\Models\User::factory()->create();
-        
+
         // If using Spatie permissions, assign the role/permission
         // $user->givePermissionTo('cms.pages.list.index', 'cms.pages.editor.create', ...);
-        
+
         $this->actingAs($user);
-        
+
         return $user;
     }
 }

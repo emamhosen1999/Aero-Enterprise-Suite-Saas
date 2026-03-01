@@ -2,9 +2,7 @@
 
 namespace Aero\Rfi\Http\Controllers;
 
-use Aero\Rfi\Models\Rfi;
 use Aero\Rfi\Models\SiteInstruction;
-use Aero\Rfi\Models\WorkLayer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;

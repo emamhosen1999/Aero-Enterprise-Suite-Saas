@@ -23,7 +23,7 @@ return new class extends Migration
             $table->timestamp('accepted_at')->nullable();
             $table->ipAddress('invited_from_ip')->nullable();
             $table->timestamps();
-            
+
             $table->foreign('invited_by')->references('id')->on('users')->onDelete('cascade');
             $table->index(['token', 'expires_at']);
             $table->index('email');

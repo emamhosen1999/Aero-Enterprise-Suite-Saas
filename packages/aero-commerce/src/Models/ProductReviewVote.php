@@ -12,7 +12,7 @@ class ProductReviewVote extends Model
     protected $table = 'commerce_product_review_votes';
 
     protected $fillable = [
-        'product_review_id', 'customer_id', 'vote_type', 'ip_address'
+        'product_review_id', 'customer_id', 'vote_type', 'ip_address',
     ];
 
     protected $casts = [
@@ -21,6 +21,7 @@ class ProductReviewVote extends Model
     ];
 
     const VOTE_HELPFUL = 'helpful';
+
     const VOTE_NOT_HELPFUL = 'not_helpful';
 
     public function productReview()

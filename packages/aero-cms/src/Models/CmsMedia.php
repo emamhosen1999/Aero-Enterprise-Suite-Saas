@@ -81,7 +81,7 @@ class CmsMedia extends Model
     {
         $pathInfo = pathinfo($this->path);
 
-        return $pathInfo['dirname'] . '/thumbnails/' . $pathInfo['filename'] . '_thumb.' . ($pathInfo['extension'] ?? 'jpg');
+        return $pathInfo['dirname'].'/thumbnails/'.$pathInfo['filename'].'_thumb.'.($pathInfo['extension'] ?? 'jpg');
     }
 
     /**
@@ -130,14 +130,14 @@ class CmsMedia extends Model
         $bytes = $this->size;
 
         if ($bytes >= 1073741824) {
-            return number_format($bytes / 1073741824, 2) . ' GB';
+            return number_format($bytes / 1073741824, 2).' GB';
         } elseif ($bytes >= 1048576) {
-            return number_format($bytes / 1048576, 2) . ' MB';
+            return number_format($bytes / 1048576, 2).' MB';
         } elseif ($bytes >= 1024) {
-            return number_format($bytes / 1024, 2) . ' KB';
+            return number_format($bytes / 1024, 2).' KB';
         }
 
-        return $bytes . ' bytes';
+        return $bytes.' bytes';
     }
 
     /**

@@ -2,9 +2,9 @@
 
 namespace Aero\Manufacturing\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Aero\Core\Models\User;
 
 class WorkOrderTimeEntry extends Model
 {
@@ -13,9 +13,9 @@ class WorkOrderTimeEntry extends Model
     protected $table = 'manufacturing_work_order_time_entries';
 
     protected $fillable = [
-        'work_order_id', 'work_order_operation_id', 'employee_id', 
+        'work_order_id', 'work_order_operation_id', 'employee_id',
         'start_time', 'end_time', 'break_time_minutes', 'total_time_minutes',
-        'quantity_produced', 'quantity_scrapped', 'time_type', 'notes'
+        'quantity_produced', 'quantity_scrapped', 'time_type', 'notes',
     ];
 
     protected $casts = [
@@ -31,9 +31,13 @@ class WorkOrderTimeEntry extends Model
     ];
 
     const TYPE_SETUP = 'setup';
+
     const TYPE_RUN = 'run';
+
     const TYPE_CLEANUP = 'cleanup';
+
     const TYPE_REWORK = 'rework';
+
     const TYPE_WAIT = 'wait';
 
     public function workOrder()

@@ -6,9 +6,9 @@ use Illuminate\Support\Facades\Facade;
 
 /**
  * Module Facade
- * 
+ *
  * Provides easy access to ModuleManager service for module discovery and management.
- * 
+ *
  * @method static array active()
  * @method static array all()
  * @method static array|null get(string $name)
@@ -19,15 +19,13 @@ use Illuminate\Support\Facades\Facade;
  * @method static int enabledCount()
  * @method static array bySource(string $source)
  * @method static bool hasAssets(string $name)
- * 
+ *
  * @see \Aero\Core\Services\ModuleManager
  */
 class Module extends Facade
 {
     /**
      * Get the registered name of the component.
-     *
-     * @return string
      */
     protected static function getFacadeAccessor(): string
     {

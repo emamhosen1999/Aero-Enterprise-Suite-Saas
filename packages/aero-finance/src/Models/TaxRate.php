@@ -13,10 +13,10 @@ class TaxRate extends Model
     protected $table = 'finance_tax_rates';
 
     protected $fillable = [
-        'name', 'tax_type', 'rate', 'description', 
-        'tax_authority', 'tax_number', 'effective_from', 
+        'name', 'tax_type', 'rate', 'description',
+        'tax_authority', 'tax_number', 'effective_from',
         'effective_to', 'is_compound', 'is_active',
-        'account_receivable_id', 'account_payable_id'
+        'account_receivable_id', 'account_payable_id',
     ];
 
     protected $casts = [
@@ -30,9 +30,13 @@ class TaxRate extends Model
     ];
 
     const TYPE_SALES_TAX = 'sales_tax';
+
     const TYPE_VAT = 'vat';
+
     const TYPE_GST = 'gst';
+
     const TYPE_WITHHOLDING_TAX = 'withholding_tax';
+
     const TYPE_EXCISE_TAX = 'excise_tax';
 
     public function accountReceivable()
@@ -48,8 +52,9 @@ class TaxRate extends Model
     public function isEffective($date = null)
     {
         $date = $date ?: now();
-        return $this->is_active && 
-               $this->effective_from <= $date && 
+
+        return $this->is_active &&
+               $this->effective_from <= $date &&
                ($this->effective_to === null || $this->effective_to >= $date);
     }
 }

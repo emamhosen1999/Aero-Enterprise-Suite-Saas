@@ -16,10 +16,10 @@ class CmsPageFactory extends Factory
     public function definition(): array
     {
         $title = $this->faker->sentence(3);
-        
+
         return [
             'title' => $title,
-            'slug' => Str::slug($title) . '-' . $this->faker->unique()->numberBetween(1, 99999),
+            'slug' => Str::slug($title).'-'.$this->faker->unique()->numberBetween(1, 99999),
             'description' => $this->faker->paragraph(),
             'status' => $this->faker->randomElement(['draft', 'published']),
             'meta_title' => $this->faker->sentence(4),

@@ -4,18 +4,16 @@ declare(strict_types=1);
 
 namespace Tests\Feature\HRM\Notifications;
 
+use Aero\Core\Models\User;
 use Aero\HRM\Events\ContractExpiring;
 use Aero\HRM\Events\DocumentExpiring;
 use Aero\HRM\Events\ProbationEnding;
-use Aero\HRM\Jobs\CheckExpiringContractsJob;
 use Aero\HRM\Jobs\CheckExpiringDocumentsJob;
-use Aero\HRM\Jobs\CheckProbationEndingJob;
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\EmployeePersonalDocument;
 use Aero\HRM\Notifications\ContractExpiryNotification;
 use Aero\HRM\Notifications\DocumentExpiryNotification;
 use Aero\HRM\Notifications\ProbationEndingNotification;
-use Aero\Core\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
@@ -31,9 +29,13 @@ class ExpiryNotificationUatTest extends TestCase
     use RefreshDatabase;
 
     protected User $employee;
+
     protected User $manager;
+
     protected User $hrAdmin;
+
     protected Employee $employeeRecord;
+
     protected Employee $managerRecord;
 
     protected function setUp(): void
@@ -81,10 +83,10 @@ class ExpiryNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: NOTIF-DOC-01
      * Document Expiring in 30 Days - First Warning
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_sends_document_expiry_notification_30_days(): void
     {
         Notification::fake();
@@ -114,10 +116,10 @@ class ExpiryNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: NOTIF-DOC-02
      * Document Expiring in 7 Days - Urgent Reminder
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_sends_urgent_document_expiry_notification_7_days(): void
     {
         Notification::fake();
@@ -143,10 +145,10 @@ class ExpiryNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: NOTIF-DOC-03
      * Document Expired Today - Final Alert
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_sends_final_alert_for_expired_document(): void
     {
         Notification::fake();
@@ -171,10 +173,10 @@ class ExpiryNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: NOTIF-DOC-04
      * Multiple Documents Expiring - Consolidated Notification
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_multiple_expiring_documents(): void
     {
         Notification::fake();
@@ -201,10 +203,10 @@ class ExpiryNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: JOB-03
      * Document Expiry Job Runs Successfully
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_runs_document_expiry_job_successfully(): void
     {
         Notification::fake();
@@ -220,7 +222,7 @@ class ExpiryNotificationUatTest extends TestCase
         }
 
         // Run the job
-        $job = new CheckExpiringDocumentsJob();
+        $job = new CheckExpiringDocumentsJob;
         $job->handle();
 
         // Assert notifications were sent
@@ -233,10 +235,10 @@ class ExpiryNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: NOTIF-PB-01
      * Probation Ending in 14 Days
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_sends_probation_ending_notification_14_days(): void
     {
         Notification::fake();
@@ -258,10 +260,10 @@ class ExpiryNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: NOTIF-PB-02
      * Probation Ending Tomorrow - Urgent
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_sends_urgent_probation_ending_notification(): void
     {
         Notification::fake();
@@ -284,10 +286,10 @@ class ExpiryNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: NOTIF-CT-01
      * Contract Expiring in 30 Days
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_sends_contract_expiry_notification_30_days(): void
     {
         Notification::fake();
@@ -309,10 +311,10 @@ class ExpiryNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: NOTIF-CT-02
      * Contract Expiring in 7 Days - Urgent
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_sends_urgent_contract_expiry_notification(): void
     {
         Notification::fake();
@@ -335,10 +337,10 @@ class ExpiryNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: NOTIF-CT-03
      * Contract Expired - Escalation
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_sends_contract_expired_escalation(): void
     {
         Notification::fake();
@@ -361,13 +363,13 @@ class ExpiryNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: JOB-05
      * Jobs Don't Overlap
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_prevents_job_overlapping(): void
     {
-        $job = new CheckExpiringDocumentsJob();
+        $job = new CheckExpiringDocumentsJob;
 
         // Check that job is configured with withoutOverlapping
         // This is checked in the service provider registration
@@ -375,10 +377,10 @@ class ExpiryNotificationUatTest extends TestCase
     }
 
     /**
-     * @test
      * Test ID: ERR-03
      * No Phone Number for SMS - Graceful Handling
      */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_missing_phone_gracefully(): void
     {
         Notification::fake();

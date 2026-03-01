@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * ComplianceCheckLog Model
- * 
+ *
  * Logs automated compliance checks performed during RFI submission.
  */
 class ComplianceCheckLog extends Model

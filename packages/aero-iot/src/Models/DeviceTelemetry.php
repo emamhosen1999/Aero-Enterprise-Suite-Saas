@@ -15,7 +15,7 @@ class DeviceTelemetry extends Model
     protected $fillable = [
         'device_id', 'metric_name', 'metric_value', 'unit', 'data_type',
         'quality_score', 'timestamp', 'metadata', 'aggregation_period',
-        'is_processed'
+        'is_processed',
     ];
 
     protected $casts = [
@@ -28,16 +28,25 @@ class DeviceTelemetry extends Model
     ];
 
     const DATA_TYPE_NUMERIC = 'numeric';
+
     const DATA_TYPE_STRING = 'string';
+
     const DATA_TYPE_BOOLEAN = 'boolean';
+
     const DATA_TYPE_JSON = 'json';
+
     const DATA_TYPE_BINARY = 'binary';
 
     const PERIOD_REALTIME = 'realtime';
+
     const PERIOD_MINUTE = 'minute';
+
     const PERIOD_HOUR = 'hour';
+
     const PERIOD_DAY = 'day';
+
     const PERIOD_WEEK = 'week';
+
     const PERIOD_MONTH = 'month';
 
     public function device()
@@ -48,8 +57,9 @@ class DeviceTelemetry extends Model
     public function getFormattedValueAttribute()
     {
         if ($this->unit) {
-            return number_format($this->metric_value, 2) . ' ' . $this->unit;
+            return number_format($this->metric_value, 2).' '.$this->unit;
         }
+
         return number_format($this->metric_value, 2);
     }
 

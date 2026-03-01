@@ -2,10 +2,10 @@
 
 namespace Aero\RealEstate\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class LeaseAgreement extends Model
 {
@@ -18,7 +18,7 @@ class LeaseAgreement extends Model
         'start_date', 'end_date', 'monthly_rent', 'security_deposit',
         'pet_deposit', 'late_fee', 'grace_period_days', 'lease_terms',
         'status', 'signed_date', 'move_in_date', 'move_out_date',
-        'early_termination_fee', 'renewal_terms', 'created_by'
+        'early_termination_fee', 'renewal_terms', 'created_by',
     ];
 
     protected $casts = [
@@ -42,14 +42,21 @@ class LeaseAgreement extends Model
     ];
 
     const TYPE_FIXED_TERM = 'fixed_term';
+
     const TYPE_MONTH_TO_MONTH = 'month_to_month';
+
     const TYPE_PERIODIC = 'periodic';
 
     const STATUS_DRAFT = 'draft';
+
     const STATUS_ACTIVE = 'active';
+
     const STATUS_EXPIRED = 'expired';
+
     const STATUS_TERMINATED = 'terminated';
+
     const STATUS_RENEWED = 'renewed';
+
     const STATUS_CANCELLED = 'cancelled';
 
     public function property()
@@ -105,6 +112,7 @@ class LeaseAgreement extends Model
         if ($this->end_date) {
             return now()->diffInDays($this->end_date, false);
         }
+
         return null;
     }
 
@@ -122,28 +130,29 @@ class LeaseAgreement extends Model
     {
         $totalRent = $this->rentPayments()->sum('amount_due');
         $totalPaid = $this->rentPayments()->sum('amount_paid');
+
         return $totalRent - $totalPaid;
     }
 
     public function getCurrentMonthPaymentAttribute()
     {
         return $this->rentPayments()
-                   ->whereYear('due_date', now()->year)
-                   ->whereMonth('due_date', now()->month)
-                   ->first();
+            ->whereYear('due_date', now()->year)
+            ->whereMonth('due_date', now()->month)
+            ->first();
     }
 
     public function scopeActive($query)
     {
         return $query->where('status', self::STATUS_ACTIVE)
-                    ->where('start_date', '<=', now())
-                    ->where('end_date', '>=', now());
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now());
     }
 
     public function scopeExpiring($query, $days = 30)
     {
         return $query->where('status', self::STATUS_ACTIVE)
-                    ->where('end_date', '<=', now()->addDays($days));
+            ->where('end_date', '<=', now()->addDays($days));
     }
 
     public function scopeExpired($query)

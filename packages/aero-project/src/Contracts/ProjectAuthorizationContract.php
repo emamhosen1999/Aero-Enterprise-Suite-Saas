@@ -17,29 +17,20 @@ interface ProjectAuthorizationContract
 {
     /**
      * Check if current user can access project module.
-     *
-     * @param mixed $user
-     * @return bool
      */
     public function canAccessProjectModule(mixed $user): bool;
 
     /**
      * Check if user can access a specific submodule.
      *
-     * @param mixed $user
-     * @param string $subModuleCode e.g., 'projects', 'tasks', 'sprints', 'milestones', 'risks'
-     * @return bool
+     * @param  string  $subModuleCode  e.g., 'projects', 'tasks', 'sprints', 'milestones', 'risks'
      */
     public function canAccessSubModule(mixed $user, string $subModuleCode): bool;
 
     /**
      * Check if user can perform action on a component.
      *
-     * @param mixed $user
-     * @param string $subModuleCode
-     * @param string $componentCode
-     * @param string $actionCode e.g., 'view', 'create', 'update', 'delete', 'assign', 'complete'
-     * @return bool
+     * @param  string  $actionCode  e.g., 'view', 'create', 'update', 'delete', 'assign', 'complete'
      */
     public function canPerformAction(
         mixed $user,
@@ -51,19 +42,12 @@ interface ProjectAuthorizationContract
     /**
      * Check if user is a project member with specific project role.
      *
-     * @param mixed $user
-     * @param int $projectId
-     * @param string|null $projectRole Optional specific project role to check
-     * @return bool
+     * @param  string|null  $projectRole  Optional specific project role to check
      */
     public function isProjectMember(mixed $user, int $projectId, ?string $projectRole = null): bool;
 
     /**
      * Check if user can manage project team.
-     *
-     * @param mixed $user
-     * @param int $projectId
-     * @return bool
      */
     public function canManageTeam(mixed $user, int $projectId): bool;
 
@@ -71,7 +55,6 @@ interface ProjectAuthorizationContract
      * Get all accessible project IDs for a user.
      * Based on HRMAC access + project membership.
      *
-     * @param mixed $user
      * @return array<int>
      */
     public function getAccessibleProjectIds(mixed $user): array;

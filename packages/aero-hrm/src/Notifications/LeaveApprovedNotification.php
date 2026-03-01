@@ -40,6 +40,7 @@ class LeaveApprovedNotification extends BaseHrmNotification
         if (is_string($date)) {
             return Carbon::parse($date);
         }
+
         return null;
     }
 
@@ -61,7 +62,7 @@ class LeaveApprovedNotification extends BaseHrmNotification
             ->line("From: {$fromDate?->format('d M Y')}")
             ->line("To: {$toDate?->format('d M Y')}")
             ->line("Duration: {$days} day(s)")
-            ->line('Approved at: ' . ($this->leave->approved_at?->format('d M Y H:i') ?? now()->format('d M Y H:i')))
+            ->line('Approved at: '.($this->leave->approved_at?->format('d M Y H:i') ?? now()->format('d M Y H:i')))
             ->action('View Leave Details', url("/hrm/leaves/{$this->leave->id}"))
             ->line('Enjoy your time off!');
     }

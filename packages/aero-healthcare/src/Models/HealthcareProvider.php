@@ -2,10 +2,10 @@
 
 namespace Aero\Healthcare\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class HealthcareProvider extends Model
 {
@@ -18,7 +18,7 @@ class HealthcareProvider extends Model
         'specialty', 'license_number', 'license_state', 'license_expiry',
         'npi_number', 'phone', 'email', 'department_id', 'is_accepting_patients',
         'consultation_fee', 'availability_schedule', 'qualifications',
-        'status', 'created_by'
+        'status', 'created_by',
     ];
 
     protected $casts = [
@@ -33,13 +33,19 @@ class HealthcareProvider extends Model
     ];
 
     const TITLE_DR = 'Dr.';
+
     const TITLE_NURSE = 'Nurse';
+
     const TITLE_PA = 'Physician Assistant';
+
     const TITLE_NP = 'Nurse Practitioner';
 
     const STATUS_ACTIVE = 'active';
+
     const STATUS_INACTIVE = 'inactive';
+
     const STATUS_SUSPENDED = 'suspended';
+
     const STATUS_RETIRED = 'retired';
 
     public function user()
@@ -79,7 +85,7 @@ class HealthcareProvider extends Model
 
     public function getFullNameAttribute()
     {
-        return trim(($this->title ? $this->title . ' ' : '') . $this->first_name . ' ' . $this->last_name);
+        return trim(($this->title ? $this->title.' ' : '').$this->first_name.' '.$this->last_name);
     }
 
     public function isLicenseValid()
@@ -95,28 +101,28 @@ class HealthcareProvider extends Model
     public function getUpcomingAppointmentsAttribute()
     {
         return $this->appointments()
-                   ->where('appointment_date', '>=', now()->toDateString())
-                   ->where('status', Appointment::STATUS_SCHEDULED)
-                   ->count();
+            ->where('appointment_date', '>=', now()->toDateString())
+            ->where('status', Appointment::STATUS_SCHEDULED)
+            ->count();
     }
 
     public function isAvailable($date, $time)
     {
-        if (!$this->availability_schedule) {
+        if (! $this->availability_schedule) {
             return false;
         }
-        
+
         $dayOfWeek = date('N', strtotime($date)); // 1 = Monday, 7 = Sunday
         $schedule = $this->availability_schedule[strtolower(date('l', strtotime($date)))] ?? null;
-        
-        if (!$schedule || !$schedule['available']) {
+
+        if (! $schedule || ! $schedule['available']) {
             return false;
         }
-        
+
         $requestedTime = strtotime($time);
         $startTime = strtotime($schedule['start_time']);
         $endTime = strtotime($schedule['end_time']);
-        
+
         return $requestedTime >= $startTime && $requestedTime <= $endTime;
     }
 

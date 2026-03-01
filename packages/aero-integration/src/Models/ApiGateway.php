@@ -2,10 +2,10 @@
 
 namespace Aero\Integration\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class ApiGateway extends Model
 {
@@ -18,7 +18,7 @@ class ApiGateway extends Model
         'rate_limiting_enabled', 'rate_limit', 'rate_limit_window',
         'allowed_origins', 'allowed_methods', 'allowed_headers',
         'request_logging_enabled', 'response_caching_enabled', 'cache_ttl',
-        'is_active', 'created_by'
+        'is_active', 'created_by',
     ];
 
     protected $casts = [
@@ -59,7 +59,7 @@ class ApiGateway extends Model
     public function getRequestStatsAttribute()
     {
         $today = now()->startOfDay();
-        
+
         return [
             'today' => $this->requests()->where('created_at', '>=', $today)->count(),
             'this_week' => $this->requests()->where('created_at', '>=', now()->startOfWeek())->count(),
@@ -73,8 +73,9 @@ class ApiGateway extends Model
         if ($total === 0) {
             return 0;
         }
-        
+
         $errors = $this->requests()->where('response_status', '>=', 400)->count();
+
         return round(($errors / $total) * 100, 2);
     }
 

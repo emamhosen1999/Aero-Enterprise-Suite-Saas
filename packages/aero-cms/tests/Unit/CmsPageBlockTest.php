@@ -14,18 +14,18 @@ class CmsPageBlockTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->artisan('migrate', [
             '--path' => 'packages/aero-cms/database/migrations',
             '--realpath' => true,
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_create_a_block()
     {
         $page = CmsPage::factory()->create();
-        
+
         $block = CmsPageBlock::create([
             'page_id' => $page->id,
             'block_type' => 'hero_standard',
@@ -39,7 +39,7 @@ class CmsPageBlockTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_belongs_to_a_page()
     {
         $page = CmsPage::factory()->create();
@@ -49,11 +49,11 @@ class CmsPageBlockTest extends TestCase
         $this->assertEquals($page->id, $block->page->id);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_casts_content_to_array()
     {
         $page = CmsPage::factory()->create();
-        
+
         $block = CmsPageBlock::create([
             'page_id' => $page->id,
             'block_type' => 'feature_grid',
@@ -71,11 +71,11 @@ class CmsPageBlockTest extends TestCase
         $this->assertCount(2, $block->content['features']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_casts_settings_to_array()
     {
         $page = CmsPage::factory()->create();
-        
+
         $block = CmsPageBlock::factory()->create([
             'page_id' => $page->id,
             'settings' => [
@@ -88,11 +88,11 @@ class CmsPageBlockTest extends TestCase
         $this->assertEquals('dark', $block->settings['background']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_defaults_to_visible()
     {
         $page = CmsPage::factory()->create();
-        
+
         $block = CmsPageBlock::create([
             'page_id' => $page->id,
             'block_type' => 'text_block',
@@ -102,16 +102,16 @@ class CmsPageBlockTest extends TestCase
         $this->assertTrue($block->is_visible);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_scopes_by_visibility()
     {
         $page = CmsPage::factory()->create();
-        
+
         CmsPageBlock::factory()->count(3)->create([
             'page_id' => $page->id,
             'is_visible' => true,
         ]);
-        
+
         CmsPageBlock::factory()->count(2)->create([
             'page_id' => $page->id,
             'is_visible' => false,
@@ -124,16 +124,16 @@ class CmsPageBlockTest extends TestCase
         $this->assertCount(2, $hiddenBlocks);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_scopes_by_block_type()
     {
         $page = CmsPage::factory()->create();
-        
+
         CmsPageBlock::factory()->count(2)->create([
             'page_id' => $page->id,
             'block_type' => 'hero_standard',
         ]);
-        
+
         CmsPageBlock::factory()->count(3)->create([
             'page_id' => $page->id,
             'block_type' => 'text_block',
@@ -146,11 +146,11 @@ class CmsPageBlockTest extends TestCase
         $this->assertCount(3, $textBlocks);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_orders_by_order_column()
     {
         $page = CmsPage::factory()->create();
-        
+
         CmsPageBlock::factory()->create(['page_id' => $page->id, 'order' => 2]);
         CmsPageBlock::factory()->create(['page_id' => $page->id, 'order' => 0]);
         CmsPageBlock::factory()->create(['page_id' => $page->id, 'order' => 1]);
@@ -162,11 +162,11 @@ class CmsPageBlockTest extends TestCase
         $this->assertEquals(2, $orderedBlocks[2]->order);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_duplicate_block()
     {
         $page = CmsPage::factory()->create();
-        
+
         $original = CmsPageBlock::factory()->create([
             'page_id' => $page->id,
             'block_type' => 'pricing_cards',
@@ -182,11 +182,11 @@ class CmsPageBlockTest extends TestCase
         $this->assertEquals($original->order + 1, $duplicate->order);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_gets_content_attribute_with_default()
     {
         $page = CmsPage::factory()->create();
-        
+
         $block = CmsPageBlock::factory()->create([
             'page_id' => $page->id,
             'block_type' => 'hero_standard',
@@ -198,11 +198,11 @@ class CmsPageBlockTest extends TestCase
         $this->assertEquals('default', $block->getContentValue('nonexistent', 'default'));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_sets_content_attribute()
     {
         $page = CmsPage::factory()->create();
-        
+
         $block = CmsPageBlock::factory()->create([
             'page_id' => $page->id,
             'content' => ['title' => 'Original'],
@@ -217,11 +217,11 @@ class CmsPageBlockTest extends TestCase
         $this->assertEquals('New Value', $freshBlock->content['newKey']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_merge_content()
     {
         $page = CmsPage::factory()->create();
-        
+
         $block = CmsPageBlock::factory()->create([
             'page_id' => $page->id,
             'content' => ['title' => 'Original', 'description' => 'Keep this'],

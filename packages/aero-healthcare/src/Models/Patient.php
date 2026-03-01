@@ -2,10 +2,10 @@
 
 namespace Aero\Healthcare\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class Patient extends Model
 {
@@ -18,7 +18,7 @@ class Patient extends Model
         'gender', 'ssn_encrypted', 'phone', 'email', 'emergency_contact',
         'address', 'insurance_primary_id', 'insurance_secondary_id',
         'primary_provider_id', 'medical_history', 'allergies', 'medications',
-        'status', 'notes', 'created_by'
+        'status', 'notes', 'created_by',
     ];
 
     protected $casts = [
@@ -37,13 +37,19 @@ class Patient extends Model
     ];
 
     const GENDER_MALE = 'male';
+
     const GENDER_FEMALE = 'female';
+
     const GENDER_OTHER = 'other';
+
     const GENDER_PREFER_NOT_TO_SAY = 'prefer_not_to_say';
 
     const STATUS_ACTIVE = 'active';
+
     const STATUS_INACTIVE = 'inactive';
+
     const STATUS_DECEASED = 'deceased';
+
     const STATUS_TRANSFERRED = 'transferred';
 
     public function user()
@@ -98,7 +104,7 @@ class Patient extends Model
 
     public function getFullNameAttribute()
     {
-        return trim($this->first_name . ' ' . $this->last_name);
+        return trim($this->first_name.' '.$this->last_name);
     }
 
     public function getAgeAttribute()
@@ -108,32 +114,38 @@ class Patient extends Model
 
     public function getFormattedAddressAttribute()
     {
-        if (!$this->address) {
+        if (! $this->address) {
             return null;
         }
-        
+
         $addr = $this->address;
         $lines = [];
-        
+
         if (isset($addr['street'])) {
             $lines[] = $addr['street'];
         }
-        
+
         $cityState = [];
-        if (isset($addr['city'])) $cityState[] = $addr['city'];
-        if (isset($addr['state'])) $cityState[] = $addr['state'];
-        if (isset($addr['zip'])) $cityState[] = $addr['zip'];
-        
+        if (isset($addr['city'])) {
+            $cityState[] = $addr['city'];
+        }
+        if (isset($addr['state'])) {
+            $cityState[] = $addr['state'];
+        }
+        if (isset($addr['zip'])) {
+            $cityState[] = $addr['zip'];
+        }
+
         if ($cityState) {
             $lines[] = implode(', ', $cityState);
         }
-        
+
         return implode('\n', $lines);
     }
 
     public function hasAllergies()
     {
-        return !empty($this->allergies);
+        return ! empty($this->allergies);
     }
 
     public function isMinor()

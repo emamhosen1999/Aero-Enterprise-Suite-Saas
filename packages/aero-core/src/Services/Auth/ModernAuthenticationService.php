@@ -178,7 +178,7 @@ class ModernAuthenticationService
         // Generate cryptographically secure token and code
         $token = Str::random(64);
         $verificationCode = $this->generateCryptoSecureCode(8); // 8-digit instead of 6
-        $hmacToken = hash_hmac('sha256', $token . $email, config('app.key'));
+        $hmacToken = hash_hmac('sha256', $token.$email, config('app.key'));
 
         DB::table('password_reset_tokens_secure')->insert([
             'email' => $email,
@@ -219,9 +219,10 @@ class ModernAuthenticationService
 
         // Verify HMAC token if provided (backwards compatibility)
         if ($hmacToken && isset($record->hmac_token)) {
-            $expectedHmac = hash_hmac('sha256', $token . $email, config('app.key'));
+            $expectedHmac = hash_hmac('sha256', $token.$email, config('app.key'));
             if (! hash_equals($expectedHmac, $hmacToken)) {
                 $this->incrementPasswordResetAttempts($record->id);
+
                 return false;
             }
         }
@@ -229,11 +230,13 @@ class ModernAuthenticationService
         // Verify verification code (now hashed)
         if (! Hash::check($verificationCode, $record->verification_code)) {
             $this->incrementPasswordResetAttempts($record->id);
+
             return false;
         }
 
         if (! Hash::check($token, $record->token)) {
             $this->incrementPasswordResetAttempts($record->id);
+
             return false;
         }
 
@@ -315,11 +318,12 @@ class ModernAuthenticationService
     {
         try {
             $geolocationService = app(\Aero\Core\Services\Auth\IpGeolocationService::class);
+
             return $geolocationService->getLocation($ip);
         } catch (\Exception $e) {
             Log::error('Geolocation service failed', [
                 'ip' => $ip,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             // For localhost/development
@@ -484,13 +488,13 @@ class ModernAuthenticationService
     {
         $cacheKey = "password_reset_attempts:{$email}:{$ip}";
         $attempts = cache()->get($cacheKey, 0);
-        
+
         if ($attempts > 0) {
             // Progressive delay: 2^attempts seconds, max 5 minutes (300 seconds)
             $delay = min(pow(2, $attempts), 300);
             sleep($delay);
         }
-        
+
         // Increment attempts and cache for 1 hour
         cache()->put($cacheKey, $attempts + 1, now()->addHour());
     }
@@ -501,7 +505,8 @@ class ModernAuthenticationService
     protected function generateCryptoSecureCode(int $length = 8): string
     {
         $max = str_repeat('9', $length);
-        return str_pad(random_int(0, (int)$max), $length, '0', STR_PAD_LEFT);
+
+        return str_pad(random_int(0, (int) $max), $length, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -512,7 +517,7 @@ class ModernAuthenticationService
         DB::table('password_reset_tokens_secure')
             ->where('id', $recordId)
             ->increment('attempts');
-            
+
         // Add exponential delay based on attempts
         $record = DB::table('password_reset_tokens_secure')->find($recordId);
         if ($record && $record->attempts > 1) {

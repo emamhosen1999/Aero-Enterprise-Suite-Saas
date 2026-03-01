@@ -56,13 +56,12 @@ class DashboardRegistry
     /**
      * Register a dashboard.
      *
-     * @param string $routeName The Laravel route name (e.g., 'hrm.dashboard')
-     * @param string $label Human-readable label for the dashboard
-     * @param string $module Module code that owns this dashboard
-     * @param string $description Brief description of the dashboard
-     * @param string|null $icon Optional icon class
-     * @param string|null $requiredPermission Permission required to access this dashboard
-     * @return self
+     * @param  string  $routeName  The Laravel route name (e.g., 'hrm.dashboard')
+     * @param  string  $label  Human-readable label for the dashboard
+     * @param  string  $module  Module code that owns this dashboard
+     * @param  string  $description  Brief description of the dashboard
+     * @param  string|null  $icon  Optional icon class
+     * @param  string|null  $requiredPermission  Permission required to access this dashboard
      */
     public function register(
         string $routeName,
@@ -87,8 +86,7 @@ class DashboardRegistry
     /**
      * Register multiple dashboards at once.
      *
-     * @param array<array{route: string, label: string, module: string, description?: string, icon?: string, requiredPermission?: string}> $dashboards
-     * @return self
+     * @param  array<array{route: string, label: string, module: string, description?: string, icon?: string, requiredPermission?: string}>  $dashboards
      */
     public function registerMany(array $dashboards): self
     {
@@ -145,7 +143,7 @@ class DashboardRegistry
             $module = $dashboard['module'];
             $categoryLabel = $this->categories[$module] ?? ucfirst($module);
 
-            if (!isset($grouped[$categoryLabel])) {
+            if (! isset($grouped[$categoryLabel])) {
                 $grouped[$categoryLabel] = [];
             }
 
@@ -162,7 +160,7 @@ class DashboardRegistry
      * - Super Administrator bypasses all checks
      * - requiredPermission in 'module.submodule' format is checked via RoleModuleAccessService
      *
-     * @param \Aero\Core\Models\User|null $user Optional user to filter by permissions
+     * @param  \Aero\Core\Models\User|null  $user  Optional user to filter by permissions
      * @return array<array{key: string, label: string, description: string, module: string}>
      */
     public function getDashboardOptions($user = null): array
@@ -178,14 +176,14 @@ class DashboardRegistry
         foreach ($this->dashboards as $routeName => $dashboard) {
             // Check permission if user provided and dashboard has requirement
             // Super Administrator bypasses all permission checks
-            if (!$isSuperAdmin && $user && $dashboard['requiredPermission']) {
-                if (!$this->userCanAccessDashboard($user, $dashboard['requiredPermission'], $hrmacService)) {
+            if (! $isSuperAdmin && $user && $dashboard['requiredPermission']) {
+                if (! $this->userCanAccessDashboard($user, $dashboard['requiredPermission'], $hrmacService)) {
                     continue;
                 }
             }
 
             // Check if route exists
-            if (!Route::has($routeName)) {
+            if (! Route::has($routeName)) {
                 continue;
             }
 
@@ -206,29 +204,28 @@ class DashboardRegistry
      *
      * Uses HRMAC service if available, falls back to Spatie permission check.
      *
-     * @param mixed $user The user to check
-     * @param string $requiredPermission Permission in 'module.submodule' format
-     * @param mixed $hrmacService The HRMAC service instance (or null)
-     * @return bool
+     * @param  mixed  $user  The user to check
+     * @param  string  $requiredPermission  Permission in 'module.submodule' format
+     * @param  mixed  $hrmacService  The HRMAC service instance (or null)
      */
     protected function userCanAccessDashboard($user, string $requiredPermission, $hrmacService): bool
     {
         // Parse the permission - format: 'module.submodule' (e.g., 'hrm.dashboard')
         $parts = explode('.', $requiredPermission, 2);
-        
+
         if (count($parts) === 2 && $hrmacService) {
             // Use HRMAC service for module.submodule check
             $moduleCode = $parts[0];
             $subModuleCode = $parts[1];
-            
+
             return $hrmacService->userCanAccessSubModule($user, $moduleCode, $subModuleCode);
         }
-        
+
         // Fallback to Spatie permission check
         if (method_exists($user, 'can')) {
             return $user->can($requiredPermission);
         }
-        
+
         return false;
     }
 
@@ -241,18 +238,18 @@ class DashboardRegistry
     {
         // Try to get the HRMAC interface
         $interfaceClass = 'Aero\\HRMAC\\Contracts\\RoleModuleAccessInterface';
-        
+
         if (interface_exists($interfaceClass) && app()->bound($interfaceClass)) {
             return app($interfaceClass);
         }
-        
+
         // Try the service class directly
         $serviceClass = 'Aero\\HRMAC\\Services\\RoleModuleAccessService';
-        
+
         if (class_exists($serviceClass) && app()->bound($serviceClass)) {
             return app($serviceClass);
         }
-        
+
         return null;
     }
 
@@ -261,12 +258,11 @@ class DashboardRegistry
      *
      * Super Administrator bypasses all permission checks.
      *
-     * @param mixed $user
-     * @return bool
+     * @param  mixed  $user
      */
     protected function isSuperAdmin($user): bool
     {
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -282,7 +278,7 @@ class DashboardRegistry
                 'super-admin',
                 'tenant_super_administrator',
             ]);
-            
+
             return $user->hasRole($superAdminRoles);
         }
 
@@ -291,17 +287,14 @@ class DashboardRegistry
 
     /**
      * Get the URL for a dashboard route.
-     *
-     * @param string $routeName
-     * @return string|null
      */
     public function getUrl(string $routeName): ?string
     {
-        if (!$this->has($routeName)) {
+        if (! $this->has($routeName)) {
             return null;
         }
 
-        if (!Route::has($routeName)) {
+        if (! Route::has($routeName)) {
             return null;
         }
 

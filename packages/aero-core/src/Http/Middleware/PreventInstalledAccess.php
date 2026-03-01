@@ -36,12 +36,10 @@ class PreventInstalledAccess
 
     /**
      * Check if the system is installed using file-based detection.
-     * 
+     *
      * This is the ONLY authoritative method for checking installation status.
      * Never use database queries for installation detection as they can fail
      * before the database is configured.
-     * 
-     * @return bool
      */
     protected function isInstalled(): bool
     {

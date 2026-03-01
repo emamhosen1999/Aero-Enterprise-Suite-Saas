@@ -5,7 +5,6 @@ namespace Aero\HRM\Notifications\Attendance;
 use Aero\HRM\Models\Attendance;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
 
@@ -22,17 +21,17 @@ class AttendancePunchedInNotification extends Notification implements ShouldQueu
     public function via($notifiable): array
     {
         $channels = ['database'];
-        
+
         if ($this->isChannelEnabled('push', $notifiable)) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels;
     }
 
     public function toArray($notifiable): array
     {
-        $message = $this->isLate 
+        $message = $this->isLate
             ? "⚠️ You punched in late at {$this->attendance->punch_in->format('h:i A')}"
             : "✓ Successfully punched in at {$this->attendance->punch_in->format('h:i A')}";
 
@@ -50,7 +49,7 @@ class AttendancePunchedInNotification extends Notification implements ShouldQueu
     public function toBroadcast($notifiable): array
     {
         $title = $this->isLate ? 'Late Punch-In' : 'Punch-In Confirmed';
-        $body = $this->isLate 
+        $body = $this->isLate
             ? "You punched in late at {$this->attendance->punch_in->format('h:i A')}"
             : "Successfully punched in at {$this->attendance->punch_in->format('h:i A')}";
 
@@ -67,15 +66,15 @@ class AttendancePunchedInNotification extends Notification implements ShouldQueu
         $globalSetting = DB::table('notification_settings')
             ->where('key', "channels.{$channel}.enabled")
             ->first();
-        
-        if (!$globalSetting || !json_decode($globalSetting->value)) {
+
+        if (! $globalSetting || ! json_decode($globalSetting->value)) {
             return false;
         }
-        
+
         if (method_exists($notifiable, 'prefersNotificationChannel')) {
             return $notifiable->prefersNotificationChannel($channel, 'attendance.punched_in');
         }
-        
+
         return true;
     }
 }

@@ -2,10 +2,10 @@
 
 namespace Aero\Healthcare\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class InsuranceClaim extends Model
 {
@@ -17,7 +17,7 @@ class InsuranceClaim extends Model
         'billing_id', 'insurance_provider_id', 'claim_number', 'claim_type',
         'submitted_amount', 'approved_amount', 'paid_amount', 'denied_amount',
         'patient_responsibility', 'status', 'submitted_at', 'processed_at',
-        'denial_reason', 'appeal_deadline', 'notes', 'created_by'
+        'denial_reason', 'appeal_deadline', 'notes', 'created_by',
     ];
 
     protected $casts = [
@@ -35,17 +35,27 @@ class InsuranceClaim extends Model
     ];
 
     const TYPE_PROFESSIONAL = 'professional';
+
     const TYPE_INSTITUTIONAL = 'institutional';
+
     const TYPE_DENTAL = 'dental';
+
     const TYPE_VISION = 'vision';
 
     const STATUS_DRAFT = 'draft';
+
     const STATUS_SUBMITTED = 'submitted';
+
     const STATUS_UNDER_REVIEW = 'under_review';
+
     const STATUS_APPROVED = 'approved';
+
     const STATUS_PARTIALLY_APPROVED = 'partially_approved';
+
     const STATUS_DENIED = 'denied';
+
     const STATUS_PAID = 'paid';
+
     const STATUS_APPEALED = 'appealed';
 
     public function billing()
@@ -80,8 +90,8 @@ class InsuranceClaim extends Model
 
     public function canBeAppealed()
     {
-        return $this->isDenied() && 
-               $this->appeal_deadline && 
+        return $this->isDenied() &&
+               $this->appeal_deadline &&
                $this->appeal_deadline >= now()->toDateString();
     }
 
@@ -90,7 +100,7 @@ class InsuranceClaim extends Model
         if ($this->submitted_amount == 0) {
             return 0;
         }
-        
+
         return round(($this->approved_amount / $this->submitted_amount) * 100, 2);
     }
 
@@ -99,7 +109,7 @@ class InsuranceClaim extends Model
         if ($this->submitted_at && $this->processed_at) {
             return $this->submitted_at->diffInDays($this->processed_at);
         }
-        
+
         return null;
     }
 

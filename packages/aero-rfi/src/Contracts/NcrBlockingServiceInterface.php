@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Aero\Rfi\Contracts;
 
-use Illuminate\Support\Collection;
-
 /**
  * NCR Blocking Service Interface
  *
@@ -18,20 +16,14 @@ interface NcrBlockingServiceInterface
     /**
      * Get NCRs that block work in a given chainage range.
      *
-     * @param int $projectId
-     * @param float $startChainage Start chainage in meters
-     * @param float $endChainage End chainage in meters
+     * @param  float  $startChainage  Start chainage in meters
+     * @param  float  $endChainage  End chainage in meters
      * @return array Array of NCR data that blocks the range
      */
     public function getBlockingNcrsInRange(int $projectId, float $startChainage, float $endChainage): array;
 
     /**
      * Check if there are any blocking NCRs in a chainage range.
-     *
-     * @param int $projectId
-     * @param float $startChainage
-     * @param float $endChainage
-     * @return bool
      */
     public function hasBlockingNcrs(int $projectId, float $startChainage, float $endChainage): bool;
 }

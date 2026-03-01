@@ -2,10 +2,10 @@
 
 namespace Aero\RealEstate\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class PropertyTenant extends Model
 {
@@ -17,7 +17,7 @@ class PropertyTenant extends Model
         'tenant_number', 'user_id', 'first_name', 'last_name', 'email',
         'phone', 'mobile_phone', 'emergency_contact_name', 'emergency_contact_phone',
         'employer', 'monthly_income', 'credit_score', 'background_check_date',
-        'background_check_status', 'references', 'status', 'created_by'
+        'background_check_status', 'references', 'status', 'created_by',
     ];
 
     protected $casts = [
@@ -30,13 +30,19 @@ class PropertyTenant extends Model
     ];
 
     const STATUS_ACTIVE = 'active';
+
     const STATUS_INACTIVE = 'inactive';
+
     const STATUS_PENDING_APPROVAL = 'pending_approval';
+
     const STATUS_DECLINED = 'declined';
+
     const STATUS_EVICTED = 'evicted';
 
     const BACKGROUND_APPROVED = 'approved';
+
     const BACKGROUND_PENDING = 'pending';
+
     const BACKGROUND_FAILED = 'failed';
 
     public function user()
@@ -66,21 +72,22 @@ class PropertyTenant extends Model
 
     public function getFullNameAttribute()
     {
-        return trim($this->first_name . ' ' . $this->last_name);
+        return trim($this->first_name.' '.$this->last_name);
     }
 
     public function getCurrentLeaseAttribute()
     {
         return $this->leases()
-                   ->where('status', LeaseAgreement::STATUS_ACTIVE)
-                   ->where('start_date', '<=', now())
-                   ->where('end_date', '>=', now())
-                   ->first();
+            ->where('status', LeaseAgreement::STATUS_ACTIVE)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->first();
     }
 
     public function getCurrentPropertyAttribute()
     {
         $currentLease = $this->getCurrentLeaseAttribute();
+
         return $currentLease ? $currentLease->property : null;
     }
 
@@ -96,9 +103,11 @@ class PropertyTenant extends Model
 
     public function getCreditRatingAttribute()
     {
-        if (!$this->credit_score) return 'Unknown';
-        
-        return match(true) {
+        if (! $this->credit_score) {
+            return 'Unknown';
+        }
+
+        return match (true) {
             $this->credit_score >= 800 => 'Excellent',
             $this->credit_score >= 740 => 'Very Good',
             $this->credit_score >= 670 => 'Good',
@@ -110,10 +119,10 @@ class PropertyTenant extends Model
     public function getIncomeToRentRatioAttribute()
     {
         $currentLease = $this->getCurrentLeaseAttribute();
-        if (!$currentLease || !$this->monthly_income) {
+        if (! $currentLease || ! $this->monthly_income) {
             return null;
         }
-        
+
         return round(($currentLease->monthly_rent / $this->monthly_income) * 100, 2);
     }
 
@@ -126,6 +135,7 @@ class PropertyTenant extends Model
     {
         $totalDue = $this->rentPayments()->sum('amount_due');
         $totalPaid = $this->rentPayments()->sum('amount_paid');
+
         return $totalDue - $totalPaid;
     }
 
@@ -136,10 +146,10 @@ class PropertyTenant extends Model
 
     public function scopeWithActiveLease($query)
     {
-        return $query->whereHas('leases', function($q) {
+        return $query->whereHas('leases', function ($q) {
             $q->where('status', LeaseAgreement::STATUS_ACTIVE)
-              ->where('start_date', '<=', now())
-              ->where('end_date', '>=', now());
+                ->where('start_date', '<=', now())
+                ->where('end_date', '>=', now());
         });
     }
 

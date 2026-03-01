@@ -16,7 +16,7 @@ class Product extends Model
         'sku', 'name', 'description', 'product_type', 'make_or_buy',
         'standard_cost', 'lead_time_days', 'safety_stock', 'reorder_point',
         'unit_of_measure', 'category_id', 'is_active', 'drawing_number',
-        'revision', 'weight', 'dimensions'
+        'revision', 'weight', 'dimensions',
     ];
 
     protected $casts = [
@@ -31,13 +31,19 @@ class Product extends Model
     ];
 
     const TYPE_RAW_MATERIAL = 'raw_material';
+
     const TYPE_COMPONENT = 'component';
+
     const TYPE_SUBASSEMBLY = 'subassembly';
+
     const TYPE_FINISHED_GOOD = 'finished_good';
+
     const TYPE_SERVICE = 'service';
 
     const MAKE_OR_BUY_MAKE = 'make';
+
     const MAKE_OR_BUY_BUY = 'buy';
+
     const MAKE_OR_BUY_BOTH = 'both';
 
     public function category()

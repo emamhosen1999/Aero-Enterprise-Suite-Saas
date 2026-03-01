@@ -37,7 +37,8 @@ class RfiImportService
         $path = $request->file('file')->store('temp');
 
         // Use a simple array import since we don't have a dedicated import class
-        $importedSheets = Excel::toArray(new class implements \Maatwebsite\Excel\Concerns\ToArray {
+        $importedSheets = Excel::toArray(new class implements \Maatwebsite\Excel\Concerns\ToArray
+        {
             public function array(array $array): array
             {
                 return $array;
@@ -258,7 +259,8 @@ class RfiImportService
         }
 
         // Create Excel file with template data
-        Excel::store(new class($templateData) implements \Maatwebsite\Excel\Concerns\FromArray {
+        Excel::store(new class($templateData) implements \Maatwebsite\Excel\Concerns\FromArray
+        {
             private $data;
 
             public function __construct($data)

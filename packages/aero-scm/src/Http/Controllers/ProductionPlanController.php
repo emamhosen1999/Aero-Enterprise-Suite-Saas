@@ -2,12 +2,12 @@
 
 namespace Aero\Scm\Http\Controllers;
 
-use Illuminate\Routing\Controller;
-use App\Models\Tenant\IMS\InventoryItem;
-use App\Models\Tenant\SCM$1
-use App\Models\Tenant\SCM$1
 use Aero\Core\Models\User;
+use Aero\Ims\Models\InventoryItem;
+use Aero\Scm\Models\ProductionPlan;
+use Aero\Scm\Models\ProductionPlanMaterial;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;

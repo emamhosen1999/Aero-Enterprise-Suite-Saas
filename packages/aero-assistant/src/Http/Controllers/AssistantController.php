@@ -3,8 +3,8 @@
 namespace Aero\Assistant\Http\Controllers;
 
 use Aero\Assistant\Services\AssistantService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Validator;
 
@@ -68,7 +68,7 @@ class AssistantController extends Controller
     {
         $conversation = $this->assistantService->getConversation($conversationId);
 
-        if (!$conversation) {
+        if (! $conversation) {
             return response()->json([
                 'success' => false,
                 'error' => 'Conversation not found',
@@ -88,7 +88,7 @@ class AssistantController extends Controller
     {
         $success = $this->assistantService->archiveConversation($conversationId);
 
-        if (!$success) {
+        if (! $success) {
             return response()->json([
                 'success' => false,
                 'error' => 'Conversation not found',
@@ -108,7 +108,7 @@ class AssistantController extends Controller
     {
         $success = $this->assistantService->deleteConversation($conversationId);
 
-        if (!$success) {
+        if (! $success) {
             return response()->json([
                 'success' => false,
                 'error' => 'Conversation not found',

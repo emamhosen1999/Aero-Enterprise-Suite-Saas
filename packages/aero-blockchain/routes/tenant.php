@@ -1,10 +1,10 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use Aero\Blockchain\Http\Controllers\Tenant\TenantBlockchainController;
-use Aero\Blockchain\Http\Controllers\Tenant\TenantWalletController;
-use Aero\Blockchain\Http\Controllers\Tenant\TenantTransactionController;
 use Aero\Blockchain\Http\Controllers\Tenant\TenantTokenController;
+use Aero\Blockchain\Http\Controllers\Tenant\TenantTransactionController;
+use Aero\Blockchain\Http\Controllers\Tenant\TenantWalletController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,12 +17,12 @@ use Aero\Blockchain\Http\Controllers\Tenant\TenantTokenController;
 */
 
 Route::middleware(['web', 'auth:web', 'tenant'])->prefix('blockchain')->name('tenant.blockchain.')->group(function () {
-    
+
     // Tenant Blockchain Dashboard
     Route::get('/', function () {
         return inertia('Tenant/Blockchain/Dashboard');
     })->name('dashboard');
-    
+
     // Tenant Wallets
     Route::prefix('wallets')->name('wallets.')->group(function () {
         Route::get('/', [TenantWalletController::class, 'index'])->name('index');
@@ -32,13 +32,13 @@ Route::middleware(['web', 'auth:web', 'tenant'])->prefix('blockchain')->name('te
         Route::get('/{wallet}/edit', [TenantWalletController::class, 'edit'])->name('edit');
         Route::put('/{wallet}', [TenantWalletController::class, 'update'])->name('update');
         Route::delete('/{wallet}', [TenantWalletController::class, 'destroy'])->name('destroy');
-        
+
         // Tenant wallet operations
         Route::get('/{wallet}/transactions', [TenantWalletController::class, 'transactions'])->name('transactions');
         Route::get('/{wallet}/tokens', [TenantWalletController::class, 'tokens'])->name('tokens');
         Route::post('/{wallet}/transfer', [TenantWalletController::class, 'transfer'])->name('transfer');
     });
-    
+
     // Tenant Transactions
     Route::prefix('transactions')->name('transactions.')->group(function () {
         Route::get('/', [TenantTransactionController::class, 'index'])->name('index');
@@ -46,14 +46,14 @@ Route::middleware(['web', 'auth:web', 'tenant'])->prefix('blockchain')->name('te
         Route::post('/', [TenantTransactionController::class, 'store'])->name('store');
         Route::get('/{transaction}', [TenantTransactionController::class, 'show'])->name('show');
     });
-    
+
     // Tenant Tokens
     Route::prefix('tokens')->name('tokens.')->group(function () {
         Route::get('/', [TenantTokenController::class, 'index'])->name('index');
         Route::get('/{token}', [TenantTokenController::class, 'show'])->name('show');
         Route::get('/{token}/transfers', [TenantTokenController::class, 'transfers'])->name('transfers');
     });
-    
+
     // Tenant Analytics
     Route::get('/analytics', [TenantBlockchainController::class, 'analytics'])->name('analytics');
     Route::get('/portfolio', [TenantBlockchainController::class, 'portfolio'])->name('portfolio');

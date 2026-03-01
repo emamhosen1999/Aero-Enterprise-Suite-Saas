@@ -2,10 +2,10 @@
 
 namespace Aero\Commerce\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class Customer extends Model
 {
@@ -17,7 +17,7 @@ class Customer extends Model
         'customer_number', 'user_id', 'first_name', 'last_name', 'email',
         'phone', 'date_of_birth', 'gender', 'customer_group_id',
         'is_active', 'email_verified_at', 'phone_verified_at',
-        'last_login_at', 'registration_source', 'notes'
+        'last_login_at', 'registration_source', 'notes',
     ];
 
     protected $casts = [
@@ -31,8 +31,11 @@ class Customer extends Model
     ];
 
     const GENDER_MALE = 'male';
+
     const GENDER_FEMALE = 'female';
+
     const GENDER_OTHER = 'other';
+
     const GENDER_PREFER_NOT_TO_SAY = 'prefer_not_to_say';
 
     public function user()
@@ -72,7 +75,7 @@ class Customer extends Model
 
     public function getFullNameAttribute()
     {
-        return trim($this->first_name . ' ' . $this->last_name);
+        return trim($this->first_name.' '.$this->last_name);
     }
 
     public function getTotalOrdersAttribute()
@@ -90,12 +93,12 @@ class Customer extends Model
     public function getDefaultBillingAddressAttribute()
     {
         return $this->addresses()->where('type', CustomerAddress::TYPE_BILLING)
-                    ->where('is_default', true)->first();
+            ->where('is_default', true)->first();
     }
 
     public function getDefaultShippingAddressAttribute()
     {
         return $this->addresses()->where('type', CustomerAddress::TYPE_SHIPPING)
-                    ->where('is_default', true)->first();
+            ->where('is_default', true)->first();
     }
 }

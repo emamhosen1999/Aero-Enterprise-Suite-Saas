@@ -82,7 +82,7 @@ class ProgressPhoto extends Model
      */
     public function getUrlAttribute(): ?string
     {
-        if (!$this->file_path) {
+        if (! $this->file_path) {
             return null;
         }
 
@@ -94,7 +94,7 @@ class ProgressPhoto extends Model
      */
     public function getThumbnailUrlAttribute(): ?string
     {
-        if (!$this->thumbnail_path) {
+        if (! $this->thumbnail_path) {
             return $this->url; // Fallback to original
         }
 
@@ -106,18 +106,18 @@ class ProgressPhoto extends Model
      */
     public function getFileSizeHumanAttribute(): string
     {
-        if (!$this->file_size_bytes) {
+        if (! $this->file_size_bytes) {
             return 'Unknown';
         }
 
         $bytes = $this->file_size_bytes;
         $units = ['B', 'KB', 'MB', 'GB'];
-        
+
         for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
             $bytes /= 1024;
         }
 
-        return round($bytes, 2) . ' ' . $units[$i];
+        return round($bytes, 2).' '.$units[$i];
     }
 
     /**
@@ -133,7 +133,7 @@ class ProgressPhoto extends Model
      */
     public function getGoogleMapsUrlAttribute(): ?string
     {
-        if (!$this->has_gps) {
+        if (! $this->has_gps) {
             return null;
         }
 

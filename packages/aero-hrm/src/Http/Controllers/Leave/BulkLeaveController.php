@@ -2,10 +2,10 @@
 
 namespace Aero\HRM\Http\Controllers\Leave;
 
+use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Http\Requests\BulkLeaveRequest;
 use Aero\HRM\Http\Resources\LeaveResource;
 use Aero\HRM\Models\Department;
-use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Services\BulkLeaveService;
 use Aero\HRM\Services\LeaveQueryService;
 use Illuminate\Http\JsonResponse;

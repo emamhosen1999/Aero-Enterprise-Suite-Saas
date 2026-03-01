@@ -7,8 +7,8 @@ use Aero\Core\Models\Component;
 use Aero\Core\Models\Module;
 use Aero\Core\Models\SubModule;
 use Aero\Core\Models\User;
-use Closure;
 use Aero\Core\Support\TenantCache;
+use Closure;
 
 /**
  * Module Access Service
@@ -51,7 +51,7 @@ class ModuleAccessService
         }
 
         // Prefix the key with tags for manual grouping when tagging is not supported
-        $prefixedKey = 'module_access.' . implode('.', $tags) . '.' . $key;
+        $prefixedKey = 'module_access.'.implode('.', $tags).'.'.$key;
 
         return TenantCache::remember($prefixedKey, $ttl, $callback);
     }
@@ -73,6 +73,7 @@ class ModuleAccessService
         // The cache will naturally expire, or use TenantCache::flush() to clear all
         // In production, consider using Redis or Memcached for proper tag support
     }
+
     /**
      * Check if user can access a module.
      */
@@ -363,42 +364,46 @@ class ModuleAccessService
         // Permission format: module.hrm, submodule.hrm.employees, component.hrm.employees.list, action.hrm.employees.list.view
         $parts = explode('.', $permission);
         $type = $parts[0] ?? '';
-        
+
         // Get user's primary role
         $role = $user->roles->first();
-        if (!$role) {
+        if (! $role) {
             return false;
         }
-        
+
         // Use HRMAC's Role model methods for access check
         if (method_exists($role, 'hasFullAccess') && $role->hasFullAccess()) {
             return true;
         }
-        
+
         switch ($type) {
             case 'module':
                 $moduleCode = $parts[1] ?? '';
+
                 return $role->hasModuleAccess($moduleCode);
-                
+
             case 'submodule':
                 $moduleCode = $parts[1] ?? '';
                 $subModuleCode = $parts[2] ?? '';
+
                 return $role->hasSubModuleAccess($moduleCode, $subModuleCode);
-                
+
             case 'component':
                 $moduleCode = $parts[1] ?? '';
                 $subModuleCode = $parts[2] ?? '';
                 $componentCode = $parts[3] ?? '';
+
                 // Components are accessible if submodule is accessible
                 return $role->hasSubModuleAccess($moduleCode, $subModuleCode);
-                
+
             case 'action':
                 $moduleCode = $parts[1] ?? '';
                 $subModuleCode = $parts[2] ?? '';
                 $componentCode = $parts[3] ?? '';
                 $actionCode = $parts[4] ?? '';
+
                 return $role->hasActionAccess($moduleCode, $subModuleCode, $componentCode, $actionCode);
-                
+
             default:
                 return false;
         }

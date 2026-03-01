@@ -22,8 +22,6 @@ class ApplicationReceived extends BaseHrmEvent
 {
     /**
      * Create a new event instance.
-     *
-     * @param  JobApplication  $application
      */
     public function __construct(
         public JobApplication $application

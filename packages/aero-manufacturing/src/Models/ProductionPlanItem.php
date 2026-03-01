@@ -14,7 +14,7 @@ class ProductionPlanItem extends Model
     protected $fillable = [
         'production_plan_id', 'product_id', 'planned_quantity', 'actual_quantity',
         'planned_start_date', 'planned_end_date', 'actual_start_date', 'actual_end_date',
-        'work_order_id', 'priority', 'notes'
+        'work_order_id', 'priority', 'notes',
     ];
 
     protected $casts = [
@@ -30,8 +30,11 @@ class ProductionPlanItem extends Model
     ];
 
     const PRIORITY_LOW = 'low';
+
     const PRIORITY_NORMAL = 'normal';
+
     const PRIORITY_HIGH = 'high';
+
     const PRIORITY_URGENT = 'urgent';
 
     public function productionPlan()

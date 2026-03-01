@@ -2,10 +2,10 @@
 
 namespace Aero\RealEstate\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class Property extends Model
 {
@@ -19,7 +19,7 @@ class Property extends Model
         'country', 'latitude', 'longitude', 'bedrooms', 'bathrooms',
         'square_feet', 'lot_size', 'year_built', 'purchase_price',
         'current_value', 'rental_rate', 'hoa_fee', 'property_taxes',
-        'description', 'amenities', 'parking_spaces', 'created_by'
+        'description', 'amenities', 'parking_spaces', 'created_by',
     ];
 
     protected $casts = [
@@ -43,16 +43,25 @@ class Property extends Model
     ];
 
     const TYPE_SINGLE_FAMILY = 'single_family';
+
     const TYPE_CONDO = 'condo';
+
     const TYPE_TOWNHOUSE = 'townhouse';
+
     const TYPE_APARTMENT = 'apartment';
+
     const TYPE_COMMERCIAL = 'commercial';
+
     const TYPE_LAND = 'land';
 
     const STATUS_AVAILABLE = 'available';
+
     const STATUS_RENTED = 'rented';
+
     const STATUS_SOLD = 'sold';
+
     const STATUS_OFF_MARKET = 'off_market';
+
     const STATUS_MAINTENANCE = 'maintenance';
 
     public function owner()
@@ -99,19 +108,20 @@ class Property extends Model
     {
         $address = $this->address_line_1;
         if ($this->address_line_2) {
-            $address .= ', ' . $this->address_line_2;
+            $address .= ', '.$this->address_line_2;
         }
-        $address .= ', ' . $this->city . ', ' . $this->state . ' ' . $this->postal_code;
+        $address .= ', '.$this->city.', '.$this->state.' '.$this->postal_code;
+
         return $address;
     }
 
     public function getCurrentLeaseAttribute()
     {
         return $this->leases()
-                   ->where('status', LeaseAgreement::STATUS_ACTIVE)
-                   ->where('start_date', '<=', now())
-                   ->where('end_date', '>=', now())
-                   ->first();
+            ->where('status', LeaseAgreement::STATUS_ACTIVE)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->first();
     }
 
     public function isRented()
@@ -129,6 +139,7 @@ class Property extends Model
         if ($this->square_feet > 0 && $this->current_value > 0) {
             return round($this->current_value / $this->square_feet, 2);
         }
+
         return 0;
     }
 

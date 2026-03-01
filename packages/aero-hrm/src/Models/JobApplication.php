@@ -40,7 +40,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property \Carbon\Carbon|null $created_at
  * @property \Carbon\Carbon|null $updated_at
  * @property \Carbon\Carbon|null $deleted_at
- *
  * @property-read string $candidate_name
  * @property-read string $candidate_email
  * @property-read int $job_posting_id Alias for job_id

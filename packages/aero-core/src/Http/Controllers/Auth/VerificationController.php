@@ -30,9 +30,10 @@ class VerificationController extends Controller
     {
         if ($request->user()->hasVerifiedEmail()) {
             // Use SafeRedirect with intended URL and append query parameter
-            $dashboardUrl = SafeRedirect::routeExists('core.dashboard') 
-                ? route('core.dashboard').'?verified=1' 
+            $dashboardUrl = SafeRedirect::routeExists('core.dashboard')
+                ? route('core.dashboard').'?verified=1'
                 : '/?verified=1';
+
             return redirect($dashboardUrl);
         }
 
@@ -40,9 +41,10 @@ class VerificationController extends Controller
             event(new Verified($request->user()));
         }
 
-        $dashboardUrl = SafeRedirect::routeExists('core.dashboard') 
-            ? route('core.dashboard').'?verified=1' 
+        $dashboardUrl = SafeRedirect::routeExists('core.dashboard')
+            ? route('core.dashboard').'?verified=1'
             : '/?verified=1';
+
         return redirect($dashboardUrl);
     }
 

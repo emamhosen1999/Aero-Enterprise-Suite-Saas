@@ -253,7 +253,8 @@ class FinanceModuleProvider extends AbstractModuleProvider
     protected function getModulePath(string $path = ''): string
     {
         $basePath = dirname(__DIR__, 2);
-        return $path ? $basePath . '/' . $path : $basePath;
+
+        return $path ? $basePath.'/'.$path : $basePath;
     }
 
     /**
@@ -271,7 +272,7 @@ class FinanceModuleProvider extends AbstractModuleProvider
     {
         // Register dashboard widgets
         $this->registerDashboardWidgets();
-        
+
         // Register module-specific middleware, policies, etc.
     }
 
@@ -300,7 +301,7 @@ class FinanceModuleProvider extends AbstractModuleProvider
     public function register(): void
     {
         parent::register();
-        
+
         // Register this module with the registry
         $registry = $this->app->make(\Aero\Core\Services\ModuleRegistry::class);
         $registry->register($this);

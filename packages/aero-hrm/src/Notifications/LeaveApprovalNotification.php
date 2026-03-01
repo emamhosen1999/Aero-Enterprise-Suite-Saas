@@ -70,7 +70,7 @@ class LeaveApprovalNotification extends BaseHrmNotification
             'to_date' => $toDate?->format('Y-m-d'),
             'days' => $this->leave->no_of_days ?? $this->leave->days ?? 1,
             'action_required' => true,
-            'message' => ($this->leave->user?->name ?? 'An employee') . " has requested leave requiring your approval.",
+            'message' => ($this->leave->user?->name ?? 'An employee').' has requested leave requiring your approval.',
             'action_url' => "/hrm/leaves/{$this->leave->id}",
         ];
     }

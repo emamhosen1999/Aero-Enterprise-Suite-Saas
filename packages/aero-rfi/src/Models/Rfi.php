@@ -2,10 +2,10 @@
 
 namespace Aero\Rfi\Models;
 
+use Aero\Compliance\Models\PermitToWork;
+use Aero\Compliance\Traits\RequiresPermit;
 use Aero\Core\Models\User;
 use Aero\Rfi\Traits\HasGeoLock;
-use Aero\Compliance\Traits\RequiresPermit;
-use Aero\Compliance\Models\PermitToWork;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

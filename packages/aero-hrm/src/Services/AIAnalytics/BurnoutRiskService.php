@@ -2,19 +2,19 @@
 
 namespace Aero\HRM\Services\AIAnalytics;
 
+use Aero\HRM\Models\AIInsight;
+use Aero\HRM\Models\Attendance;
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\EmployeeRiskScore;
 use Aero\HRM\Models\EmployeeWorkloadMetric;
-use Aero\HRM\Models\AIInsight;
-use Aero\HRM\Models\Attendance;
 use Aero\HRM\Models\Leave;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 /**
  * Burnout Risk Modeling Service
- * 
+ *
  * Predicts employee burnout risk using multi-dimensional analysis:
  * - Workload intensity and duration
  * - Overtime patterns
@@ -22,7 +22,7 @@ use Carbon\Carbon;
  * - Working hours distribution
  * - Recovery time between intense periods
  * - Team and organizational context
- * 
+ *
  * Uses evidence-based burnout indicators from research.
  */
 class BurnoutRiskService
@@ -73,6 +73,7 @@ class BurnoutRiskService
         return $employees->map(function (Employee $employee) {
             $result = $this->calculateBurnoutRisk($employee);
             $this->storeResult($employee, $result);
+
             return $result;
         });
     }
@@ -150,10 +151,10 @@ class BurnoutRiskService
 
         // High utilization = risk
         $utilizationRisk = min(40, max(0, ($avgUtilization - 80) * 2));
-        
+
         // Overdue tasks = stress
         $overdueRisk = min(30, $avgOverdue * 10);
-        
+
         // Excessive meetings = fragmented time
         $meetingRisk = min(30, max(0, ($avgMeetingHours - 15) * 3));
 
@@ -313,7 +314,7 @@ class BurnoutRiskService
             ->whereNotNull('total_hours')
             ->avg('total_hours');
 
-        if (!$avgHours) {
+        if (! $avgHours) {
             return 30;
         }
 
@@ -348,7 +349,7 @@ class BurnoutRiskService
         // Count consecutive high-pressure days
         $consecutiveHighPressure = 0;
         $maxConsecutive = 0;
-        
+
         foreach ($metrics as $metric) {
             if ($metric->utilization_rate >= 100 || $metric->overtime_hours > 2) {
                 $consecutiveHighPressure++;
@@ -399,7 +400,7 @@ class BurnoutRiskService
         }
 
         // No clear reporting structure
-        if (!$employee->manager_id) {
+        if (! $employee->manager_id) {
             $risk += 20;
         }
 
@@ -445,7 +446,7 @@ class BurnoutRiskService
             ->orderByDesc('recorded_date')
             ->first();
 
-        if (!$lastCheckIn) {
+        if (! $lastCheckIn) {
             $risk += 30;
         } elseif (Carbon::parse($lastCheckIn->recorded_date)->diffInDays(now()) > 30) {
             $risk += 20;
@@ -484,7 +485,7 @@ class BurnoutRiskService
         } elseif ($score >= 40) {
             return 'moderate';
         }
-        
+
         return 'low';
     }
 

@@ -6,8 +6,6 @@ namespace Aero\Core\Widgets;
 
 use Aero\Core\Contracts\AbstractDashboardWidget;
 use Aero\Core\Contracts\CoreWidgetCategory;
-use Aero\Core\Services\NavigationRegistry;
-use Illuminate\Support\Facades\App;
 
 /**
  * Quick Actions Widget for Core Dashboard
@@ -20,9 +18,13 @@ use Illuminate\Support\Facades\App;
 class QuickActionsWidget extends AbstractDashboardWidget
 {
     protected string $position = 'stats_row';
+
     protected int $order = 2;
+
     protected int|string $span = 'full';
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::ACTION;
+
     protected array $requiredPermissions = []; // No permissions needed - actions have own checks
 
     public function getKey(): string

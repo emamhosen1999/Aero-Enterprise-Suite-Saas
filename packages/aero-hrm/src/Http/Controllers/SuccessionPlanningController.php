@@ -2,13 +2,13 @@
 
 namespace Aero\HRM\Http\Controllers;
 
-use Aero\HRM\Models\SuccessionPlan;
-use Aero\HRM\Models\SuccessionCandidate;
-use Aero\HRM\Models\Designation;
 use Aero\HRM\Models\Department;
+use Aero\HRM\Models\Designation;
 use Aero\HRM\Models\Employee;
-use Illuminate\Http\Request;
+use Aero\HRM\Models\SuccessionCandidate;
+use Aero\HRM\Models\SuccessionPlan;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Inertia\Response;

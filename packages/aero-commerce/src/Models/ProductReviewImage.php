@@ -13,7 +13,7 @@ class ProductReviewImage extends Model
     protected $table = 'commerce_product_review_images';
 
     protected $fillable = [
-        'product_review_id', 'image_path', 'image_url', 'alt_text', 'sort_order'
+        'product_review_id', 'image_path', 'image_url', 'alt_text', 'sort_order',
     ];
 
     protected $casts = [
@@ -31,11 +31,11 @@ class ProductReviewImage extends Model
         if ($value) {
             return $value;
         }
-        
+
         if ($this->image_path) {
-            return asset('storage/' . $this->image_path);
+            return asset('storage/'.$this->image_path);
         }
-        
+
         return null;
     }
 }

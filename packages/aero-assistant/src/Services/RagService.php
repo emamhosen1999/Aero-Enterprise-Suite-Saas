@@ -12,7 +12,9 @@ use Illuminate\Support\Facades\Log;
 class RagService
 {
     protected AiModelService $aiModelService;
+
     protected int $topK;
+
     protected float $similarityThreshold;
 
     public function __construct(AiModelService $aiModelService)
@@ -25,13 +27,13 @@ class RagService
     /**
      * Retrieve relevant context for a query using RAG.
      *
-     * @param string $query User's query
-     * @param array $filters Optional filters (module_name, source_type, etc.)
+     * @param  string  $query  User's query
+     * @param  array  $filters  Optional filters (module_name, source_type, etc.)
      * @return array Retrieved context chunks with metadata
      */
     public function retrieveContext(string $query, array $filters = []): array
     {
-        if (!config('assistant.vector.enabled')) {
+        if (! config('assistant.vector.enabled')) {
             return [
                 'success' => false,
                 'contexts' => [],
@@ -42,7 +44,7 @@ class RagService
         // Generate embedding for the query
         $embeddingResult = $this->aiModelService->generateEmbeddings($query);
 
-        if (!$embeddingResult['success'] || empty($embeddingResult['embeddings'])) {
+        if (! $embeddingResult['success'] || empty($embeddingResult['embeddings'])) {
             Log::error('Failed to generate query embedding', [
                 'query' => $query,
                 'error' => $embeddingResult['error'] ?? 'Unknown error',
@@ -96,9 +98,9 @@ class RagService
     /**
      * Generate a response using RAG-enhanced context.
      *
-     * @param string $query User's query
-     * @param array $conversationHistory Previous messages in the conversation
-     * @param array $filters Optional filters for context retrieval
+     * @param  string  $query  User's query
+     * @param  array  $conversationHistory  Previous messages in the conversation
+     * @param  array  $filters  Optional filters for context retrieval
      * @return array Response with content, context used, tokens, etc.
      */
     public function generateRagResponse(string $query, array $conversationHistory = [], array $filters = []): array
@@ -108,11 +110,11 @@ class RagService
         // Retrieve relevant context
         $contextResult = $this->retrieveContext($query, $filters);
 
-        if (!$contextResult['success']) {
+        if (! $contextResult['success']) {
             // Fallback: generate response without RAG
             return $this->aiModelService->generateResponse(
                 array_merge($conversationHistory, [
-                    ['role' => 'user', 'content' => $query]
+                    ['role' => 'user', 'content' => $query],
                 ])
             );
         }
@@ -146,12 +148,12 @@ class RagService
     {
         $contextText = '';
 
-        if (!empty($contexts)) {
+        if (! empty($contexts)) {
             $contextText = "Here is relevant information from the knowledge base:\n\n";
 
             foreach ($contexts as $index => $context) {
-                $contextText .= "--- Context " . ($index + 1) . " (from {$context['source']}) ---\n";
-                $contextText .= $context['content'] . "\n\n";
+                $contextText .= '--- Context '.($index + 1)." (from {$context['source']}) ---\n";
+                $contextText .= $context['content']."\n\n";
             }
         }
 

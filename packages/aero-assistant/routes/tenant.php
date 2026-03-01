@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['web', 'auth'])->prefix('assistant')->name('assistant.')->group(function () {
     // Main assistant page
     Route::get('/', [AssistantPageController::class, 'index'])->name('index');
-    
+
     // API endpoints (accessible via web middleware for tenant-scoped requests)
     Route::post('/message', [AssistantController::class, 'sendMessage'])->name('send_message');
     Route::get('/conversations', [AssistantController::class, 'getConversations'])->name('conversations');

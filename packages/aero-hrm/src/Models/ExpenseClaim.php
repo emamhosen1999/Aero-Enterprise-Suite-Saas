@@ -5,14 +5,14 @@ namespace Aero\HRM\Models;
 use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 class ExpenseClaim extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia;
+    use HasFactory, InteractsWithMedia, SoftDeletes;
 
     protected $fillable = [
         'employee_id',
@@ -54,11 +54,17 @@ class ExpenseClaim extends Model implements HasMedia
      * Status constants
      */
     public const STATUS_DRAFT = 'draft';
+
     public const STATUS_SUBMITTED = 'submitted';
+
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_APPROVED = 'approved';
+
     public const STATUS_REJECTED = 'rejected';
+
     public const STATUS_PAID = 'paid';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     /**
@@ -179,6 +185,6 @@ class ExpenseClaim extends Model implements HasMedia
 
         $nextNumber = $lastClaim ? (int) substr($lastClaim->claim_number, -4) + 1 : 1;
 
-        return 'EXP' . $year . $month . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+        return 'EXP'.$year.$month.str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
     }
 }

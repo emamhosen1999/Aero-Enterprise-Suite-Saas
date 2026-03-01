@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * NonConformanceReport Model
- * 
+ *
  * Enhanced for chainage-based blocking of RFIs and payments.
  * PATENTABLE: "Spatial non-conformance blocking for construction workflows"
  *
@@ -29,13 +29,19 @@ class NonConformanceReport extends Model
     use SoftDeletes;
 
     public const STATUS_OPEN = 'open';
+
     public const STATUS_IN_PROGRESS = 'in_progress';
+
     public const STATUS_RESOLVED = 'resolved';
+
     public const STATUS_CLOSED = 'closed';
 
     public const SEVERITY_LOW = 'low';
+
     public const SEVERITY_MEDIUM = 'medium';
+
     public const SEVERITY_HIGH = 'high';
+
     public const SEVERITY_CRITICAL = 'critical';
 
     protected $fillable = [

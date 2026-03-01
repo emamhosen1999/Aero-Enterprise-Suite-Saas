@@ -16,8 +16,11 @@ use Aero\Project\Notifications\BaseProjectNotification;
 class SprintStartedNotification extends BaseProjectNotification
 {
     protected string $eventType = 'project.sprint.started';
+
     protected string $subModuleCode = 'sprints';
+
     protected ?string $componentCode = 'sprint-board';
+
     protected string $actionCode = 'view';
 
     public function __construct(
@@ -29,8 +32,7 @@ class SprintStartedNotification extends BaseProjectNotification
         public ?int $capacityPoints,
         public string $startDate,
         public string $endDate
-    ) {
-    }
+    ) {}
 
     /**
      * Create from SprintStarted event.

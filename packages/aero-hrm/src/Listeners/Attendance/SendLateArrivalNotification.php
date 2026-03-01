@@ -22,6 +22,7 @@ class SendLateArrivalNotification implements ShouldQueue
             Log::warning('Employee has no user for late arrival notification', [
                 'attendance_id' => $attendance->id,
             ]);
+
             return;
         }
 
@@ -79,6 +80,7 @@ class SendLateArrivalNotification implements ShouldQueue
             Log::warning('HRMAC not available, falling back to empty collection', [
                 'error' => $e->getMessage(),
             ]);
+
             return collect();
         }
     }

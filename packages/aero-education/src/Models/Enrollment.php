@@ -2,10 +2,10 @@
 
 namespace Aero\Education\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class Enrollment extends Model
 {
@@ -18,7 +18,7 @@ class Enrollment extends Model
         'status', 'grade_mode', 'credit_hours', 'enrollment_type',
         'waitlist_position', 'drop_date', 'add_date', 'last_attendance_date',
         'midterm_grade', 'final_grade', 'grade_points', 'affects_gpa',
-        'notes', 'created_by'
+        'notes', 'created_by',
     ];
 
     protected $casts = [
@@ -37,23 +37,37 @@ class Enrollment extends Model
     ];
 
     const STATUS_ENROLLED = 'enrolled';
+
     const STATUS_WAITLISTED = 'waitlisted';
+
     const STATUS_DROPPED = 'dropped';
+
     const STATUS_WITHDRAWN = 'withdrawn';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_FAILED = 'failed';
+
     const STATUS_INCOMPLETE = 'incomplete';
+
     const STATUS_AUDIT = 'audit';
 
     const GRADE_MODE_LETTER = 'letter';
+
     const GRADE_MODE_PASS_FAIL = 'pass_fail';
+
     const GRADE_MODE_AUDIT = 'audit';
+
     const GRADE_MODE_CREDIT_NO_CREDIT = 'credit_no_credit';
 
     const TYPE_REGULAR = 'regular';
+
     const TYPE_LATE_ADD = 'late_add';
+
     const TYPE_OVERRIDE = 'override';
+
     const TYPE_INDEPENDENT_STUDY = 'independent_study';
+
     const TYPE_INTERNSHIP = 'internship';
 
     public function student()
@@ -103,29 +117,37 @@ class Enrollment extends Model
 
     public function canDrop()
     {
-        if (!$this->isActive()) return false;
-        
+        if (! $this->isActive()) {
+            return false;
+        }
+
         $semester = $this->semester;
-        if (!$semester) return false;
-        
+        if (! $semester) {
+            return false;
+        }
+
         // Can drop until 60% of semester is complete
         $semesterLength = $semester->start_date->diffInDays($semester->end_date);
         $dropDeadline = $semester->start_date->addDays($semesterLength * 0.6);
-        
+
         return now()->toDateString() <= $dropDeadline->toDateString();
     }
 
     public function canWithdraw()
     {
-        if (!$this->isActive()) return false;
-        
+        if (! $this->isActive()) {
+            return false;
+        }
+
         $semester = $this->semester;
-        if (!$semester) return false;
-        
+        if (! $semester) {
+            return false;
+        }
+
         // Can withdraw until 80% of semester is complete
         $semesterLength = $semester->start_date->diffInDays($semester->end_date);
         $withdrawDeadline = $semester->start_date->addDays($semesterLength * 0.8);
-        
+
         return now()->toDateString() <= $withdrawDeadline->toDateString();
     }
 
@@ -137,36 +159,40 @@ class Enrollment extends Model
     public function getAttendancePercentageAttribute()
     {
         $totalSessions = $this->courseSection->getTotalSessionsAttribute();
-        if ($totalSessions === 0) return 100;
-        
+        if ($totalSessions === 0) {
+            return 100;
+        }
+
         $attendedSessions = $this->attendanceRecords()
-                               ->where('status', AttendanceRecord::STATUS_PRESENT)
-                               ->count();
-        
+            ->where('status', AttendanceRecord::STATUS_PRESENT)
+            ->count();
+
         return round(($attendedSessions / $totalSessions) * 100, 2);
     }
 
     public function getAssignmentGradesAttribute()
     {
         return $this->grades()
-                   ->where('grade_type', '!=', Grade::TYPE_FINAL)
-                   ->orderBy('created_at')
-                   ->get();
+            ->where('grade_type', '!=', Grade::TYPE_FINAL)
+            ->orderBy('created_at')
+            ->get();
     }
 
     public function calculateCurrentGrade()
     {
         $grades = $this->grades;
-        if ($grades->isEmpty()) return null;
-        
+        if ($grades->isEmpty()) {
+            return null;
+        }
+
         $totalPoints = 0;
         $totalPossible = 0;
-        
+
         foreach ($grades as $grade) {
             $totalPoints += $grade->points_earned;
             $totalPossible += $grade->points_possible;
         }
-        
+
         return $totalPossible > 0 ? round(($totalPoints / $totalPossible) * 100, 2) : null;
     }
 
@@ -175,7 +201,7 @@ class Enrollment extends Model
         if ($this->status !== self::STATUS_WAITLISTED) {
             return false;
         }
-        
+
         $section = $this->courseSection;
         if ($section && $section->hasAvailableSpots()) {
             $this->update([
@@ -183,10 +209,10 @@ class Enrollment extends Model
                 'enrollment_date' => now(),
                 'waitlist_position' => null,
             ]);
-            
+
             return true;
         }
-        
+
         return false;
     }
 
@@ -198,6 +224,7 @@ class Enrollment extends Model
     public function scopeCurrentSemester($query)
     {
         $currentSemester = AcademicSemester::current();
+
         return $currentSemester ? $query->where('semester_id', $currentSemester->id) : $query->whereRaw('1 = 0');
     }
 
@@ -214,6 +241,6 @@ class Enrollment extends Model
     public function scopeWaitlisted($query)
     {
         return $query->where('status', self::STATUS_WAITLISTED)
-                    ->orderBy('waitlist_position');
+            ->orderBy('waitlist_position');
     }
 }

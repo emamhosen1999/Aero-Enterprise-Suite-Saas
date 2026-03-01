@@ -5,10 +5,9 @@ namespace Aero\Core\Services\Module;
 use Aero\Core\Models\Module;
 use Aero\Core\Models\ModuleComponent;
 use Aero\Core\Models\ModuleComponentAction;
-use Aero\HRMAC\Models\Role;
 use Aero\Core\Models\SubModule;
 use Aero\Core\Models\User;
-use Aero\Core\Support\TenantCache;
+use Aero\HRMAC\Models\Role;
 use Aero\HRMAC\Services\RoleModuleAccessService;
 
 /**

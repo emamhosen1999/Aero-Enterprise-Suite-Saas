@@ -15,7 +15,7 @@ class NotifyManagerOfNewEmployee implements ShouldQueue
     public function handle(EmployeeCreated $event): void
     {
         $employee = $event->employee;
-        
+
         // Notify direct manager
         if ($employee->manager) {
             $managerUser = $employee->manager->user;
@@ -24,7 +24,7 @@ class NotifyManagerOfNewEmployee implements ShouldQueue
                     'context' => 'manager',
                     'message' => "{$employee->full_name} has joined your team",
                 ]));
-                
+
                 $this->logNotification($managerUser, 'manager', $employee);
             }
         }
@@ -40,7 +40,7 @@ class NotifyManagerOfNewEmployee implements ShouldQueue
                 'context' => 'hr',
                 'message' => "New employee onboarded: {$employee->full_name}",
             ]));
-            
+
             $this->logNotification($hrUser, 'hr', $employee);
         }
     }
@@ -56,6 +56,7 @@ class NotifyManagerOfNewEmployee implements ShouldQueue
             Log::warning('HRMAC not available, falling back to empty collection', [
                 'error' => $e->getMessage(),
             ]);
+
             return collect();
         }
     }

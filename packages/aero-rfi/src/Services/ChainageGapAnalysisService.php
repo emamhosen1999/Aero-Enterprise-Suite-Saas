@@ -21,9 +21,7 @@ use Illuminate\Support\Collection;
  */
 class ChainageGapAnalysisService
 {
-    public function __construct(private NcrBlockingServiceInterface $ncrBlockingService)
-    {
-    }
+    public function __construct(private NcrBlockingServiceInterface $ncrBlockingService) {}
 
     /**
      * Validate if an RFI can be submitted for the given layer at the given chainage.
@@ -43,6 +41,7 @@ class ChainageGapAnalysisService
         $workLayer = WorkLayer::find($workLayerId);
         if (! $workLayer || ! $workLayer->is_active) {
             $errors[] = 'Invalid or inactive work layer.';
+
             return ['valid' => false, 'errors' => $errors, 'warnings' => $warnings, 'gaps' => []];
         }
 

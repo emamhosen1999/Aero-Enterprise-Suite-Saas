@@ -20,15 +20,15 @@ class InterviewScheduledNotification extends Notification implements ShouldQueue
     public function via($notifiable): array
     {
         $channels = ['database'];
-        
+
         if ($this->isChannelEnabled('mail', $notifiable)) {
             $channels[] = 'mail';
         }
-        
+
         if ($this->isChannelEnabled('push', $notifiable)) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels;
     }
 
@@ -36,14 +36,14 @@ class InterviewScheduledNotification extends Notification implements ShouldQueue
     {
         $application = $this->interview->application;
         $jobTitle = $application->job?->title ?? 'Position';
-        
+
         $message = (new MailMessage)
-            ->subject('Interview Scheduled - ' . $jobTitle)
+            ->subject('Interview Scheduled - '.$jobTitle)
             ->greeting("Dear {$application->name},")
             ->line('Good news! We would like to schedule an interview with you.')
             ->line("Position: {$jobTitle}")
             ->line("Interview Date & Time: {$this->interview->scheduled_at->format('l, M d, Y \\a\\t h:i A')}")
-            ->line("Interview Type: " . ucfirst($this->interview->type ?? 'In-person'));
+            ->line('Interview Type: '.ucfirst($this->interview->type ?? 'In-person'));
 
         if ($this->interview->location) {
             $message->line("Location: {$this->interview->location}");
@@ -94,15 +94,15 @@ class InterviewScheduledNotification extends Notification implements ShouldQueue
         $globalSetting = DB::table('notification_settings')
             ->where('key', "channels.{$channel}.enabled")
             ->first();
-        
-        if (!$globalSetting || !json_decode($globalSetting->value)) {
+
+        if (! $globalSetting || ! json_decode($globalSetting->value)) {
             return false;
         }
-        
+
         if (method_exists($notifiable, 'prefersNotificationChannel')) {
             return $notifiable->prefersNotificationChannel($channel, 'recruitment.interview_scheduled');
         }
-        
+
         return true;
     }
 }

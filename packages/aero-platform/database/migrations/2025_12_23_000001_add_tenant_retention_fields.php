@@ -16,7 +16,7 @@ return new class extends Migration
             $table->timestamp('archived_at')->nullable()->after('deleted_at');
             $table->unsignedBigInteger('archived_by')->nullable()->after('archived_at');
             $table->string('archived_reason', 500)->nullable()->after('archived_by');
-            
+
             // Restored metadata (for audit trail)
             $table->timestamp('restored_at')->nullable()->after('archived_reason');
             $table->unsignedBigInteger('restored_by')->nullable()->after('restored_at');
@@ -35,7 +35,7 @@ return new class extends Migration
         Schema::table('tenants', function (Blueprint $table) {
             $table->dropIndex(['deleted_at', 'archived_at']);
             $table->dropIndex(['archived_at']);
-            
+
             $table->dropColumn([
                 'archived_at',
                 'archived_by',

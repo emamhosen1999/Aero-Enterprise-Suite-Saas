@@ -2,10 +2,10 @@
 
 namespace Aero\Manufacturing\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class Route extends Model
 {
@@ -16,7 +16,7 @@ class Route extends Model
     protected $fillable = [
         'route_number', 'name', 'description', 'product_id',
         'version', 'effective_date', 'expiry_date', 'status',
-        'total_setup_time', 'total_run_time', 'created_by'
+        'total_setup_time', 'total_run_time', 'created_by',
     ];
 
     protected $casts = [
@@ -29,7 +29,9 @@ class Route extends Model
     ];
 
     const STATUS_DRAFT = 'draft';
+
     const STATUS_ACTIVE = 'active';
+
     const STATUS_INACTIVE = 'inactive';
 
     public function product()
@@ -55,6 +57,7 @@ class Route extends Model
     public function isActive($date = null)
     {
         $date = $date ?: now();
+
         return $this->status === self::STATUS_ACTIVE &&
                $this->effective_date <= $date &&
                ($this->expiry_date === null || $this->expiry_date >= $date);
@@ -62,6 +65,6 @@ class Route extends Model
 
     public function getTotalCostPerUnitAttribute()
     {
-        return $this->operations->sum(fn($op) => $op->cost_per_unit);
+        return $this->operations->sum(fn ($op) => $op->cost_per_unit);
     }
 }

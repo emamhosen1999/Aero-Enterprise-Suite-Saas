@@ -2,12 +2,12 @@
 
 namespace Aero\Scm\Http\Controllers;
 
-use Illuminate\Routing\Controller;
 use App\Models\Tenant\IMS\InventoryItem;
 use App\Models\Tenant\Procurement\PurchaseOrder;
 use App\Models\Tenant\Procurement\PurchaseOrderItem;
 use App\Models\Tenant\SCM\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;

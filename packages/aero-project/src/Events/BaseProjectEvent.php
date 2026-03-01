@@ -28,7 +28,9 @@ abstract class BaseProjectEvent implements DomainEventContract
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     protected \DateTimeInterface $timestamp;
+
     protected ?int $actorUserId;
+
     protected array $metadata;
 
     public function __construct(?int $actorUserId = null, array $metadata = [])

@@ -49,7 +49,7 @@ class ModuleLicense extends Model
      */
     public function isActive(): bool
     {
-        return $this->status === 'active' && 
+        return $this->status === 'active' &&
                ($this->expires_at === null || $this->expires_at->isFuture());
     }
 
@@ -66,11 +66,12 @@ class ModuleLicense extends Model
      */
     public function isInGracePeriod(): bool
     {
-        if (!$this->grace_period_started_at) {
+        if (! $this->grace_period_started_at) {
             return false;
         }
 
         $gracePeriod = config('license.verification.grace_period', 604800); // 7 days
+
         return $this->grace_period_started_at->addSeconds($gracePeriod)->isFuture();
     }
 
@@ -119,10 +120,10 @@ class ModuleLicense extends Model
     public function scopeActive($query)
     {
         return $query->where('status', 'active')
-                    ->where(function ($q) {
-                        $q->whereNull('expires_at')
-                          ->orWhere('expires_at', '>', now());
-                    });
+            ->where(function ($q) {
+                $q->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            });
     }
 
     /**

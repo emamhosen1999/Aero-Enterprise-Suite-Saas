@@ -13,10 +13,10 @@ class AssetCategory extends Model
     protected $table = 'finance_asset_categories';
 
     protected $fillable = [
-        'name', 'description', 'default_useful_life_years', 
-        'default_depreciation_method', 'asset_account_id', 
+        'name', 'description', 'default_useful_life_years',
+        'default_depreciation_method', 'asset_account_id',
         'depreciation_account_id', 'accumulated_depreciation_account_id',
-        'is_active'
+        'is_active',
     ];
 
     protected $casts = [

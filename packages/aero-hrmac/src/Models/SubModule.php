@@ -46,6 +46,14 @@ class SubModule extends Model
     }
 
     /**
+     * Scope for ordering by priority then name.
+     */
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('priority')->orderBy('name');
+    }
+
+    /**
      * Get the parent module.
      */
     public function module(): BelongsTo

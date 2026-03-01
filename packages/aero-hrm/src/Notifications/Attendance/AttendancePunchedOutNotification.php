@@ -23,11 +23,11 @@ class AttendancePunchedOutNotification extends Notification implements ShouldQue
     public function via($notifiable): array
     {
         $channels = ['database'];
-        
+
         if ($this->isChannelEnabled('push', $notifiable)) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels;
     }
 
@@ -39,9 +39,9 @@ class AttendancePunchedOutNotification extends Notification implements ShouldQue
 
         $message = "✓ Punched out at {$this->attendance->punch_out->format('h:i A')}";
         if ($this->hasOvertime) {
-            $message .= " (Overtime detected)";
+            $message .= ' (Overtime detected)';
         } elseif ($this->isEarly) {
-            $message .= " (Early departure)";
+            $message .= ' (Early departure)';
         }
 
         return [
@@ -62,7 +62,7 @@ class AttendancePunchedOutNotification extends Notification implements ShouldQue
     {
         $hours = floor($this->totalMinutes / 60);
         $minutes = $this->totalMinutes % 60;
-        
+
         $body = "Punched out at {$this->attendance->punch_out->format('h:i A')}. Total: {$hours}h {$minutes}m";
 
         return [
@@ -78,15 +78,15 @@ class AttendancePunchedOutNotification extends Notification implements ShouldQue
         $globalSetting = DB::table('notification_settings')
             ->where('key', "channels.{$channel}.enabled")
             ->first();
-        
-        if (!$globalSetting || !json_decode($globalSetting->value)) {
+
+        if (! $globalSetting || ! json_decode($globalSetting->value)) {
             return false;
         }
-        
+
         if (method_exists($notifiable, 'prefersNotificationChannel')) {
             return $notifiable->prefersNotificationChannel($channel, 'attendance.punched_out');
         }
-        
+
         return true;
     }
 }

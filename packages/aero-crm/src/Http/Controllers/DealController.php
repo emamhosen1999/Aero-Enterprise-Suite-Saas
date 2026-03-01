@@ -2,7 +2,6 @@
 
 namespace Aero\Crm\Http\Controllers;
 
-use Aero\Crm\Http\Controllers\Controller;
 use Aero\Crm\Http\Requests\StoreDealRequest;
 use Aero\Crm\Http\Requests\UpdateDealRequest;
 use Aero\Crm\Models\Deal;

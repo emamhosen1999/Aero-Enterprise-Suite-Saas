@@ -28,7 +28,7 @@ return new class extends Migration
                 'opportunity',
                 'customer',
                 'evangelist',
-                'other'
+                'other',
             ])->default('lead')->after('status');
 
             // Marketing attribution

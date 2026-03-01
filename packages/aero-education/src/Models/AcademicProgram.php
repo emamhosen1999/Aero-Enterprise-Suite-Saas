@@ -2,10 +2,10 @@
 
 namespace Aero\Education\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class AcademicProgram extends Model
 {
@@ -17,7 +17,7 @@ class AcademicProgram extends Model
         'program_code', 'program_name', 'description', 'department_id',
         'degree_type', 'degree_level', 'total_credit_hours', 'duration_semesters',
         'admission_requirements', 'curriculum_requirements', 'graduation_requirements',
-        'is_active', 'accreditation_status', 'program_director_id', 'created_by'
+        'is_active', 'accreditation_status', 'program_director_id', 'created_by',
     ];
 
     protected $casts = [
@@ -33,14 +33,21 @@ class AcademicProgram extends Model
     ];
 
     const TYPE_MAJOR = 'major';
+
     const TYPE_MINOR = 'minor';
+
     const TYPE_CONCENTRATION = 'concentration';
+
     const TYPE_CERTIFICATE = 'certificate';
 
     const LEVEL_ASSOCIATE = 'associate';
+
     const LEVEL_BACHELOR = 'bachelor';
+
     const LEVEL_MASTER = 'master';
+
     const LEVEL_DOCTORAL = 'doctoral';
+
     const LEVEL_CERTIFICATE = 'certificate';
 
     public function department()
@@ -66,7 +73,7 @@ class AcademicProgram extends Model
     public function courses()
     {
         return $this->belongsToMany(Course::class, 'program_courses')
-                    ->withPivot('requirement_type', 'is_required');
+            ->withPivot('requirement_type', 'is_required');
     }
 
     public function getEnrollmentCountAttribute()
@@ -78,35 +85,35 @@ class AcademicProgram extends Model
     {
         $requirements = $this->graduation_requirements ?? [];
         $results = [];
-        
+
         // Check total credit hours
         if (isset($requirements['total_credit_hours'])) {
             $results['credit_hours'] = [
                 'required' => $requirements['total_credit_hours'],
                 'completed' => $student->credit_hours_completed,
-                'met' => $student->credit_hours_completed >= $requirements['total_credit_hours']
+                'met' => $student->credit_hours_completed >= $requirements['total_credit_hours'],
             ];
         }
-        
+
         // Check minimum GPA
         if (isset($requirements['minimum_gpa'])) {
             $results['gpa'] = [
                 'required' => $requirements['minimum_gpa'],
                 'current' => $student->gpa,
-                'met' => $student->gpa >= $requirements['minimum_gpa']
+                'met' => $student->gpa >= $requirements['minimum_gpa'],
             ];
         }
-        
+
         // Check residency requirements (minimum credits at institution)
         if (isset($requirements['residency_credits'])) {
             $residencyCredits = $student->credit_hours_completed; // Simplified
             $results['residency'] = [
                 'required' => $requirements['residency_credits'],
                 'completed' => $residencyCredits,
-                'met' => $residencyCredits >= $requirements['residency_credits']
+                'met' => $residencyCredits >= $requirements['residency_credits'],
             ];
         }
-        
+
         return $results;
     }
 

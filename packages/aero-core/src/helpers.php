@@ -2,7 +2,7 @@
 
 /**
  * Helper Functions for Aero Module System
- * 
+ *
  * These functions provide runtime support for the module system,
  * bridging SaaS and Standalone modes.
  */
@@ -10,41 +10,39 @@
 use Aero\Core\Services\RuntimeLoader;
 use Illuminate\Support\Facades\File;
 
-if (!function_exists('aero_mode')) {
+if (! function_exists('aero_mode')) {
     /**
      * Get the current Aero mode (saas or standalone).
      * Mode is file-based and immutable at runtime.
-     * 
+     *
      * @return string 'saas' or 'standalone'
      */
     function aero_mode(): string
     {
         static $mode = null;
-        
+
         if ($mode === null) {
             $modePath = storage_path('app/aeos.mode');
-            
-            if (!file_exists($modePath)) {
+
+            if (! file_exists($modePath)) {
                 $mode = 'standalone'; // Default to standalone if not set
             } else {
                 $mode = trim(file_get_contents($modePath));
-                
+
                 // Validate mode value
-                if (!in_array($mode, ['saas', 'standalone'], true)) {
+                if (! in_array($mode, ['saas', 'standalone'], true)) {
                     $mode = 'standalone';
                 }
             }
         }
-        
+
         return $mode;
     }
 }
 
-if (!function_exists('is_saas_mode')) {
+if (! function_exists('is_saas_mode')) {
     /**
      * Check if running in SaaS mode.
-     * 
-     * @return bool
      */
     function is_saas_mode(): bool
     {
@@ -52,11 +50,9 @@ if (!function_exists('is_saas_mode')) {
     }
 }
 
-if (!function_exists('is_standalone_mode')) {
+if (! function_exists('is_standalone_mode')) {
     /**
      * Check if running in standalone mode.
-     * 
-     * @return bool
      */
     function is_standalone_mode(): bool
     {
@@ -64,23 +60,21 @@ if (!function_exists('is_standalone_mode')) {
     }
 }
 
-if (!function_exists('getRuntimeModules')) {
+if (! function_exists('getRuntimeModules')) {
     /**
      * Get all runtime-loaded modules for injection into Blade templates.
-     *
-     * @return array
      */
     function getRuntimeModules(): array
     {
         // Only in standalone mode
-        if (!is_standalone_mode()) {
+        if (! is_standalone_mode()) {
             return [];
         }
 
         $modules = [];
         $modulesPath = base_path('modules');
 
-        if (!File::isDirectory($modulesPath)) {
+        if (! File::isDirectory($modulesPath)) {
             return [];
         }
 
@@ -88,7 +82,7 @@ if (!function_exists('getRuntimeModules')) {
 
         foreach ($directories as $directory) {
             $moduleName = basename($directory);
-            $distPath = $directory . '/dist';
+            $distPath = $directory.'/dist';
 
             // Check if module has built assets
             if (File::isDirectory($distPath)) {
@@ -133,12 +127,9 @@ if (!function_exists('getRuntimeModules')) {
     }
 }
 
-if (!function_exists('isModuleActive')) {
+if (! function_exists('isModuleActive')) {
     /**
      * Check if a module is active in the current environment.
-     *
-     * @param  string  $moduleName
-     * @return bool
      */
     function isModuleActive(string $moduleName): bool
     {
@@ -150,15 +141,14 @@ if (!function_exists('isModuleActive')) {
 
         // In Standalone mode, check runtime loader
         $loader = app(RuntimeLoader::class);
+
         return $loader->isModuleLoaded(strtolower($moduleName));
     }
 }
 
-if (!function_exists('getActiveModules')) {
+if (! function_exists('getActiveModules')) {
     /**
      * Get all active modules in the current environment.
-     *
-     * @return array
      */
     function getActiveModules(): array
     {
@@ -169,18 +159,17 @@ if (!function_exists('getActiveModules')) {
 
         // In Standalone mode, get from runtime loader
         $loader = app(RuntimeLoader::class);
+
         return array_keys($loader->getLoadedModules());
     }
 }
 
-if (!function_exists('isPlatformActive')) {
+if (! function_exists('isPlatformActive')) {
     /**
      * Check if aero-platform is active (SaaS mode).
-     * 
+     *
      * Platform package may be installed but not active if user selected Standalone mode.
      * Mode file is the authoritative source, not package presence.
-     *
-     * @return bool
      */
     function isPlatformActive(): bool
     {
@@ -188,11 +177,9 @@ if (!function_exists('isPlatformActive')) {
     }
 }
 
-if (!function_exists('getTenantId')) {
+if (! function_exists('getTenantId')) {
     /**
      * Get the current tenant ID (works in both modes).
-     *
-     * @return int|string|null
      */
     function getTenantId(): int|string|null
     {
@@ -200,6 +187,7 @@ if (!function_exists('getTenantId')) {
         if (function_exists('tenant')) {
             try {
                 $tenant = tenant();
+
                 return $tenant?->getTenantKey();
             } catch (\Throwable $e) {
                 // Ignore
@@ -220,13 +208,9 @@ if (!function_exists('getTenantId')) {
     }
 }
 
-if (!function_exists('moduleAsset')) {
+if (! function_exists('moduleAsset')) {
     /**
      * Generate URL to a module asset.
-     *
-     * @param  string  $moduleName
-     * @param  string  $path
-     * @return string
      */
     function moduleAsset(string $moduleName, string $path): string
     {
@@ -241,14 +225,9 @@ if (!function_exists('moduleAsset')) {
     }
 }
 
-if (!function_exists('moduleRoute')) {
+if (! function_exists('moduleRoute')) {
     /**
      * Generate a route URL for a module.
-     *
-     * @param  string  $name
-     * @param  array  $parameters
-     * @param  bool  $absolute
-     * @return string
      */
     function moduleRoute(string $name, array $parameters = [], bool $absolute = true): string
     {

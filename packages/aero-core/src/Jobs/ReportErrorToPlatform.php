@@ -51,7 +51,7 @@ class ReportErrorToPlatform implements ShouldQueue
     {
         $success = $reporter->sendToApi($this->payload);
 
-        if (!$success) {
+        if (! $success) {
             Log::warning('Failed to send error to platform API', [
                 'trace_id' => $this->payload['trace_id'] ?? 'unknown',
                 'attempt' => $this->attempts(),

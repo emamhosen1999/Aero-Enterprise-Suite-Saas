@@ -2,10 +2,7 @@
 
 namespace Aero\DMS\Services;
 
-use Carbon\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -20,29 +17,43 @@ class DocumentVersioningService
      * Version statuses.
      */
     public const STATUS_DRAFT = 'draft';
+
     public const STATUS_PENDING_REVIEW = 'pending_review';
+
     public const STATUS_APPROVED = 'approved';
+
     public const STATUS_PUBLISHED = 'published';
+
     public const STATUS_ARCHIVED = 'archived';
+
     public const STATUS_SUPERSEDED = 'superseded';
 
     /**
      * Change types.
      */
     public const CHANGE_CREATED = 'created';
+
     public const CHANGE_MODIFIED = 'modified';
+
     public const CHANGE_RENAMED = 'renamed';
+
     public const CHANGE_MOVED = 'moved';
+
     public const CHANGE_RESTORED = 'restored';
+
     public const CHANGE_BRANCHED = 'branched';
+
     public const CHANGE_MERGED = 'merged';
 
     /**
      * Version numbering schemes.
      */
     public const SCHEME_SEMANTIC = 'semantic';     // 1.0.0, 1.0.1, 1.1.0
+
     public const SCHEME_SEQUENTIAL = 'sequential'; // 1, 2, 3
+
     public const SCHEME_DATE_BASED = 'date_based'; // 2024.01.15
+
     public const SCHEME_CUSTOM = 'custom';
 
     /**
@@ -122,13 +133,13 @@ class DocumentVersioningService
     {
         // Get current version
         $currentVersion = $this->getCurrentVersion($documentId);
-        if (!$currentVersion) {
+        if (! $currentVersion) {
             return ['success' => false, 'error' => 'Document not found'];
         }
 
         // Check if document is locked by another user
         $lockCheck = $this->checkLock($documentId, $data['created_by'] ?? null);
-        if (!$lockCheck['can_edit']) {
+        if (! $lockCheck['can_edit']) {
             return ['success' => false, 'error' => $lockCheck['reason']];
         }
 
@@ -219,7 +230,7 @@ class DocumentVersioningService
         $version1 = $this->getVersion($documentId, $versionId1);
         $version2 = $this->getVersion($documentId, $versionId2);
 
-        if (!$version1 || !$version2) {
+        if (! $version1 || ! $version2) {
             return ['success' => false, 'error' => 'Version not found'];
         }
 
@@ -255,7 +266,7 @@ class DocumentVersioningService
     public function restoreVersion(string $documentId, string $versionId, array $data = []): array
     {
         $oldVersion = $this->getVersion($documentId, $versionId);
-        if (!$oldVersion) {
+        if (! $oldVersion) {
             return ['success' => false, 'error' => 'Version not found'];
         }
 
@@ -285,12 +296,12 @@ class DocumentVersioningService
      */
     public function createBranch(string $documentId, string $versionId, string $branchName, array $data = []): array
     {
-        if (!$this->config['enable_branching']) {
+        if (! $this->config['enable_branching']) {
             return ['success' => false, 'error' => 'Branching is not enabled'];
         }
 
         $sourceVersion = $this->getVersion($documentId, $versionId);
-        if (!$sourceVersion) {
+        if (! $sourceVersion) {
             return ['success' => false, 'error' => 'Source version not found'];
         }
 
@@ -360,7 +371,7 @@ class DocumentVersioningService
      */
     public function lockDocument(string $documentId, int $userId): array
     {
-        if (!$this->config['enable_locking']) {
+        if (! $this->config['enable_locking']) {
             return ['success' => true, 'message' => 'Locking is disabled'];
         }
 
@@ -488,9 +499,9 @@ class DocumentVersioningService
             $patch = (int) ($parts[2] ?? 0);
 
             return match ($type) {
-                'major' => ($major + 1) . '.0.0',
-                'minor' => $major . '.' . ($minor + 1) . '.0',
-                default => $major . '.' . $minor . '.' . ($patch + 1),
+                'major' => ($major + 1).'.0.0',
+                'minor' => $major.'.'.($minor + 1).'.0',
+                default => $major.'.'.$minor.'.'.($patch + 1),
             };
         }
 
@@ -504,8 +515,10 @@ class DocumentVersioningService
                 // Same day, add revision number
                 $parts = explode('.', $current);
                 $revision = (int) ($parts[3] ?? 0) + 1;
-                return $today . '.' . $revision;
+
+                return $today.'.'.$revision;
             }
+
             return $today;
         }
 

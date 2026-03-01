@@ -3,7 +3,7 @@
 return [
     'name' => 'Educational Management System',
     'version' => '1.0.0',
-    
+
     // Academic Settings
     'academic' => [
         'default_credit_hours' => 3,
@@ -13,28 +13,28 @@ return [
         'passing_grade' => 'D-',
         'semester_length_weeks' => 16,
     ],
-    
+
     // Grading System
     'grading' => [
         'scale' => [
             'A+' => ['min' => 97, 'points' => 4.0],
-            'A'  => ['min' => 93, 'points' => 4.0],
+            'A' => ['min' => 93, 'points' => 4.0],
             'A-' => ['min' => 90, 'points' => 3.7],
             'B+' => ['min' => 87, 'points' => 3.3],
-            'B'  => ['min' => 83, 'points' => 3.0],
+            'B' => ['min' => 83, 'points' => 3.0],
             'B-' => ['min' => 80, 'points' => 2.7],
             'C+' => ['min' => 77, 'points' => 2.3],
-            'C'  => ['min' => 73, 'points' => 2.0],
+            'C' => ['min' => 73, 'points' => 2.0],
             'C-' => ['min' => 70, 'points' => 1.7],
             'D+' => ['min' => 67, 'points' => 1.3],
-            'D'  => ['min' => 63, 'points' => 1.0],
+            'D' => ['min' => 63, 'points' => 1.0],
             'D-' => ['min' => 60, 'points' => 0.7],
-            'F'  => ['min' => 0,  'points' => 0.0],
+            'F' => ['min' => 0,  'points' => 0.0],
         ],
         'late_penalty_per_day' => 5.0, // Percentage
         'max_late_days' => 7,
     ],
-    
+
     // Enrollment Settings
     'enrollment' => [
         'registration_periods' => [
@@ -46,7 +46,7 @@ return [
         'add_drop_deadline_weeks' => 2,
         'withdrawal_deadline_weeks' => 10,
     ],
-    
+
     // Financial Aid
     'financial_aid' => [
         'disbursement_schedule' => [
@@ -59,7 +59,7 @@ return [
             'completion_rate' => 67, // Percentage
         ],
     ],
-    
+
     // Attendance
     'attendance' => [
         'tardy_minutes' => 5,
@@ -71,7 +71,7 @@ return [
             'religious_observance',
         ],
     ],
-    
+
     // Transcript Settings
     'transcripts' => [
         'official_fee' => 15.00,
@@ -79,11 +79,11 @@ return [
         'electronic_delivery' => true,
         'digital_signature' => true,
     ],
-    
+
     // System Settings
     'system' => [
         'academic_year_start_month' => 8, // August
         'semester_types' => ['fall', 'spring', 'summer'],
         'notification_days_before_deadline' => [30, 14, 7, 1],
-    ]
+    ],
 ];

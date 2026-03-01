@@ -2,10 +2,10 @@
 
 namespace Aero\Analytics\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class Dashboard extends Model
 {
@@ -16,7 +16,7 @@ class Dashboard extends Model
     protected $fillable = [
         'name', 'description', 'dashboard_type', 'layout_config',
         'is_public', 'is_default', 'refresh_interval', 'created_by',
-        'category', 'tags', 'access_permissions'
+        'category', 'tags', 'access_permissions',
     ];
 
     protected $casts = [
@@ -30,16 +30,25 @@ class Dashboard extends Model
     ];
 
     const TYPE_EXECUTIVE = 'executive';
+
     const TYPE_OPERATIONAL = 'operational';
+
     const TYPE_FINANCIAL = 'financial';
+
     const TYPE_SALES = 'sales';
+
     const TYPE_HR = 'hr';
+
     const TYPE_MANUFACTURING = 'manufacturing';
+
     const TYPE_CUSTOM = 'custom';
 
     const CATEGORY_STANDARD = 'standard';
+
     const CATEGORY_DEPARTMENT = 'department';
+
     const CATEGORY_ROLE_BASED = 'role_based';
+
     const CATEGORY_PERSONAL = 'personal';
 
     public function creator()

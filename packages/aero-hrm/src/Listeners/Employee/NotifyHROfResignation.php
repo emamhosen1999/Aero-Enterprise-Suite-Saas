@@ -18,7 +18,7 @@ class NotifyHROfResignation implements ShouldQueue
 
         // Notify users with HRM employees submodule access (instead of hardcoded roles)
         $hrUsers = $this->getUsersWithHrmAccess('employees');
-        
+
         foreach ($hrUsers as $hrUser) {
             // Skip the employee's own user to avoid self-notification
             if ($hrUser->id === $employee->user_id) {
@@ -61,6 +61,7 @@ class NotifyHROfResignation implements ShouldQueue
             Log::warning('HRMAC not available, falling back to empty collection', [
                 'error' => $e->getMessage(),
             ]);
+
             return collect();
         }
     }

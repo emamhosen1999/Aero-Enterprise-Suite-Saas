@@ -24,14 +24,6 @@ class EmployeePromoted extends BaseHrmEvent
     /**
      * Create a new event instance.
      *
-     * @param  Employee  $employee
-     * @param  int|null  $oldDesignationId
-     * @param  int|null  $newDesignationId
-     * @param  int|null  $oldDepartmentId
-     * @param  int|null  $newDepartmentId
-     * @param  float|null  $oldSalary
-     * @param  float|null  $newSalary
-     * @param  string|null  $reason
      * @param  int|null  $actorEmployeeId  Employee ID (HR/Manager) who processed the promotion
      */
     public function __construct(

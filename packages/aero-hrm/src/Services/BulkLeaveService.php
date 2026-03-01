@@ -2,11 +2,10 @@
 
 namespace Aero\HRM\Services;
 
+use Aero\HRM\Exceptions\UserNotOnboardedException;
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Leave;
 use Aero\HRM\Models\LeaveSetting;
-use Aero\HRM\Services\EmployeeResolutionService;
-use Aero\HRM\Exceptions\UserNotOnboardedException;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -24,9 +23,10 @@ class BulkLeaveService
 
     /**
      * Validate multiple dates for bulk leave creation
-     * 
-     * @param array $payload Must contain 'employee_id' or 'user_id' (deprecated)
+     *
+     * @param  array  $payload  Must contain 'employee_id' or 'user_id' (deprecated)
      * @return array Validation results and balance impact
+     *
      * @throws UserNotOnboardedException If user has no employee record
      */
     public function validateDates(array $payload): array
@@ -42,8 +42,8 @@ class BulkLeaveService
         } elseif (isset($payload['user_id'])) {
             $employee = $this->employeeResolver->resolveFromUserId($payload['user_id']);
         }
-        
-        if (!$employee) {
+
+        if (! $employee) {
             throw new UserNotOnboardedException(
                 'Cannot process bulk leave for non-onboarded user',
                 $payload['user_id'] ?? $payload['employee_id'] ?? 0
@@ -107,9 +107,10 @@ class BulkLeaveService
 
     /**
      * Process bulk leave creation
-     * 
-     * @param array $payload Must contain 'employee_id' or 'user_id' (deprecated)
+     *
+     * @param  array  $payload  Must contain 'employee_id' or 'user_id' (deprecated)
      * @return array Results with created leaves and failures
+     *
      * @throws UserNotOnboardedException If user has no employee record
      */
     public function processBulkLeave(array $payload): array
@@ -126,14 +127,14 @@ class BulkLeaveService
         } elseif (isset($payload['user_id'])) {
             $employee = $this->employeeResolver->resolveFromUserId($payload['user_id']);
         }
-        
-        if (!$employee) {
+
+        if (! $employee) {
             throw new UserNotOnboardedException(
                 'Cannot process bulk leave for non-onboarded user',
                 $payload['user_id'] ?? $payload['employee_id'] ?? 0
             );
         }
-        
+
         // Use user_id for Leave model compatibility
         $userId = $employee->user_id;
 

@@ -2,9 +2,9 @@
 
 namespace Aero\Finance\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Aero\Core\Models\User;
 
 class BankReconciliation extends Model
 {
@@ -15,7 +15,7 @@ class BankReconciliation extends Model
     protected $fillable = [
         'bank_account_id', 'reconciliation_date', 'statement_date',
         'statement_balance', 'book_balance', 'adjusted_balance',
-        'status', 'created_by', 'approved_by', 'approved_at', 'notes'
+        'status', 'created_by', 'approved_by', 'approved_at', 'notes',
     ];
 
     protected $casts = [
@@ -31,8 +31,11 @@ class BankReconciliation extends Model
     ];
 
     const STATUS_DRAFT = 'draft';
+
     const STATUS_IN_PROGRESS = 'in_progress';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_APPROVED = 'approved';
 
     public function bankAccount()

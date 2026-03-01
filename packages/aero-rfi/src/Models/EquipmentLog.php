@@ -61,7 +61,7 @@ class EquipmentLog extends Model
     public function getUtilizationPercentageAttribute(): float
     {
         $totalHours = $this->working_hours + $this->idle_hours + $this->breakdown_hours;
-        
+
         if ($totalHours == 0) {
             return 0;
         }
@@ -74,13 +74,14 @@ class EquipmentLog extends Model
      */
     public function getFuelEfficiencyAttribute(): ?float
     {
-        if (!$this->fuel_consumed_liters || $this->fuel_consumed_liters == 0) {
+        if (! $this->fuel_consumed_liters || $this->fuel_consumed_liters == 0) {
             return null;
         }
 
         // Calculate based on chainage distance if available
         if ($this->start_chainage_m && $this->end_chainage_m) {
             $distanceKm = abs($this->end_chainage_m - $this->start_chainage_m) / 1000;
+
             return $distanceKm / $this->fuel_consumed_liters;
         }
 

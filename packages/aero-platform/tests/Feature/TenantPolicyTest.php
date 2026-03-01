@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Tests\Feature;
 
+use Aero\HRMAC\Models\Role;
 use Aero\Platform\Models\LandlordUser;
 use Aero\Platform\Models\Tenant;
 use Aero\Platform\Policies\TenantPolicy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Aero\HRMAC\Models\Role;
 use Tests\TestCase;
 
 /**
@@ -32,7 +32,7 @@ class TenantPolicyTest extends TestCase
     {
         parent::setUp();
 
-        $this->policy = new TenantPolicy();
+        $this->policy = new TenantPolicy;
 
         // Create roles with appropriate module access
         $this->setupRolesAndUsers();
@@ -74,32 +74,32 @@ class TenantPolicyTest extends TestCase
         $this->regularUser->assignRole($regularRole);
     }
 
-    public function testSuperAdminCanViewAnyTenants(): void
+    public function test_super_admin_can_view_any_tenants(): void
     {
         $this->assertTrue($this->policy->viewAny($this->superAdmin));
     }
 
-    public function testSuperAdminCanViewTenant(): void
+    public function test_super_admin_can_view_tenant(): void
     {
         $this->assertTrue($this->policy->view($this->superAdmin, $this->tenant));
     }
 
-    public function testSuperAdminCanCreateTenant(): void
+    public function test_super_admin_can_create_tenant(): void
     {
         $this->assertTrue($this->policy->create($this->superAdmin));
     }
 
-    public function testSuperAdminCanUpdateTenant(): void
+    public function test_super_admin_can_update_tenant(): void
     {
         $this->assertTrue($this->policy->update($this->superAdmin, $this->tenant));
     }
 
-    public function testSuperAdminCanDeleteTenant(): void
+    public function test_super_admin_can_delete_tenant(): void
     {
         $this->assertTrue($this->policy->delete($this->superAdmin, $this->tenant));
     }
 
-    public function testSuperAdminCanSuspendActiveTenant(): void
+    public function test_super_admin_can_suspend_active_tenant(): void
     {
         $activeTenant = Tenant::factory()->create([
             'status' => Tenant::STATUS_ACTIVE,
@@ -108,7 +108,7 @@ class TenantPolicyTest extends TestCase
         $this->assertTrue($this->policy->suspend($this->superAdmin, $activeTenant));
     }
 
-    public function testCannotSuspendAlreadySuspendedTenant(): void
+    public function test_cannot_suspend_already_suspended_tenant(): void
     {
         $suspendedTenant = Tenant::factory()->create([
             'status' => Tenant::STATUS_SUSPENDED,
@@ -117,7 +117,7 @@ class TenantPolicyTest extends TestCase
         $this->assertFalse($this->policy->suspend($this->superAdmin, $suspendedTenant));
     }
 
-    public function testCannotSuspendArchivedTenant(): void
+    public function test_cannot_suspend_archived_tenant(): void
     {
         $archivedTenant = Tenant::factory()->create([
             'status' => Tenant::STATUS_ARCHIVED,
@@ -126,7 +126,7 @@ class TenantPolicyTest extends TestCase
         $this->assertFalse($this->policy->suspend($this->superAdmin, $archivedTenant));
     }
 
-    public function testSuperAdminCanActivateSuspendedTenant(): void
+    public function test_super_admin_can_activate_suspended_tenant(): void
     {
         $suspendedTenant = Tenant::factory()->create([
             'status' => Tenant::STATUS_SUSPENDED,
@@ -135,7 +135,7 @@ class TenantPolicyTest extends TestCase
         $this->assertTrue($this->policy->activate($this->superAdmin, $suspendedTenant));
     }
 
-    public function testSuperAdminCanActivatePendingTenant(): void
+    public function test_super_admin_can_activate_pending_tenant(): void
     {
         $pendingTenant = Tenant::factory()->create([
             'status' => Tenant::STATUS_PENDING,
@@ -144,7 +144,7 @@ class TenantPolicyTest extends TestCase
         $this->assertTrue($this->policy->activate($this->superAdmin, $pendingTenant));
     }
 
-    public function testCannotActivateAlreadyActiveTenant(): void
+    public function test_cannot_activate_already_active_tenant(): void
     {
         $activeTenant = Tenant::factory()->create([
             'status' => Tenant::STATUS_ACTIVE,
@@ -153,7 +153,7 @@ class TenantPolicyTest extends TestCase
         $this->assertFalse($this->policy->activate($this->superAdmin, $activeTenant));
     }
 
-    public function testSuperAdminCanArchiveActiveTenant(): void
+    public function test_super_admin_can_archive_active_tenant(): void
     {
         $activeTenant = Tenant::factory()->create([
             'status' => Tenant::STATUS_ACTIVE,
@@ -162,7 +162,7 @@ class TenantPolicyTest extends TestCase
         $this->assertTrue($this->policy->archive($this->superAdmin, $activeTenant));
     }
 
-    public function testCannotArchiveAlreadyArchivedTenant(): void
+    public function test_cannot_archive_already_archived_tenant(): void
     {
         $archivedTenant = Tenant::factory()->create([
             'status' => Tenant::STATUS_ARCHIVED,
@@ -171,7 +171,7 @@ class TenantPolicyTest extends TestCase
         $this->assertFalse($this->policy->archive($this->superAdmin, $archivedTenant));
     }
 
-    public function testSuperAdminCanImpersonateActiveTenant(): void
+    public function test_super_admin_can_impersonate_active_tenant(): void
     {
         $activeTenant = Tenant::factory()->create([
             'status' => Tenant::STATUS_ACTIVE,
@@ -180,7 +180,7 @@ class TenantPolicyTest extends TestCase
         $this->assertTrue($this->policy->impersonate($this->superAdmin, $activeTenant));
     }
 
-    public function testSuperAdminCanImpersonatePendingTenant(): void
+    public function test_super_admin_can_impersonate_pending_tenant(): void
     {
         $pendingTenant = Tenant::factory()->create([
             'status' => Tenant::STATUS_PENDING,
@@ -189,7 +189,7 @@ class TenantPolicyTest extends TestCase
         $this->assertTrue($this->policy->impersonate($this->superAdmin, $pendingTenant));
     }
 
-    public function testCannotImpersonateSuspendedTenant(): void
+    public function test_cannot_impersonate_suspended_tenant(): void
     {
         $suspendedTenant = Tenant::factory()->create([
             'status' => Tenant::STATUS_SUSPENDED,
@@ -198,7 +198,7 @@ class TenantPolicyTest extends TestCase
         $this->assertFalse($this->policy->impersonate($this->superAdmin, $suspendedTenant));
     }
 
-    public function testCannotImpersonateArchivedTenant(): void
+    public function test_cannot_impersonate_archived_tenant(): void
     {
         $archivedTenant = Tenant::factory()->create([
             'status' => Tenant::STATUS_ARCHIVED,
@@ -207,7 +207,7 @@ class TenantPolicyTest extends TestCase
         $this->assertFalse($this->policy->impersonate($this->superAdmin, $archivedTenant));
     }
 
-    public function testSuperAdminCanRetryProvisioningForFailedTenant(): void
+    public function test_super_admin_can_retry_provisioning_for_failed_tenant(): void
     {
         $failedTenant = Tenant::factory()->create([
             'status' => Tenant::STATUS_FAILED,
@@ -216,7 +216,7 @@ class TenantPolicyTest extends TestCase
         $this->assertTrue($this->policy->retryProvisioning($this->superAdmin, $failedTenant));
     }
 
-    public function testCannotRetryProvisioningForNonFailedTenant(): void
+    public function test_cannot_retry_provisioning_for_non_failed_tenant(): void
     {
         $activeTenant = Tenant::factory()->create([
             'status' => Tenant::STATUS_ACTIVE,
@@ -225,37 +225,37 @@ class TenantPolicyTest extends TestCase
         $this->assertFalse($this->policy->retryProvisioning($this->superAdmin, $activeTenant));
     }
 
-    public function testSuperAdminCanViewDomains(): void
+    public function test_super_admin_can_view_domains(): void
     {
         $this->assertTrue($this->policy->viewDomains($this->superAdmin));
     }
 
-    public function testSuperAdminCanManageDomains(): void
+    public function test_super_admin_can_manage_domains(): void
     {
         $this->assertTrue($this->policy->manageDomains($this->superAdmin));
     }
 
-    public function testSuperAdminCanViewDatabases(): void
+    public function test_super_admin_can_view_databases(): void
     {
         $this->assertTrue($this->policy->viewDatabases($this->superAdmin));
     }
 
-    public function testSuperAdminCanMigrateDatabases(): void
+    public function test_super_admin_can_migrate_databases(): void
     {
         $this->assertTrue($this->policy->migrateDatabases($this->superAdmin));
     }
 
-    public function testSuperAdminCanBackupDatabases(): void
+    public function test_super_admin_can_backup_databases(): void
     {
         $this->assertTrue($this->policy->backupDatabases($this->superAdmin));
     }
 
-    public function testSuperAdminCanForceDeleteTenant(): void
+    public function test_super_admin_can_force_delete_tenant(): void
     {
         $this->assertTrue($this->policy->forceDelete($this->superAdmin, $this->tenant));
     }
 
-    public function testSuperAdminCanRestoreTenant(): void
+    public function test_super_admin_can_restore_tenant(): void
     {
         $this->assertTrue($this->policy->restore($this->superAdmin, $this->tenant));
     }

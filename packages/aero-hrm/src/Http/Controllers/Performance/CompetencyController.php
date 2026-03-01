@@ -21,7 +21,7 @@ class ReviewController extends Controller
     {
         $userId = $request->user()->id;
         $filters = $request->only(['status', 'type', 'period']);
-        
+
         return Inertia::render('Hrm/Performance/Reviews/Index', [
             'myReviews' => fn () => $this->reviewService->getReviewsForEmployee($userId, $filters),
             'pendingReviews' => fn () => $this->reviewService->getPendingReviewsForReviewer($userId),
@@ -36,7 +36,7 @@ class ReviewController extends Controller
     public function cycles(Request $request): Response
     {
         $filters = $request->only(['status', 'year']);
-        
+
         return Inertia::render('Hrm/Performance/Reviews/Cycles', [
             'cycles' => fn () => $this->reviewService->getReviewCycles($filters),
             'filters' => $filters,
@@ -50,7 +50,7 @@ class ReviewController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'type' => 'required|string|in:' . implode(',', PerformanceReviewService::REVIEW_TYPES),
+            'type' => 'required|string|in:'.implode(',', PerformanceReviewService::REVIEW_TYPES),
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'self_review_deadline' => 'nullable|date',
@@ -59,16 +59,16 @@ class ReviewController extends Controller
             'employee_ids' => 'nullable|array',
             'include_all_employees' => 'nullable|boolean',
         ]);
-        
+
         $validated['created_by'] = $request->user()->id;
-        
+
         $result = $this->reviewService->createReviewCycle($validated);
-        
+
         if ($result['success']) {
             return redirect()->route('hrm.performance.reviews.cycles')
                 ->with('success', 'Review cycle created successfully');
         }
-        
+
         return back()->with('error', $result['error'] ?? 'Failed to create review cycle');
     }
 
@@ -78,7 +78,7 @@ class ReviewController extends Controller
     public function show(string $reviewId): Response
     {
         $review = $this->reviewService->getReview($reviewId);
-        
+
         return Inertia::render('Hrm/Performance/Reviews/Show', [
             'review' => $review,
         ]);
@@ -99,13 +99,13 @@ class ReviewController extends Controller
             'development_areas' => 'nullable|string',
             'goals_for_next_period' => 'nullable|string',
         ]);
-        
+
         $result = $this->reviewService->submitSelfAssessment($reviewId, $validated);
-        
+
         if ($result['success']) {
             return back()->with('success', 'Self assessment submitted');
         }
-        
+
         return back()->with('error', $result['error'] ?? 'Failed to submit assessment');
     }
 
@@ -123,15 +123,15 @@ class ReviewController extends Controller
             'areas_for_improvement' => 'nullable|string',
             'additional_comments' => 'nullable|string',
         ]);
-        
+
         $validated['reviewer_id'] = $request->user()->id;
-        
+
         $result = $this->reviewService->submitPeerFeedback($reviewId, $validated);
-        
+
         if ($result['success']) {
             return back()->with('success', 'Peer feedback submitted');
         }
-        
+
         return back()->with('error', $result['error'] ?? 'Failed to submit feedback');
     }
 
@@ -150,15 +150,15 @@ class ReviewController extends Controller
             'promotion_readiness' => 'nullable|string|in:ready,developing,not_ready',
             'salary_recommendation' => 'nullable|string',
         ]);
-        
+
         $validated['manager_id'] = $request->user()->id;
-        
+
         $result = $this->reviewService->submitManagerEvaluation($reviewId, $validated);
-        
+
         if ($result['success']) {
             return back()->with('success', 'Manager evaluation submitted');
         }
-        
+
         return back()->with('error', $result['error'] ?? 'Failed to submit evaluation');
     }
 
@@ -173,13 +173,13 @@ class ReviewController extends Controller
             'dispute' => 'nullable|boolean',
             'dispute_reason' => 'nullable|required_if:dispute,true|string',
         ]);
-        
+
         $result = $this->reviewService->acknowledgeReview($reviewId, $validated);
-        
+
         if ($result['success']) {
             return back()->with('success', 'Review acknowledged');
         }
-        
+
         return back()->with('error', $result['error'] ?? 'Failed to acknowledge review');
     }
 
@@ -205,13 +205,13 @@ class ReviewController extends Controller
             'adjustments.*.adjusted_rating' => 'required|integer|min:1|max:5',
             'adjustments.*.justification' => 'required|string',
         ]);
-        
+
         $result = $this->reviewService->calibrateRatings($cycleId, $validated['adjustments']);
-        
+
         if ($result['success']) {
             return back()->with('success', 'Calibration applied');
         }
-        
+
         return back()->with('error', $result['error'] ?? 'Failed to apply calibration');
     }
 
@@ -221,7 +221,7 @@ class ReviewController extends Controller
     public function analytics(Request $request): Response
     {
         $filters = $request->only(['department_id', 'period', 'cycle_id']);
-        
+
         return Inertia::render('Hrm/Performance/Reviews/Analytics', [
             'analytics' => fn () => $this->reviewService->getReviewAnalytics($filters),
             'filters' => $filters,

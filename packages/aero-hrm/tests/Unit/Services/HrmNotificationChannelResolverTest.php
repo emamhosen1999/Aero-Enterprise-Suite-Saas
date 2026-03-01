@@ -13,7 +13,7 @@ class HrmNotificationChannelResolverTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->resolver = new HrmNotificationChannelResolver();
+        $this->resolver = new HrmNotificationChannelResolver;
     }
 
     /**
@@ -45,7 +45,8 @@ class HrmNotificationChannelResolverTest extends TestCase
      */
     public function test_respects_user_preferences_via_interface(): void
     {
-        $notifiable = new class implements NotifiableUserInterface {
+        $notifiable = new class implements NotifiableUserInterface
+        {
             public function getKey()
             {
                 return 1;
@@ -77,6 +78,7 @@ class HrmNotificationChannelResolverTest extends TestCase
                 if ($eventType === 'leave_approved' && $channel === 'mail') {
                     return true;
                 }
+
                 return false;
             }
         };
@@ -93,7 +95,8 @@ class HrmNotificationChannelResolverTest extends TestCase
      */
     public function test_includes_fcm_channel_when_enabled(): void
     {
-        $notifiable = new class implements NotifiableUserInterface {
+        $notifiable = new class implements NotifiableUserInterface
+        {
             public function getKey()
             {
                 return 1;
@@ -138,7 +141,8 @@ class HrmNotificationChannelResolverTest extends TestCase
      */
     public function test_respects_preferences_from_attribute(): void
     {
-        $notifiable = new class {
+        $notifiable = new class
+        {
             public array $notification_preferences = [
                 'leave_approved' => [
                     'mail' => false,
@@ -153,6 +157,7 @@ class HrmNotificationChannelResolverTest extends TestCase
                 if ($name === 'notification_preferences') {
                     return $this->notification_preferences;
                 }
+
                 return null;
             }
         };

@@ -2,10 +2,10 @@
 
 namespace Aero\RealEstate\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class PropertyListing extends Model
 {
@@ -17,7 +17,7 @@ class PropertyListing extends Model
         'property_id', 'agent_id', 'mls_number', 'listing_type', 'price',
         'price_per_sqft', 'status', 'list_date', 'expiration_date',
         'days_on_market', 'showing_instructions', 'virtual_tour_url',
-        'description', 'features', 'is_featured', 'created_by'
+        'description', 'features', 'is_featured', 'created_by',
     ];
 
     protected $casts = [
@@ -34,15 +34,23 @@ class PropertyListing extends Model
     ];
 
     const TYPE_SALE = 'sale';
+
     const TYPE_RENT = 'rent';
+
     const TYPE_LEASE = 'lease';
 
     const STATUS_ACTIVE = 'active';
+
     const STATUS_PENDING = 'pending';
+
     const STATUS_SOLD = 'sold';
+
     const STATUS_RENTED = 'rented';
+
     const STATUS_EXPIRED = 'expired';
+
     const STATUS_WITHDRAWN = 'withdrawn';
+
     const STATUS_CANCELLED = 'cancelled';
 
     public function property()
@@ -111,15 +119,15 @@ class PropertyListing extends Model
     public function getActiveOffersAttribute()
     {
         return $this->offers()
-                   ->whereIn('status', [PropertyOffer::STATUS_PENDING, PropertyOffer::STATUS_COUNTER_OFFERED])
-                   ->count();
+            ->whereIn('status', [PropertyOffer::STATUS_PENDING, PropertyOffer::STATUS_COUNTER_OFFERED])
+            ->count();
     }
 
     public function getHighestOfferAttribute()
     {
         return $this->offers()
-                   ->where('status', '!=', PropertyOffer::STATUS_WITHDRAWN)
-                   ->max('offer_amount');
+            ->where('status', '!=', PropertyOffer::STATUS_WITHDRAWN)
+            ->max('offer_amount');
     }
 
     public function scopeActive($query)
@@ -145,6 +153,6 @@ class PropertyListing extends Model
     public function scopeExpiringSoon($query, $days = 7)
     {
         return $query->where('expiration_date', '<=', now()->addDays($days))
-                    ->where('status', self::STATUS_ACTIVE);
+            ->where('status', self::STATUS_ACTIVE);
     }
 }

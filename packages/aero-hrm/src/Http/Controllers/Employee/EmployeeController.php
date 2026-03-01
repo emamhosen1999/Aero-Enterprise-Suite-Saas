@@ -2,19 +2,19 @@
 
 namespace Aero\HRM\Http\Controllers\Employee;
 
+use Aero\Core\Models\User;
+use Aero\HRM\Events\Employee\EmployeeCreated;
+use Aero\HRM\Events\Employee\EmployeePromoted;
+use Aero\HRM\Events\Employee\EmployeeTerminated;
+use Aero\HRM\Events\Employee\EmployeeUpdated;
+use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Models\AttendanceType;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Designation;
 use Aero\HRM\Models\Employee;
-use Aero\HRM\Http\Controllers\Controller;
+use Aero\HRM\Notifications\WelcomeEmployeeNotification;
 use Aero\HRM\Services\EmployeeOnboardingService;
 use Aero\HRM\Services\HRMAuthorizationService;
-use Aero\HRM\Notifications\WelcomeEmployeeNotification;
-use Aero\HRM\Events\Employee\EmployeeCreated;
-use Aero\HRM\Events\Employee\EmployeeUpdated;
-use Aero\HRM\Events\Employee\EmployeePromoted;
-use Aero\HRM\Events\Employee\EmployeeTerminated;
-use Aero\Core\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -178,7 +178,6 @@ class EmployeeController extends Controller
      * Converts an existing User to an Employee with automatic onboarding initialization.
      * This is the recommended way to create employees from existing users.
      *
-     * @param  Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function onboard(Request $request)
@@ -287,7 +286,6 @@ class EmployeeController extends Controller
      * Processes multiple users with same employment details.
      * Each user is processed in its own transaction for isolation.
      *
-     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function bulkOnboard(Request $request)
@@ -328,6 +326,7 @@ class EmployeeController extends Controller
                         'message' => 'User already has an employee record',
                     ];
                     DB::rollBack();
+
                     continue;
                 }
 
@@ -384,7 +383,7 @@ class EmployeeController extends Controller
 
                 $failedResults[] = [
                     'user_id' => $userId,
-                    'message' => 'Failed: ' . $e->getMessage(),
+                    'message' => 'Failed: '.$e->getMessage(),
                 ];
             }
         }
@@ -604,7 +603,7 @@ class EmployeeController extends Controller
             $userFields = array_intersect_key($validated, array_flip(['name', 'email', 'phone', 'active', 'attendance_type_id']));
             if (! empty($userFields)) {
                 foreach ($userFields as $key => $value) {
-                    if ($user->$key != $value) {
+                    if ($value != $user->$key) {
                         $changes[$key] = ['old' => $user->$key, 'new' => $value];
                     }
                 }
@@ -618,7 +617,7 @@ class EmployeeController extends Controller
             ]));
             if (! empty($employeeFields)) {
                 foreach ($employeeFields as $key => $value) {
-                    if ($employee->$key != $value) {
+                    if ($value != $employee->$key) {
                         $changes[$key] = ['old' => $employee->$key, 'new' => $value];
                     }
                 }
@@ -631,8 +630,8 @@ class EmployeeController extends Controller
             }
 
             // Detect promotion (designation or department change with salary increase)
-            $isPromotion = isset($changes['designation_id']) || 
-                          (isset($changes['department_id']) && isset($changes['basic_salary']) && 
+            $isPromotion = isset($changes['designation_id']) ||
+                          (isset($changes['department_id']) && isset($changes['basic_salary']) &&
                            $changes['basic_salary']['new'] > $changes['basic_salary']['old']);
 
             if ($isPromotion) {
@@ -942,14 +941,14 @@ class EmployeeController extends Controller
 
     /**
      * Check if current user can modify the employee
-     * 
+     *
      * Uses HRMAuthorizationService for permission-based access control
      * instead of hardcoded role checks.
      */
     private function canModifyEmployee($currentUser, Employee $employee): bool
     {
         $authService = app(HRMAuthorizationService::class);
-        
+
         // Users can modify their own profile
         if ($currentUser->id === $employee->user_id) {
             return true;
@@ -967,7 +966,7 @@ class EmployeeController extends Controller
             if ($authService->canManageDepartment($currentUser, $employee->department_id)) {
                 return true;
             }
-            
+
             // Check if current user is the direct manager of the employee
             if ($employee->manager_id === $currentUser->id) {
                 return true;
@@ -982,7 +981,7 @@ class EmployeeController extends Controller
      */
     /**
      * Check if current user can delete the employee
-     * 
+     *
      * Uses HRMAuthorizationService for permission-based access control
      * instead of hardcoded role checks.
      */
@@ -994,7 +993,7 @@ class EmployeeController extends Controller
         }
 
         $authService = app(HRMAuthorizationService::class);
-        
+
         // Check via authorization service - uses module access system
         return $authService->canManageEmployees($currentUser);
     }
@@ -1116,7 +1115,6 @@ class EmployeeController extends Controller
      * Only shows users who have the "Employee" role (but may have other roles too).
      * Used by UI to display users that can be converted to employees.
      *
-     * @param  Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function getPendingOnboarding(Request $request)
@@ -1129,7 +1127,7 @@ class EmployeeController extends Controller
                 ->when($request->search, function ($query, $search) {
                     $query->where(function ($q) use ($search) {
                         $q->where('name', 'like', "%{$search}%")
-                          ->orWhere('email', 'like', "%{$search}%");
+                            ->orWhere('email', 'like', "%{$search}%");
                     });
                 })
                 ->with('roles')
@@ -1153,27 +1151,26 @@ class EmployeeController extends Controller
     /**
      * Get onboarding analytics data
      *
-     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function getOnboardingAnalytics(Request $request)
     {
         try {
             $days = $request->get('days', 30);
-            
+
             // Validate days parameter
-            if (!is_numeric($days) || $days < 1 || $days > 365) {
+            if (! is_numeric($days) || $days < 1 || $days > 365) {
                 return response()->json([
                     'error' => 'Days parameter must be between 1 and 365',
                 ], 400);
             }
-            
+
             // Get analytics data with caching (5 minutes)
             $cacheKey = "onboarding_analytics_{$days}_days";
             $analytics = cache()->remember($cacheKey, 300, function () use ($days) {
                 return \Aero\HRM\Models\Onboarding::getAnalytics((int) $days);
             });
-            
+
             return response()->json($analytics);
         } catch (\Exception $e) {
             Log::error('Failed to fetch onboarding analytics', [
@@ -1181,7 +1178,7 @@ class EmployeeController extends Controller
                 'trace' => $e->getTraceAsString(),
                 'user' => Auth::id(),
             ]);
-            
+
             return response()->json([
                 'error' => 'Failed to fetch onboarding analytics',
                 'message' => $e->getMessage(),

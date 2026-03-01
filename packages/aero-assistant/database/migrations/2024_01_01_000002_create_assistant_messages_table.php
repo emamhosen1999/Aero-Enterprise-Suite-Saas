@@ -20,7 +20,7 @@ return new class extends Migration
             $table->boolean('has_error')->default(false);
             $table->text('error_message')->nullable();
             $table->timestamps();
-            
+
             $table->index(['conversation_id', 'created_at']);
         });
     }

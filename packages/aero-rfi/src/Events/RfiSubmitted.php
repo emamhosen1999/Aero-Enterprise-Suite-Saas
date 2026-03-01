@@ -8,7 +8,7 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * RfiSubmitted Event
- * 
+ *
  * Dispatched when a new RFI is submitted.
  * Triggers:
  * - ChainageProgress record creation

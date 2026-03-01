@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace Aero\HRM\Http\Controllers\Employee;
 
+use Aero\Core\Services\DashboardWidgetRegistry;
 use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Models\Attendance;
-use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Leave;
 use Aero\HRM\Services\LeaveBalanceService;
-use Aero\Core\Services\DashboardWidgetRegistry;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -47,7 +46,7 @@ class EmployeeDashboardController extends Controller
         $leaveBalances = [];
         $pendingLeaves = [];
         $recentLeaves = [];
-        
+
         if ($employee) {
             try {
                 $leaveBalances = $this->leaveBalanceService->getAllBalances($employee);

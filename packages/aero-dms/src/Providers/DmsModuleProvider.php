@@ -3,7 +3,6 @@
 namespace Aero\Dms\Providers;
 
 use Aero\Core\Providers\AbstractModuleProvider;
-use Aero\Core\Services\NavigationRegistry;
 use Aero\Core\Services\UserRelationshipRegistry;
 use Aero\DMS\Models\Document;
 use Aero\DMS\Models\Folder;
@@ -132,7 +131,7 @@ class DmsModuleProvider extends AbstractModuleProvider
     protected function registerDashboardWidgets(): void
     {
         // Only register if the registry is available
-        if (!$this->app->bound(\Aero\Core\Services\DashboardWidgetRegistry::class)) {
+        if (! $this->app->bound(\Aero\Core\Services\DashboardWidgetRegistry::class)) {
             return;
         }
 
@@ -140,10 +139,10 @@ class DmsModuleProvider extends AbstractModuleProvider
 
         // Register DMS widgets for Core Dashboard
         $registry->registerMany([
-            new \Aero\DMS\Widgets\RecentDocumentsWidget(),
-            new \Aero\DMS\Widgets\StorageUsageWidget(),
-            new \Aero\DMS\Widgets\PendingApprovalsWidget(),
-            new \Aero\DMS\Widgets\SharedWithMeWidget(),
+            new \Aero\DMS\Widgets\RecentDocumentsWidget,
+            new \Aero\DMS\Widgets\StorageUsageWidget,
+            new \Aero\DMS\Widgets\PendingApprovalsWidget,
+            new \Aero\DMS\Widgets\SharedWithMeWidget,
         ]);
     }
 

@@ -2,9 +2,9 @@
 
 namespace Aero\Scm\Http\Controllers;
 
-use Illuminate\Routing\Controller;
 use App\Models\Tenant\SCM\ReturnRequest;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;

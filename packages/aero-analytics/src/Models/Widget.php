@@ -2,10 +2,10 @@
 
 namespace Aero\Analytics\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class Widget extends Model
 {
@@ -16,7 +16,7 @@ class Widget extends Model
     protected $fillable = [
         'name', 'description', 'widget_type', 'data_source_id',
         'query_config', 'visualization_config', 'refresh_interval',
-        'is_active', 'created_by', 'category'
+        'is_active', 'created_by', 'category',
     ];
 
     protected $casts = [
@@ -29,18 +29,29 @@ class Widget extends Model
     ];
 
     const TYPE_CHART = 'chart';
+
     const TYPE_TABLE = 'table';
+
     const TYPE_KPI = 'kpi';
+
     const TYPE_GAUGE = 'gauge';
+
     const TYPE_MAP = 'map';
+
     const TYPE_TEXT = 'text';
+
     const TYPE_IFRAME = 'iframe';
 
     const CATEGORY_FINANCE = 'finance';
+
     const CATEGORY_SALES = 'sales';
+
     const CATEGORY_HR = 'hr';
+
     const CATEGORY_OPERATIONS = 'operations';
+
     const CATEGORY_MANUFACTURING = 'manufacturing';
+
     const CATEGORY_GENERAL = 'general';
 
     public function dataSource()

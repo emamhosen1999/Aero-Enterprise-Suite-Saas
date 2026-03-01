@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 class AssistantService
 {
     protected RagService $ragService;
+
     protected AiModelService $aiModelService;
 
     public function __construct(RagService $ragService, AiModelService $aiModelService)
@@ -26,16 +27,16 @@ class AssistantService
     /**
      * Send a message and get a response.
      *
-     * @param string $message User's message
-     * @param int|null $conversationId Existing conversation ID or null for new
-     * @param array $context Additional context (page, module, etc.)
+     * @param  string  $message  User's message
+     * @param  int|null  $conversationId  Existing conversation ID or null for new
+     * @param  array  $context  Additional context (page, module, etc.)
      * @return array Response with message, conversation details
      */
     public function sendMessage(string $message, ?int $conversationId = null, array $context = []): array
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return [
                 'success' => false,
                 'error' => 'User not authenticated',
@@ -43,7 +44,7 @@ class AssistantService
         }
 
         // Check usage limits
-        if (!$this->checkUsageLimit($user)) {
+        if (! $this->checkUsageLimit($user)) {
             return [
                 'success' => false,
                 'error' => 'Daily message limit reached. Please upgrade your plan.',
@@ -56,7 +57,7 @@ class AssistantService
                 ->where('user_id', $user->id)
                 ->first();
 
-            if (!$conversation) {
+            if (! $conversation) {
                 return [
                     'success' => false,
                     'error' => 'Conversation not found',
@@ -91,7 +92,7 @@ class AssistantService
         } else {
             $response = $this->aiModelService->generateResponse(
                 array_merge($history, [
-                    ['role' => 'user', 'content' => $message]
+                    ['role' => 'user', 'content' => $message],
                 ])
             );
         }
@@ -107,7 +108,7 @@ class AssistantService
                 'processing_time_ms' => $response['processing_time_ms'] ?? 0,
                 'used_rag' => $response['used_rag'] ?? false,
             ],
-            'has_error' => !($response['success'] ?? true),
+            'has_error' => ! ($response['success'] ?? true),
             'error_message' => $response['error'] ?? null,
         ]);
 
@@ -144,7 +145,7 @@ class AssistantService
             ->take($limit)
             ->get()
             ->reverse()
-            ->map(fn($msg) => [
+            ->map(fn ($msg) => [
                 'role' => $msg->role,
                 'content' => $msg->content,
             ])
@@ -160,14 +161,14 @@ class AssistantService
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return [];
         }
 
         $query = Conversation::where('user_id', $user->id)
             ->with(['latestMessage']);
 
-        if (!$includeArchived) {
+        if (! $includeArchived) {
             $query->active();
         }
 
@@ -191,7 +192,7 @@ class AssistantService
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return null;
         }
 
@@ -200,7 +201,7 @@ class AssistantService
             ->where('user_id', $user->id)
             ->first();
 
-        if (!$conversation) {
+        if (! $conversation) {
             return null;
         }
 
@@ -209,7 +210,7 @@ class AssistantService
             'title' => $conversation->title,
             'context' => $conversation->context,
             'is_archived' => $conversation->is_archived,
-            'messages' => $conversation->messages->map(fn($msg) => [
+            'messages' => $conversation->messages->map(fn ($msg) => [
                 'id' => $msg->id,
                 'role' => $msg->role,
                 'content' => $msg->content,
@@ -256,7 +257,7 @@ class AssistantService
     protected function getUserPlanTier($user): string
     {
         // Check if running in standalone mode
-        if (!config('tenancy.enabled', false)) {
+        if (! config('tenancy.enabled', false)) {
             return 'standalone';
         }
 
@@ -291,7 +292,7 @@ class AssistantService
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -301,6 +302,7 @@ class AssistantService
 
         if ($conversation) {
             $conversation->update(['is_archived' => true]);
+
             return true;
         }
 
@@ -314,7 +316,7 @@ class AssistantService
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -324,6 +326,7 @@ class AssistantService
 
         if ($conversation) {
             $conversation->delete();
+
             return true;
         }
 

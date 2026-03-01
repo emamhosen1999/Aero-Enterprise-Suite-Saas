@@ -2,10 +2,10 @@
 
 namespace Aero\IoT\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class DeviceFirmware extends Model
 {
@@ -18,7 +18,7 @@ class DeviceFirmware extends Model
         'checksum', 'release_notes', 'is_stable', 'min_hardware_version',
         'max_hardware_version', 'update_status', 'update_started_at',
         'update_completed_at', 'update_progress', 'error_message',
-        'rollback_version', 'created_by'
+        'rollback_version', 'created_by',
     ];
 
     protected $casts = [
@@ -32,12 +32,19 @@ class DeviceFirmware extends Model
     ];
 
     const STATUS_PENDING = 'pending';
+
     const STATUS_DOWNLOADING = 'downloading';
+
     const STATUS_DOWNLOADED = 'downloaded';
+
     const STATUS_INSTALLING = 'installing';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_FAILED = 'failed';
+
     const STATUS_ROLLED_BACK = 'rolled_back';
+
     const STATUS_CANCELLED = 'cancelled';
 
     public function device()
@@ -64,21 +71,24 @@ class DeviceFirmware extends Model
     {
         return in_array($this->update_status, [
             self::STATUS_DOWNLOADING,
-            self::STATUS_INSTALLING
+            self::STATUS_INSTALLING,
         ]);
     }
 
     public function getDurationAttribute()
     {
-        if (!$this->update_started_at) return null;
-        
+        if (! $this->update_started_at) {
+            return null;
+        }
+
         $endTime = $this->update_completed_at ?: now();
+
         return $this->update_started_at->diffInMinutes($endTime);
     }
 
     public function getStatusColorAttribute()
     {
-        return match($this->update_status) {
+        return match ($this->update_status) {
             self::STATUS_PENDING => 'default',
             self::STATUS_DOWNLOADING => 'primary',
             self::STATUS_DOWNLOADED => 'primary',
@@ -93,41 +103,48 @@ class DeviceFirmware extends Model
 
     public function getFormattedSizeAttribute()
     {
-        if (!$this->firmware_size) return 'Unknown';
-        
+        if (! $this->firmware_size) {
+            return 'Unknown';
+        }
+
         $units = ['B', 'KB', 'MB', 'GB'];
         $size = $this->firmware_size;
         $unit = 0;
-        
+
         while ($size >= 1024 && $unit < count($units) - 1) {
             $size /= 1024;
             $unit++;
         }
-        
-        return round($size, 2) . ' ' . $units[$unit];
+
+        return round($size, 2).' '.$units[$unit];
     }
 
     public function isCompatible($hardwareVersion = null)
     {
         $hwVersion = $hardwareVersion ?: $this->device->firmware_version;
-        if (!$hwVersion) return true;
-        
+        if (! $hwVersion) {
+            return true;
+        }
+
         if ($this->min_hardware_version && version_compare($hwVersion, $this->min_hardware_version, '<')) {
             return false;
         }
-        
+
         if ($this->max_hardware_version && version_compare($hwVersion, $this->max_hardware_version, '>')) {
             return false;
         }
-        
+
         return true;
     }
 
     public function verifyChecksum($fileContent)
     {
-        if (!$this->checksum) return true;
-        
+        if (! $this->checksum) {
+            return true;
+        }
+
         $calculatedChecksum = hash('sha256', $fileContent);
+
         return $calculatedChecksum === $this->checksum;
     }
 
@@ -143,11 +160,11 @@ class DeviceFirmware extends Model
     public function updateProgress($progress, $status = null)
     {
         $updateData = ['update_progress' => $progress];
-        
+
         if ($status) {
             $updateData['update_status'] = $status;
         }
-        
+
         $this->update($updateData);
     }
 
@@ -158,10 +175,10 @@ class DeviceFirmware extends Model
             'update_completed_at' => now(),
             'update_progress' => 100,
         ]);
-        
+
         // Update device firmware version
         $this->device->update([
-            'firmware_version' => $this->firmware_version
+            'firmware_version' => $this->firmware_version,
         ]);
     }
 
@@ -177,10 +194,10 @@ class DeviceFirmware extends Model
     {
         if ($this->rollback_version) {
             $this->device->update([
-                'firmware_version' => $this->rollback_version
+                'firmware_version' => $this->rollback_version,
             ]);
         }
-        
+
         $this->update([
             'update_status' => self::STATUS_ROLLED_BACK,
         ]);
@@ -207,7 +224,7 @@ class DeviceFirmware extends Model
     {
         return $query->whereIn('update_status', [
             self::STATUS_DOWNLOADING,
-            self::STATUS_INSTALLING
+            self::STATUS_INSTALLING,
         ]);
     }
 

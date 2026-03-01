@@ -2,8 +2,8 @@
 
 namespace Aero\HRM\Http\Controllers\Employee;
 
-use Aero\HRM\Http\Controllers\Controller;
 use Aero\Core\Models\User;
+use Aero\HRM\Http\Controllers\Controller;
 
 class ManagersController extends Controller
 {

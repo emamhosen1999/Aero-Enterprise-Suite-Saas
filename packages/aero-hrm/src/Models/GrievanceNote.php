@@ -38,9 +38,13 @@ class GrievanceNote extends Model
      * Note types.
      */
     public const TYPE_UPDATE = 'update';
+
     public const TYPE_INVESTIGATION = 'investigation';
+
     public const TYPE_RESOLUTION = 'resolution';
+
     public const TYPE_ESCALATION = 'escalation';
+
     public const TYPE_COMMUNICATION = 'communication';
 
     public function grievance(): BelongsTo

@@ -2,9 +2,9 @@
 
 namespace AeroHRM\Tests\Unit\Models;
 
-use AeroHRM\Models\ExpenseClaim;
-use AeroHRM\Models\ExpenseCategory;
 use AeroHRM\Models\Employee;
+use AeroHRM\Models\ExpenseCategory;
+use AeroHRM\Models\ExpenseClaim;
 use AeroHRM\Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -12,7 +12,7 @@ class ExpenseClaimModelTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_has_correct_status_workflow_states()
     {
         $validStatuses = ['draft', 'submitted', 'pending', 'approved', 'rejected', 'paid', 'cancelled'];
@@ -23,18 +23,18 @@ class ExpenseClaimModelTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_auto_generates_unique_claim_number_on_creation()
     {
         $claim1 = ExpenseClaim::factory()->create();
         $claim2 = ExpenseClaim::factory()->create();
 
         $this->assertNotEquals($claim1->claim_number, $claim2->claim_number);
-        $this->assertStringStartsWith('EXP' . date('Y'), $claim1->claim_number);
-        $this->assertStringStartsWith('EXP' . date('Y'), $claim2->claim_number);
+        $this->assertStringStartsWith('EXP'.date('Y'), $claim1->claim_number);
+        $this->assertStringStartsWith('EXP'.date('Y'), $claim2->claim_number);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_belongs_to_employee_and_category()
     {
         $employee = Employee::factory()->create();
@@ -50,7 +50,7 @@ class ExpenseClaimModelTest extends TestCase
         $this->assertEquals($category->id, $claim->category->id);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_check_if_claim_can_be_edited()
     {
         $draftClaim = ExpenseClaim::factory()->create(['status' => 'draft']);
@@ -60,7 +60,7 @@ class ExpenseClaimModelTest extends TestCase
         $this->assertFalse($approvedClaim->canBeEdited());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_check_if_claim_can_be_cancelled()
     {
         $draftClaim = ExpenseClaim::factory()->create(['status' => 'draft']);
@@ -72,7 +72,7 @@ class ExpenseClaimModelTest extends TestCase
         $this->assertFalse($approvedClaim->canBeCancelled());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_check_if_claim_can_be_approved()
     {
         $draftClaim = ExpenseClaim::factory()->create(['status' => 'draft']);
@@ -84,7 +84,7 @@ class ExpenseClaimModelTest extends TestCase
         $this->assertFalse($approvedClaim->canBeApproved());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_soft_deletes_correctly()
     {
         $claim = ExpenseClaim::factory()->create();

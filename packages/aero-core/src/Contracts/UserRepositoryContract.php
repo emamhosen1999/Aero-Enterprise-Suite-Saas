@@ -17,8 +17,6 @@ use Illuminate\Support\Collection;
  * - Decouple user queries from concrete User model
  * - Enable dependency injection for better testability
  * - Support clean architecture and package boundaries
- *
- * @package Aero\Core\Contracts
  */
 interface UserRepositoryContract
 {

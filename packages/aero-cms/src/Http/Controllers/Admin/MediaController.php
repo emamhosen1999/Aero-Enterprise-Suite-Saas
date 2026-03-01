@@ -28,7 +28,7 @@ class MediaController extends Controller
         }
 
         if ($type = $request->input('type')) {
-            $query->where('mime_type', 'like', $type . '/%');
+            $query->where('mime_type', 'like', $type.'/%');
         }
 
         if ($search = $request->input('search')) {
@@ -97,7 +97,7 @@ class MediaController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => count($uploaded) . ' file(s) uploaded successfully.',
+            'message' => count($uploaded).' file(s) uploaded successfully.',
             'media' => $uploaded,
         ]);
     }
@@ -165,7 +165,7 @@ class MediaController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => count($validated['ids']) . ' item(s) deleted successfully.',
+            'message' => count($validated['ids']).' item(s) deleted successfully.',
         ]);
     }
 
@@ -179,8 +179,8 @@ class MediaController extends Controller
         ]);
 
         $folderPath = "cms/{$validated['name']}";
-        
-        if (!Storage::disk('public')->exists($folderPath)) {
+
+        if (! Storage::disk('public')->exists($folderPath)) {
             Storage::disk('public')->makeDirectory($folderPath);
         }
 
@@ -203,7 +203,7 @@ class MediaController extends Controller
             ->toArray();
 
         // Ensure 'uploads' is always present
-        if (!in_array('uploads', $folders)) {
+        if (! in_array('uploads', $folders)) {
             array_unshift($folders, 'uploads');
         }
 
@@ -217,8 +217,8 @@ class MediaController extends Controller
     {
         $extension = pathinfo($original, PATHINFO_EXTENSION);
         $name = Str::slug(pathinfo($original, PATHINFO_FILENAME));
-        
-        return $name . '-' . Str::random(8) . '.' . $extension;
+
+        return $name.'-'.Str::random(8).'.'.$extension;
     }
 
     /**
@@ -246,12 +246,12 @@ class MediaController extends Controller
     {
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
         $i = 0;
-        
+
         while ($bytes >= 1024 && $i < count($units) - 1) {
             $bytes /= 1024;
             $i++;
         }
 
-        return round($bytes, 2) . ' ' . $units[$i];
+        return round($bytes, 2).' '.$units[$i];
     }
 }

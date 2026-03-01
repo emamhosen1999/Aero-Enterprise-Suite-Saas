@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Validator;
 
 /**
  * LinearContinuityController - PATENTABLE CORE IP
- * 
+ *
  * API endpoints for layer progression validation and gap detection.
  * Used by LinearProgressMap and GeoLockedRfiForm components.
  */
@@ -23,7 +23,7 @@ class LinearContinuityController
 
     /**
      * Get layer completion grid for visual map
-     * 
+     *
      * GET /api/rfi/linear-continuity/grid
      */
     public function getCompletionGrid(Request $request): JsonResponse
@@ -77,7 +77,7 @@ class LinearContinuityController
 
     /**
      * Validate layer continuity for proposed work
-     * 
+     *
      * POST /api/rfi/linear-continuity/validate
      */
     public function validateContinuity(Request $request): JsonResponse
@@ -115,7 +115,7 @@ class LinearContinuityController
 
     /**
      * Get AI-suggested next work location
-     * 
+     *
      * POST /api/rfi/linear-continuity/suggest-location
      */
     public function suggestNextLocation(Request $request): JsonResponse
@@ -144,9 +144,9 @@ class LinearContinuityController
 
             return response()->json([
                 'suggested_location' => $suggestion,
-                'message' => $suggestion 
-                    ? "Priority work area identified" 
-                    : "All areas adequately covered",
+                'message' => $suggestion
+                    ? 'Priority work area identified'
+                    : 'All areas adequately covered',
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -158,7 +158,7 @@ class LinearContinuityController
 
     /**
      * Analyze layer coverage for a specific range
-     * 
+     *
      * GET /api/rfi/linear-continuity/coverage
      */
     public function analyzeCoverage(Request $request): JsonResponse
@@ -196,7 +196,7 @@ class LinearContinuityController
 
     /**
      * Get dashboard stats for project
-     * 
+     *
      * GET /api/rfi/linear-continuity/stats
      */
     public function getStats(Request $request): JsonResponse
@@ -235,7 +235,7 @@ class LinearContinuityController
             // Calculate average coverage across all layers
             $avgCoverage = 0;
             $layers = ['earthwork_excavation', 'earthwork_compaction', 'sub_base', 'base_course', 'binder_course', 'wearing_course', 'surface_treatment'];
-            
+
             foreach ($layers as $layer) {
                 $coverage = $this->continuityValidator->analyzeLayerCoverage(
                     $layer,
@@ -264,7 +264,7 @@ class LinearContinuityController
 
     /**
      * Validate GPS location against claimed chainage
-     * 
+     *
      * POST /api/rfi/geofencing/validate
      */
     public function validateGPS(Request $request): JsonResponse

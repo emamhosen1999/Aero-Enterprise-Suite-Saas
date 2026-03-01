@@ -2,10 +2,10 @@
 
 namespace Aero\Analytics\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class AlertRule extends Model
 {
@@ -16,7 +16,7 @@ class AlertRule extends Model
     protected $fillable = [
         'name', 'description', 'rule_type', 'data_source_id', 'condition_config',
         'notification_config', 'frequency', 'is_active', 'created_by',
-        'last_triggered_at', 'trigger_count'
+        'last_triggered_at', 'trigger_count',
     ];
 
     protected $casts = [
@@ -30,15 +30,23 @@ class AlertRule extends Model
     ];
 
     const TYPE_THRESHOLD = 'threshold';
+
     const TYPE_ANOMALY = 'anomaly';
+
     const TYPE_TREND = 'trend';
+
     const TYPE_COMPARISON = 'comparison';
 
     const FREQUENCY_REAL_TIME = 'real_time';
+
     const FREQUENCY_EVERY_MINUTE = 'every_minute';
+
     const FREQUENCY_EVERY_5_MINUTES = 'every_5_minutes';
+
     const FREQUENCY_EVERY_15_MINUTES = 'every_15_minutes';
+
     const FREQUENCY_HOURLY = 'hourly';
+
     const FREQUENCY_DAILY = 'daily';
 
     public function dataSource()

@@ -29,6 +29,11 @@ class RegistrationDetailsRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:120'],
+            // Fix #16: Validate owner/contact fields that are submitted from the registration wizard.
+            'owner_name' => ['nullable', 'string', 'max:150'],
+            'owner_email' => ['nullable', 'email:filter', 'max:150'],
+            'owner_phone' => ['nullable', 'string', 'max:30', 'regex:/^\+?[1-9]\d{1,14}$/'],
+            'industry' => ['nullable', 'string', 'max:100'],
             'email' => [
                 'required',
                 'email:filter',
@@ -67,9 +72,12 @@ class RegistrationDetailsRequest extends FormRequest
     {
         return [
             'subdomain.regex' => 'Subdomain may only contain lowercase letters, numbers, and single hyphens.',
-            'email.unique' => 'This email is already registered with an active workspace.',
-            'subdomain.unique' => 'This subdomain is already in use by an active workspace.',
+            // Fix #23: Use a single generic message for both email and subdomain uniqueness failures
+            // to prevent user-enumeration (distinguishing which value is taken).
+            'email.unique' => 'This email or subdomain is already in use. Please choose different values.',
+            'subdomain.unique' => 'This email or subdomain is already in use. Please choose different values.',
             'phone.regex' => 'Please enter a valid phone number in international format (e.g., +1234567890).',
+            'owner_phone.regex' => 'Please enter a valid phone number in international format (e.g., +1234567890).',
         ];
     }
 

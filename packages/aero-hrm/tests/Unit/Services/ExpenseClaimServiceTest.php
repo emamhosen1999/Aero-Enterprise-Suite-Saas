@@ -2,9 +2,9 @@
 
 namespace AeroHRM\Tests\Unit\Services;
 
-use AeroHRM\Models\ExpenseClaim;
-use AeroHRM\Models\ExpenseCategory;
 use AeroHRM\Models\Employee;
+use AeroHRM\Models\ExpenseCategory;
+use AeroHRM\Models\ExpenseClaim;
 use AeroHRM\Services\ExpenseClaimService;
 use AeroHRM\Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -21,7 +21,7 @@ class ExpenseClaimServiceTest extends TestCase
         $this->service = app(ExpenseClaimService::class);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_creates_expense_claim_with_auto_generated_number()
     {
         $employee = Employee::factory()->create();
@@ -32,11 +32,11 @@ class ExpenseClaimServiceTest extends TestCase
             'expense_category_id' => $category->id,
         ]);
 
-        $this->assertStringStartsWith('EXP' . date('Y'), $claim->claim_number);
+        $this->assertStringStartsWith('EXP'.date('Y'), $claim->claim_number);
         $this->assertEquals('draft', $claim->status);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_validates_amount_against_category_max_amount()
     {
         $category = ExpenseCategory::factory()->create(['max_amount' => 1000]);
@@ -52,7 +52,7 @@ class ExpenseClaimServiceTest extends TestCase
         $this->assertLessThanOrEqual($category->max_amount, $claim->amount);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_tracks_approval_chain_correctly()
     {
         $claim = ExpenseClaim::factory()->submitted()->create();
@@ -70,7 +70,7 @@ class ExpenseClaimServiceTest extends TestCase
         $this->assertNotNull($claim->approved_at);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_calculates_total_claimed_amount_for_employee()
     {
         $employee = Employee::factory()->create();
@@ -90,7 +90,7 @@ class ExpenseClaimServiceTest extends TestCase
         $this->assertEquals(300, $total);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_prevents_editing_of_approved_claims()
     {
         $claim = ExpenseClaim::factory()->approved()->create();
@@ -98,7 +98,7 @@ class ExpenseClaimServiceTest extends TestCase
         $this->assertFalse($claim->canBeEdited());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_allows_rejection_with_reason()
     {
         $claim = ExpenseClaim::factory()->submitted()->create();
@@ -115,7 +115,7 @@ class ExpenseClaimServiceTest extends TestCase
         $this->assertNotNull($claim->rejected_at);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_tracks_payment_information()
     {
         $claim = ExpenseClaim::factory()->approved()->create();
@@ -134,7 +134,7 @@ class ExpenseClaimServiceTest extends TestCase
         $this->assertNotNull($claim->paid_at);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_receipt_attachments()
     {
         $claim = ExpenseClaim::factory()->create();

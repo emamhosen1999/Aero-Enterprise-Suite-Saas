@@ -20,7 +20,7 @@ class SkillMatrixController extends Controller
     public function index(Request $request): Response
     {
         $filters = $request->only(['category', 'department_id']);
-        
+
         return Inertia::render('Hrm/Performance/Competencies/Index', [
             'competencies' => fn () => $this->competencyService->getCompetencies($filters),
             'categories' => CompetencyMatrixService::CATEGORIES,
@@ -36,16 +36,16 @@ class SkillMatrixController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'category' => 'required|string|in:' . implode(',', CompetencyMatrixService::CATEGORIES),
+            'category' => 'required|string|in:'.implode(',', CompetencyMatrixService::CATEGORIES),
             'level_descriptions' => 'nullable|array',
         ]);
-        
+
         $result = $this->competencyService->createCompetency($validated);
-        
+
         if ($result['success']) {
             return back()->with('success', 'Competency created successfully');
         }
-        
+
         return back()->with('error', $result['error'] ?? 'Failed to create competency');
     }
 
@@ -60,13 +60,13 @@ class SkillMatrixController extends Controller
             'category' => 'sometimes|string',
             'level_descriptions' => 'nullable|array',
         ]);
-        
+
         $result = $this->competencyService->updateCompetency($competencyId, $validated);
-        
+
         if ($result['success']) {
             return back()->with('success', 'Competency updated successfully');
         }
-        
+
         return back()->with('error', $result['error'] ?? 'Failed to update competency');
     }
 
@@ -76,11 +76,11 @@ class SkillMatrixController extends Controller
     public function destroy(string $competencyId)
     {
         $result = $this->competencyService->deleteCompetency($competencyId);
-        
+
         if ($result['success']) {
             return back()->with('success', 'Competency deleted successfully');
         }
-        
+
         return back()->with('error', $result['error'] ?? 'Failed to delete competency');
     }
 
@@ -107,13 +107,13 @@ class SkillMatrixController extends Controller
             'competencies.*.required_level' => 'required|integer|min:1|max:5',
             'competencies.*.weight' => 'nullable|numeric|min:0|max:1',
         ]);
-        
+
         $result = $this->competencyService->createRoleFramework($validated);
-        
+
         if ($result['success']) {
             return back()->with('success', 'Role framework created successfully');
         }
-        
+
         return back()->with('error', $result['error'] ?? 'Failed to create framework');
     }
 
@@ -138,19 +138,19 @@ class SkillMatrixController extends Controller
             'notes' => 'nullable|string',
             'evidence' => 'nullable|string',
         ]);
-        
+
         $validated['assessed_by'] = $request->user()->id;
-        
+
         $result = $this->competencyService->assessEmployeeCompetency(
             $employeeId,
             $competencyId,
             $validated
         );
-        
+
         if ($result['success']) {
             return back()->with('success', 'Competency assessed');
         }
-        
+
         return back()->with('error', $result['error'] ?? 'Failed to assess competency');
     }
 
@@ -160,12 +160,12 @@ class SkillMatrixController extends Controller
     public function gapAnalysis(Request $request, int $employeeId): Response
     {
         $targetRoleId = $request->get('target_role_id');
-        
+
         return Inertia::render('Hrm/Performance/Competencies/GapAnalysis', [
             'employeeId' => $employeeId,
             'targetRoleId' => $targetRoleId,
             'gapAnalysis' => fn () => $this->competencyService->analyzeGaps($employeeId, $targetRoleId),
-            'developmentPlan' => fn () => $targetRoleId 
+            'developmentPlan' => fn () => $targetRoleId
                 ? $this->competencyService->generateDevelopmentPlan($employeeId, $targetRoleId)
                 : null,
         ]);
@@ -179,18 +179,18 @@ class SkillMatrixController extends Controller
         $validated = $request->validate([
             'comment' => 'nullable|string',
         ]);
-        
+
         $result = $this->competencyService->endorseSkill(
             $employeeId,
             $competencyId,
             $request->user()->id,
             $validated['comment'] ?? null
         );
-        
+
         if ($result['success']) {
             return back()->with('success', 'Endorsement added');
         }
-        
+
         return back()->with('error', $result['error'] ?? 'Failed to add endorsement');
     }
 
@@ -201,7 +201,7 @@ class SkillMatrixController extends Controller
     {
         $departmentId = $request->get('department_id');
         $teamId = $request->get('team_id');
-        
+
         return Inertia::render('Hrm/Performance/Competencies/TeamMatrix', [
             'matrix' => fn () => $this->competencyService->getTeamSkillMatrix($departmentId, $teamId),
             'departmentId' => $departmentId,
@@ -215,7 +215,7 @@ class SkillMatrixController extends Controller
     public function analytics(Request $request): Response
     {
         $filters = $request->only(['department_id', 'category']);
-        
+
         return Inertia::render('Hrm/Performance/Competencies/Analytics', [
             'analytics' => fn () => $this->competencyService->getCompetencyAnalytics($filters),
             'filters' => $filters,

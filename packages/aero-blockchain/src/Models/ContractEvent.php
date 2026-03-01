@@ -15,7 +15,7 @@ class ContractEvent extends Model
     protected $fillable = [
         'smart_contract_id', 'transaction_id', 'event_name', 'event_signature',
         'log_index', 'block_number', 'transaction_index', 'topics', 'data',
-        'decoded_data', 'timestamp', 'is_indexed'
+        'decoded_data', 'timestamp', 'is_indexed',
     ];
 
     protected $casts = [
@@ -45,6 +45,7 @@ class ContractEvent extends Model
         if (is_array($this->decoded_data)) {
             return json_encode($this->decoded_data, JSON_PRETTY_PRINT);
         }
+
         return $this->data;
     }
 

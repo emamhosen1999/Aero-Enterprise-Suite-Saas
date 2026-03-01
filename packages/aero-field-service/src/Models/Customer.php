@@ -2,10 +2,10 @@
 
 namespace Aero\FieldService\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class Customer extends Model
 {
@@ -17,7 +17,7 @@ class Customer extends Model
         'customer_number', 'company_name', 'first_name', 'last_name', 'email',
         'phone', 'mobile_phone', 'website', 'industry', 'customer_type',
         'billing_address', 'payment_terms', 'credit_limit', 'tax_exempt',
-        'primary_contact_id', 'account_manager_id', 'status', 'notes'
+        'primary_contact_id', 'account_manager_id', 'status', 'notes',
     ];
 
     protected $casts = [
@@ -29,11 +29,15 @@ class Customer extends Model
     ];
 
     const TYPE_COMMERCIAL = 'commercial';
+
     const TYPE_RESIDENTIAL = 'residential';
+
     const TYPE_GOVERNMENT = 'government';
 
     const STATUS_ACTIVE = 'active';
+
     const STATUS_INACTIVE = 'inactive';
+
     const STATUS_SUSPENDED = 'suspended';
 
     public function serviceLocations()
@@ -76,7 +80,8 @@ class Customer extends Model
         if ($this->customer_type === self::TYPE_COMMERCIAL) {
             return $this->company_name;
         }
-        return trim($this->first_name . ' ' . $this->last_name);
+
+        return trim($this->first_name.' '.$this->last_name);
     }
 
     public function getActiveServiceAgreementsAttribute()

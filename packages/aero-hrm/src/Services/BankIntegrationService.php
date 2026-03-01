@@ -3,7 +3,6 @@
 namespace Aero\HRM\Services;
 
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -19,29 +18,43 @@ class BankIntegrationService
      * Supported bank file formats.
      */
     public const FORMAT_ACH = 'ach';           // US Automated Clearing House
+
     public const FORMAT_BACS = 'bacs';         // UK Bank Automated Clearing System
+
     public const FORMAT_SEPA = 'sepa';         // EU Single Euro Payments Area
+
     public const FORMAT_NEFT = 'neft';         // India National Electronic Funds Transfer
+
     public const FORMAT_RTGS = 'rtgs';         // India Real Time Gross Settlement
+
     public const FORMAT_SWIFT = 'swift';       // International Wire Transfer
+
     public const FORMAT_CSV = 'csv';           // Generic CSV format
 
     /**
      * Payment statuses.
      */
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_PROCESSING = 'processing';
+
     public const STATUS_SUBMITTED = 'submitted';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_FAILED = 'failed';
+
     public const STATUS_REJECTED = 'rejected';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     /**
      * Account types.
      */
     public const ACCOUNT_SAVINGS = 'savings';
+
     public const ACCOUNT_CHECKING = 'checking';
+
     public const ACCOUNT_CURRENT = 'current';
 
     /**
@@ -66,7 +79,7 @@ class BankIntegrationService
     {
         // Validate account details
         $validation = $this->validateAccountDetails($accountDetails);
-        if (!$validation['valid']) {
+        if (! $validation['valid']) {
             return [
                 'success' => false,
                 'errors' => $validation['errors'],
@@ -127,7 +140,7 @@ class BankIntegrationService
         // Verification methods: micro_deposit, plaid, instant_verification
         $validMethods = ['micro_deposit', 'plaid', 'instant_verification', 'manual'];
 
-        if (!in_array($method, $validMethods)) {
+        if (! in_array($method, $validMethods)) {
             return [
                 'success' => false,
                 'error' => 'Invalid verification method',
@@ -182,7 +195,7 @@ class BankIntegrationService
             }
         }
 
-        if (empty($validPayments) || (!$this->config['allow_partial_batch'] && !empty($invalidPayments))) {
+        if (empty($validPayments) || (! $this->config['allow_partial_batch'] && ! empty($invalidPayments))) {
             return [
                 'success' => false,
                 'error' => 'Invalid payments in batch',
@@ -287,7 +300,7 @@ class BankIntegrationService
         $submissionResult = [
             'submission_id' => Str::uuid()->toString(),
             'submitted_at' => now()->toIso8601String(),
-            'bank_reference' => 'BANK-' . strtoupper(Str::random(10)),
+            'bank_reference' => 'BANK-'.strtoupper(Str::random(10)),
             'estimated_settlement' => now()->addBusinessDays(2)->toDateString(),
         ];
 
@@ -415,7 +428,7 @@ class BankIntegrationService
         }
 
         // Validate account number format based on country/region
-        if (!empty($details['account_number']) && !$this->isValidAccountNumber($details['account_number'])) {
+        if (! empty($details['account_number']) && ! $this->isValidAccountNumber($details['account_number'])) {
             $errors[] = 'Invalid account number format';
         }
 
@@ -440,7 +453,7 @@ class BankIntegrationService
             $errors[] = 'Account ID is required';
         }
 
-        if (!isset($payment['amount']) || $payment['amount'] <= 0) {
+        if (! isset($payment['amount']) || $payment['amount'] <= 0) {
             $errors[] = 'Amount must be greater than 0';
         }
 
@@ -459,7 +472,8 @@ class BankIntegrationService
         if ($length <= 4) {
             return str_repeat('*', $length);
         }
-        return str_repeat('*', $length - 4) . substr($accountNumber, -4);
+
+        return str_repeat('*', $length - 4).substr($accountNumber, -4);
     }
 
     /**
@@ -480,7 +494,7 @@ class BankIntegrationService
 
         // File Header Record (1 record)
         $lines[] = sprintf(
-            "101 %09d%09d%06d%04d%1s%03d%10s%23s%23s%8s",
+            '101 %09d%09d%06d%04d%1s%03d%10s%23s%23s%8s',
             0, // Immediate Destination
             0, // Immediate Origin
             (int) now()->format('ymd'),
@@ -495,7 +509,7 @@ class BankIntegrationService
 
         // Batch Header Record
         $lines[] = sprintf(
-            "5%03d%-16s%-20s%010d %-16s%-6s%1s%08d%03d%1s",
+            '5%03d%-16s%-20s%010d %-16s%-6s%1s%08d%03d%1s',
             220, // Service Class Code (Credits Only)
             str_pad('PAYROLL', 16), // Company Name
             str_pad('', 20), // Company Discretionary Data
@@ -515,14 +529,14 @@ class BankIntegrationService
         foreach ($batch['payments'] ?? [] as $payment) {
             $entryNumber++;
             $lines[] = sprintf(
-                "6%02d%09d%17s%010d%-15s  %1s%-22s%02d%015d",
+                '6%02d%09d%17s%010d%-15s  %1s%-22s%02d%015d',
                 22, // Transaction Code (Checking Credit)
                 0, // Receiving DFI Identification
                 str_pad($payment['account_id'], 17), // DFI Account Number
                 (int) ($payment['amount'] * 100), // Amount (in cents)
                 str_pad((string) $payment['employee_id'], 15), // Individual ID
                 ' ', // Discretionary Data
-                str_pad('Employee ' . $payment['employee_id'], 22), // Individual Name
+                str_pad('Employee '.$payment['employee_id'], 22), // Individual Name
                 0, // Addenda Record Indicator
                 $entryNumber // Trace Number
             );
@@ -530,7 +544,7 @@ class BankIntegrationService
 
         // Batch Control Record
         $lines[] = sprintf(
-            "8%03d%06d%010d%010d%010d%-39s%08d%07d",
+            '8%03d%06d%010d%010d%010d%-39s%08d%07d',
             220, // Service Class Code
             $entryNumber, // Entry/Addenda Count
             0, // Entry Hash
@@ -545,7 +559,7 @@ class BankIntegrationService
 
         // File Control Record
         $lines[] = sprintf(
-            "9%06d%06d%08d%010d%012d%012d%39s",
+            '9%06d%06d%08d%010d%012d%012d%39s',
             1, // Batch Count
             ceil(count($lines) / 10), // Block Count
             $entryNumber, // Entry/Addenda Count
@@ -566,7 +580,7 @@ class BankIntegrationService
         $lines = [];
 
         // VOL1 header
-        $lines[] = 'VOL1' . str_pad('', 76);
+        $lines[] = 'VOL1'.str_pad('', 76);
 
         // HDR1 header
         $lines[] = sprintf(
@@ -590,12 +604,12 @@ class BankIntegrationService
                 str_pad('SALARY', 18), // Reference
                 '000000', // Originating Sort Code
                 '00000000', // Originating Account Number
-                str_pad('EMP' . $payment['employee_id'], 11) // Name
+                str_pad('EMP'.$payment['employee_id'], 11) // Name
             );
         }
 
         // EOF trailer
-        $lines[] = 'EOF1' . str_pad('', 76);
+        $lines[] = 'EOF1'.str_pad('', 76);
 
         return implode("\r\n", $lines);
     }
@@ -621,7 +635,7 @@ class BankIntegrationService
 
         // Payment Information
         $pmtInf = $cstmrCdtTrfInitn->addChild('PmtInf');
-        $pmtInf->addChild('PmtInfId', 'PAYROLL-' . now()->format('Ymd'));
+        $pmtInf->addChild('PmtInfId', 'PAYROLL-'.now()->format('Ymd'));
         $pmtInf->addChild('PmtMtd', 'TRF');
         $pmtInf->addChild('NbOfTxs', count($batch['payments'] ?? []));
         $pmtInf->addChild('CtrlSum', number_format($batch['total_amount'], 2, '.', ''));
@@ -644,7 +658,7 @@ class BankIntegrationService
             $instdAmt->addAttribute('Ccy', $batch['currency'] ?? 'EUR');
 
             $cdtr = $cdtTrfTxInf->addChild('Cdtr');
-            $cdtr->addChild('Nm', 'Employee ' . $payment['employee_id']);
+            $cdtr->addChild('Nm', 'Employee '.$payment['employee_id']);
 
             $cdtrAcct = $cdtTrfTxInf->addChild('CdtrAcct');
             $id = $cdtrAcct->addChild('Id');
@@ -784,7 +798,7 @@ class BankIntegrationService
     {
         // Plaid integration would go here
         return [
-            'verified' => !empty($data['plaid_access_token']),
+            'verified' => ! empty($data['plaid_access_token']),
             'method' => 'plaid',
         ];
     }
@@ -793,7 +807,7 @@ class BankIntegrationService
     {
         // Instant verification via bank login
         return [
-            'verified' => !empty($data['bank_login_verified']),
+            'verified' => ! empty($data['bank_login_verified']),
             'method' => 'instant',
         ];
     }

@@ -13,11 +13,11 @@ class BlockRegistryTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
-        $this->registry = new BlockRegistry();
+
+        $this->registry = new BlockRegistry;
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_register_a_block()
     {
         $schema = BlockSchema::make('test_block', 'Test Block')
@@ -31,7 +31,7 @@ class BlockRegistryTest extends TestCase
         $this->assertTrue($this->registry->has('test_block'));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_retrieve_registered_block()
     {
         $schema = BlockSchema::make('hero', 'Hero Section')
@@ -48,7 +48,7 @@ class BlockRegistryTest extends TestCase
         $this->assertEquals('Hero Section', $retrieved['label']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_returns_null_for_unregistered_block()
     {
         $result = $this->registry->get('nonexistent_block');
@@ -56,7 +56,7 @@ class BlockRegistryTest extends TestCase
         $this->assertNull($result);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_list_all_registered_blocks()
     {
         $this->registry->register('block_1', BlockSchema::make('block_1', 'Block 1'));
@@ -68,16 +68,16 @@ class BlockRegistryTest extends TestCase
         $this->assertCount(3, $all);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_list_blocks_by_category()
     {
-        $this->registry->register('hero_1', 
+        $this->registry->register('hero_1',
             BlockSchema::make('hero_1', 'Hero 1')->category('hero')
         );
-        $this->registry->register('hero_2', 
+        $this->registry->register('hero_2',
             BlockSchema::make('hero_2', 'Hero 2')->category('hero')
         );
-        $this->registry->register('content_1', 
+        $this->registry->register('content_1',
             BlockSchema::make('content_1', 'Content 1')->category('content')
         );
 
@@ -88,10 +88,10 @@ class BlockRegistryTest extends TestCase
         $this->assertCount(1, $contentBlocks);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_unregister_a_block()
     {
-        $this->registry->register('removable', 
+        $this->registry->register('removable',
             BlockSchema::make('removable', 'Removable Block')
         );
 
@@ -102,7 +102,7 @@ class BlockRegistryTest extends TestCase
         $this->assertFalse($this->registry->has('removable'));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_get_block_types()
     {
         $this->registry->register('block_a', BlockSchema::make('block_a', 'Block A'));
@@ -114,10 +114,10 @@ class BlockRegistryTest extends TestCase
         $this->assertContains('block_b', $types);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_validates_block_type()
     {
-        $this->registry->register('valid_block', 
+        $this->registry->register('valid_block',
             BlockSchema::make('valid_block', 'Valid Block')
         );
 
@@ -125,7 +125,7 @@ class BlockRegistryTest extends TestCase
         $this->assertFalse($this->registry->isValidType('invalid_block'));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_get_block_defaults()
     {
         $schema = BlockSchema::make('with_defaults', 'Block With Defaults')
@@ -144,7 +144,7 @@ class BlockRegistryTest extends TestCase
         $this->assertTrue($defaults['enabled']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_get_block_schema()
     {
         $schema = BlockSchema::make('schema_test', 'Schema Test')
@@ -162,7 +162,7 @@ class BlockRegistryTest extends TestCase
         $this->assertArrayHasKey('enabled', $retrievedSchema['properties']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_register_from_config_array()
     {
         $config = [
@@ -206,7 +206,7 @@ class BlockRegistryTest extends TestCase
         $this->assertTrue($this->registry->has('text_block'));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_get_categories()
     {
         $config = [
@@ -226,7 +226,7 @@ class BlockRegistryTest extends TestCase
         $this->assertEquals('hero', $categories[0]['id']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_provides_json_serializable_output()
     {
         $schema = BlockSchema::make('json_test', 'JSON Test')
@@ -241,7 +241,7 @@ class BlockRegistryTest extends TestCase
         $output = $this->registry->toJson();
 
         $this->assertJson($output);
-        
+
         $decoded = json_decode($output, true);
         $this->assertArrayHasKey('blocks', $decoded);
     }

@@ -114,7 +114,7 @@ class EmailCampaignRecipient extends Model
     /**
      * Mark as sent
      */
-    public function markAsSent(string $messageId = null): void
+    public function markAsSent(?string $messageId = null): void
     {
         $this->update([
             'status' => self::STATUS_SENT,
@@ -167,7 +167,7 @@ class EmailCampaignRecipient extends Model
     /**
      * Mark as bounced
      */
-    public function markAsBounced(string $type, string $message = null): void
+    public function markAsBounced(string $type, ?string $message = null): void
     {
         $this->update([
             'status' => self::STATUS_BOUNCED,
@@ -189,7 +189,7 @@ class EmailCampaignRecipient extends Model
     /**
      * Mark as complained
      */
-    public function markAsComplained(string $type = null): void
+    public function markAsComplained(?string $type = null): void
     {
         $this->update([
             'status' => self::STATUS_COMPLAINED,

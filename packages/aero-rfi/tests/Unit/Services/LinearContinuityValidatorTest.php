@@ -8,7 +8,6 @@ use Aero\Rfi\Models\Rfi;
 use Aero\Rfi\Services\LinearContinuityValidator;
 use Aero\Rfi\Tests\TestCase;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Linear Continuity Validator Tests
@@ -25,10 +24,10 @@ class LinearContinuityValidatorTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->validator = new LinearContinuityValidator();
+        $this->validator = new LinearContinuityValidator;
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_allows_approval_when_all_prerequisites_complete(): void
     {
         // Set up: Create work location and approved RFI for base layer (sub_base)
@@ -39,7 +38,7 @@ class LinearContinuityValidatorTest extends TestCase
             'end_chainage_m' => 200.0,
             'is_active' => true,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         // Create approved RFI for sub_base layer (prerequisite for base_course)
@@ -53,7 +52,7 @@ class LinearContinuityValidatorTest extends TestCase
             'status' => 'completed',
             'inspection_result' => Rfi::INSPECTION_APPROVED,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         // Test: Validate that base_course can be approved over sub_base
@@ -71,7 +70,7 @@ class LinearContinuityValidatorTest extends TestCase
         $this->assertStringContainsString('All underlying layers complete', $result['message']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_blocks_approval_when_prerequisites_incomplete(): void
     {
         // Set up: Create work location with partial sub_base coverage
@@ -82,7 +81,7 @@ class LinearContinuityValidatorTest extends TestCase
             'end_chainage_m' => 100.0,
             'is_active' => true,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         // Only 0-100 is complete, but we want to approve 0-200
@@ -96,7 +95,7 @@ class LinearContinuityValidatorTest extends TestCase
             'status' => 'completed',
             'inspection_result' => Rfi::INSPECTION_APPROVED,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         // Test: Try to approve base_course for full 0-200 range
@@ -112,14 +111,14 @@ class LinearContinuityValidatorTest extends TestCase
         $this->assertLessThan(95, $result['coverage']); // Less than required 95%
         $this->assertNotEmpty($result['gaps']);
         $this->assertStringContainsString('Underlying layers incomplete', $result['message']);
-        
+
         // Check violation details
         $violation = $result['violations'][0];
         $this->assertEquals('sub_base', $violation['layer']);
         $this->assertLessThan(95, $violation['coverage']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_calculates_coverage_percentage_correctly(): void
     {
         // Set up: Create two work locations for 60% coverage (300m out of 500m)
@@ -130,7 +129,7 @@ class LinearContinuityValidatorTest extends TestCase
             'end_chainage_m' => 100.0,  // 100m
             'is_active' => true,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         $location2Id = DB::table('work_locations')->insertGetId([
@@ -140,7 +139,7 @@ class LinearContinuityValidatorTest extends TestCase
             'end_chainage_m' => 500.0,  // 200m
             'is_active' => true,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         // Create approved RFIs for both zones
@@ -155,7 +154,7 @@ class LinearContinuityValidatorTest extends TestCase
                 'status' => 'completed',
                 'inspection_result' => Rfi::INSPECTION_APPROVED,
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ],
             [
                 'number' => 'RFI-002',
@@ -167,8 +166,8 @@ class LinearContinuityValidatorTest extends TestCase
                 'status' => 'completed',
                 'inspection_result' => Rfi::INSPECTION_APPROVED,
                 'created_at' => now(),
-                'updated_at' => now()
-            ]
+                'updated_at' => now(),
+            ],
         ]);
 
         // Test: Validate across full 0-500 range
@@ -184,7 +183,7 @@ class LinearContinuityValidatorTest extends TestCase
         $this->assertFalse($result['can_approve']); // Less than 95% required
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_identifies_gap_locations_accurately(): void
     {
         // Set up: Same as coverage test - gaps at 100-300
@@ -195,7 +194,7 @@ class LinearContinuityValidatorTest extends TestCase
             'end_chainage_m' => 100.0,
             'is_active' => true,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         $location2Id = DB::table('work_locations')->insertGetId([
@@ -205,7 +204,7 @@ class LinearContinuityValidatorTest extends TestCase
             'end_chainage_m' => 500.0,
             'is_active' => true,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         DB::table('daily_works')->insert([
@@ -219,7 +218,7 @@ class LinearContinuityValidatorTest extends TestCase
                 'status' => 'completed',
                 'inspection_result' => Rfi::INSPECTION_APPROVED,
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ],
             [
                 'number' => 'RFI-002',
@@ -231,8 +230,8 @@ class LinearContinuityValidatorTest extends TestCase
                 'status' => 'completed',
                 'inspection_result' => Rfi::INSPECTION_APPROVED,
                 'created_at' => now(),
-                'updated_at' => now()
-            ]
+                'updated_at' => now(),
+            ],
         ]);
 
         // Test gap identification
@@ -244,7 +243,7 @@ class LinearContinuityValidatorTest extends TestCase
         );
 
         $this->assertNotEmpty($result['gaps']);
-        
+
         // Should identify gap at Ch 100-300 (200m gap)
         $gap = $result['gaps'][0];
         $this->assertEquals(100, $gap['start']);
@@ -252,7 +251,7 @@ class LinearContinuityValidatorTest extends TestCase
         $this->assertEquals(200, $gap['length']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_enforces_95_percent_coverage_threshold(): void
     {
         // Test boundary condition: 94.9% vs 95.0%
@@ -266,7 +265,7 @@ class LinearContinuityValidatorTest extends TestCase
             'end_chainage_m' => 949.0,  // 949m covered
             'is_active' => true,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         DB::table('daily_works')->insert([
@@ -279,7 +278,7 @@ class LinearContinuityValidatorTest extends TestCase
             'status' => 'completed',
             'inspection_result' => Rfi::INSPECTION_APPROVED,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         $result949 = $this->validator->validateLayerContinuity(
@@ -304,7 +303,7 @@ class LinearContinuityValidatorTest extends TestCase
             'end_chainage_m' => 950.0,  // 950m covered
             'is_active' => true,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         DB::table('daily_works')->insert([
@@ -317,7 +316,7 @@ class LinearContinuityValidatorTest extends TestCase
             'status' => 'completed',
             'inspection_result' => Rfi::INSPECTION_APPROVED,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         $result950 = $this->validator->validateLayerContinuity(
@@ -331,7 +330,7 @@ class LinearContinuityValidatorTest extends TestCase
         $this->assertGreaterThanOrEqual(95, $result950['coverage']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_parallel_layers_correctly(): void
     {
         // Test that earthwork_excavation (layer with no dependencies) can be approved independently
@@ -349,7 +348,7 @@ class LinearContinuityValidatorTest extends TestCase
         $this->assertEmpty($result['required_layers']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_respects_layer_hierarchy_order(): void
     {
         // Set up: Only have earthwork_excavation approved, try to skip to base_course
@@ -360,7 +359,7 @@ class LinearContinuityValidatorTest extends TestCase
             'end_chainage_m' => 200.0,
             'is_active' => true,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         // Only earthwork_excavation is complete
@@ -374,7 +373,7 @@ class LinearContinuityValidatorTest extends TestCase
             'status' => 'completed',
             'inspection_result' => Rfi::INSPECTION_APPROVED,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         // Try to approve base_course (skipping earthwork_compaction and sub_base)
@@ -387,16 +386,16 @@ class LinearContinuityValidatorTest extends TestCase
 
         $this->assertFalse($result['can_approve']);
         $this->assertNotEmpty($result['violations']);
-        
+
         // Should have violations for both missing prerequisites
         $this->assertCount(2, $result['violations']);
-        
+
         $violatedLayers = array_column($result['violations'], 'layer');
         $this->assertContains('sub_base', $violatedLayers);
         $this->assertContains('earthwork_compaction', $violatedLayers);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_validates_across_work_location_boundaries(): void
     {
         // Set up: Two adjacent work locations creating seamless coverage
@@ -407,7 +406,7 @@ class LinearContinuityValidatorTest extends TestCase
             'end_chainage_m' => 1000.0,
             'is_active' => true,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         $location2Id = DB::table('work_locations')->insertGetId([
@@ -417,7 +416,7 @@ class LinearContinuityValidatorTest extends TestCase
             'end_chainage_m' => 2000.0,
             'is_active' => true,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         // Both zones have approved sub_base
@@ -432,7 +431,7 @@ class LinearContinuityValidatorTest extends TestCase
                 'status' => 'completed',
                 'inspection_result' => Rfi::INSPECTION_APPROVED,
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ],
             [
                 'number' => 'RFI-002',
@@ -444,8 +443,8 @@ class LinearContinuityValidatorTest extends TestCase
                 'status' => 'completed',
                 'inspection_result' => Rfi::INSPECTION_APPROVED,
                 'created_at' => now(),
-                'updated_at' => now()
-            ]
+                'updated_at' => now(),
+            ],
         ]);
 
         // Validate across both zones
@@ -461,7 +460,7 @@ class LinearContinuityValidatorTest extends TestCase
         $this->assertEmpty($result['gaps']);  // No gaps at boundary
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_provides_actionable_violation_messages(): void
     {
         // Set up: Partial coverage with gap
@@ -472,7 +471,7 @@ class LinearContinuityValidatorTest extends TestCase
             'end_chainage_m' => 100.0,
             'is_active' => true,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         DB::table('daily_works')->insert([
@@ -485,7 +484,7 @@ class LinearContinuityValidatorTest extends TestCase
             'status' => 'completed',
             'inspection_result' => Rfi::INSPECTION_APPROVED,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         // Try to approve larger range
@@ -497,20 +496,20 @@ class LinearContinuityValidatorTest extends TestCase
         );
 
         $this->assertFalse($result['can_approve']);
-        
+
         // Check violation message format
         $violation = $result['violations'][0];
         $this->assertArrayHasKey('message', $violation);
         $this->assertArrayHasKey('layer', $violation);
         $this->assertArrayHasKey('coverage', $violation);
         $this->assertArrayHasKey('gaps', $violation);
-        
+
         // Message should contain layer name and percentage
         $message = $violation['message'];
         $this->assertStringContainsString('sub_base', $message);
         $this->assertStringContainsString('%', $message);
         $this->assertStringContainsString('requires', $message);
-        
+
         // Gaps should have start, end, and length
         $gap = $violation['gaps'][0];
         $this->assertArrayHasKey('start', $gap);

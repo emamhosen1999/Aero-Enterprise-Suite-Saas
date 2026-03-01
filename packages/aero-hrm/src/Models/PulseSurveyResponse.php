@@ -42,7 +42,9 @@ class PulseSurveyResponse extends Model
      * Sentiment classifications.
      */
     public const SENTIMENT_POSITIVE = 'positive';
+
     public const SENTIMENT_NEUTRAL = 'neutral';
+
     public const SENTIMENT_NEGATIVE = 'negative';
 
     public function pulseSurvey(): BelongsTo

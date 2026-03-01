@@ -18,10 +18,15 @@ use Aero\Core\Contracts\CoreWidgetCategory;
 class ComplianceScoreWidget extends AbstractDashboardWidget
 {
     protected string $position = 'main_left';
+
     protected int $order = 20;
+
     protected int|string $span = 1;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::SUMMARY;
+
     protected array $requiredPermissions = ['compliance.reports'];
+
     protected array $dashboards = ['compliance'];
 
     public function getKey(): string

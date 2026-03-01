@@ -18,10 +18,15 @@ use Aero\Core\Contracts\CoreWidgetCategory;
 class UpcomingMilestonesWidget extends AbstractDashboardWidget
 {
     protected string $position = 'main_left';
+
     protected int $order = 40;
+
     protected int|string $span = 1;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::DISPLAY;
+
     protected array $requiredPermissions = ['project.projects'];
+
     protected array $dashboards = ['project'];
 
     public function getKey(): string

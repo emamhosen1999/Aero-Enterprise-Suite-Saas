@@ -8,7 +8,7 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     * 
+     *
      * Adds module_codes column to store which Composer-installed modules are included in each plan.
      * This is populated with module codes (e.g., ['hrm', 'crm', 'finance']) that reference
      * modules discovered from vendor/aero/* packages via ModuleDiscoveryService.

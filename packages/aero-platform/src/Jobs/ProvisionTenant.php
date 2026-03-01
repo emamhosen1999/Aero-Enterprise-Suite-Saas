@@ -52,8 +52,11 @@ class ProvisionTenant implements ShouldQueue
 
     /**
      * The maximum number of unhandled exceptions to allow before failing.
+     * Fix #12: Must equal $tries (3) so the backoff schedule is actually used.
+     * Setting this to 1 made the job fail permanently on the first exception,
+     * rendering the $backoff array useless.
      */
-    public int $maxExceptions = 1;
+    public int $maxExceptions = 3;
 
     /**
      * The number of seconds the job can run before timing out.
@@ -97,6 +100,10 @@ class ProvisionTenant implements ShouldQueue
      */
     public function handle(): void
     {
+        // Fix #26: Eager-load frequently accessed relations up-front to prevent N+1 queries
+        // throughout the provisioning pipeline.
+        $this->tenant->loadMissing(['plan', 'domains']);
+
         $context = [
             'tenant_id' => $this->tenant->id,
             'tenant_name' => $this->tenant->name,
@@ -243,23 +250,84 @@ class ProvisionTenant implements ShouldQueue
     /**
      * Create the tenant database.
      *
-     * For cPanel hosting (TENANCY_DATABASE_MANAGER=cpanel):
-     * - Uses cPanel API to create database
-     * - Database name is prefixed with cPanel username
+     * Hosting mode is resolved from (in order of precedence):
+     *   1. platform_settings.hosting_settings.mode  (DB — Admin UI toggle)
+     *   2. TENANCY_DATABASE_MANAGER env variable     (legacy .env fallback)
+     *   3. Default → 'dedicated'                     (standard VPS / MySQL CREATE DATABASE)
      *
-     * For VPS/Dedicated (default):
-     * - Uses standard SQL CREATE DATABASE
+     * shared    → cPanel UAPI (Namecheap / any cPanel shared host)
+     * dedicated → standard SQL CREATE DATABASE
      */
     protected function createDatabase(): void
     {
         $this->tenant->updateProvisioningStep(Tenant::STEP_CREATING_DB);
 
-        // Check if using cPanel mode
-        if (config('tenancy.cpanel.host') && env('TENANCY_DATABASE_MANAGER') === 'cpanel') {
+        $mode = $this->resolveHostingMode();
+
+        $this->logStep("   → Hosting mode resolved: {$mode}", [
+            'mode' => $mode,
+        ]);
+
+        if ($mode === 'shared') {
+            $this->injectCpanelConfigFromDb();
             $this->createDatabaseViaCpanel();
         } else {
             $this->createDatabaseViaSQL();
         }
+    }
+
+    /**
+     * Resolve the active hosting mode.
+     *
+     * Falls back gracefully if the DB is unavailable (e.g. first-time setup).
+     */
+    protected function resolveHostingMode(): string
+    {
+        try {
+            return \Aero\Platform\Models\PlatformSetting::current()->getHostingMode();
+        } catch (\Throwable $e) {
+            // DB unavailable during provisioning — fall back to env
+            $this->logStep('   ⚠️  Could not read hosting mode from DB, using .env fallback: '.$e->getMessage(), [], 'warning');
+
+            return env('TENANCY_DATABASE_MANAGER', 'mysql') === 'cpanel' ? 'shared' : 'dedicated';
+        }
+    }
+
+    /**
+     * Inject cPanel credentials from platform_settings into the runtime config
+     * so that CpanelDatabaseManager::callCpanelApi() picks them up automatically.
+     *
+     * DB credentials take priority over .env values.
+     * If a field is empty in the DB the existing config/env value is kept.
+     */
+    protected function injectCpanelConfigFromDb(): void
+    {
+        try {
+            $settings = \Aero\Platform\Models\PlatformSetting::current()->getHostingSettingsDecrypted();
+        } catch (\Throwable $e) {
+            $this->logStep('   ⚠️  Could not load cPanel credentials from DB: '.$e->getMessage(), [], 'warning');
+
+            return;
+        }
+
+        $map = [
+            'cpanel_host'      => 'tenancy.cpanel.host',
+            'cpanel_port'      => 'tenancy.cpanel.port',
+            'cpanel_username'  => 'tenancy.cpanel.username',
+            'cpanel_api_token' => 'tenancy.cpanel.api_token',
+            'cpanel_db_user'   => 'tenancy.cpanel.db_user',
+        ];
+
+        foreach ($map as $dbKey => $configKey) {
+            if (! empty($settings[$dbKey])) {
+                config([$configKey => $settings[$dbKey]]);
+            }
+        }
+
+        $this->logStep('   → cPanel credentials loaded from platform_settings', [
+            'host' => config('tenancy.cpanel.host'),
+            'user' => config('tenancy.cpanel.username'),
+        ]);
     }
 
     /**
@@ -859,7 +927,7 @@ class ProvisionTenant implements ShouldQueue
         }
 
         // Sync self-service items as a special "Self Service" submodule
-        if (isset($moduleDef['self_service']) && is_array($moduleDef['self_service']) && !empty($moduleDef['self_service'])) {
+        if (isset($moduleDef['self_service']) && is_array($moduleDef['self_service']) && ! empty($moduleDef['self_service'])) {
             $this->syncSelfServiceSubModule($module, $moduleDef['self_service'], $subModuleClass, $componentClass, $actionClass);
         }
     }
@@ -895,7 +963,7 @@ class ProvisionTenant implements ShouldQueue
             ]
         );
 
-        $this->logStep("      → Synced self-service submodule with ".count($selfServiceItems)." items", []);
+        $this->logStep('      → Synced self-service submodule with '.count($selfServiceItems).' items', []);
 
         // Convert each self-service item to a component
         foreach ($selfServiceItems as $item) {
@@ -929,7 +997,7 @@ class ProvisionTenant implements ShouldQueue
                     ],
                     [
                         'name' => $actionDef['name'],
-                        'description' => $actionDef['name'] . ' ' . $item['name'],
+                        'description' => $actionDef['name'].' '.$item['name'],
                         'is_active' => true,
                     ]
                 );
@@ -980,7 +1048,7 @@ class ProvisionTenant implements ShouldQueue
             ];
 
             foreach ($defaultRoles as $roleData) {
-                \Spatie\Permission\Models\Role::firstOrCreate(
+                \Aero\HRMAC\Models\Role::firstOrCreate(
                     ['name' => $roleData['name'], 'guard_name' => $roleData['guard_name']],
                     [
                         'description' => $roleData['description'],
@@ -990,7 +1058,7 @@ class ProvisionTenant implements ShouldQueue
             }
 
             // Grant full module access to Super Administrator role
-            $superAdminRole = \Spatie\Permission\Models\Role::where('name', 'Super Administrator')->first();
+            $superAdminRole = \Aero\HRMAC\Models\Role::where('name', 'Super Administrator')->first();
             if ($superAdminRole) {
                 $subModuleIds = DB::table('sub_modules')->pluck('id');
                 foreach ($subModuleIds as $subModuleId) {
@@ -1170,6 +1238,23 @@ class ProvisionTenant implements ShouldQueue
     protected function rollbackDatabase(): void
     {
         try {
+            $mode = $this->resolveHostingMode();
+
+            if ($mode === 'shared') {
+                // cPanel: cannot DROP DATABASE via SQL — must use the UAPI
+                $this->injectCpanelConfigFromDb();
+
+                $this->logStep('   → Rolling back cPanel database', ['mode' => 'shared'], 'warning');
+
+                $manager = new \Aero\Platform\TenantDatabaseManagers\CpanelDatabaseManager;
+                $manager->deleteDatabase($this->tenant);
+
+                $this->logStep('   → cPanel database deleted successfully', [], 'warning');
+
+                return;
+            }
+
+            // VPS / dedicated: standard SQL DROP DATABASE
             $databaseName = $this->tenant->database()->getName();
 
             if (empty($databaseName)) {
@@ -1180,12 +1265,11 @@ class ProvisionTenant implements ShouldQueue
 
             $this->logStep("   → Dropping database: {$databaseName}", ['database' => $databaseName], 'warning');
 
-            // Drop the database
             \DB::statement("DROP DATABASE IF EXISTS `{$databaseName}`");
 
             $this->logStep("   → Database '{$databaseName}' dropped successfully", ['database' => $databaseName], 'warning');
         } catch (Throwable $e) {
-            // Log rollback failure but don't throw - we're already in error state
+            // Log rollback failure but don't throw — we're already in error state
             $this->logStep("   → Failed to drop database: {$e->getMessage()}", [
                 'error' => $e->getMessage(),
             ], 'error');

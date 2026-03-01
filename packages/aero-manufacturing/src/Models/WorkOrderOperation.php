@@ -2,9 +2,9 @@
 
 namespace Aero\Manufacturing\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Aero\Core\Models\User;
 
 class WorkOrderOperation extends Model
 {
@@ -17,7 +17,7 @@ class WorkOrderOperation extends Model
         'operation_name', 'status', 'planned_start_date', 'planned_end_date',
         'actual_start_date', 'actual_end_date', 'setup_time_minutes',
         'run_time_minutes', 'quantity_completed', 'quantity_scrapped',
-        'assigned_to', 'notes'
+        'assigned_to', 'notes',
     ];
 
     protected $casts = [
@@ -37,9 +37,13 @@ class WorkOrderOperation extends Model
     ];
 
     const STATUS_PLANNED = 'planned';
+
     const STATUS_RELEASED = 'released';
+
     const STATUS_IN_PROGRESS = 'in_progress';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_ON_HOLD = 'on_hold';
 
     public function workOrder()
@@ -70,6 +74,7 @@ class WorkOrderOperation extends Model
     public function getCompletionPercentageAttribute()
     {
         $totalQuantity = $this->workOrder->quantity_to_produce;
+
         return $totalQuantity > 0 ? ($this->quantity_completed / $totalQuantity) * 100 : 0;
     }
 }

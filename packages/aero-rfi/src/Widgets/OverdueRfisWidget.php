@@ -19,10 +19,15 @@ use Aero\Rfi\Models\Rfi;
 class OverdueRfisWidget extends AbstractDashboardWidget
 {
     protected string $position = 'sidebar';
+
     protected int $order = 20;
+
     protected int|string $span = 1;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
+
     protected array $requiredPermissions = ['rfi.dashboard']; // HRMAC format: module.submodule
+
     protected array $dashboards = ['rfi'];
 
     public function getKey(): string
@@ -55,9 +60,9 @@ class OverdueRfisWidget extends AbstractDashboardWidget
         return $this->safeResolve(function () {
             // Overdue = status not completed and date is in the past
             $overdueQuery = Rfi::whereNotIn('status', [
-                    Rfi::STATUS_COMPLETED,
-                    Rfi::STATUS_REJECTED,
-                ])
+                Rfi::STATUS_COMPLETED,
+                Rfi::STATUS_REJECTED,
+            ])
                 ->whereDate('date', '<', today());
 
             $overdueCount = $overdueQuery->count();

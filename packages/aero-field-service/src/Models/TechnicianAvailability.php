@@ -13,7 +13,7 @@ class TechnicianAvailability extends Model
 
     protected $fillable = [
         'technician_id', 'date', 'start_time', 'end_time', 'is_available',
-        'availability_type', 'reason', 'notes'
+        'availability_type', 'reason', 'notes',
     ];
 
     protected $casts = [
@@ -25,10 +25,15 @@ class TechnicianAvailability extends Model
     ];
 
     const TYPE_REGULAR = 'regular';
+
     const TYPE_OVERTIME = 'overtime';
+
     const TYPE_ON_CALL = 'on_call';
+
     const TYPE_VACATION = 'vacation';
+
     const TYPE_SICK_LEAVE = 'sick_leave';
+
     const TYPE_TRAINING = 'training';
 
     public function technician()
@@ -41,6 +46,7 @@ class TechnicianAvailability extends Model
         if ($this->start_time && $this->end_time) {
             return $this->start_time->diffInHours($this->end_time);
         }
+
         return 0;
     }
 

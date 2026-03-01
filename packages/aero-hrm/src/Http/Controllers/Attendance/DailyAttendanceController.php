@@ -5,7 +5,6 @@ namespace Aero\HRM\Http\Controllers\Attendance;
 use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Models\Attendance;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -22,7 +21,7 @@ class DailyAttendanceController extends Controller
     public function index(Request $request): Response
     {
         $date = $request->input('date', now()->format('Y-m-d'));
-        
+
         $users = $this->userModel()::with(['attendances' => function ($query) use ($date) {
             $query->whereDate('check_in', $date);
         }])->get();
@@ -64,7 +63,7 @@ class DailyAttendanceController extends Controller
         foreach ($validated['user_ids'] as $userId) {
             $attendances[] = Attendance::create([
                 'user_id' => $userId,
-                'check_in' => $validated['date'] . ' 09:00:00',
+                'check_in' => $validated['date'].' 09:00:00',
                 'status' => 'present',
             ]);
         }

@@ -16,17 +16,16 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 /**
  * Unified Installation Controller
- * 
+ *
  * Handles installation for both SaaS (Platform) and Standalone (Core) modes.
  * Uses the unified UI components from aero-ui package.
- * 
+ *
  * Mode detection:
  * - 'saas': When aero-platform package is installed and SAAS_MODE=true
  * - 'standalone': Default mode for single-tenant installations
@@ -37,12 +36,12 @@ class UnifiedInstallationController extends Controller
      * Installation lock file (unified path for both core and platform)
      */
     private const LOCK_FILE = 'app/aeos.installed';
-    
+
     /**
      * Progress file for tracking installation steps
      */
     private const PROGRESS_FILE = 'storage/framework/installation_progress.json';
-    
+
     /**
      * Configuration persistence path
      */
@@ -69,11 +68,11 @@ class UnifiedInstallationController extends Controller
     protected function getMode(): string
     {
         // Check if Platform package is installed and SaaS mode is enabled
-        if (class_exists('\Aero\Platform\AeroPlatformServiceProvider') 
+        if (class_exists('\Aero\Platform\AeroPlatformServiceProvider')
             && config('aero.mode', 'standalone') === 'saas') {
             return 'saas';
         }
-        
+
         return 'standalone';
     }
 
@@ -83,7 +82,7 @@ class UnifiedInstallationController extends Controller
     protected function getSteps(): array
     {
         $mode = $this->getMode();
-        
+
         if ($mode === 'saas') {
             return [
                 1 => 'welcome',
@@ -96,7 +95,7 @@ class UnifiedInstallationController extends Controller
                 8 => 'complete',
             ];
         }
-        
+
         return [
             1 => 'welcome',
             2 => 'license',
@@ -125,15 +124,15 @@ class UnifiedInstallationController extends Controller
     {
         $configPath = base_path(self::CONFIG_PATH);
         $config = [];
-        
+
         if (File::exists($configPath)) {
             $config = json_decode(File::get($configPath), true) ?? [];
         }
-        
+
         $config[$key] = $data;
         $config['_updated_at'] = now()->toDateTimeString();
         $config['_mode'] = $this->getMode();
-        
+
         File::ensureDirectoryExists(dirname($configPath));
         File::put($configPath, json_encode($config, JSON_PRETTY_PRINT));
     }
@@ -144,13 +143,13 @@ class UnifiedInstallationController extends Controller
     protected function getPersistedConfig(?string $key = null): mixed
     {
         $configPath = base_path(self::CONFIG_PATH);
-        
-        if (!File::exists($configPath)) {
+
+        if (! File::exists($configPath)) {
             return $key ? null : [];
         }
-        
+
         $config = json_decode(File::get($configPath), true) ?? [];
-        
+
         return $key ? ($config[$key] ?? null) : $config;
     }
 
@@ -160,7 +159,7 @@ class UnifiedInstallationController extends Controller
     protected function clearPersistedConfig(): void
     {
         $configPath = base_path(self::CONFIG_PATH);
-        
+
         if (File::exists($configPath)) {
             File::delete($configPath);
         }
@@ -254,7 +253,7 @@ class UnifiedInstallationController extends Controller
             ]);
         }
 
-        if (!$this->licenseService) {
+        if (! $this->licenseService) {
             return response()->json([
                 'success' => false,
                 'message' => 'License validation service not available. Use AP-TEST-* license key in development mode.',
@@ -268,7 +267,7 @@ class UnifiedInstallationController extends Controller
             $request->get('domain', request()->getHost())
         );
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return response()->json($result, 422);
         }
 
@@ -315,7 +314,7 @@ class UnifiedInstallationController extends Controller
     public function recheckRequirements()
     {
         $checks = $this->performRequirementsCheck();
-        
+
         return response()->json([
             'success' => true,
             'checks' => $checks,
@@ -363,9 +362,9 @@ class UnifiedInstallationController extends Controller
 
         try {
             $connection = $request->connection;
-            
+
             // Configure temporary connection
-            Config::set("database.connections.installation_test", array_merge(
+            Config::set('database.connections.installation_test', array_merge(
                 config("database.connections.{$connection}"),
                 [
                     'host' => $request->host,
@@ -386,7 +385,7 @@ class UnifiedInstallationController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Connection failed: ' . $e->getMessage(),
+                'message' => 'Connection failed: '.$e->getMessage(),
             ], 422);
         }
     }
@@ -398,8 +397,8 @@ class UnifiedInstallationController extends Controller
     {
         try {
             $connection = $request->connection ?? 'mysql';
-            
-            Config::set("database.connections.installation_test", array_merge(
+
+            Config::set('database.connections.installation_test', array_merge(
                 config("database.connections.{$connection}"),
                 [
                     'host' => $request->host,
@@ -411,12 +410,12 @@ class UnifiedInstallationController extends Controller
             ));
 
             $databases = DB::connection('installation_test')
-                ->select("SHOW DATABASES");
+                ->select('SHOW DATABASES');
 
             $systemDbs = ['information_schema', 'mysql', 'performance_schema', 'sys', 'phpmyadmin'];
             $filtered = array_filter(
                 array_column($databases, 'Database'),
-                fn($db) => !in_array($db, $systemDbs)
+                fn ($db) => ! in_array($db, $systemDbs)
             );
 
             return response()->json([
@@ -426,7 +425,7 @@ class UnifiedInstallationController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to list databases: ' . $e->getMessage(),
+                'message' => 'Failed to list databases: '.$e->getMessage(),
             ], 422);
         }
     }
@@ -450,8 +449,8 @@ class UnifiedInstallationController extends Controller
 
         try {
             $connection = $request->connection ?? 'mysql';
-            
-            Config::set("database.connections.installation_test", array_merge(
+
+            Config::set('database.connections.installation_test', array_merge(
                 config("database.connections.{$connection}"),
                 [
                     'host' => $request->host,
@@ -472,7 +471,7 @@ class UnifiedInstallationController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create database: ' . $e->getMessage(),
+                'message' => 'Failed to create database: '.$e->getMessage(),
             ], 422);
         }
     }
@@ -501,7 +500,7 @@ class UnifiedInstallationController extends Controller
 
         // Test full connection
         try {
-            Config::set("database.connections.installation_test", array_merge(
+            Config::set('database.connections.installation_test', array_merge(
                 config("database.connections.{$request->connection}"),
                 [
                     'host' => $request->host,
@@ -516,7 +515,7 @@ class UnifiedInstallationController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Database connection failed: ' . $e->getMessage(),
+                'message' => 'Database connection failed: '.$e->getMessage(),
             ], 422);
         }
 
@@ -562,11 +561,11 @@ class UnifiedInstallationController extends Controller
     public function saveSettings(Request $request)
     {
         $mode = $this->getMode();
-        
+
         if ($mode === 'saas') {
             return $this->savePlatformSettings($request);
         }
-        
+
         return $this->saveSystemSettings($request);
     }
 
@@ -651,7 +650,16 @@ class UnifiedInstallationController extends Controller
             'first_name' => 'required|string|max:50',
             'last_name' => 'required|string|max:50',
             'email' => 'required|email|max:100',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+                \Illuminate\Validation\Rules\Password::min(8)
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols(),
+            ],
         ]);
 
         if ($validator->fails()) {
@@ -662,13 +670,11 @@ class UnifiedInstallationController extends Controller
             ], 422);
         }
 
-        // Store password hash, not plain text
-        // Also store plain password temporarily for Complete page display (will be cleared)
+        // Security: store only the bcrypt hash — never persist plaintext passwords to disk.
         $this->persistConfig('admin', [
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
-            'password' => $request->password, // For Complete page display only
             'password_hash' => Hash::make($request->password),
         ]);
 
@@ -780,7 +786,7 @@ class UnifiedInstallationController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to send test email: ' . $e->getMessage(),
+                'message' => 'Failed to send test email: '.$e->getMessage(),
             ], 422);
         }
     }
@@ -800,7 +806,7 @@ class UnifiedInstallationController extends Controller
         try {
             // Mark installation as in progress
             Cache::put('installation_in_progress', true, now()->addMinutes(self::INSTALLATION_TIMEOUT));
-            
+
             // Remove progress file if exists to trigger fresh installation
             $progressFile = base_path(self::PROGRESS_FILE);
             if (File::exists($progressFile)) {
@@ -814,7 +820,7 @@ class UnifiedInstallationController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to start installation: ' . $e->getMessage(),
+                'message' => 'Failed to start installation: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -825,14 +831,14 @@ class UnifiedInstallationController extends Controller
     public function progress()
     {
         $progressFile = base_path(self::PROGRESS_FILE);
-        
-        if (!File::exists($progressFile)) {
+
+        if (! File::exists($progressFile)) {
             // If no progress file, run the actual installation
             return $this->runInstallation();
         }
 
         $progress = json_decode(File::get($progressFile), true);
-        
+
         return response()->json($progress);
     }
 
@@ -846,9 +852,9 @@ class UnifiedInstallationController extends Controller
 
         // Ensure APP_KEY is loaded and encrypter is bound before running any steps
         $appKey = env('APP_KEY');
-        if (!$appKey) {
+        if (! $appKey) {
             // If somehow missing, generate and persist a new key immediately
-            $appKey = 'base64:' . base64_encode(random_bytes(32));
+            $appKey = 'base64:'.base64_encode(random_bytes(32));
             // Make it available in the current process and future requests
             putenv("APP_KEY={$appKey}");
             $_ENV['APP_KEY'] = $appKey;
@@ -869,8 +875,8 @@ class UnifiedInstallationController extends Controller
                 return new \Illuminate\Encryption\Encrypter($normalizedKey, $app['config']['app.cipher']);
             });
         }
-        
-        $steps = $mode === 'saas' 
+
+        $steps = $mode === 'saas'
             ? ['config', 'database', 'migrations', 'admin', 'modules', 'settings', 'cache', 'finalize']
             : ['config', 'database', 'migrations', 'seeders', 'roles', 'admin', 'settings', 'modules', 'cache', 'finalize'];
 
@@ -886,7 +892,7 @@ class UnifiedInstallationController extends Controller
                 );
 
                 $this->executeStep($step, $config, $mode);
-                
+
                 $currentStepIndex++;
             }
 
@@ -901,7 +907,7 @@ class UnifiedInstallationController extends Controller
                 'steps' => $this->getProgressSteps($mode),
             ]);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Installation failed', [
                 'step' => $steps[$currentStepIndex] ?? 'unknown',
                 'error' => $e->getMessage(),
@@ -966,17 +972,22 @@ class UnifiedInstallationController extends Controller
         $envContent = $this->updateEnvValue($envContent, 'DB_PASSWORD', $dbConfig['password'] ?? '');
 
         // Ensure APP_KEY exists (installer may run before a key is generated)
-        if (!preg_match('/^APP_KEY\s*=\s*/m', $envContent)) {
-            $generatedKey = 'base64:' . base64_encode(random_bytes(32));
-            $envContent = rtrim($envContent) . "\nAPP_KEY={$generatedKey}\n";
+        if (! preg_match('/^APP_KEY\s*=\s*/m', $envContent)) {
+            $generatedKey = 'base64:'.base64_encode(random_bytes(32));
+            $envContent = rtrim($envContent)."\nAPP_KEY={$generatedKey}\n";
         }
 
         // Update app settings
         $envContent = $this->updateEnvValue($envContent, 'APP_URL', $settings['app_url'] ?? 'http://localhost');
         $envContent = $this->updateEnvValue($envContent, 'APP_TIMEZONE', $settings['timezone'] ?? 'UTC');
 
+        // Persist Aero platform mode so it survives server restarts after installation.
+        // Without this, AERO_MODE would revert to the .env value (often 'standalone')
+        // after installation completes, breaking SaaS mode on the next request.
+        $envContent = $this->updateEnvValue($envContent, 'AERO_MODE', $this->getMode());
+
         // Email settings
-        if (!empty($settings['mail_host'])) {
+        if (! empty($settings['mail_host'])) {
             $envContent = $this->updateEnvValue($envContent, 'MAIL_MAILER', $settings['mail_driver'] ?? 'smtp');
             $envContent = $this->updateEnvValue($envContent, 'MAIL_HOST', $settings['mail_host']);
             $envContent = $this->updateEnvValue($envContent, 'MAIL_PORT', $settings['mail_port'] ?? '587');
@@ -987,11 +998,15 @@ class UnifiedInstallationController extends Controller
             $envContent = $this->updateEnvValue($envContent, 'MAIL_FROM_NAME', $settings['mail_from_name'] ?? '');
         }
 
-        File::put($envPath, $envContent);
-        
+        // Write atomically: write to temp file first, then rename (prevents corrupt state
+        // if two concurrent requests race to write the .env file).
+        $tmpPath = $envPath.'.install.tmp';
+        File::put($tmpPath, $envContent);
+        rename($tmpPath, $envPath);
+
         // Clear config cache by removing cached files directly (no Artisan commands)
         $this->clearConfigCache();
-        
+
         // Force reload the APP_KEY from .env into the current process
         // This is critical because the installation process continues in the same request
         $dotenv = \Dotenv\Dotenv::createImmutable(base_path());
@@ -1023,7 +1038,7 @@ class UnifiedInstallationController extends Controller
         $connection = $dbConfig['connection'] ?? 'mysql';
 
         // Re-configure database connection
-        Config::set("database.default", $connection);
+        Config::set('database.default', $connection);
         Config::set("database.connections.{$connection}.host", $dbConfig['host'] ?? '127.0.0.1');
         Config::set("database.connections.{$connection}.port", $dbConfig['port'] ?? 3306);
         Config::set("database.connections.{$connection}.database", $dbConfig['database'] ?? 'aero');
@@ -1046,42 +1061,69 @@ class UnifiedInstallationController extends Controller
     {
         $migrator = app('migrator');
         $repository = $migrator->getRepository();
-        
+
         // Ensure the migrations table exists first
-        if (!$repository->repositoryExists()) {
+        if (! $repository->repositoryExists()) {
             $repository->createRepository();
         }
-        
-        // Discover migration paths from all installed Aero packages
-        // Uses the same discovery mechanism as aero:sync-migrations command
-        $migrationPaths = $this->discoverMigrationPaths();
-        
+
+        // Track all paths that have been explicitly run (realpath() for Junction/symlink-safe comparison)
+        $processedPaths = [];
+
+        // STEP 1: Run aero-core migrations FIRST.
+        // Core creates the foundational tables (users, roles, permissions, cache, jobs, modules, etc.)
+        // and MUST run before anything else.
+        $corePath = base_path('vendor/aero/core/database/migrations');
+        if (File::isDirectory($corePath)) {
+            $migrator->run($corePath);
+            $processedPaths[] = realpath($corePath) ?: $corePath;
+            Log::info("Ran core migrations from: {$corePath}");
+        }
+
         if ($mode === 'saas') {
-            // Run platform migrations first (priority)
+            // STEP 2 (SaaS only): Run platform migrations second.
+            // Platform creates the SaaS-specific tables: tenants, domains, plans, subscriptions,
+            // landlord_users, platform_settings, etc.
+            // NOTE: Some platform migrations duplicate core ones (cache, jobs, modules) — those
+            // migrations must have Schema::hasTable() guards to skip if already created by core.
             $platformPath = base_path('vendor/aero/platform/database/migrations');
             if (File::isDirectory($platformPath)) {
                 $migrator->run($platformPath);
+                $processedPaths[] = realpath($platformPath) ?: $platformPath;
                 Log::info("Ran platform migrations from: {$platformPath}");
             }
-        }
 
-        // Run migrations from all discovered package paths
-        foreach ($migrationPaths as $packageName => $path) {
-            if (File::isDirectory($path)) {
-                $migrator->run($path);
-                Log::info("Ran migrations for package: {$packageName}");
+            // In SaaS mode, STOP HERE for the central database.
+            // Module-specific packages (aero-compliance, aero-hrm, aero-crm, etc.) are for
+            // TENANT databases only and run during tenant provisioning — NOT on the central DB.
+            Log::info('SaaS mode: skipping module package migrations for central database (tenant-only tables)');
+        } else {
+            // STEP 3 (Standalone only): Run all other discovered package migrations.
+            // In standalone mode, everything goes in one database so all packages migrate here.
+            $migrationPaths = $this->discoverMigrationPaths();
+            $priorityPackages = ['core', 'platform'];
+            foreach ($migrationPaths as $packageName => $path) {
+                if (in_array($packageName, $priorityPackages)) {
+                    continue; // Already run above
+                }
+                if (File::isDirectory($path)) {
+                    $migrator->run($path);
+                    $processedPaths[] = realpath($path) ?: $path;
+                    Log::info("Ran migrations for package: {$packageName}");
+                }
             }
-        }
-        
-        // Also run any paths registered via loadMigrationsFrom() (fallback)
-        $registeredPaths = $migrator->paths();
-        foreach ($registeredPaths as $path) {
-            // Skip if already processed in discovered paths
-            if (in_array($path, $migrationPaths)) {
-                continue;
-            }
-            if (File::isDirectory($path)) {
-                $migrator->run($path);
+
+            // Fallback: run any registered paths not yet processed (realpath-safe comparison)
+            $registeredPaths = $migrator->paths();
+            foreach ($registeredPaths as $path) {
+                $normalizedPath = realpath($path) ?: $path;
+                if (in_array($normalizedPath, $processedPaths)) {
+                    continue;
+                }
+                if (File::isDirectory($path)) {
+                    $migrator->run($path);
+                    $processedPaths[] = $normalizedPath;
+                }
             }
         }
     }
@@ -1089,7 +1131,7 @@ class UnifiedInstallationController extends Controller
     /**
      * Discover migration paths from all installed Aero packages
      * Uses the same mechanism as ModuleDiscoveryService and aero:sync-migrations command
-     * 
+     *
      * @return array<string, string> Package name => migration path
      */
     protected function discoverMigrationPaths(): array
@@ -1098,10 +1140,10 @@ class UnifiedInstallationController extends Controller
         $vendorPrefix = 'aero';
 
         // 1. Discover packages installed via Composer (vendor/aero/*)
-        $vendorPath = base_path('vendor/' . $vendorPrefix);
+        $vendorPath = base_path('vendor/'.$vendorPrefix);
         if (File::exists($vendorPath)) {
             foreach (File::directories($vendorPath) as $packagePath) {
-                $migrationsPath = $packagePath . '/database/migrations';
+                $migrationsPath = $packagePath.'/database/migrations';
                 if (File::exists($migrationsPath) && File::isDirectory($migrationsPath)) {
                     $files = File::files($migrationsPath);
                     if (count($files) > 0) {
@@ -1116,7 +1158,7 @@ class UnifiedInstallationController extends Controller
         $runtimePath = base_path('modules');
         if (File::exists($runtimePath)) {
             foreach (File::directories($runtimePath) as $modulePath) {
-                $migrationsPath = $modulePath . '/database/migrations';
+                $migrationsPath = $modulePath.'/database/migrations';
                 if (File::exists($migrationsPath) && File::isDirectory($migrationsPath)) {
                     $files = File::files($migrationsPath);
                     if (count($files) > 0) {
@@ -1168,11 +1210,11 @@ class UnifiedInstallationController extends Controller
     protected function stepCreateAdmin(array $config, string $mode): void
     {
         $adminConfig = $config['admin'] ?? [];
-        
+
         if ($mode === 'saas') {
-            // Create LandlordUser with Platform Role model
+            // Create LandlordUser with HRMAC Role model
             $userClass = 'Aero\\Platform\\Models\\LandlordUser';
-            $roleClass = 'Aero\\Platform\\Models\\Role'; // Uses Platform Role (extends Spatie)
+            $roleClass = 'Aero\\HRMAC\\Models\\Role';
         } else {
             // Create regular User
             $userClass = config('auth.providers.users.model', 'App\\Models\\User');
@@ -1180,10 +1222,10 @@ class UnifiedInstallationController extends Controller
         }
 
         $email = $adminConfig['email'] ?? 'admin@example.com';
-        
+
         // Handle soft-deleted users: check with trashed first, restore or create
         $user = $userClass::withTrashed()->where('email', $email)->first();
-        
+
         if ($user) {
             // User exists (possibly soft-deleted), restore if needed
             if ($user->trashed()) {
@@ -1191,8 +1233,8 @@ class UnifiedInstallationController extends Controller
             }
             // Update password and name in case they changed
             $user->update([
-                'name' => ($adminConfig['first_name'] ?? 'Admin') . ' ' . ($adminConfig['last_name'] ?? 'User'),
-                'user_name' => strtolower(str_replace(' ', '_', ($adminConfig['first_name'] ?? 'admin') . '_' . ($adminConfig['last_name'] ?? 'user'))),
+                'name' => ($adminConfig['first_name'] ?? 'Admin').' '.($adminConfig['last_name'] ?? 'User'),
+                'user_name' => strtolower(str_replace(' ', '_', ($adminConfig['first_name'] ?? 'admin').'_'.($adminConfig['last_name'] ?? 'user'))),
                 'password' => $adminConfig['password_hash'] ?? Hash::make('password'),
                 'email_verified_at' => now(),
             ]);
@@ -1200,8 +1242,8 @@ class UnifiedInstallationController extends Controller
             // Create new user
             $user = $userClass::create([
                 'email' => $email,
-                'name' => ($adminConfig['first_name'] ?? 'Admin') . ' ' . ($adminConfig['last_name'] ?? 'User'),
-                'user_name' => strtolower(str_replace(' ', '_', ($adminConfig['first_name'] ?? 'admin') . '_' . ($adminConfig['last_name'] ?? 'user'))),
+                'name' => ($adminConfig['first_name'] ?? 'Admin').' '.($adminConfig['last_name'] ?? 'User'),
+                'user_name' => strtolower(str_replace(' ', '_', ($adminConfig['first_name'] ?? 'admin').'_'.($adminConfig['last_name'] ?? 'user'))),
                 'password' => $adminConfig['password_hash'] ?? Hash::make('password'),
                 'email_verified_at' => now(),
             ]);
@@ -1209,20 +1251,20 @@ class UnifiedInstallationController extends Controller
 
         // Create Super Administrator role with protected=true and assign to admin
         $guardName = $mode === 'saas' ? 'landlord' : 'web';
-        
+
         $role = $roleClass::firstOrCreate(
             ['name' => 'Super Administrator', 'guard_name' => $guardName],
             [
                 'description' => 'Full system access with all permissions',
-                'protected' => true,
+                'is_protected' => true,
             ]
         );
-        
-        // Ensure protected is set even if role already exists
-        if (!$role->protected) {
-            $role->update(['protected' => true]);
+
+        // Ensure is_protected is set even if role already exists
+        if (! $role->is_protected) {
+            $role->update(['is_protected' => true]);
         }
-        
+
         $user->assignRole($role);
     }
 
@@ -1232,21 +1274,21 @@ class UnifiedInstallationController extends Controller
     protected function stepSaveSettings(array $config, string $mode): void
     {
         $settings = $config['settings'] ?? [];
-        
+
         if (empty($settings)) {
             return; // No settings to save
         }
-        
+
         if ($mode === 'saas') {
             // Save Platform settings - PlatformSetting uses single row model
             $settingsClass = 'Aero\\Platform\\Models\\PlatformSetting';
-            
+
             // Get or create the platform settings record
             $platformSettings = $settingsClass::firstOrCreate(
                 ['slug' => 'platform'],
                 ['site_name' => $settings['site_name'] ?? config('app.name')]
             );
-            
+
             // Map settings to model attributes
             $attributesToUpdate = [];
             $settingsMapping = [
@@ -1256,27 +1298,27 @@ class UnifiedInstallationController extends Controller
                 'support_email' => 'support_email',
                 'support_phone' => 'support_phone',
             ];
-            
+
             foreach ($settings as $key => $value) {
                 if (isset($settingsMapping[$key])) {
                     $attributesToUpdate[$settingsMapping[$key]] = $value;
                 }
             }
-            
-            if (!empty($attributesToUpdate)) {
+
+            if (! empty($attributesToUpdate)) {
                 $platformSettings->update($attributesToUpdate);
             }
         } else {
             // Save System settings for standalone mode
             // SystemSetting uses single-row model similar to PlatformSetting
             $settingsClass = 'Aero\\Core\\Models\\SystemSetting';
-            
+
             // Get or create the system settings record
             $systemSettings = $settingsClass::firstOrCreate(
                 ['slug' => 'default'],
                 ['company_name' => $settings['company_name'] ?? config('app.name')]
             );
-            
+
             // Map settings to model attributes (column-based, not key-value)
             $attributesToUpdate = [];
             $settingsMapping = [
@@ -1293,7 +1335,7 @@ class UnifiedInstallationController extends Controller
                 'postal_code' => 'postal_code',
                 'country' => 'country',
             ];
-            
+
             foreach ($settings as $key => $value) {
                 if (isset($settingsMapping[$key])) {
                     if (is_array($value)) {
@@ -1302,7 +1344,7 @@ class UnifiedInstallationController extends Controller
                     $attributesToUpdate[$settingsMapping[$key]] = $value;
                 }
             }
-            
+
             // Handle email settings - pass array directly since model has 'array' cast
             if (isset($settings['mail_driver']) || isset($settings['mail_host'])) {
                 $attributesToUpdate['email_settings'] = [
@@ -1316,8 +1358,8 @@ class UnifiedInstallationController extends Controller
                     'from_name' => $settings['mail_from_name'] ?? '',
                 ];
             }
-            
-            if (!empty($attributesToUpdate)) {
+
+            if (! empty($attributesToUpdate)) {
                 $systemSettings->update($attributesToUpdate);
             }
         }
@@ -1330,14 +1372,14 @@ class UnifiedInstallationController extends Controller
     protected function stepInstallModules(array $config): void
     {
         $mode = $this->getMode();
-        
+
         // Sync modules with appropriate scope
         // platform = SaaS central database, tenant = standalone mode (tenant context)
         $scope = $mode === 'saas' ? 'platform' : 'all';
-        
+
         // Sync module hierarchy directly
         $this->syncModuleHierarchy($scope);
-        
+
         // For standalone mode, activate licensed modules
         if ($mode !== 'saas') {
             $license = $config['license'] ?? [];
@@ -1367,7 +1409,7 @@ class UnifiedInstallationController extends Controller
         $this->clearConfigCache();
         $this->clearRouteCache();
         $this->clearViewCache();
-        
+
         // Note: We don't cache in production during installation
         // because the app should be fully functional first
     }
@@ -1379,7 +1421,7 @@ class UnifiedInstallationController extends Controller
     {
         // Generate installation key
         $installationKey = Str::uuid()->toString();
-        
+
         $this->persistConfig('installation', [
             'key' => $installationKey,
             'installed_at' => now()->toDateTimeString(),
@@ -1390,7 +1432,7 @@ class UnifiedInstallationController extends Controller
 
     /**
      * Create installation lock file
-     * 
+     *
      * Creates the unified lock file at storage/app/aeos.installed
      * This path is used by both aero-core and aero-platform packages.
      */
@@ -1399,17 +1441,17 @@ class UnifiedInstallationController extends Controller
         $lockFile = storage_path(self::LOCK_FILE);
         $config = $this->getPersistedConfig('installation') ?? [];
         $mode = $this->getMode();
-        
+
         $lockData = [
             'installed_at' => now()->toDateTimeString(),
             'version' => config('app.version', '1.0.0'),
             'mode' => $mode,
             'key' => $config['key'] ?? Str::uuid()->toString(),
         ];
-        
+
         File::ensureDirectoryExists(dirname($lockFile));
         File::put($lockFile, json_encode($lockData, JSON_PRETTY_PRINT));
-        
+
         // Also create mode file for reference
         $modeFile = storage_path('app/aeos.mode');
         File::put($modeFile, $mode);
@@ -1420,39 +1462,48 @@ class UnifiedInstallationController extends Controller
      */
     public function complete()
     {
-        if (!$this->isInstalled()) {
-            return redirect()->route('install.welcome');
+        if (! $this->isInstalled()) {
+            return redirect()->route('installation.index');
         }
 
         $config = $this->getPersistedConfig();
         $mode = $this->getMode();
 
-        // Get admin credentials before clearing config
+        // Capture what we need before clearing
         $adminEmail = $config['admin']['email'] ?? '';
-        $adminPassword = $config['admin']['password'] ?? '';
+        $appUrl = $config['settings']['app_url'] ?? config('app.url');
+        $licensedModules = $config['license']['allowed_modules'] ?? [];
+        $installationKey = $config['installation']['key'] ?? null;
 
-        // Clear sensitive data from config
+        // Security: immediately purge config file (contains DB creds + hashed password).
+        // Only non-sensitive summary data is passed to the view.
         $this->clearPersistedConfig();
 
         return Inertia::render('Installation/Complete', [
             'title' => 'Installation Complete',
             'mode' => $mode,
-            'appUrl' => $config['settings']['app_url'] ?? config('app.url'),
+            'appUrl' => $appUrl,
             'adminEmail' => $adminEmail,
-            'adminPassword' => $adminPassword,
-            'licensedModules' => $config['license']['allowed_modules'] ?? [],
-            'installationKey' => $config['installation']['key'] ?? null,
+            // Password is intentionally not passed — user already knows it; never echo it back.
+            'licensedModules' => $licensedModules,
+            'installationKey' => $installationKey,
         ]);
     }
 
     /**
-     * Show already installed page
+     * Show already installed page.
+     * If the application is NOT yet installed, redirect to the first install step
+     * so that an unknown /install/* URL doesn't get stuck on this page.
      */
     public function alreadyInstalled()
     {
+        if (! $this->isInstalled()) {
+            return redirect()->route('installation.index');
+        }
+
         $lockFile = storage_path(self::LOCK_FILE);
         $lockData = [];
-        
+
         if (File::exists($lockFile)) {
             $lockData = json_decode(File::get($lockFile), true) ?? [];
         }
@@ -1504,7 +1555,7 @@ class UnifiedInstallationController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Cleanup failed: ' . $e->getMessage(),
+                'message' => 'Cleanup failed: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -1533,7 +1584,7 @@ class UnifiedInstallationController extends Controller
     {
         $progressFile = base_path(self::PROGRESS_FILE);
         $mode = $this->getMode();
-        
+
         $progress = [
             'percentage' => round($percentage, 1),
             'currentStep' => $currentStep,
@@ -1619,11 +1670,11 @@ class UnifiedInstallationController extends Controller
         ];
 
         $allExtensionsPassed = collect($extensions)
-            ->filter(fn($e) => $e['required'])
-            ->every(fn($e) => $e['installed']);
+            ->filter(fn ($e) => $e['required'])
+            ->every(fn ($e) => $e['installed']);
 
         $allDirectoriesPassed = collect($directories)
-            ->every(fn($d) => $d['writable']);
+            ->every(fn ($d) => $d['writable']);
 
         return [
             'php' => $php,
@@ -1635,16 +1686,16 @@ class UnifiedInstallationController extends Controller
 
     /**
      * Get installed product modules (from composer packages)
-     * 
+     *
      * Returns only product/business modules, excluding foundation packages.
      * Loads full names and descriptions from each module's config/module.php file.
-     * 
+     *
      * Foundation packages (hidden from display):
      * - core: Core framework functionality
      * - platform: Multi-tenant platform functionality (SaaS mode)
      * - ui: Shared UI components and themes
      * - hrmac: Human Resource Management Accounting (accounting foundation for HRM)
-     * 
+     *
      * Product modules (visible to users):
      * - hrm, crm, finance, dms, compliance, pos, scm, project, ims, quality, etc.
      */
@@ -1652,27 +1703,27 @@ class UnifiedInstallationController extends Controller
     {
         $modules = [];
         $packagesPath = base_path('vendor/aero');
-        
+
         // Foundation packages that should NOT be shown as products
         $foundationPackages = ['core', 'platform', 'ui', 'hrmac'];
 
         if (File::isDirectory($packagesPath)) {
             $packages = File::directories($packagesPath);
-            
+
             foreach ($packages as $package) {
                 $name = basename($package);
-                
+
                 // Only include actual product modules, not foundation packages
-                if (!in_array($name, $foundationPackages)) {
-                    $configPath = $package . '/config/module.php';
-                    
+                if (! in_array($name, $foundationPackages)) {
+                    $configPath = $package.'/config/module.php';
+
                     // Try to load module config for proper name and description
                     if (File::exists($configPath)) {
                         $config = require $configPath;
-                        
+
                         // Handle different config structures (some have 'module' key, others don't)
                         $moduleConfig = $config['module'] ?? $config;
-                        
+
                         $modules[] = [
                             'code' => $name,
                             'name' => $moduleConfig['name'] ?? ucfirst(str_replace('-', ' ', $name)),
@@ -1735,16 +1786,16 @@ class UnifiedInstallationController extends Controller
     {
         // Escape special characters in value
         if (str_contains($value, ' ') || str_contains($value, '#') || str_contains($value, '"')) {
-            $value = '"' . addslashes($value) . '"';
+            $value = '"'.addslashes($value).'"';
         }
 
         $pattern = "/^{$key}=.*/m";
-        
+
         if (preg_match($pattern, $content)) {
             return preg_replace($pattern, "{$key}={$value}", $content);
         }
-        
-        return $content . "\n{$key}={$value}";
+
+        return $content."\n{$key}={$value}";
     }
 
     /**
@@ -1767,7 +1818,7 @@ class UnifiedInstallationController extends Controller
         if (File::exists($cachedRoutesPath)) {
             File::delete($cachedRoutesPath);
         }
-        
+
         // Also try the older route cache filename
         $oldCachedRoutesPath = base_path('bootstrap/cache/routes.php');
         if (File::exists($oldCachedRoutesPath)) {
@@ -1782,7 +1833,7 @@ class UnifiedInstallationController extends Controller
     {
         $viewCachePath = storage_path('framework/views');
         if (File::isDirectory($viewCachePath)) {
-            $files = File::glob($viewCachePath . '/*.php');
+            $files = File::glob($viewCachePath.'/*.php');
             foreach ($files as $file) {
                 File::delete($file);
             }
@@ -1799,8 +1850,9 @@ class UnifiedInstallationController extends Controller
             // Validate schema first
             $requiredTables = ['modules', 'sub_modules', 'module_components', 'module_component_actions'];
             foreach ($requiredTables as $table) {
-                if (!Schema::hasTable($table)) {
+                if (! Schema::hasTable($table)) {
                     Log::warning("Module sync skipped: table '{$table}' does not exist");
+
                     return;
                 }
             }
@@ -1810,6 +1862,7 @@ class UnifiedInstallationController extends Controller
 
             if ($modules->isEmpty()) {
                 Log::info('No module definitions found in packages');
+
                 return;
             }
 
@@ -1829,7 +1882,7 @@ class UnifiedInstallationController extends Controller
             Log::info("Module hierarchy synced successfully for scope: {$scope}");
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Module sync failed: ' . $e->getMessage());
+            Log::error('Module sync failed: '.$e->getMessage());
         }
     }
 

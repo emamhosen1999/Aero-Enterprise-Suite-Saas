@@ -2,10 +2,10 @@
 
 namespace Aero\Blockchain\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class Wallet extends Model
 {
@@ -18,7 +18,7 @@ class Wallet extends Model
         'public_key', 'encrypted_private_key', 'derivation_path', 'balance',
         'nonce', 'is_contract', 'contract_type', 'last_activity',
         'transaction_count', 'is_watched_only', 'metadata', 'tags',
-        'is_active'
+        'is_active',
     ];
 
     protected $casts = [
@@ -36,16 +36,23 @@ class Wallet extends Model
     ];
 
     protected $hidden = [
-        'encrypted_private_key'
+        'encrypted_private_key',
     ];
 
     const TYPE_EOA = 'externally_owned_account';
+
     const TYPE_CONTRACT = 'contract_account';
+
     const TYPE_MULTISIG = 'multisig';
+
     const TYPE_HD_WALLET = 'hierarchical_deterministic';
+
     const TYPE_HARDWARE = 'hardware';
+
     const TYPE_PAPER = 'paper';
+
     const TYPE_BRAIN = 'brain';
+
     const TYPE_CUSTODIAL = 'custodial';
 
     public function blockchain()
@@ -71,7 +78,7 @@ class Wallet extends Model
     public function allTransactions()
     {
         return Transaction::where('from_address', $this->address)
-                         ->orWhere('to_address', $this->address);
+            ->orWhere('to_address', $this->address);
     }
 
     public function tokenBalances()
@@ -91,7 +98,7 @@ class Wallet extends Model
 
     public function isExternallyOwned()
     {
-        return !$this->is_contract;
+        return ! $this->is_contract;
     }
 
     public function isMultisig()
@@ -106,16 +113,18 @@ class Wallet extends Model
 
     public function getFormattedBalanceAttribute()
     {
-        return number_format($this->balance, 8) . ' ' . ($this->blockchain->native_token ?: 'ETH');
+        return number_format($this->balance, 8).' '.($this->blockchain->native_token ?: 'ETH');
     }
 
     public function getActivityStatusAttribute()
     {
-        if (!$this->last_activity) return 'Never Active';
-        
+        if (! $this->last_activity) {
+            return 'Never Active';
+        }
+
         $daysAgo = $this->last_activity->diffInDays(now());
-        
-        return match(true) {
+
+        return match (true) {
             $daysAgo <= 1 => 'Very Active',
             $daysAgo <= 7 => 'Active',
             $daysAgo <= 30 => 'Moderately Active',
@@ -127,15 +136,15 @@ class Wallet extends Model
     public function getTotalSentAttribute()
     {
         return $this->outgoingTransactions()
-                   ->where('status', Transaction::STATUS_CONFIRMED)
-                   ->sum('value');
+            ->where('status', Transaction::STATUS_CONFIRMED)
+            ->sum('value');
     }
 
     public function getTotalReceivedAttribute()
     {
         return $this->incomingTransactions()
-                   ->where('status', Transaction::STATUS_CONFIRMED)
-                   ->sum('value');
+            ->where('status', Transaction::STATUS_CONFIRMED)
+            ->sum('value');
     }
 
     public function getProfitLossAttribute()
@@ -155,8 +164,8 @@ class Wallet extends Model
         if ($this->is_contract) {
             return 'Contract';
         }
-        
-        return match($this->wallet_type) {
+
+        return match ($this->wallet_type) {
             self::TYPE_MULTISIG => 'Multi-Signature',
             self::TYPE_HD_WALLET => 'HD Wallet',
             self::TYPE_HARDWARE => 'Hardware Wallet',
@@ -171,7 +180,7 @@ class Wallet extends Model
     {
         $this->update([
             'balance' => $newBalance,
-            'last_activity' => now()
+            'last_activity' => now(),
         ]);
     }
 
@@ -190,7 +199,7 @@ class Wallet extends Model
     public function addTag($tag)
     {
         $tags = $this->tags ?: [];
-        if (!in_array($tag, $tags)) {
+        if (! in_array($tag, $tags)) {
             $tags[] = $tag;
             $this->update(['tags' => $tags]);
         }
@@ -199,7 +208,7 @@ class Wallet extends Model
     public function removeTag($tag)
     {
         $tags = $this->tags ?: [];
-        $tags = array_values(array_filter($tags, fn($t) => $t !== $tag));
+        $tags = array_values(array_filter($tags, fn ($t) => $t !== $tag));
         $this->update(['tags' => $tags]);
     }
 
@@ -211,8 +220,8 @@ class Wallet extends Model
     public function validateAddress()
     {
         // Basic validation - in production would use proper address validation
-        return !empty($this->address) && 
-               strlen($this->address) === 42 && 
+        return ! empty($this->address) &&
+               strlen($this->address) === 42 &&
                str_starts_with($this->address, '0x');
     }
 
@@ -220,16 +229,16 @@ class Wallet extends Model
     {
         // In a real implementation, this would generate a valid Ethereum address
         // from a private key using elliptic curve cryptography
-        
-        if (!$privateKey) {
+
+        if (! $privateKey) {
             // Generate random private key
             $privateKey = bin2hex(random_bytes(32));
         }
-        
+
         // Placeholder address generation
-        $this->address = '0x' . substr(hash('sha256', $privateKey), 0, 40);
-        $this->public_key = '0x' . hash('sha256', $privateKey . 'public');
-        
+        $this->address = '0x'.substr(hash('sha256', $privateKey), 0, 40);
+        $this->public_key = '0x'.hash('sha256', $privateKey.'public');
+
         return $this->address;
     }
 

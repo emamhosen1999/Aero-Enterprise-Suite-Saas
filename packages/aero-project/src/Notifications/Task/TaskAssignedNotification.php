@@ -16,8 +16,11 @@ use Aero\Project\Notifications\BaseProjectNotification;
 class TaskAssignedNotification extends BaseProjectNotification
 {
     protected string $eventType = 'project.task.assigned';
+
     protected string $subModuleCode = 'tasks';
+
     protected ?string $componentCode = 'task-list';
+
     protected string $actionCode = 'view';
 
     public function __construct(
@@ -29,8 +32,7 @@ class TaskAssignedNotification extends BaseProjectNotification
         public ?int $assignedByUserId,
         public ?string $dueDate,
         public string $priority
-    ) {
-    }
+    ) {}
 
     /**
      * Create from TaskAssigned event.

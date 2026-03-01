@@ -43,6 +43,7 @@ use Aero\HRM\Listeners\Employee\RevokeSystemAccess;
 use Aero\HRM\Listeners\Employee\SendEmployeeWelcomeNotification;
 use Aero\HRM\Listeners\Employee\SendPromotionNotification;
 use Aero\HRM\Listeners\Employee\SendTerminationNotification;
+use Aero\HRM\Listeners\HrmEventSubscriber;
 use Aero\HRM\Listeners\Leave\NotifyEmployeeOfLeaveApproval;
 use Aero\HRM\Listeners\Leave\NotifyEmployeeOfLeaveRejection;
 use Aero\HRM\Listeners\Leave\NotifyOnLeaveCancellation;
@@ -71,7 +72,6 @@ use Aero\HRM\Listeners\SendDocumentExpiryNotifications;
 use Aero\HRM\Listeners\SendPayslipNotificationsNew;
 use Aero\HRM\Listeners\SendProbationEndingNotifications;
 use Aero\HRM\Listeners\SendWorkAnniversaryNotifications;
-use Aero\HRM\Listeners\HrmEventSubscriber;
 use Aero\HRM\Listeners\Training\SendTrainingInvitation;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 

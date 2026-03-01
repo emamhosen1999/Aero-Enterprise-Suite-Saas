@@ -6,8 +6,6 @@ namespace Aero\Core\Services\Auth;
 
 use Aero\Core\Models\User;
 use Illuminate\Contracts\Auth\Guard;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
@@ -72,10 +70,9 @@ class UserImpersonationService
     /**
      * Start impersonating another user.
      *
-     * @param User $targetUser The user to impersonate
-     * @param string|null $reason Optional reason for impersonation
-     * @param int|null $duration Duration in minutes (null for default)
-     * @return bool
+     * @param  User  $targetUser  The user to impersonate
+     * @param  string|null  $reason  Optional reason for impersonation
+     * @param  int|null  $duration  Duration in minutes (null for default)
      *
      * @throws \RuntimeException
      */
@@ -122,7 +119,6 @@ class UserImpersonationService
     /**
      * Stop impersonating and return to original user.
      *
-     * @return bool
      *
      * @throws \RuntimeException
      */
@@ -162,8 +158,6 @@ class UserImpersonationService
 
     /**
      * Check if currently impersonating another user.
-     *
-     * @return bool
      */
     public function isImpersonating(): bool
     {
@@ -190,8 +184,6 @@ class UserImpersonationService
 
     /**
      * Get the original impersonator user.
-     *
-     * @return User|null
      */
     public function getImpersonator(): ?User
     {
@@ -206,8 +198,6 @@ class UserImpersonationService
 
     /**
      * Get impersonation info.
-     *
-     * @return array|null
      */
     public function getImpersonationInfo(): ?array
     {
@@ -231,10 +221,6 @@ class UserImpersonationService
 
     /**
      * Check if a user can be impersonated.
-     *
-     * @param User|null $impersonator
-     * @param User $target
-     * @return bool
      */
     public function canImpersonate(?User $impersonator, User $target): bool
     {
@@ -254,9 +240,7 @@ class UserImpersonationService
     /**
      * Get impersonation history for audit.
      *
-     * @param int|null $userId Filter by impersonator user ID
-     * @param int $limit
-     * @return \Illuminate\Support\Collection
+     * @param  int|null  $userId  Filter by impersonator user ID
      */
     public function getImpersonationHistory(?int $userId = null, int $limit = 50): \Illuminate\Support\Collection
     {
@@ -289,7 +273,6 @@ class UserImpersonationService
     /**
      * Force end all active impersonations for a user.
      *
-     * @param int $userId
      * @return int Number of sessions ended
      */
     public function forceEndImpersonations(int $userId): int
@@ -305,9 +288,6 @@ class UserImpersonationService
 
     /**
      * Set maximum impersonation duration.
-     *
-     * @param int $minutes
-     * @return self
      */
     public function setMaxDuration(int $minutes): self
     {
@@ -319,9 +299,6 @@ class UserImpersonationService
     /**
      * Validate that impersonation is allowed.
      *
-     * @param User $impersonator
-     * @param User $target
-     * @return void
      *
      * @throws \RuntimeException
      */
@@ -365,9 +342,6 @@ class UserImpersonationService
 
     /**
      * Check if user has impersonation permission.
-     *
-     * @param User $user
-     * @return bool
      */
     protected function hasImpersonationPermission(User $user): bool
     {
@@ -391,9 +365,6 @@ class UserImpersonationService
 
     /**
      * Check if user is super admin.
-     *
-     * @param User $user
-     * @return bool
      */
     protected function isSuperAdmin(User $user): bool
     {
@@ -406,10 +377,6 @@ class UserImpersonationService
 
     /**
      * Check if target has higher privileges than impersonator.
-     *
-     * @param User $target
-     * @param User $impersonator
-     * @return bool
      */
     protected function hasHigherPrivileges(User $target, User $impersonator): bool
     {
@@ -441,8 +408,6 @@ class UserImpersonationService
 
     /**
      * Generate secure impersonation token.
-     *
-     * @return string
      */
     protected function generateImpersonationToken(): string
     {
@@ -451,12 +416,6 @@ class UserImpersonationService
 
     /**
      * Log impersonation action.
-     *
-     * @param string $action
-     * @param User $impersonator
-     * @param User|null $target
-     * @param string|null $reason
-     * @return void
      */
     protected function logImpersonation(
         string $action,
@@ -486,13 +445,6 @@ class UserImpersonationService
 
     /**
      * Record impersonation in database.
-     *
-     * @param User $impersonator
-     * @param User $target
-     * @param string $token
-     * @param string|null $reason
-     * @param int $duration
-     * @return void
      */
     protected function recordImpersonation(
         User $impersonator,
@@ -517,9 +469,6 @@ class UserImpersonationService
 
     /**
      * End impersonation record in database.
-     *
-     * @param string $token
-     * @return void
      */
     protected function endImpersonationRecord(string $token): void
     {
@@ -533,11 +482,6 @@ class UserImpersonationService
 
     /**
      * Notify target user about impersonation.
-     *
-     * @param User $target
-     * @param User $impersonator
-     * @param string $action
-     * @return void
      */
     protected function notifyTargetUser(User $target, User $impersonator, string $action): void
     {
@@ -554,8 +498,6 @@ class UserImpersonationService
 
     /**
      * Clear impersonation session data.
-     *
-     * @return void
      */
     protected function clearImpersonationSession(): void
     {

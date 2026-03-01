@@ -4,11 +4,9 @@ namespace Aero\Compliance\Http\Controllers;
 
 use Aero\Compliance\Models\CompliancePolicy;
 use Aero\Compliance\Models\CompliancePolicyAcknowledgment;
-use Illuminate\Routing\Controller;
-
-
 use Aero\Core\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 
 class CompliancePolicyController extends Controller

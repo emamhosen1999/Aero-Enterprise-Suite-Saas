@@ -20,6 +20,7 @@ class SendTrainingInvitation implements ShouldQueue
             Log::info('No employees enrolled in training', [
                 'training_id' => $training->id,
             ]);
+
             return;
         }
 
@@ -28,12 +29,13 @@ class SendTrainingInvitation implements ShouldQueue
 
         foreach ($employees as $employee) {
             $user = $employee->user;
-            
-            if (!$user) {
+
+            if (! $user) {
                 Log::warning('Employee has no user for training notification', [
                     'employee_id' => $employee->id,
                     'training_id' => $training->id,
                 ]);
+
                 continue;
             }
 

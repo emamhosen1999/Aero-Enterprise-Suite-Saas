@@ -2,9 +2,9 @@
 
 namespace Aero\Analytics\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Aero\Core\Models\User;
 
 class ReportSchedule extends Model
 {
@@ -15,7 +15,7 @@ class ReportSchedule extends Model
     protected $fillable = [
         'report_id', 'name', 'description', 'frequency', 'schedule_config',
         'output_format', 'delivery_method', 'delivery_config', 'parameters',
-        'is_active', 'created_by', 'last_run_at', 'next_run_at'
+        'is_active', 'created_by', 'last_run_at', 'next_run_at',
     ];
 
     protected $casts = [
@@ -30,16 +30,25 @@ class ReportSchedule extends Model
     ];
 
     const FREQUENCY_HOURLY = 'hourly';
+
     const FREQUENCY_DAILY = 'daily';
+
     const FREQUENCY_WEEKLY = 'weekly';
+
     const FREQUENCY_MONTHLY = 'monthly';
+
     const FREQUENCY_QUARTERLY = 'quarterly';
+
     const FREQUENCY_YEARLY = 'yearly';
 
     const DELIVERY_EMAIL = 'email';
+
     const DELIVERY_FTP = 'ftp';
+
     const DELIVERY_SFTP = 'sftp';
+
     const DELIVERY_API = 'api';
+
     const DELIVERY_STORAGE = 'storage';
 
     public function report()

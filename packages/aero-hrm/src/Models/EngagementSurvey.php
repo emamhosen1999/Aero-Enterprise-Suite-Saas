@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Engagement Survey Model
- * 
+ *
  * Manages employee engagement surveys.
  */
 class EngagementSurvey extends Model
@@ -61,7 +61,7 @@ class EngagementSurvey extends Model
 
     public function isActive(): bool
     {
-        return $this->status === 'active' && 
+        return $this->status === 'active' &&
                now()->between($this->start_date, $this->end_date);
     }
 

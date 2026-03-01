@@ -2,12 +2,12 @@
 
 namespace Aero\Compliance\Http\Controllers;
 
-use Aero\HRM\Models\Department;
-use Illuminate\Routing\Controller;
+use Aero\Compliance\Models\ComplianceAudit;
 use Aero\Compliance\Models\ComplianceAuditFinding;
 use Aero\Core\Models\User;
-use Aero\Compliance\Models\ComplianceAudit;
+use Aero\HRM\Models\Department;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 
 class AuditController extends Controller

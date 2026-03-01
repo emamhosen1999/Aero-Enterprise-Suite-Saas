@@ -7,7 +7,7 @@ use Aero\Rfi\Events\RfiApproved;
 
 /**
  * GenerateBoqMeasurementOnApproval Listener
- * 
+ *
  * Listens for RfiApproved events and triggers automatic measurement generation.
  * This is the decoupled bridge between RFI module and Quantity Survey.
  */

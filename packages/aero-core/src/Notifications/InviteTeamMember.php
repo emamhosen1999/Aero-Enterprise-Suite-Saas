@@ -87,7 +87,7 @@ class InviteTeamMember extends Notification
 
         // Use platform settings if available (SaaS mode), otherwise use app config
         $mailService = app(MailService::class);
-        
+
         if (method_exists($mailService, 'usePlatformSettings')) {
             $mailService->usePlatformSettings();
         }

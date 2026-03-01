@@ -49,23 +49,38 @@ class SendContractExpiryNotifications implements ShouldQueue
     }
 
     /**
-     * Notify users with HRM employees access using HRMAC.
+     * Notify users with HRM employees access using HRMAC,
+     * falling back to users with the "HR Admin" role when HRMAC is unavailable.
      */
     protected function notifyHr($employee, int $daysRemaining): void
     {
-        try {
-            $hrUsers = \Aero\HRMAC\Facades\HRMAC::getUsersWithSubModuleAccess('hrm', 'employees');
+        if (app()->bound('Aero\HRMAC\Contracts\RoleModuleAccessInterface')) {
+            try {
+                $hrUsers = \Aero\HRMAC\Facades\HRMAC::getUsersWithSubModuleAccess('hrm', 'employees');
 
-            foreach ($hrUsers as $hrUser) {
+                if ($hrUsers->isNotEmpty()) {
+                    foreach ($hrUsers as $hrUser) {
+                        if ($hrUser->id !== $employee->user_id) {
+                            $hrUser->notify(new ContractExpiryNotification($employee, $daysRemaining));
+                        }
+                    }
+
+                    return;
+                }
+            } catch (\Throwable $e) {
+                Log::warning('HRMAC not available for contract expiry notification', [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // Fallback: notify users with the HR Admin role
+        \Aero\Core\Models\User::role('HR Admin')->get()
+            ->each(function ($hrUser) use ($employee, $daysRemaining) {
                 if ($hrUser->id !== $employee->user_id) {
                     $hrUser->notify(new ContractExpiryNotification($employee, $daysRemaining));
                 }
-            }
-        } catch (\Exception $e) {
-            Log::warning('HRMAC not available for contract expiry notification', [
-                'error' => $e->getMessage(),
-            ]);
-        }
+            });
     }
 
     /**

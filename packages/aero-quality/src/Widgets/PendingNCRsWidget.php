@@ -18,10 +18,15 @@ use Aero\Core\Contracts\CoreWidgetCategory;
 class PendingNCRsWidget extends AbstractDashboardWidget
 {
     protected string $position = 'main_right';
+
     protected int $order = 30;
+
     protected int|string $span = 1;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
+
     protected array $requiredPermissions = ['quality.ncr'];
+
     protected array $dashboards = ['quality'];
 
     public function getKey(): string

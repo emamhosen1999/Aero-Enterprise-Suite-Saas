@@ -3,7 +3,6 @@
 namespace Aero\DMS\Services;
 
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -19,35 +18,50 @@ class DigitalSignatureService
      * Signature types.
      */
     public const TYPE_TYPED = 'typed';           // Name typed as signature
+
     public const TYPE_DRAWN = 'drawn';           // Hand-drawn signature
+
     public const TYPE_UPLOADED = 'uploaded';     // Uploaded image signature
+
     public const TYPE_CERTIFICATE = 'certificate'; // PKI certificate-based
+
     public const TYPE_BIOMETRIC = 'biometric';   // Fingerprint/face verification
 
     /**
      * Signature statuses.
      */
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_SIGNED = 'signed';
+
     public const STATUS_DECLINED = 'declined';
+
     public const STATUS_VOIDED = 'voided';
+
     public const STATUS_EXPIRED = 'expired';
 
     /**
      * Document statuses.
      */
     public const DOC_STATUS_DRAFT = 'draft';
+
     public const DOC_STATUS_PENDING = 'pending';
+
     public const DOC_STATUS_PARTIALLY_SIGNED = 'partially_signed';
+
     public const DOC_STATUS_COMPLETED = 'completed';
+
     public const DOC_STATUS_VOIDED = 'voided';
+
     public const DOC_STATUS_EXPIRED = 'expired';
 
     /**
      * Signing order types.
      */
     public const ORDER_SEQUENTIAL = 'sequential';
+
     public const ORDER_PARALLEL = 'parallel';
+
     public const ORDER_MIXED = 'mixed';
 
     /**
@@ -73,7 +87,7 @@ class DigitalSignatureService
     {
         // Validate request data
         $validation = $this->validateSignatureRequest($data);
-        if (!$validation['valid']) {
+        if (! $validation['valid']) {
             return [
                 'success' => false,
                 'errors' => $validation['errors'],
@@ -123,7 +137,7 @@ class DigitalSignatureService
     {
         // Validate signature data
         $validation = $this->validateSignatureData($signatureData);
-        if (!$validation['valid']) {
+        if (! $validation['valid']) {
             return [
                 'success' => false,
                 'errors' => $validation['errors'],
@@ -132,7 +146,7 @@ class DigitalSignatureService
 
         // Get signer details (in production, from database)
         $signer = $this->getSigner($requestId, $signerId);
-        if (!$signer) {
+        if (! $signer) {
             return ['success' => false, 'error' => 'Signer not found'];
         }
 
@@ -143,7 +157,7 @@ class DigitalSignatureService
         // Verify identity if required
         if ($signer['require_verification']) {
             $verified = $this->verifyIdentity($signerId, $signatureData['verification'] ?? []);
-            if (!$verified) {
+            if (! $verified) {
                 return ['success' => false, 'error' => 'Identity verification failed'];
             }
         }
@@ -203,7 +217,7 @@ class DigitalSignatureService
     public function decline(string $requestId, string $signerId, ?string $reason = null): array
     {
         $signer = $this->getSigner($requestId, $signerId);
-        if (!$signer) {
+        if (! $signer) {
             return ['success' => false, 'error' => 'Signer not found'];
         }
 
@@ -253,7 +267,7 @@ class DigitalSignatureService
     public function resendRequest(string $requestId, string $signerId): array
     {
         $signer = $this->getSigner($requestId, $signerId);
-        if (!$signer) {
+        if (! $signer) {
             return ['success' => false, 'error' => 'Signer not found'];
         }
 
@@ -335,7 +349,7 @@ class DigitalSignatureService
         ];
 
         return [
-            'valid' => !in_array(false, $checks),
+            'valid' => ! in_array(false, $checks),
             'checks' => $checks,
             'verified_at' => now()->toIso8601String(),
         ];
@@ -394,10 +408,10 @@ class DigitalSignatureService
             $errors[] = 'Document ID is required';
         }
 
-        if (empty($data['signers']) || !is_array($data['signers'])) {
+        if (empty($data['signers']) || ! is_array($data['signers'])) {
             $errors[] = 'At least one signer is required';
         } elseif (count($data['signers']) > $this->config['max_signers']) {
-            $errors[] = 'Maximum ' . $this->config['max_signers'] . ' signers allowed';
+            $errors[] = 'Maximum '.$this->config['max_signers'].' signers allowed';
         }
 
         foreach ($data['signers'] ?? [] as $index => $signer) {
@@ -424,7 +438,7 @@ class DigitalSignatureService
 
         if (empty($data['type'])) {
             $errors[] = 'Signature type is required';
-        } elseif (!in_array($data['type'], $this->config['allowed_types'])) {
+        } elseif (! in_array($data['type'], $this->config['allowed_types'])) {
             $errors[] = 'Invalid signature type';
         }
 
@@ -506,6 +520,7 @@ class DigitalSignatureService
     protected function generateSigningUrl(string $requestId, string $email): string
     {
         $token = Str::random(64);
+
         // In production, store token with expiry
         return url("/sign/{$requestId}?token={$token}");
     }
@@ -521,7 +536,7 @@ class DigitalSignatureService
             'issuer' => 'Aero Digital Signature Authority',
             'subject' => $signerId,
             'algorithm' => 'SHA256withRSA',
-            'fingerprint' => hash('sha256', $requestId . $signerId . now()->timestamp),
+            'fingerprint' => hash('sha256', $requestId.$signerId.now()->timestamp),
         ];
     }
 
@@ -548,9 +563,9 @@ class DigitalSignatureService
         $method = $verificationData['method'] ?? 'email';
 
         return match ($method) {
-            'email' => !empty($verificationData['email_code']),
-            'sms' => !empty($verificationData['sms_code']),
-            'knowledge' => !empty($verificationData['answers']),
+            'email' => ! empty($verificationData['email_code']),
+            'sms' => ! empty($verificationData['sms_code']),
+            'knowledge' => ! empty($verificationData['answers']),
             default => false,
         };
     }
@@ -625,5 +640,8 @@ class DigitalSignatureService
     }
 
     // Placeholder methods for database operations
-    protected function getSigner(string $requestId, string $signerId): ?array { return null; }
+    protected function getSigner(string $requestId, string $signerId): ?array
+    {
+        return null;
+    }
 }

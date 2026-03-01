@@ -11,7 +11,6 @@ use Aero\Project\Contracts\UserResolverContract;
 use Aero\Project\Http\Middleware\ProjectHrmacMiddleware;
 use Aero\Project\Http\Middleware\ProjectMemberMiddleware;
 use Aero\Project\Providers\ProjectModuleProvider;
-use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -62,18 +61,18 @@ class AeroProjectServiceProvider extends ServiceProvider
         // Department resolver - default uses DB table directly
         // Can be overridden by HRM package
         $this->app->singleton(DepartmentResolverContract::class, function ($app) {
-            return new DepartmentResolverAdapter();
+            return new DepartmentResolverAdapter;
         });
 
         // User resolver - default uses DB table directly
         // Can be overridden by Core package
         $this->app->singleton(UserResolverContract::class, function ($app) {
-            return new UserResolverAdapter();
+            return new UserResolverAdapter;
         });
 
         // Project authorization - HRMAC integration
         $this->app->singleton(ProjectAuthorizationContract::class, function ($app) {
-            return new ProjectAuthorizationAdapter();
+            return new ProjectAuthorizationAdapter;
         });
     }
 

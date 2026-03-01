@@ -4,7 +4,6 @@ namespace Aero\Analytics\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Aero\Core\Models\User;
 
 class AlertNotification extends Model
 {
@@ -15,7 +14,7 @@ class AlertNotification extends Model
     protected $fillable = [
         'alert_rule_id', 'notification_type', 'recipient', 'subject',
         'message', 'status', 'sent_at', 'delivered_at', 'error_message',
-        'retry_count', 'data_context'
+        'retry_count', 'data_context',
     ];
 
     protected $casts = [
@@ -27,16 +26,25 @@ class AlertNotification extends Model
     ];
 
     const TYPE_EMAIL = 'email';
+
     const TYPE_SMS = 'sms';
+
     const TYPE_SLACK = 'slack';
+
     const TYPE_TEAMS = 'teams';
+
     const TYPE_WEBHOOK = 'webhook';
+
     const TYPE_PUSH = 'push';
 
     const STATUS_PENDING = 'pending';
+
     const STATUS_SENT = 'sent';
+
     const STATUS_DELIVERED = 'delivered';
+
     const STATUS_FAILED = 'failed';
+
     const STATUS_BOUNCED = 'bounced';
 
     public function alertRule()

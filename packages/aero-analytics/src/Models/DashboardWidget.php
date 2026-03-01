@@ -13,7 +13,7 @@ class DashboardWidget extends Model
 
     protected $fillable = [
         'dashboard_id', 'widget_id', 'position_x', 'position_y',
-        'width', 'height', 'order_index', 'is_visible', 'widget_config'
+        'width', 'height', 'order_index', 'is_visible', 'widget_config',
     ];
 
     protected $casts = [

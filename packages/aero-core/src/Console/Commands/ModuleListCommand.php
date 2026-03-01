@@ -47,6 +47,7 @@ class ModuleListCommand extends Command
 
         if ($modules->isEmpty()) {
             $this->warn('No modules found.');
+
             return self::SUCCESS;
         }
 
@@ -72,8 +73,8 @@ class ModuleListCommand extends Command
 
         // Display summary
         $this->newLine();
-        $this->info('Total modules: ' . $registry->count());
-        $this->info('Enabled modules: ' . $registry->countEnabled());
+        $this->info('Total modules: '.$registry->count());
+        $this->info('Enabled modules: '.$registry->countEnabled());
 
         return self::SUCCESS;
     }

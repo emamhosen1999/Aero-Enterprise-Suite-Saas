@@ -4,8 +4,8 @@ namespace Aero\HRM\Http\Controllers\Employee;
 
 use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Models\Employee;
-use Aero\HRM\Services\HRMAuthorizationService;
 use Aero\HRM\Services\EmployeeResolutionService;
+use Aero\HRM\Services\HRMAuthorizationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -74,7 +74,7 @@ class EmployeeImageController extends Controller
 
                 return response()->json([
                     'success' => false,
-                    'message' => 'Validation failed: ' . implode(', ', $validator->errors()->all()),
+                    'message' => 'Validation failed: '.implode(', ', $validator->errors()->all()),
                     'errors' => $validator->errors(),
                 ], 422);
             }
@@ -87,7 +87,7 @@ class EmployeeImageController extends Controller
             ]);
 
             // Check authorization
-            if (!$this->canUpdateEmployeeImage($employee)) {
+            if (! $this->canUpdateEmployeeImage($employee)) {
                 Log::warning('[EmployeeImageUpload] Authorization failed', [
                     'auth_user_id' => Auth::id(),
                     'target_employee_id' => $employee->id,
@@ -110,8 +110,8 @@ class EmployeeImageController extends Controller
             // Upload new employee image
             Log::info('[EmployeeImageUpload] Adding media from request');
             $media = $employee->addMediaFromRequest('employee_image')
-                ->usingName($employee->employee_code . ' Employee Image')
-                ->usingFileName(time() . '_employee.' . $request->file('employee_image')->getClientOriginalExtension())
+                ->usingName($employee->employee_code.' Employee Image')
+                ->usingFileName(time().'_employee.'.$request->file('employee_image')->getClientOriginalExtension())
                 ->toMediaCollection('employee_images');
 
             Log::info('[EmployeeImageUpload] Media added successfully', [
@@ -136,6 +136,7 @@ class EmployeeImageController extends Controller
 
         } catch (FileDoesNotExist $e) {
             Log::error('[EmployeeImageUpload] File does not exist', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'The uploaded file could not be found',
@@ -143,6 +144,7 @@ class EmployeeImageController extends Controller
 
         } catch (FileIsTooBig $e) {
             Log::error('[EmployeeImageUpload] File is too big', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'The uploaded file is too large. Maximum size is 2MB.',
@@ -156,7 +158,7 @@ class EmployeeImageController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to upload employee image: ' . $e->getMessage(),
+                'message' => 'Failed to upload employee image: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -182,7 +184,7 @@ class EmployeeImageController extends Controller
             $employee = Employee::findOrFail($request->employee_id);
 
             // Check authorization
-            if (!$this->canUpdateEmployeeImage($employee)) {
+            if (! $this->canUpdateEmployeeImage($employee)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Unauthorized to remove this employee\'s image',
@@ -222,7 +224,7 @@ class EmployeeImageController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to remove employee image: ' . $e->getMessage(),
+                'message' => 'Failed to remove employee image: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -269,7 +271,7 @@ class EmployeeImageController extends Controller
         /** @var \Aero\Core\Models\User $currentUser */
         $currentUser = Auth::user();
 
-        if (!$currentUser) {
+        if (! $currentUser) {
             return false;
         }
 

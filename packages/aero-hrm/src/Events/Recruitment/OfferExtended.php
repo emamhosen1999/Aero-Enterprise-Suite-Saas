@@ -23,7 +23,6 @@ class OfferExtended extends BaseHrmEvent
     /**
      * Create a new event instance.
      *
-     * @param  JobOffer  $offer
      * @param  int|null  $actorEmployeeId  Employee ID (HR) who extended the offer
      */
     public function __construct(

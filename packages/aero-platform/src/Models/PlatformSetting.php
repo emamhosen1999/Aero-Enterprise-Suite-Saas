@@ -51,6 +51,17 @@ class PlatformSetting extends Model implements HasMedia
      */
     public const BYPASS_HEADER = 'X-Maintenance-Bypass';
 
+    /**
+     * Hosting mode constants.
+     * shared    = cPanel API (Namecheap / shared hosting)
+     * dedicated = standard CREATE DATABASE SQL (VPS / cloud)
+     */
+    public const HOSTING_MODE_SHARED    = 'shared';
+    public const HOSTING_MODE_DEDICATED = 'dedicated';
+
+    /** Cache key for hosting settings. */
+    public const CACHE_KEY_HOSTING = 'platform:hosting_settings';
+
     protected $fillable = [
         'slug',
         'site_name',
@@ -82,6 +93,8 @@ class PlatformSetting extends Model implements HasMedia
         'social_auth_settings',
         'affiliate_settings',
         'newsletter_settings',
+        // Infrastructure / Hosting
+        'hosting_settings',
     ];
 
     protected $casts = [
@@ -98,6 +111,8 @@ class PlatformSetting extends Model implements HasMedia
         'maintenance_allowed_paths' => 'array',
         'scheduled_maintenance_at' => 'datetime',
         'maintenance_ends_at' => 'datetime',
+        // Infrastructure
+        'hosting_settings' => 'array',
         'maintenance_skip_verification' => 'boolean',
         // SEO & Marketing casts
         'seo_settings' => 'array',
@@ -125,6 +140,8 @@ class PlatformSetting extends Model implements HasMedia
         'social_auth_settings' => '[]',
         'affiliate_settings' => '[]',
         'newsletter_settings' => '[]',
+        // Infrastructure — default to dedicated (VPS/MySQL)
+        'hosting_settings' => '{"mode":"dedicated","cpanel_host":null,"cpanel_port":2083,"cpanel_username":null,"cpanel_api_token":null,"cpanel_db_user":null}',
     ];
 
     /**
@@ -132,9 +149,10 @@ class PlatformSetting extends Model implements HasMedia
      */
     protected static function booted(): void
     {
-        // Clear maintenance cache when settings are updated
+        // Clear caches when settings are updated
         static::saved(function (self $setting) {
             TenantCache::forget(self::CACHE_KEY_MAINTENANCE);
+            TenantCache::forget(self::CACHE_KEY_HOSTING);
         });
     }
 
@@ -297,6 +315,80 @@ class PlatformSetting extends Model implements HasMedia
             'primary_color' => data_get($branding, 'primary_color', '#0f172a'),
             'accent_color' => data_get($branding, 'accent_color', '#818cf8'),
         ], $branding);
+    }
+
+    // =========================================================================
+    // INFRASTRUCTURE / HOSTING HELPERS
+    // =========================================================================
+
+    /**
+     * Resolve the active hosting mode.
+     *
+     * Precedence:
+     *  1. DB  — platform_settings.hosting_settings.mode
+     *  2. ENV — TENANCY_DATABASE_MANAGER=cpanel  → 'shared'
+     *  3. Default → 'dedicated'
+     */
+    public function getHostingMode(): string
+    {
+        $stored = $this->hosting_settings['mode'] ?? null;
+
+        if ($stored && in_array($stored, [self::HOSTING_MODE_SHARED, self::HOSTING_MODE_DEDICATED], true)) {
+            return $stored;
+        }
+
+        // Legacy .env fallback
+        return env('TENANCY_DATABASE_MANAGER', 'mysql') === 'cpanel'
+            ? self::HOSTING_MODE_SHARED
+            : self::HOSTING_MODE_DEDICATED;
+    }
+
+    /**
+     * Shorthand check: is the platform running on shared/cPanel hosting?
+     */
+    public function isCpanelMode(): bool
+    {
+        return $this->getHostingMode() === self::HOSTING_MODE_SHARED;
+    }
+
+    /**
+     * Return hosting settings with the cPanel API token decrypted.
+     * Safe to pass to internal provisioning — never expose via HTTP.
+     */
+    public function getHostingSettingsDecrypted(): array
+    {
+        $settings = $this->hosting_settings ?? [];
+
+        if (! empty($settings['cpanel_api_token'])) {
+            try {
+                $settings['cpanel_api_token'] = Crypt::decryptString($settings['cpanel_api_token']);
+            } catch (Throwable $e) {
+                // Token stored in plain-text (legacy / manually set via .env migration)
+                // Leave as-is
+            }
+        }
+
+        return $settings;
+    }
+
+    /**
+     * Return hosting settings safe for the admin UI (token masked).
+     */
+    public function getSanitizedHostingSettings(): array
+    {
+        $settings = $this->hosting_settings ?? [];
+
+        if (! empty($settings['cpanel_api_token'])) {
+            $settings['cpanel_api_token_set'] = true;
+            $settings['cpanel_api_token']     = null;
+        }
+
+        // Expose resolved active mode so the UI always knows what is in effect
+        $settings['mode']          = $settings['mode'] ?? self::HOSTING_MODE_DEDICATED;
+        $settings['resolved_mode'] = $this->getHostingMode();
+        $settings['env_override']  = env('TENANCY_DATABASE_MANAGER') !== null;
+
+        return $settings;
     }
 
     public function getSanitizedEmailSettings(): array

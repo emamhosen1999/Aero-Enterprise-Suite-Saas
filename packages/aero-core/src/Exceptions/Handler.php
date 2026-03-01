@@ -50,14 +50,14 @@ class Handler extends ExceptionHandler
             // Report to platform using PlatformErrorReporter service
             try {
                 $reporter = app(PlatformErrorReporter::class);
-                
+
                 // Only report if enabled
                 if ($reporter->isEnabled()) {
                     $traceId = $reporter->reportException($e);
-                    
+
                     // Log locally for reference
                     if ($traceId) {
-                        Log::debug("Exception reported to platform", [
+                        Log::debug('Exception reported to platform', [
                             'trace_id' => $traceId,
                             'type' => get_class($e),
                             'message' => $e->getMessage(),

@@ -42,8 +42,8 @@ interface NotifiableUserInterface
     /**
      * Get notification preferences for a specific channel and event.
      *
-     * @param string $event The notification event (e.g., 'leave_approved')
-     * @param string $channel The channel (email, push, sms, in_app)
+     * @param  string  $event  The notification event (e.g., 'leave_approved')
+     * @param  string  $channel  The channel (email, push, sms, in_app)
      * @return bool Whether the user wants this notification via this channel
      */
     public function wantsNotificationVia(string $event, string $channel): bool;

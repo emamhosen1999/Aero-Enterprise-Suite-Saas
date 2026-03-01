@@ -4,9 +4,9 @@ namespace Aero\HRM\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Succession Plan Model
@@ -46,24 +46,33 @@ class SuccessionPlan extends Model
      * Priority levels for succession planning.
      */
     public const PRIORITY_CRITICAL = 'critical';
+
     public const PRIORITY_HIGH = 'high';
+
     public const PRIORITY_MEDIUM = 'medium';
+
     public const PRIORITY_LOW = 'low';
 
     /**
      * Risk levels if position becomes vacant.
      */
     public const RISK_HIGH = 'high';
+
     public const RISK_MEDIUM = 'medium';
+
     public const RISK_LOW = 'low';
 
     /**
      * Plan statuses.
      */
     public const STATUS_DRAFT = 'draft';
+
     public const STATUS_ACTIVE = 'active';
+
     public const STATUS_ON_HOLD = 'on_hold';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     public function designation(): BelongsTo

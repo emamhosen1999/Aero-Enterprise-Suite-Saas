@@ -16,8 +16,11 @@ use Aero\Project\Notifications\BaseProjectNotification;
 class MilestoneReachedNotification extends BaseProjectNotification
 {
     protected string $eventType = 'project.milestone.reached';
+
     protected string $subModuleCode = 'milestones';
+
     protected ?string $componentCode = 'milestone-list';
+
     protected string $actionCode = 'view';
 
     public function __construct(
@@ -27,8 +30,7 @@ class MilestoneReachedNotification extends BaseProjectNotification
         public string $projectName,
         public bool $completedOnTime,
         public ?int $completedByUserId
-    ) {
-    }
+    ) {}
 
     /**
      * Create from MilestoneReached event.
@@ -52,12 +54,14 @@ class MilestoneReachedNotification extends BaseProjectNotification
     protected function getMailSubject(): string
     {
         $emoji = $this->completedOnTime ? '🎉' : '✅';
+
         return "{$emoji} Milestone Reached: {$this->milestoneName}";
     }
 
     protected function getMailLine(): string
     {
         $status = $this->completedOnTime ? 'on time' : 'with delay';
+
         return "Milestone '{$this->milestoneName}' in project '{$this->projectName}' has been completed {$status}!";
     }
 

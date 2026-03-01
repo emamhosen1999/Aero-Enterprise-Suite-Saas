@@ -12,7 +12,7 @@ class LeaveSummaryService
 {
     /**
      * Generate comprehensive leave summary data
-     * 
+     *
      * Uses Employee as the primary model for HRM data.
      */
     public function generateLeaveSummary(array $filters = []): array

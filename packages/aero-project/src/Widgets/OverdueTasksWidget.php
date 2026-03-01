@@ -18,10 +18,15 @@ use Aero\Core\Contracts\CoreWidgetCategory;
 class OverdueTasksWidget extends AbstractDashboardWidget
 {
     protected string $position = 'main_right';
+
     protected int $order = 11;
+
     protected int|string $span = 1;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
+
     protected array $requiredPermissions = ['project.tasks'];
+
     protected array $dashboards = ['project'];
 
     public function getKey(): string

@@ -11,11 +11,11 @@ use Aero\Core\Services\ModuleAccessService;
 use Aero\Core\Services\ModuleManager;
 use Aero\Core\Services\ModuleRegistry;
 use Aero\Core\Services\NavigationRegistry;
-use Aero\HRMAC\Services\RoleModuleAccessService;
 use Aero\Core\Services\RuntimeLoader;
 use Aero\Core\Services\StandaloneTenantScope;
 use Aero\Core\Services\UserRelationshipRegistry;
 use Aero\Core\Traits\ParsesHostDomain;
+use Aero\HRMAC\Services\RoleModuleAccessService;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +31,7 @@ use Laravel\Fortify\Fortify;
 class AeroCoreServiceProvider extends ServiceProvider
 {
     use ParsesHostDomain;
+
     /**
      * Register services.
      */
@@ -97,14 +98,14 @@ class AeroCoreServiceProvider extends ServiceProvider
 
             // Register Session Encryption Services
             $this->app->singleton(\Aero\Core\Services\Auth\SessionEncryptionService::class);
-            
+
             // Register Encrypted Session Handler if encryption is enabled
             if (config('session.encrypt', false)) {
                 $this->app->extend('session', function ($manager) {
                     $manager->extend('encrypted_database', function ($app) {
                         $connection = $app['db']->connection($app['config']['session.connection']);
                         $encryptionService = $app[\Aero\Core\Services\Auth\SessionEncryptionService::class];
-                        
+
                         return new \Aero\Core\Services\Auth\EncryptedSessionHandler(
                             $connection,
                             $app['config']['session.table'],
@@ -113,7 +114,7 @@ class AeroCoreServiceProvider extends ServiceProvider
                             $encryptionService
                         );
                     });
-                    
+
                     return $manager;
                 });
             }
@@ -122,7 +123,7 @@ class AeroCoreServiceProvider extends ServiceProvider
             // These services are lazy-loaded, so they won't cause issues pre-install
             $this->app->singleton(ModuleAccessService::class, function ($app) {
                 // Only instantiate if installed to avoid DB queries pre-install
-                if (!file_exists(storage_path('app/aeos.installed'))) {
+                if (! file_exists(storage_path('app/aeos.installed'))) {
                     return new class
                     {
                         public function __call($method, $args)
@@ -147,7 +148,7 @@ class AeroCoreServiceProvider extends ServiceProvider
 
             $this->app->singleton(RoleModuleAccessService::class, function ($app) {
                 // Only instantiate if installed to avoid DB queries pre-install
-                if (!file_exists(storage_path('app/aeos.installed'))) {
+                if (! file_exists(storage_path('app/aeos.installed'))) {
                     // Return a stub that uses __call for method handling
                     return new class
                     {
@@ -160,6 +161,7 @@ class AeroCoreServiceProvider extends ServiceProvider
                             if (str_starts_with($method, 'get')) {
                                 return $method === 'getFirstAccessibleRoute' ? null : [];
                             }
+
                             return null;
                         }
                     };
@@ -178,6 +180,7 @@ class AeroCoreServiceProvider extends ServiceProvider
                             if (str_starts_with($method, 'get')) {
                                 return $method === 'getFirstAccessibleRoute' ? null : [];
                             }
+
                             return null;
                         }
                     };
@@ -235,7 +238,7 @@ class AeroCoreServiceProvider extends ServiceProvider
     {
         // Force file-based sessions BEFORE any session driver is instantiated
         // This allows installation to work without database tables
-        if (!$this->installed()) {
+        if (! $this->installed()) {
             // Pre-configure session driver to file (before StartSession middleware runs)
             config(['session.driver' => 'file', 'cache.default' => 'file']);
         }
@@ -404,11 +407,12 @@ class AeroCoreServiceProvider extends ServiceProvider
         // Always register public API routes on all domains (version check, error logging)
         $this->registerPublicApiRoutes();
 
-        if (!$this->installed()) {
+        if (! $this->installed()) {
             // System NOT installed - ONLY load installation routes
             // These work on ANY domain (platform, tenant, or standalone)
             Route::middleware(['web'])
                 ->group($routesPath.'/installation.php');
+
             return;
         }
 
@@ -589,7 +593,7 @@ class AeroCoreServiceProvider extends ServiceProvider
 
     /**
      * Check if aero-platform is active.
-     * 
+     *
      * @deprecated Use isSaasMode() instead for mode detection
      */
     protected function isPlatformActive(): bool
@@ -600,10 +604,8 @@ class AeroCoreServiceProvider extends ServiceProvider
     /**
      * Check if system is in SaaS mode using file-based detection.
      * Mode is set during installation and immutable at runtime.
-     * 
+     *
      * This is the ONLY authoritative method for mode detection.
-     * 
-     * @return bool
      */
     protected function isSaasMode(): bool
     {
@@ -804,7 +806,7 @@ class AeroCoreServiceProvider extends ServiceProvider
     {
         // Only register gates if the system is installed
         // Pre-installation, there are no users or roles to check
-        if (!$this->installed()) {
+        if (! $this->installed()) {
             return;
         }
 
@@ -939,11 +941,9 @@ class AeroCoreServiceProvider extends ServiceProvider
 
     /**
      * Check if the system is installed using file-based detection.
-     * 
+     *
      * This is the ONLY authoritative method for checking installation status.
      * Never use database queries for installation detection.
-     * 
-     * @return bool
      */
     protected function installed(): bool
     {
@@ -970,17 +970,57 @@ class AeroCoreServiceProvider extends ServiceProvider
                 }
 
                 // Return a null-safe stub if HRM is not installed
-                return new class implements \Aero\Core\Contracts\EmployeeServiceContract {
-                    public function getById(int $employeeId): ?object { return null; }
-                    public function getByUserId(int $userId): ?object { return null; }
-                    public function getUserId(int $employeeId): ?int { return null; }
-                    public function getEmployeeId(int $userId): ?int { return null; }
-                    public function getManagerEmployeeId(int $employeeId): ?int { return null; }
-                    public function getDepartmentId(int $employeeId): ?int { return null; }
-                    public function getDepartmentEmployeeIds(int $departmentId): array { return []; }
-                    public function getDirectReportEmployeeIds(int $managerEmployeeId): array { return []; }
-                    public function getReportingChainEmployeeIds(int $employeeId): array { return []; }
-                    public function batchResolveUserIds(array $employeeIds): array { return []; }
+                return new class implements \Aero\Core\Contracts\EmployeeServiceContract
+                {
+                    public function getById(int $employeeId): ?object
+                    {
+                        return null;
+                    }
+
+                    public function getByUserId(int $userId): ?object
+                    {
+                        return null;
+                    }
+
+                    public function getUserId(int $employeeId): ?int
+                    {
+                        return null;
+                    }
+
+                    public function getEmployeeId(int $userId): ?int
+                    {
+                        return null;
+                    }
+
+                    public function getManagerEmployeeId(int $employeeId): ?int
+                    {
+                        return null;
+                    }
+
+                    public function getDepartmentId(int $employeeId): ?int
+                    {
+                        return null;
+                    }
+
+                    public function getDepartmentEmployeeIds(int $departmentId): array
+                    {
+                        return [];
+                    }
+
+                    public function getDirectReportEmployeeIds(int $managerEmployeeId): array
+                    {
+                        return [];
+                    }
+
+                    public function getReportingChainEmployeeIds(int $employeeId): array
+                    {
+                        return [];
+                    }
+
+                    public function batchResolveUserIds(array $employeeIds): array
+                    {
+                        return [];
+                    }
                 };
             }
         );
@@ -991,10 +1031,22 @@ class AeroCoreServiceProvider extends ServiceProvider
             function ($app) {
                 // Only instantiate if HRMAC and installed
                 if (! file_exists(storage_path('app/aeos.installed'))) {
-                    return new class implements \Aero\Core\Contracts\NotificationRoutingContract {
-                        public function getRecipients(string $moduleCode, string $subModuleCode, ?string $componentCode = null, ?string $actionCode = null, array $context = []): \Illuminate\Support\Collection { return collect(); }
-                        public function getRecipientsByScope(string $moduleCode, string $subModuleCode, string $scope, array $context): \Illuminate\Support\Collection { return collect(); }
-                        public function shouldNotify(int $userId, string $moduleCode, string $subModuleCode, ?string $componentCode = null, ?string $actionCode = null): bool { return false; }
+                    return new class implements \Aero\Core\Contracts\NotificationRoutingContract
+                    {
+                        public function getRecipients(string $moduleCode, string $subModuleCode, ?string $componentCode = null, ?string $actionCode = null, array $context = []): \Illuminate\Support\Collection
+                        {
+                            return collect();
+                        }
+
+                        public function getRecipientsByScope(string $moduleCode, string $subModuleCode, string $scope, array $context): \Illuminate\Support\Collection
+                        {
+                            return collect();
+                        }
+
+                        public function shouldNotify(int $userId, string $moduleCode, string $subModuleCode, ?string $componentCode = null, ?string $actionCode = null): bool
+                        {
+                            return false;
+                        }
                     };
                 }
 
@@ -1004,10 +1056,22 @@ class AeroCoreServiceProvider extends ServiceProvider
                         $app->make(\Aero\Core\Contracts\EmployeeServiceContract::class)
                     );
                 } catch (\Throwable $e) {
-                    return new class implements \Aero\Core\Contracts\NotificationRoutingContract {
-                        public function getRecipients(string $moduleCode, string $subModuleCode, ?string $componentCode = null, ?string $actionCode = null, array $context = []): \Illuminate\Support\Collection { return collect(); }
-                        public function getRecipientsByScope(string $moduleCode, string $subModuleCode, string $scope, array $context): \Illuminate\Support\Collection { return collect(); }
-                        public function shouldNotify(int $userId, string $moduleCode, string $subModuleCode, ?string $componentCode = null, ?string $actionCode = null): bool { return false; }
+                    return new class implements \Aero\Core\Contracts\NotificationRoutingContract
+                    {
+                        public function getRecipients(string $moduleCode, string $subModuleCode, ?string $componentCode = null, ?string $actionCode = null, array $context = []): \Illuminate\Support\Collection
+                        {
+                            return collect();
+                        }
+
+                        public function getRecipientsByScope(string $moduleCode, string $subModuleCode, string $scope, array $context): \Illuminate\Support\Collection
+                        {
+                            return collect();
+                        }
+
+                        public function shouldNotify(int $userId, string $moduleCode, string $subModuleCode, ?string $componentCode = null, ?string $actionCode = null): bool
+                        {
+                            return false;
+                        }
                     };
                 }
             }

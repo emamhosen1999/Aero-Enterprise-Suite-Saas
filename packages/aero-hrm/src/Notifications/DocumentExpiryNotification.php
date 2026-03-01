@@ -45,11 +45,11 @@ class DocumentExpiryNotification extends BaseHrmNotification
         }
 
         return $message
-            ->line("**Document Details:**")
+            ->line('**Document Details:**')
             ->line("Document: {$documentName}")
             ->line("Expiry Date: {$expiryDate}")
-            ->line("Document Number: " . ($this->document->document_number ?? 'N/A'))
-            ->action('Update Document', url("/hrm/my-profile/documents"))
+            ->line('Document Number: '.($this->document->document_number ?? 'N/A'))
+            ->action('Update Document', url('/hrm/my-profile/documents'))
             ->line('Please ensure you renew or update this document before it expires to avoid any issues.');
     }
 
@@ -114,7 +114,7 @@ class DocumentExpiryNotification extends BaseHrmNotification
         $documentName = $this->document->document_name ?? $this->document->document_type ?? 'Document';
 
         if ($this->daysUntilExpiry <= 1) {
-            return "URGENT: Your {$documentName} expires " . ($this->daysUntilExpiry === 0 ? 'today' : 'tomorrow') . ". Please renew immediately.";
+            return "URGENT: Your {$documentName} expires ".($this->daysUntilExpiry === 0 ? 'today' : 'tomorrow').'. Please renew immediately.';
         }
 
         return "Reminder: Your {$documentName} expires in {$this->daysUntilExpiry} days. Please renew soon.";

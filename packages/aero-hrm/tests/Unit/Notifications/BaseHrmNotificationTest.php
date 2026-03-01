@@ -3,7 +3,6 @@
 namespace Aero\HRM\Tests\Unit\Notifications;
 
 use Aero\HRM\Notifications\BaseHrmNotification;
-use Aero\HRM\Services\HrmNotificationChannelResolver;
 use Illuminate\Notifications\Messages\MailMessage;
 use PHPUnit\Framework\TestCase;
 
@@ -14,7 +13,8 @@ class BaseHrmNotificationTest extends TestCase
      */
     public function test_base_notification_can_be_extended(): void
     {
-        $notification = new class extends BaseHrmNotification {
+        $notification = new class extends BaseHrmNotification
+        {
             protected string $eventType = 'test_event';
 
             public function toMail(object $notifiable): MailMessage
@@ -46,7 +46,8 @@ class BaseHrmNotificationTest extends TestCase
      */
     public function test_notification_implements_should_queue(): void
     {
-        $notification = new class extends BaseHrmNotification {
+        $notification = new class extends BaseHrmNotification
+        {
             protected string $eventType = 'test_event';
 
             public function toMail(object $notifiable): MailMessage
@@ -81,7 +82,8 @@ class BaseHrmNotificationTest extends TestCase
      */
     public function test_notification_has_retry_configuration(): void
     {
-        $notification = new class extends BaseHrmNotification {
+        $notification = new class extends BaseHrmNotification
+        {
             protected string $eventType = 'test_event';
 
             public function toMail(object $notifiable): MailMessage

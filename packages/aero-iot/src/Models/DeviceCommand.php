@@ -2,10 +2,10 @@
 
 namespace Aero\IoT\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class DeviceCommand extends Model
 {
@@ -17,7 +17,7 @@ class DeviceCommand extends Model
         'device_id', 'command_name', 'parameters', 'priority', 'timeout',
         'status', 'sent_at', 'acknowledged_at', 'completed_at', 'failed_at',
         'response', 'error_message', 'retry_count', 'max_retries',
-        'created_by', 'scheduled_for'
+        'created_by', 'scheduled_for',
     ];
 
     protected $casts = [
@@ -37,27 +37,45 @@ class DeviceCommand extends Model
     ];
 
     const STATUS_PENDING = 'pending';
+
     const STATUS_SENT = 'sent';
+
     const STATUS_ACKNOWLEDGED = 'acknowledged';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_FAILED = 'failed';
+
     const STATUS_TIMEOUT = 'timeout';
+
     const STATUS_CANCELLED = 'cancelled';
 
     const PRIORITY_LOW = 1;
+
     const PRIORITY_NORMAL = 5;
+
     const PRIORITY_HIGH = 8;
+
     const PRIORITY_CRITICAL = 10;
 
     const COMMAND_RESTART = 'restart';
+
     const COMMAND_SHUTDOWN = 'shutdown';
+
     const COMMAND_UPDATE_CONFIG = 'update_config';
+
     const COMMAND_CALIBRATE = 'calibrate';
+
     const COMMAND_RESET = 'reset';
+
     const COMMAND_DIAGNOSTIC = 'diagnostic';
+
     const COMMAND_UPGRADE_FIRMWARE = 'upgrade_firmware';
+
     const COMMAND_SET_PARAMETER = 'set_parameter';
+
     const COMMAND_GET_STATUS = 'get_status';
+
     const COMMAND_TRIGGER_SENSOR = 'trigger_sensor';
 
     public function device()
@@ -97,15 +115,21 @@ class DeviceCommand extends Model
 
     public function getDurationAttribute()
     {
-        if (!$this->sent_at) return null;
-        
+        if (! $this->sent_at) {
+            return null;
+        }
+
         $endTime = $this->completed_at ?: $this->failed_at ?: now();
+
         return $this->sent_at->diffInSeconds($endTime);
     }
 
     public function isExpired()
     {
-        if (!$this->sent_at || !$this->timeout) return false;
+        if (! $this->sent_at || ! $this->timeout) {
+            return false;
+        }
+
         return $this->sent_at->addSeconds($this->timeout) < now();
     }
 
@@ -116,7 +140,7 @@ class DeviceCommand extends Model
 
     public function getPriorityLabelAttribute()
     {
-        return match($this->priority) {
+        return match ($this->priority) {
             self::PRIORITY_LOW => 'Low',
             self::PRIORITY_NORMAL => 'Normal',
             self::PRIORITY_HIGH => 'High',
@@ -127,7 +151,7 @@ class DeviceCommand extends Model
 
     public function getStatusColorAttribute()
     {
-        return match($this->status) {
+        return match ($this->status) {
             self::STATUS_PENDING => 'default',
             self::STATUS_SENT => 'primary',
             self::STATUS_ACKNOWLEDGED => 'warning',
@@ -145,10 +169,10 @@ class DeviceCommand extends Model
             'status' => self::STATUS_SENT,
             'sent_at' => now(),
         ]);
-        
+
         // Here you would integrate with your IoT platform/MQTT broker
         // to actually send the command to the device
-        
+
         return $this;
     }
 
@@ -184,7 +208,7 @@ class DeviceCommand extends Model
         $this->update([
             'status' => self::STATUS_TIMEOUT,
             'failed_at' => now(),
-            'error_message' => 'Command timed out after ' . $this->timeout . ' seconds',
+            'error_message' => 'Command timed out after '.$this->timeout.' seconds',
         ]);
     }
 
@@ -197,10 +221,10 @@ class DeviceCommand extends Model
 
     public function retry()
     {
-        if (!$this->canRetry()) {
+        if (! $this->canRetry()) {
             return false;
         }
-        
+
         $this->increment('retry_count');
         $this->update([
             'status' => self::STATUS_PENDING,
@@ -211,7 +235,7 @@ class DeviceCommand extends Model
             'response' => null,
             'error_message' => null,
         ]);
-        
+
         return true;
     }
 
@@ -248,15 +272,15 @@ class DeviceCommand extends Model
     public function scopeDue($query)
     {
         return $query->where('scheduled_for', '<=', now())
-                    ->where('status', self::STATUS_PENDING);
+            ->where('status', self::STATUS_PENDING);
     }
 
     public function scopeExpired($query)
     {
         return $query->where('status', self::STATUS_SENT)
-                    ->whereNotNull('sent_at')
-                    ->whereNotNull('timeout')
-                    ->whereRaw('DATE_ADD(sent_at, INTERVAL timeout SECOND) < NOW()');
+            ->whereNotNull('sent_at')
+            ->whereNotNull('timeout')
+            ->whereRaw('DATE_ADD(sent_at, INTERVAL timeout SECOND) < NOW()');
     }
 
     public function scopeByDevice($query, $deviceId)

@@ -13,7 +13,7 @@ class ShipmentTrackingEvent extends Model
 
     protected $fillable = [
         'order_shipment_id', 'event_type', 'event_description', 'event_location',
-        'event_timestamp', 'carrier_status_code', 'additional_data'
+        'event_timestamp', 'carrier_status_code', 'additional_data',
     ];
 
     protected $casts = [
@@ -23,12 +23,19 @@ class ShipmentTrackingEvent extends Model
     ];
 
     const EVENT_LABEL_CREATED = 'label_created';
+
     const EVENT_PICKED_UP = 'picked_up';
+
     const EVENT_IN_TRANSIT = 'in_transit';
+
     const EVENT_OUT_FOR_DELIVERY = 'out_for_delivery';
+
     const EVENT_DELIVERED = 'delivered';
+
     const EVENT_DELIVERY_ATTEMPTED = 'delivery_attempted';
+
     const EVENT_EXCEPTION = 'exception';
+
     const EVENT_RETURNED = 'returned';
 
     public function orderShipment()

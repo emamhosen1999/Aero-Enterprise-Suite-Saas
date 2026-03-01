@@ -59,23 +59,31 @@ class ProjectRisk extends Model
      * Type constants.
      */
     public const TYPE_RISK = 'risk';
+
     public const TYPE_ISSUE = 'issue';
 
     /**
      * Status constants.
      */
     public const STATUS_OPEN = 'open';
+
     public const STATUS_MITIGATING = 'mitigating';
+
     public const STATUS_RESOLVED = 'resolved';
+
     public const STATUS_CLOSED = 'closed';
+
     public const STATUS_ACCEPTED = 'accepted';
 
     /**
      * Probability/Impact levels.
      */
     public const LEVEL_LOW = 'low';
+
     public const LEVEL_MEDIUM = 'medium';
+
     public const LEVEL_HIGH = 'high';
+
     public const LEVEL_CRITICAL = 'critical';
 
     /**

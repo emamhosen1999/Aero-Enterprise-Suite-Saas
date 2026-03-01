@@ -3,9 +3,9 @@
 namespace Aero\HRM\Http\Controllers\Settings;
 
 use Aero\Core\Services\Attendance\QrCodeValidator;
+use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Models\AttendanceSetting;
 use Aero\HRM\Models\AttendanceType;
-use Aero\HRM\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;

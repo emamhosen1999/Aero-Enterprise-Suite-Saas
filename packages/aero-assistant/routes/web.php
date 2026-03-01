@@ -1,6 +1,5 @@
 <?php
 
-use Aero\Assistant\Http\Controllers\AssistantController;
 use Aero\Assistant\Http\Controllers\AssistantPageController;
 use Illuminate\Support\Facades\Route;
 

@@ -2,8 +2,8 @@
 
 namespace Aero\Scm\Models;
 
-use App\Models\Tenant\IMS\InventoryItem;
 use Aero\Core\Models\User;
+use App\Models\Tenant\IMS\InventoryItem;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;

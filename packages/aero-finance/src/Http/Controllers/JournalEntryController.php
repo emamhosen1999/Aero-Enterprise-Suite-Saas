@@ -2,15 +2,14 @@
 
 namespace Aero\Finance\Http\Controllers;
 
-use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 /**
  * Journal Entry Controller
- * 
+ *
  * Handles journal entries for double-entry bookkeeping
  */
 class JournalEntryController extends Controller
@@ -22,7 +21,7 @@ class JournalEntryController extends Controller
     {
         // TODO: Fetch journal entries from database
         $entries = [];
-        
+
         return Inertia::render('Finance/JournalEntries/Index', [
             'title' => 'Journal Entries',
             'entries' => $entries,
@@ -48,15 +47,15 @@ class JournalEntryController extends Controller
         // Validate balanced entry
         $totalDebit = collect($validated['lines'])->sum('debit');
         $totalCredit = collect($validated['lines'])->sum('credit');
-        
+
         if ($totalDebit != $totalCredit) {
             return redirect()->back()->withErrors(['lines' => 'Journal entry must be balanced (debits must equal credits)']);
         }
 
-        DB::transaction(function () use ($validated) {
+        DB::transaction(function () {
             // TODO: Create journal entry and lines in database
         });
-        
+
         return redirect()->back()->with('success', 'Journal entry created successfully');
     }
 
@@ -79,15 +78,15 @@ class JournalEntryController extends Controller
         // Validate balanced entry
         $totalDebit = collect($validated['lines'])->sum('debit');
         $totalCredit = collect($validated['lines'])->sum('credit');
-        
+
         if ($totalDebit != $totalCredit) {
             return redirect()->back()->withErrors(['lines' => 'Journal entry must be balanced (debits must equal credits)']);
         }
 
-        DB::transaction(function () use ($validated, $id) {
+        DB::transaction(function () {
             // TODO: Update journal entry and lines in database
         });
-        
+
         return redirect()->back()->with('success', 'Journal entry updated successfully');
     }
 
@@ -97,7 +96,7 @@ class JournalEntryController extends Controller
     public function destroy($id)
     {
         // TODO: Soft delete journal entry
-        
+
         return redirect()->back()->with('success', 'Journal entry deleted successfully');
     }
 }

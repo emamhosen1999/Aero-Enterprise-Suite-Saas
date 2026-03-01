@@ -15,7 +15,7 @@ class ServiceTimeEntry extends Model
     protected $fillable = [
         'work_order_id', 'technician_id', 'entry_type', 'start_time', 'end_time',
         'break_time_minutes', 'description', 'billable_hours', 'hourly_rate',
-        'total_amount', 'approved_by', 'approved_at', 'status'
+        'total_amount', 'approved_by', 'approved_at', 'status',
     ];
 
     protected $casts = [
@@ -32,13 +32,19 @@ class ServiceTimeEntry extends Model
     ];
 
     const TYPE_REGULAR = 'regular';
+
     const TYPE_OVERTIME = 'overtime';
+
     const TYPE_EMERGENCY = 'emergency';
+
     const TYPE_TRAVEL = 'travel';
 
     const STATUS_DRAFT = 'draft';
+
     const STATUS_SUBMITTED = 'submitted';
+
     const STATUS_APPROVED = 'approved';
+
     const STATUS_REJECTED = 'rejected';
 
     public function workOrder()
@@ -60,8 +66,10 @@ class ServiceTimeEntry extends Model
     {
         if ($this->start_time && $this->end_time) {
             $minutes = $this->start_time->diffInMinutes($this->end_time) - ($this->break_time_minutes ?? 0);
+
             return round($minutes / 60, 2);
         }
+
         return 0;
     }
 
@@ -69,7 +77,7 @@ class ServiceTimeEntry extends Model
     {
         $hours = $this->billable_hours ?: $this->total_hours;
         $rate = $this->hourly_rate ?: $this->technician->hourly_rate;
-        
+
         return $hours * $rate;
     }
 

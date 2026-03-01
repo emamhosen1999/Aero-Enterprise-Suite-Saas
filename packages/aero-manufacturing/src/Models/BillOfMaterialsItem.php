@@ -14,7 +14,7 @@ class BillOfMaterialsItem extends Model
     protected $fillable = [
         'bom_id', 'component_id', 'quantity', 'unit_of_measure',
         'unit_cost', 'scrap_factor', 'operation_sequence', 'notes',
-        'is_critical', 'lead_time_days'
+        'is_critical', 'lead_time_days',
     ];
 
     protected $casts = [

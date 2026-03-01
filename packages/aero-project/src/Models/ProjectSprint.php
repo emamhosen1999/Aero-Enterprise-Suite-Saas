@@ -54,8 +54,11 @@ class ProjectSprint extends Model
      * Status constants.
      */
     public const STATUS_PLANNED = 'planned';
+
     public const STATUS_ACTIVE = 'active';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     /**

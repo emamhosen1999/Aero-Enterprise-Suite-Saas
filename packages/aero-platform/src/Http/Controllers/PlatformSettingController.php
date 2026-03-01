@@ -39,13 +39,13 @@ class PlatformSettingController extends Controller
         ]);
     }
 
-    public function update(UpdatePlatformSettingRequest $request): RedirectResponse
+    public function update(UpdatePlatformSettingRequest $request): RedirectResponse|JsonResponse
     {
         // Authorization handled by module:system-settings,general-settings,platform-settings,update middleware
 
         $setting = PlatformSetting::current();
 
-        $updated = $this->service->update(
+        $this->service->update(
             $setting,
             $request->validated(),
             [
@@ -57,6 +57,12 @@ class PlatformSettingController extends Controller
                 'social' => $request->file('social'),
             ]
         );
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => 'Platform settings updated successfully.',
+            ]);
+        }
 
         return redirect()->back()->with('success', 'Platform settings updated successfully.');
     }
@@ -87,6 +93,77 @@ class PlatformSettingController extends Controller
             'success' => false,
             'message' => $result['message'],
         ], 422);
+    }
+
+    /**
+     * Render the Infrastructure / Hosting Mode settings page.
+     */
+    public function infrastructure(Request $request): Response|PlatformSettingResource
+    {
+        $setting = PlatformSetting::current();
+
+        if ($request->wantsJson()) {
+            return new PlatformSettingResource($setting);
+        }
+
+        return Inertia::render('Platform/Admin/Settings/Infrastructure', [
+            'title'            => 'Infrastructure & Hosting',
+            'platformSettings' => PlatformSettingResource::make($setting)->resolve(),
+        ]);
+    }
+
+    /**
+     * Test the cPanel API connection using the credentials from the request
+     * (or, if not provided, from the stored platform settings).
+     *
+     * Accepts optional JSON body:
+     * { cpanel_host, cpanel_port, cpanel_username, cpanel_api_token }
+     * Any omitted field falls back to the stored DB value (decrypted).
+     */
+    public function testCpanelConnection(Request $request): JsonResponse
+    {
+        $request->validate([
+            'cpanel_host'      => ['nullable', 'string', 'max:255'],
+            'cpanel_port'      => ['nullable', 'integer', 'min:1', 'max:65535'],
+            'cpanel_username'  => ['nullable', 'string', 'max:64'],
+            'cpanel_api_token' => ['nullable', 'string', 'max:512'],
+        ]);
+
+        // Merge request credentials on top of stored (decrypted) credentials
+        $stored  = PlatformSetting::current()->getHostingSettingsDecrypted();
+        $host    = $request->input('cpanel_host',      $stored['cpanel_host']      ?? null);
+        $port    = $request->input('cpanel_port',      $stored['cpanel_port']      ?? 2083);
+        $user    = $request->input('cpanel_username',  $stored['cpanel_username']  ?? null);
+        $token   = $request->input('cpanel_api_token', $stored['cpanel_api_token'] ?? null);
+
+        if (! $host || ! $user || ! $token) {
+            return response()->json([
+                'success' => false,
+                'message' => 'cPanel credentials incomplete. Please provide host, username, and API token.',
+            ], 422);
+        }
+
+        try {
+            $manager = new \Aero\Platform\TenantDatabaseManagers\CpanelDatabaseManager();
+            $result  = $manager->testConnection($host, (int) $port, $user, $token);
+
+            if ($result['success']) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Connected to cPanel on {$host}. Found " . ($result['database_count'] ?? 0) . ' database(s).',
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $result['error'] ?? 'Connection failed.',
+            ], 422);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
     }
 
     /**

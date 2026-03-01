@@ -2,15 +2,14 @@
 
 namespace Aero\HRM\Http\Controllers;
 
-use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\AIInsight;
+use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\EmployeeRiskScore;
-use Aero\HRM\Models\EngagementSurvey;
-use Aero\HRM\Services\AIAnalytics\AttritionPredictionService;
 use Aero\HRM\Services\AIAnalytics\AnomalyDetectionService;
-use Aero\HRM\Services\AIAnalytics\TalentMobilityService;
+use Aero\HRM\Services\AIAnalytics\AttritionPredictionService;
 use Aero\HRM\Services\AIAnalytics\BurnoutRiskService;
 use Aero\HRM\Services\AIAnalytics\SentimentAnalyticsService;
+use Aero\HRM\Services\AIAnalytics\TalentMobilityService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -83,8 +82,7 @@ class AIAnalyticsController extends Controller
         }
 
         if ($request->filled('department_id')) {
-            $query->whereHas('employee', fn ($q) => 
-                $q->where('department_id', $request->department_id)
+            $query->whereHas('employee', fn ($q) => $q->where('department_id', $request->department_id)
             );
         }
 
@@ -197,7 +195,7 @@ class AIAnalyticsController extends Controller
     public function engagementSentiment(Request $request): Response
     {
         $organizationTrends = $this->sentimentService->getOrganizationTrends(90);
-        
+
         $departmentSentiments = \Aero\HRM\Models\Department::all()
             ->map(function ($dept) {
                 return array_merge(

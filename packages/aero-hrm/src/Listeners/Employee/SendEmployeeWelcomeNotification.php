@@ -15,13 +15,14 @@ class SendEmployeeWelcomeNotification implements ShouldQueue
         $employee = $event->employee;
         $user = $employee->user;
 
-        if (!$user) {
+        if (! $user) {
             Log::warning('Employee has no associated user', ['employee_id' => $employee->id]);
+
             return;
         }
 
         // Send notification to the employee
-        $user->notify(new EmployeeCreatedNotification($employee, $event->metadata));
+        $user->notify(new EmployeeCreatedNotification($employee, $event->getMetadata()));
 
         // Log the notification
         $this->logNotification($user, $employee, 'employee.created');

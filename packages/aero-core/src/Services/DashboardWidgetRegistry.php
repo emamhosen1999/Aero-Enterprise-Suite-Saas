@@ -79,47 +79,40 @@ class DashboardWidgetRegistry
 
     /**
      * Register a widget.
-     *
-     * @param DashboardWidgetInterface $widget
-     * @return self
      */
     public function register(DashboardWidgetInterface $widget): self
     {
         $this->widgets[$widget->getKey()] = $widget;
+
         return $this;
     }
 
     /**
      * Register multiple widgets at once.
      *
-     * @param DashboardWidgetInterface[] $widgets
-     * @return self
+     * @param  DashboardWidgetInterface[]  $widgets
      */
     public function registerMany(array $widgets): self
     {
         foreach ($widgets as $widget) {
             $this->register($widget);
         }
+
         return $this;
     }
 
     /**
      * Unregister a widget by key.
-     *
-     * @param string $key
-     * @return self
      */
     public function unregister(string $key): self
     {
         unset($this->widgets[$key]);
+
         return $this;
     }
 
     /**
      * Check if a widget is registered.
-     *
-     * @param string $key
-     * @return bool
      */
     public function has(string $key): bool
     {
@@ -134,10 +127,10 @@ class DashboardWidgetRegistry
     public function getWidgets(): Collection
     {
         return collect($this->widgets)
-            ->filter(fn(DashboardWidgetInterface $widget) => $widget->isEnabled())
+            ->filter(fn (DashboardWidgetInterface $widget) => $widget->isEnabled())
             ->sortBy([
-                fn($a, $b) => ($this->positions[$a->getPosition()]['order'] ?? 99) <=> ($this->positions[$b->getPosition()]['order'] ?? 99),
-                fn($a, $b) => $a->getOrder() <=> $b->getOrder(),
+                fn ($a, $b) => ($this->positions[$a->getPosition()]['order'] ?? 99) <=> ($this->positions[$b->getPosition()]['order'] ?? 99),
+                fn ($a, $b) => $a->getOrder() <=> $b->getOrder(),
             ]);
     }
 
@@ -148,18 +141,17 @@ class DashboardWidgetRegistry
      */
     public function getWidgetsByPosition(): Collection
     {
-        return $this->getWidgets()->groupBy(fn(DashboardWidgetInterface $widget) => $widget->getPosition());
+        return $this->getWidgets()->groupBy(fn (DashboardWidgetInterface $widget) => $widget->getPosition());
     }
 
     /**
      * Get widgets for a specific module.
      *
-     * @param string $moduleCode
      * @return Collection<DashboardWidgetInterface>
      */
     public function getWidgetsForModule(string $moduleCode): Collection
     {
-        return $this->getWidgets()->filter(fn(DashboardWidgetInterface $widget) => $widget->getModuleCode() === $moduleCode);
+        return $this->getWidgets()->filter(fn (DashboardWidgetInterface $widget) => $widget->getModuleCode() === $moduleCode);
     }
 
     /**
@@ -176,13 +168,13 @@ class DashboardWidgetRegistry
      * - 'rfi' - RFI Dashboard (/rfi/dashboard)
      * - 'compliance' - Compliance Dashboard (/compliance/dashboard)
      *
-     * @param string $dashboardKey
      * @return Collection<DashboardWidgetInterface>
      */
     public function getWidgetsForDashboard(string $dashboardKey): Collection
     {
         return $this->getWidgets()->filter(function (DashboardWidgetInterface $widget) use ($dashboardKey) {
             $dashboards = $widget->getDashboards();
+
             return in_array($dashboardKey, $dashboards, true);
         });
     }
@@ -193,9 +185,8 @@ class DashboardWidgetRegistry
      * This is the main method called by DashboardController.
      * Returns structure that React can use to dynamically render widgets.
      *
-     * @param string|null $dashboardKey Optional dashboard key to filter widgets.
-     *                                  If null, returns all enabled widgets (for backward compatibility).
-     * @return array
+     * @param  string|null  $dashboardKey  Optional dashboard key to filter widgets.
+     *                                     If null, returns all enabled widgets (for backward compatibility).
      */
     public function getWidgetsForFrontend(?string $dashboardKey = null): array
     {
@@ -221,7 +212,7 @@ class DashboardWidgetRegistry
 
             // If lazy, wrap data in Inertia::lazy() for deferred loading
             if ($widget->isLazy()) {
-                $widgetData['data'] = Inertia::lazy(fn() => $widget->getData());
+                $widgetData['data'] = Inertia::lazy(fn () => $widget->getData());
             } else {
                 $widgetData['data'] = $widget->getData();
             }
@@ -234,8 +225,6 @@ class DashboardWidgetRegistry
 
     /**
      * Get the layout configuration for frontend.
-     *
-     * @return array
      */
     public function getLayoutConfig(): array
     {
@@ -244,8 +233,6 @@ class DashboardWidgetRegistry
 
     /**
      * Get count of all registered widgets.
-     *
-     * @return int
      */
     public function count(): int
     {
@@ -254,8 +241,6 @@ class DashboardWidgetRegistry
 
     /**
      * Get count of enabled widgets.
-     *
-     * @return int
      */
     public function countEnabled(): int
     {

@@ -25,10 +25,15 @@ use Illuminate\Support\Facades\Schema;
 class OrganizationInfoWidget extends AbstractDashboardWidget
 {
     protected string $position = 'sidebar';
+
     protected int $order = 5;
+
     protected int|string $span = 1;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::DISPLAY;
+
     protected array $requiredPermissions = [];
+
     protected array $dashboards = ['hrm'];
 
     public function getKey(): string

@@ -4,13 +4,13 @@ namespace Aero\Core\Console\Commands;
 
 use Aero\Core\Models\SystemSetting;
 use Aero\Core\Models\User;
+use Aero\HRMAC\Models\Role;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Aero\HRMAC\Models\Role;
 
 class InstallCommand extends Command
 {
@@ -169,7 +169,7 @@ class InstallCommand extends Command
             storage_path(),
             storage_path('framework'),
             storage_path('logs'),
-            bootstrap_path('cache'),
+            base_path('bootstrap/cache'),
         ];
 
         foreach ($writableDirs as $dir) {

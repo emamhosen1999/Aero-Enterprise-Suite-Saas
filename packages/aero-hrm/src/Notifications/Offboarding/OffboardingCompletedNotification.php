@@ -49,7 +49,7 @@ class OffboardingCompletedNotification extends Notification implements ShouldQue
             : $notifiable->name;
 
         return (new MailMessage)
-            ->subject('Offboarding Completed - ' . $employeeName)
+            ->subject('Offboarding Completed - '.$employeeName)
             ->greeting("Hello {$name},")
             ->line("The offboarding process for {$employeeName} has been completed.")
             ->line("Last Working Date: {$this->offboarding->last_working_date?->format('F j, Y')}")
@@ -90,7 +90,7 @@ class OffboardingCompletedNotification extends Notification implements ShouldQue
         try {
             return route('hrm.offboarding.show', $this->offboarding->id);
         } catch (\Exception $e) {
-            return url('/hrm/offboarding/' . $this->offboarding->id);
+            return url('/hrm/offboarding/'.$this->offboarding->id);
         }
     }
 

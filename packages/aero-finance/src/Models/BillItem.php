@@ -12,9 +12,9 @@ class BillItem extends Model
     protected $table = 'finance_bill_items';
 
     protected $fillable = [
-        'bill_id', 'product_id', 'description', 'quantity', 
+        'bill_id', 'product_id', 'description', 'quantity',
         'unit_price', 'line_total', 'tax_rate', 'tax_amount',
-        'account_id', 'cost_center_id'
+        'account_id', 'cost_center_id',
     ];
 
     protected $casts = [

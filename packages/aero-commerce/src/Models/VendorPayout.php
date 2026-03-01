@@ -2,10 +2,10 @@
 
 namespace Aero\Commerce\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class VendorPayout extends Model
 {
@@ -16,7 +16,7 @@ class VendorPayout extends Model
     protected $fillable = [
         'vendor_id', 'payout_period_start', 'payout_period_end', 'total_commission',
         'platform_fees', 'payout_amount', 'currency', 'payment_method',
-        'payment_reference', 'status', 'processed_by', 'processed_at', 'notes'
+        'payment_reference', 'status', 'processed_by', 'processed_at', 'notes',
     ];
 
     protected $casts = [
@@ -31,15 +31,23 @@ class VendorPayout extends Model
     ];
 
     const STATUS_DRAFT = 'draft';
+
     const STATUS_PENDING = 'pending';
+
     const STATUS_PROCESSING = 'processing';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_FAILED = 'failed';
+
     const STATUS_CANCELLED = 'cancelled';
 
     const METHOD_BANK_TRANSFER = 'bank_transfer';
+
     const METHOD_PAYPAL = 'paypal';
+
     const METHOD_CHECK = 'check';
+
     const METHOD_WIRE = 'wire';
 
     public function vendor()
@@ -67,6 +75,7 @@ class VendorPayout extends Model
         if ($this->total_commission > 0) {
             return round(($this->platform_fees / $this->total_commission) * 100, 2);
         }
+
         return 0;
     }
 
@@ -98,6 +107,6 @@ class VendorPayout extends Model
     public function scopeForPeriod($query, $startDate, $endDate)
     {
         return $query->whereBetween('payout_period_start', [$startDate, $endDate])
-                    ->orWhereBetween('payout_period_end', [$startDate, $endDate]);
+            ->orWhereBetween('payout_period_end', [$startDate, $endDate]);
     }
 }

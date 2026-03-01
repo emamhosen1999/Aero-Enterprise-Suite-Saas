@@ -2,10 +2,10 @@
 
 namespace Aero\Integration\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class ApiConsumer extends Model
 {
@@ -16,7 +16,7 @@ class ApiConsumer extends Model
     protected $fillable = [
         'name', 'api_key', 'gateway_id', 'rate_limit', 'rate_limit_window',
         'allowed_ips', 'allowed_routes', 'is_active', 'last_used_at',
-        'request_count', 'created_by', 'description'
+        'request_count', 'created_by', 'description',
     ];
 
     protected $casts = [
@@ -50,37 +50,40 @@ class ApiConsumer extends Model
 
     public function canAccessRoute($route)
     {
-        if (!$this->allowed_routes) {
+        if (! $this->allowed_routes) {
             return true; // No restrictions
         }
+
         return in_array($route, $this->allowed_routes);
     }
 
     public function canAccessFromIp($ip)
     {
-        if (!$this->allowed_ips) {
+        if (! $this->allowed_ips) {
             return true; // No restrictions
         }
+
         return in_array($ip, $this->allowed_ips);
     }
 
     public function hasExceededRateLimit()
     {
-        if (!$this->rate_limit) {
+        if (! $this->rate_limit) {
             return false;
         }
-        
+
         $windowStart = now()->subMinutes($this->rate_limit_window ?? 60);
         $recentRequests = $this->requests()
-                              ->where('created_at', '>=', $windowStart)
-                              ->count();
-        
+            ->where('created_at', '>=', $windowStart)
+            ->count();
+
         return $recentRequests >= $this->rate_limit;
     }
 
     public function generateApiKey()
     {
-        $this->api_key = 'aero_' . bin2hex(random_bytes(32));
+        $this->api_key = 'aero_'.bin2hex(random_bytes(32));
+
         return $this->api_key;
     }
 

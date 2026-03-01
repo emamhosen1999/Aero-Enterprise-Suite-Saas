@@ -13,14 +13,23 @@ use Aero\Core\Providers\AbstractModuleProvider;
 class ScmModuleProvider extends AbstractModuleProvider
 {
     protected string $moduleCode = 'scm';
+
     protected string $moduleName = 'Supply Chain Management';
+
     protected string $moduleDescription = 'Complete SCM system with procurement, logistics, production planning, and supplier management';
+
     protected string $moduleVersion = '1.0.0';
+
     protected string $moduleCategory = 'business';
+
     protected string $moduleIcon = 'TruckIcon';
+
     protected int $modulePriority = 15;
+
     protected bool $enabled = true;
+
     protected ?string $minimumPlan = 'professional';
+
     protected array $dependencies = ['core'];
 
     protected array $navigationItems = [
@@ -168,7 +177,8 @@ class ScmModuleProvider extends AbstractModuleProvider
     protected function getModulePath(string $path = ''): string
     {
         $basePath = dirname(__DIR__, 2);
-        return $path ? $basePath . '/' . $path : $basePath;
+
+        return $path ? $basePath.'/'.$path : $basePath;
     }
 
     protected function registerServices(): void
@@ -180,7 +190,7 @@ class ScmModuleProvider extends AbstractModuleProvider
     {
         // Register dashboard widgets
         $this->registerDashboardWidgets();
-        
+
         // Register module-specific middleware, policies, etc.
     }
 

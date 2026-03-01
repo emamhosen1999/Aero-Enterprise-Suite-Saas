@@ -31,31 +31,31 @@ return new class extends Migration
         Schema::create('boq_measurements', function (Blueprint $table) {
             $table->id();
             $table->foreignId('boq_item_id')->constrained()->cascadeOnDelete();
-            // Nullable because a measurement might be drafted before RFI is linked, 
+            // Nullable because a measurement might be drafted before RFI is linked,
             // but for the patentable workflow, this link is crucial.
             // Daily works table lives in aero-rfi; skip FK to avoid failures when module isn't present
             $table->foreignId('daily_work_id')->nullable()->index();
-            
+
             // Chainage integration for patentable feature
             $table->decimal('start_chainage_m', 12, 3)->nullable()
                 ->comment('Start chainage in meters');
             $table->decimal('end_chainage_m', 12, 3)->nullable()
                 ->comment('End chainage in meters');
-            
+
             $table->decimal('measured_quantity', 15, 3);
             $table->string('formula')->nullable(); // "L*W*D"
             $table->json('dimensions')->nullable(); // {L: 100, W: 10, D: 0.5}
             $table->string('location_description')->nullable(); // "CH 10+000 to 10+100"
-            
+
             $table->string('status')->default('draft'); // draft, verified, rejected, billed
             // Users table may not exist during migration - skip FK
             $table->unsignedBigInteger('verified_by_user_id')->nullable()->index();
             $table->timestamp('verified_at')->nullable();
             $table->text('rejection_reason')->nullable();
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['start_chainage_m', 'end_chainage_m']);
         });
     }

@@ -32,7 +32,7 @@ class LeaveTypeFactory extends Factory
                 'Maternity Leave',
                 'Paternity Leave',
                 'Compensatory Leave',
-                'Unpaid Leave'
+                'Unpaid Leave',
             ]),
             'code' => strtoupper($this->faker->lexify('LT???')),
             'total_days' => $this->faker->numberBetween(10, 30),

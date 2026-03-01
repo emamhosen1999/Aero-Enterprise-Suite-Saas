@@ -2,10 +2,10 @@
 
 namespace Aero\Blockchain\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class SmartContract extends Model
 {
@@ -19,7 +19,7 @@ class SmartContract extends Model
         'optimization_enabled', 'deployment_transaction_hash', 'deployment_block',
         'status', 'verification_status', 'total_transactions', 'balance',
         'created_at_block', 'metadata', 'is_proxy', 'implementation_address',
-        'created_by'
+        'created_by',
     ];
 
     protected $casts = [
@@ -36,25 +36,41 @@ class SmartContract extends Model
     ];
 
     const TYPE_ERC20 = 'erc20';
+
     const TYPE_ERC721 = 'erc721';
+
     const TYPE_ERC1155 = 'erc1155';
+
     const TYPE_MULTISIG = 'multisig';
+
     const TYPE_DEX = 'dex';
+
     const TYPE_LENDING = 'lending';
+
     const TYPE_GOVERNANCE = 'governance';
+
     const TYPE_ESCROW = 'escrow';
+
     const TYPE_SUPPLY_CHAIN = 'supply_chain';
+
     const TYPE_VOTING = 'voting';
+
     const TYPE_CUSTOM = 'custom';
 
     const STATUS_ACTIVE = 'active';
+
     const STATUS_PAUSED = 'paused';
+
     const STATUS_DEPRECATED = 'deprecated';
+
     const STATUS_DESTROYED = 'destroyed';
 
     const VERIFICATION_PENDING = 'pending';
+
     const VERIFICATION_VERIFIED = 'verified';
+
     const VERIFICATION_FAILED = 'failed';
+
     const VERIFICATION_PARTIAL = 'partial';
 
     public function blockchain()
@@ -112,7 +128,7 @@ class SmartContract extends Model
         return in_array($this->contract_type, [
             self::TYPE_ERC20,
             self::TYPE_ERC721,
-            self::TYPE_ERC1155
+            self::TYPE_ERC1155,
         ]);
     }
 
@@ -123,16 +139,16 @@ class SmartContract extends Model
 
     public function getFormattedBalanceAttribute()
     {
-        return number_format($this->balance, 8) . ' ' . ($this->blockchain->native_token ?: 'ETH');
+        return number_format($this->balance, 8).' '.($this->blockchain->native_token ?: 'ETH');
     }
 
     public function getActivityScoreAttribute()
     {
         $recentTransactions = $this->transactions()
-                                  ->where('timestamp', '>=', now()->subDays(30))
-                                  ->count();
-        
-        return match(true) {
+            ->where('timestamp', '>=', now()->subDays(30))
+            ->count();
+
+        return match (true) {
             $recentTransactions >= 1000 => 'Very High',
             $recentTransactions >= 100 => 'High',
             $recentTransactions >= 10 => 'Medium',
@@ -143,7 +159,7 @@ class SmartContract extends Model
 
     public function getStatusColorAttribute()
     {
-        return match($this->status) {
+        return match ($this->status) {
             self::STATUS_ACTIVE => 'success',
             self::STATUS_PAUSED => 'warning',
             self::STATUS_DEPRECATED => 'danger',
@@ -154,7 +170,7 @@ class SmartContract extends Model
 
     public function getVerificationColorAttribute()
     {
-        return match($this->verification_status) {
+        return match ($this->verification_status) {
             self::VERIFICATION_VERIFIED => 'success',
             self::VERIFICATION_PENDING => 'warning',
             self::VERIFICATION_PARTIAL => 'primary',
@@ -165,44 +181,52 @@ class SmartContract extends Model
 
     public function hasFunction($functionName)
     {
-        if (!is_array($this->abi)) return false;
-        
+        if (! is_array($this->abi)) {
+            return false;
+        }
+
         foreach ($this->abi as $function) {
             if (isset($function['name']) && $function['name'] === $functionName) {
                 return true;
             }
         }
-        
+
         return false;
     }
 
     public function getFunction($functionName)
     {
-        if (!is_array($this->abi)) return null;
-        
+        if (! is_array($this->abi)) {
+            return null;
+        }
+
         foreach ($this->abi as $function) {
             if (isset($function['name']) && $function['name'] === $functionName) {
                 return $function;
             }
         }
-        
+
         return null;
     }
 
     public function getFunctions()
     {
-        if (!is_array($this->abi)) return [];
-        
-        return array_filter($this->abi, function($item) {
+        if (! is_array($this->abi)) {
+            return [];
+        }
+
+        return array_filter($this->abi, function ($item) {
             return isset($item['type']) && $item['type'] === 'function';
         });
     }
 
     public function getEvents()
     {
-        if (!is_array($this->abi)) return [];
-        
-        return array_filter($this->abi, function($item) {
+        if (! is_array($this->abi)) {
+            return [];
+        }
+
+        return array_filter($this->abi, function ($item) {
             return isset($item['type']) && $item['type'] === 'event';
         });
     }
@@ -211,20 +235,20 @@ class SmartContract extends Model
     {
         // In a real implementation, this would compile the source code
         // and compare the bytecode hash with the deployed contract
-        
+
         $this->update([
             'source_code' => $sourceCode,
             'compiler_version' => $compilerVersion,
             'optimization_enabled' => $optimizationEnabled,
-            'verification_status' => self::VERIFICATION_PENDING
+            'verification_status' => self::VERIFICATION_PENDING,
         ]);
-        
+
         // Placeholder for actual verification logic
         // This would typically involve:
         // 1. Compiling the source code with specified settings
         // 2. Comparing bytecode hashes
         // 3. Updating verification status
-        
+
         return true;
     }
 
@@ -269,7 +293,7 @@ class SmartContract extends Model
         return $query->whereIn('contract_type', [
             self::TYPE_ERC20,
             self::TYPE_ERC721,
-            self::TYPE_ERC1155
+            self::TYPE_ERC1155,
         ]);
     }
 
@@ -280,7 +304,7 @@ class SmartContract extends Model
 
     public function scopeRecentlyActive($query, $days = 30)
     {
-        return $query->whereHas('transactions', function($q) use ($days) {
+        return $query->whereHas('transactions', function ($q) use ($days) {
             $q->where('timestamp', '>=', now()->subDays($days));
         });
     }

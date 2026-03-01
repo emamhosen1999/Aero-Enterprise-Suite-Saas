@@ -14,7 +14,7 @@ class WebhookDelivery extends Model
     protected $fillable = [
         'webhook_endpoint_id', 'event_type', 'payload', 'request_headers',
         'response_status', 'response_headers', 'response_body', 'delivered_at',
-        'attempt_number', 'duration_ms', 'error_message'
+        'attempt_number', 'duration_ms', 'error_message',
     ];
 
     protected $casts = [
@@ -40,12 +40,12 @@ class WebhookDelivery extends Model
 
     public function isFailed()
     {
-        return !$this->isSuccessful();
+        return ! $this->isSuccessful();
     }
 
     public function shouldRetry()
     {
-        return $this->isFailed() && 
+        return $this->isFailed() &&
                $this->attempt_number < ($this->webhookEndpoint->retry_attempts ?? 3) &&
                $this->response_status >= 500; // Only retry server errors
     }
@@ -59,7 +59,7 @@ class WebhookDelivery extends Model
     {
         return $query->where(function ($q) {
             $q->where('response_status', '<', 200)
-              ->orWhere('response_status', '>=', 300);
+                ->orWhere('response_status', '>=', 300);
         });
     }
 

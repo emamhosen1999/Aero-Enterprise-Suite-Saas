@@ -2,10 +2,10 @@
 
 namespace Aero\Analytics\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class KPI extends Model
 {
@@ -17,7 +17,7 @@ class KPI extends Model
         'name', 'description', 'kpi_type', 'category', 'module',
         'data_source_id', 'calculation_config', 'target_value',
         'warning_threshold', 'critical_threshold', 'unit_of_measure',
-        'frequency', 'is_active', 'created_by', 'owner_id'
+        'frequency', 'is_active', 'created_by', 'owner_id',
     ];
 
     protected $casts = [
@@ -32,18 +32,29 @@ class KPI extends Model
     ];
 
     const TYPE_COUNT = 'count';
+
     const TYPE_SUM = 'sum';
+
     const TYPE_AVERAGE = 'average';
+
     const TYPE_PERCENTAGE = 'percentage';
+
     const TYPE_RATIO = 'ratio';
+
     const TYPE_GROWTH_RATE = 'growth_rate';
 
     const FREQUENCY_REAL_TIME = 'real_time';
+
     const FREQUENCY_HOURLY = 'hourly';
+
     const FREQUENCY_DAILY = 'daily';
+
     const FREQUENCY_WEEKLY = 'weekly';
+
     const FREQUENCY_MONTHLY = 'monthly';
+
     const FREQUENCY_QUARTERLY = 'quarterly';
+
     const FREQUENCY_YEARLY = 'yearly';
 
     public function dataSource()
@@ -79,17 +90,19 @@ class KPI extends Model
     public function getStatus($currentValue = null)
     {
         $currentValue = $currentValue ?: $this->getCurrentValue()?->value;
-        
-        if ($currentValue === null) return 'unknown';
-        
+
+        if ($currentValue === null) {
+            return 'unknown';
+        }
+
         if ($this->critical_threshold && $currentValue <= $this->critical_threshold) {
             return 'critical';
         }
-        
+
         if ($this->warning_threshold && $currentValue <= $this->warning_threshold) {
             return 'warning';
         }
-        
+
         return 'good';
     }
 }

@@ -17,7 +17,7 @@ class ServiceLocation extends Model
         'address_line_2', 'city', 'state', 'postal_code', 'country',
         'latitude', 'longitude', 'contact_person', 'contact_phone',
         'contact_email', 'access_instructions', 'operating_hours',
-        'is_active', 'time_zone'
+        'is_active', 'time_zone',
     ];
 
     protected $casts = [
@@ -29,10 +29,15 @@ class ServiceLocation extends Model
     ];
 
     const TYPE_OFFICE = 'office';
+
     const TYPE_WAREHOUSE = 'warehouse';
+
     const TYPE_RETAIL = 'retail';
+
     const TYPE_MANUFACTURING = 'manufacturing';
+
     const TYPE_RESIDENTIAL = 'residential';
+
     const TYPE_OTHER = 'other';
 
     public function customer()
@@ -59,9 +64,10 @@ class ServiceLocation extends Model
     {
         $address = $this->address_line_1;
         if ($this->address_line_2) {
-            $address .= ', ' . $this->address_line_2;
+            $address .= ', '.$this->address_line_2;
         }
-        $address .= ', ' . $this->city . ', ' . $this->state . ' ' . $this->postal_code;
+        $address .= ', '.$this->city.', '.$this->state.' '.$this->postal_code;
+
         return $address;
     }
 

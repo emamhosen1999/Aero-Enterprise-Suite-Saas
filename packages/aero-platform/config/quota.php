@@ -16,10 +16,10 @@ return [
         'warning_threshold' => env('QUOTA_WARNING_THRESHOLD', 80),
         'critical_threshold' => env('QUOTA_CRITICAL_THRESHOLD', 90),
         'block_threshold' => env('QUOTA_BLOCK_THRESHOLD', 100),
-        
+
         // Grace period in days before blocking after reaching limit
         'grace_period_days' => env('QUOTA_GRACE_PERIOD_DAYS', 10),
-        
+
         // Enable/disable enforcement globally
         'enabled' => env('QUOTA_ENFORCEMENT_ENABLED', true),
     ],
@@ -55,12 +55,12 @@ return [
             'enabled' => env('QUOTA_EMAIL_NOTIFICATIONS', true),
             'super_admin_email' => env('SUPER_ADMIN_EMAIL', 'admin@example.com'),
         ],
-        
+
         'sms' => [
             'enabled' => env('QUOTA_SMS_NOTIFICATIONS', true),
             'super_admin_phone' => env('SUPER_ADMIN_PHONE', null),
         ],
-        
+
         'slack' => [
             'enabled' => env('QUOTA_SLACK_NOTIFICATIONS', false),
             'webhook_url' => env('QUOTA_SLACK_WEBHOOK_URL', null),
@@ -115,13 +115,13 @@ return [
 
     'api_throttling' => [
         'enabled' => env('API_QUOTA_THROTTLING_ENABLED', true),
-        
+
         // Delay in seconds based on usage percentage
         'delays' => [
             95 => 1,  // 95-98%: 1 second delay (75% speed)
             99 => 2,  // 99%: 2 second delay (50% speed)
         ],
-        
+
         // Hard block at 100%
         'block_at_limit' => true,
     ],
@@ -145,10 +145,10 @@ return [
             'exports',
             'backups',
         ],
-        
+
         // Scan frequency (daily via MonitorStorageUsageJob)
         'scan_frequency' => 'daily',
-        
+
         // Storage calculation method
         'calculation' => [
             'include_database' => env('QUOTA_STORAGE_INCLUDE_DB', false),

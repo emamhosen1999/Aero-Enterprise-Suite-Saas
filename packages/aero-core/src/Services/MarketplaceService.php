@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Aero\Core\Services;
 
-use Illuminate\Support\Facades\Http;
 use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 /**
  * MarketplaceService
- * 
+ *
  * Handles integration with CodeCanyon marketplace:
  * - Fetch available modules
  * - Validate purchase codes
@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\DB;
 class MarketplaceService
 {
     protected string $apiUrl;
+
     protected string $apiKey;
 
     public function __construct()
@@ -30,8 +31,6 @@ class MarketplaceService
 
     /**
      * Get available modules from marketplace.
-     *
-     * @return array
      */
     public function getAvailableModules(): array
     {
@@ -183,9 +182,6 @@ class MarketplaceService
 
     /**
      * Validate Envato purchase code.
-     *
-     * @param string $purchaseCode
-     * @return array
      */
     public function validatePurchaseCode(string $purchaseCode): array
     {
@@ -223,8 +219,6 @@ class MarketplaceService
 
     /**
      * Check for module updates.
-     *
-     * @return array
      */
     public function checkForUpdates(): array
     {
@@ -264,18 +258,16 @@ class MarketplaceService
 
     /**
      * Get purchased modules for current tenant.
-     *
-     * @return array
      */
     public function getPurchasedCodes(): array
     {
         // In standalone mode, there's no tenant - return empty array
-        if (!function_exists('tenant')) {
+        if (! function_exists('tenant')) {
             return [];
         }
 
         $tenantId = tenant('id');
-        if (!$tenantId) {
+        if (! $tenantId) {
             return [];
         }
 
@@ -290,20 +282,16 @@ class MarketplaceService
 
     /**
      * Save purchase code for module.
-     *
-     * @param string $moduleCode
-     * @param string $purchaseCode
-     * @return void
      */
     public function savePurchaseCode(string $moduleCode, string $purchaseCode): void
     {
         // In standalone mode, there's no tenant - skip saving
-        if (!function_exists('tenant')) {
+        if (! function_exists('tenant')) {
             return;
         }
 
         $tenantId = tenant('id');
-        if (!$tenantId) {
+        if (! $tenantId) {
             return;
         }
 

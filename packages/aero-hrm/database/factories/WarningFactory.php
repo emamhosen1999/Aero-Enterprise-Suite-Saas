@@ -3,9 +3,9 @@
 namespace Packages\AeroHrm\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Packages\AeroHrm\Models\Warning;
-use Packages\AeroHrm\Models\Employee;
 use Packages\AeroHrm\Models\DisciplinaryCase;
+use Packages\AeroHrm\Models\Employee;
+use Packages\AeroHrm\Models\Warning;
 
 class WarningFactory extends Factory
 {
@@ -16,7 +16,7 @@ class WarningFactory extends Factory
         return [
             'employee_id' => Employee::factory(),
             'disciplinary_case_id' => DisciplinaryCase::factory(),
-            'warning_number' => 'WRN' . now()->format('Y') . str_pad($this->faker->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
+            'warning_number' => 'WRN'.now()->format('Y').str_pad($this->faker->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
             'warning_type' => $this->faker->randomElement(['verbal', 'written', 'final']),
             'issued_date' => now(),
             'issued_by' => Employee::factory(),

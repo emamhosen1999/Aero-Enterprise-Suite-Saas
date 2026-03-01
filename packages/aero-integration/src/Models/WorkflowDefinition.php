@@ -2,10 +2,10 @@
 
 namespace Aero\Integration\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class WorkflowDefinition extends Model
 {
@@ -16,7 +16,7 @@ class WorkflowDefinition extends Model
     protected $fillable = [
         'name', 'description', 'trigger_type', 'trigger_conditions', 'workflow_steps',
         'is_active', 'version', 'category', 'priority', 'timeout_minutes',
-        'retry_attempts', 'created_by', 'approved_by', 'approved_at'
+        'retry_attempts', 'created_by', 'approved_by', 'approved_at',
     ];
 
     protected $casts = [
@@ -32,20 +32,31 @@ class WorkflowDefinition extends Model
     ];
 
     const TRIGGER_MANUAL = 'manual';
+
     const TRIGGER_SCHEDULED = 'scheduled';
+
     const TRIGGER_EVENT = 'event';
+
     const TRIGGER_WEBHOOK = 'webhook';
+
     const TRIGGER_API = 'api';
 
     const PRIORITY_LOW = 'low';
+
     const PRIORITY_NORMAL = 'normal';
+
     const PRIORITY_HIGH = 'high';
+
     const PRIORITY_CRITICAL = 'critical';
 
     const CATEGORY_DATA_SYNC = 'data_sync';
+
     const CATEGORY_NOTIFICATION = 'notification';
+
     const CATEGORY_APPROVAL = 'approval';
+
     const CATEGORY_AUTOMATION = 'automation';
+
     const CATEGORY_INTEGRATION = 'integration';
 
     public function creator()
@@ -78,7 +89,7 @@ class WorkflowDefinition extends Model
         $total = $this->executions()->count();
         $successful = $this->executions()->where('status', WorkflowExecution::STATUS_COMPLETED)->count();
         $failed = $this->executions()->where('status', WorkflowExecution::STATUS_FAILED)->count();
-        
+
         return [
             'total' => $total,
             'successful' => $successful,

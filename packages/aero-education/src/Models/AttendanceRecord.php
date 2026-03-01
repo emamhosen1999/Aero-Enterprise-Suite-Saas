@@ -2,10 +2,10 @@
 
 namespace Aero\Education\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class AttendanceRecord extends Model
 {
@@ -17,7 +17,7 @@ class AttendanceRecord extends Model
         'student_id', 'enrollment_id', 'class_session_id', 'attendance_date',
         'status', 'check_in_time', 'check_out_time', 'minutes_attended',
         'excuse_reason', 'excuse_approved', 'approved_by', 'notes',
-        'location_verified', 'ip_address', 'device_info', 'created_by'
+        'location_verified', 'ip_address', 'device_info', 'created_by',
     ];
 
     protected $casts = [
@@ -36,20 +36,33 @@ class AttendanceRecord extends Model
     ];
 
     const STATUS_PRESENT = 'present';
+
     const STATUS_ABSENT = 'absent';
+
     const STATUS_LATE = 'late';
+
     const STATUS_EXCUSED = 'excused';
+
     const STATUS_TARDY = 'tardy';
+
     const STATUS_LEFT_EARLY = 'left_early';
 
     const EXCUSE_ILLNESS = 'illness';
+
     const EXCUSE_FAMILY_EMERGENCY = 'family_emergency';
+
     const EXCUSE_MEDICAL_APPOINTMENT = 'medical_appointment';
+
     const EXCUSE_RELIGIOUS_OBSERVANCE = 'religious_observance';
+
     const EXCUSE_COURT_APPEARANCE = 'court_appearance';
+
     const EXCUSE_MILITARY_SERVICE = 'military_service';
+
     const EXCUSE_ACADEMIC_CONFLICT = 'academic_conflict';
+
     const EXCUSE_TRANSPORTATION = 'transportation';
+
     const EXCUSE_OTHER = 'other';
 
     public function student()
@@ -102,40 +115,43 @@ class AttendanceRecord extends Model
         if ($this->check_in_time && $this->check_out_time) {
             return $this->check_in_time->diffInMinutes($this->check_out_time);
         }
+
         return $this->minutes_attended;
     }
 
     public function getLatenessAttribute()
     {
-        if (!$this->classSession || !$this->check_in_time) {
+        if (! $this->classSession || ! $this->check_in_time) {
             return 0;
         }
-        
+
         $classStartTime = $this->classSession->start_time;
-        return $this->check_in_time > $classStartTime ? 
+
+        return $this->check_in_time > $classStartTime ?
                $classStartTime->diffInMinutes($this->check_in_time) : 0;
     }
 
     public function getEarlyDepartureAttribute()
     {
-        if (!$this->classSession || !$this->check_out_time) {
+        if (! $this->classSession || ! $this->check_out_time) {
             return 0;
         }
-        
+
         $classEndTime = $this->classSession->end_time;
-        return $this->check_out_time < $classEndTime ? 
+
+        return $this->check_out_time < $classEndTime ?
                $this->check_out_time->diffInMinutes($classEndTime) : 0;
     }
 
     public function calculateStatus()
     {
-        if (!$this->check_in_time) {
+        if (! $this->check_in_time) {
             return self::STATUS_ABSENT;
         }
-        
+
         $lateness = $this->getLatenessAttribute();
         $earlyDeparture = $this->getEarlyDepartureAttribute();
-        
+
         if ($lateness > 15) { // More than 15 minutes late
             return self::STATUS_LATE;
         } elseif ($lateness > 5) { // 5-15 minutes late
@@ -149,7 +165,7 @@ class AttendanceRecord extends Model
 
     public function autoUpdateStatus()
     {
-        if (!$this->isExcused()) {
+        if (! $this->isExcused()) {
             $this->status = $this->calculateStatus();
             $this->save();
         }
@@ -160,10 +176,10 @@ class AttendanceRecord extends Model
         $this->excuse_reason = $reason;
         $this->excuse_approved = null; // Reset approval status
         $this->save();
-        
+
         // Notify relevant faculty/administration
         // This would typically trigger an email or notification
-        
+
         return true;
     }
 
@@ -194,9 +210,9 @@ class AttendanceRecord extends Model
 
     public function scopeExcused($query)
     {
-        return $query->where(function($q) {
+        return $query->where(function ($q) {
             $q->where('status', self::STATUS_EXCUSED)
-              ->orWhere('excuse_approved', true);
+                ->orWhere('excuse_approved', true);
         });
     }
 
@@ -223,6 +239,6 @@ class AttendanceRecord extends Model
     public function scopePendingExcuse($query)
     {
         return $query->whereNotNull('excuse_reason')
-                    ->whereNull('excuse_approved');
+            ->whereNull('excuse_approved');
     }
 }

@@ -7,11 +7,11 @@ namespace Aero\Core\Widgets;
 use Aero\Core\Contracts\AbstractDashboardWidget;
 use Aero\Core\Contracts\CoreWidgetCategory;
 use Aero\Core\Models\User;
+use Aero\HRMAC\Models\Role;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
-use Aero\HRMAC\Models\Role;
 
 /**
  * System Stats Widget for Core Dashboard
@@ -29,9 +29,13 @@ use Aero\HRMAC\Models\Role;
 class SystemStatsWidget extends AbstractDashboardWidget
 {
     protected string $position = 'stats_row';
+
     protected int $order = 1;
+
     protected int|string $span = 'full';
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::SUMMARY;
+
     protected array $requiredPermissions = ['dashboard.view_stats'];
 
     public function getKey(): string
@@ -69,13 +73,13 @@ class SystemStatsWidget extends AbstractDashboardWidget
 
     /**
      * Get widget data for frontend.
-     * 
+     *
      * Uses optimized single query for user stats and 5-minute caching.
      */
     public function getData(): array
     {
         // Cache stats for 5 minutes to reduce database load
-        return Cache::remember('dashboard.system_stats.' . auth()->id(), 300, function () {
+        return Cache::remember('dashboard.system_stats.'.auth()->id(), 300, function () {
             return $this->fetchStats();
         });
     }
@@ -101,7 +105,7 @@ class SystemStatsWidget extends AbstractDashboardWidget
         } catch (\Throwable $e) {
             Log::warning('SystemStatsWidget: Failed to fetch user statistics', [
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id()
+                'user_id' => auth()->id(),
             ]);
             $totalUsers = $activeUsers = $inactiveUsers = $newUsersThisMonth = 0;
         }
@@ -145,9 +149,10 @@ class SystemStatsWidget extends AbstractDashboardWidget
         } catch (\Throwable $e) {
             Log::warning("SystemStatsWidget: Failed to count {$tableName} table", [
                 'error' => $e->getMessage(),
-                'table' => $tableName
+                'table' => $tableName,
             ]);
         }
+
         return 0;
     }
 
@@ -164,9 +169,11 @@ class SystemStatsWidget extends AbstractDashboardWidget
             }
         } catch (\Throwable $e) {
             Log::warning('SystemStatsWidget: Failed to count online users', ['error' => $e->getMessage()]);
+
             // Fallback: estimate 40% of active users as online
             return $fallbackActiveUsers > 0 ? (int) ceil($fallbackActiveUsers * 0.4) : 0;
         }
+
         return 0;
     }
 

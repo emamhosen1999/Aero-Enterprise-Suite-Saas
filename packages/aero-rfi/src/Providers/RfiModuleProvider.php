@@ -7,11 +7,11 @@ use Aero\Core\Services\UserRelationshipRegistry;
 use Aero\Rfi\Events\RfiApproved;
 use Aero\Rfi\Events\RfiRejected;
 use Aero\Rfi\Events\RfiSubmitted;
-use Aero\Rfi\Models\Rfi;
 use Aero\Rfi\Models\Objection;
+use Aero\Rfi\Models\Rfi;
 use Aero\Rfi\Models\WorkLocation;
-use Aero\Rfi\Policies\RfiPolicy;
 use Aero\Rfi\Policies\ObjectionPolicy;
+use Aero\Rfi\Policies\RfiPolicy;
 use Aero\Rfi\Policies\WorkLocationPolicy;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -54,7 +54,7 @@ class RfiModuleProvider extends AbstractModuleProvider
         if (file_exists($apiRoutesPath)) {
             $this->loadRoutesFrom($apiRoutesPath);
         }
-        
+
         // Web routes are handled by AeroRfiServiceProvider
     }
 
@@ -91,13 +91,13 @@ class RfiModuleProvider extends AbstractModuleProvider
         // ========================================================================
         // PATENTABLE CORE IP SERVICES - Construction Tech SaaS Innovation
         // ========================================================================
-        
+
         // GPS Validation Service - Anti-fraud location verification
         $this->app->singleton(\Aero\Rfi\Services\GeoFencingService::class);
-        
+
         // Layer Continuity Validator - Sequential construction enforcement (CORE IP)
         $this->app->singleton(\Aero\Rfi\Services\LinearContinuityValidator::class);
-        
+
         // Weather Validation Service - Environmental constraints checking
         $this->app->singleton(\Aero\Quality\Services\WeatherValidationService::class, function ($app) {
             return new \Aero\Quality\Services\WeatherValidationService;

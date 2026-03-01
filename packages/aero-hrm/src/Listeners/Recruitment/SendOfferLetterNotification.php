@@ -89,9 +89,9 @@ class SendOfferLetterNotification implements ShouldQueue
                     'application' => $application,
                     'candidateName' => $application->candidate_name,
                 ],
-                function ($message) use ($email, $application, $offer) {
+                function ($message) use ($email, $application) {
                     $message->to($email, $application->candidate_name)
-                        ->subject('Job Offer - ' . ($application->job?->title ?? 'Position') . ' at ' . config('app.name'));
+                        ->subject('Job Offer - '.($application->job?->title ?? 'Position').' at '.config('app.name'));
                 }
             );
         } catch (\Exception $e) {

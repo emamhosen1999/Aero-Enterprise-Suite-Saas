@@ -42,7 +42,7 @@ class LeaveCancelledNotification extends BaseHrmNotification
             ->line("To: {$this->leave->to_date->format('d M Y')}")
             ->line("Duration: {$this->leave->no_of_days} day(s)")
             ->line("Cancelled by: {$this->cancelledByName}")
-            ->line("Cancelled at: " . now()->format('d M Y H:i'))
+            ->line('Cancelled at: '.now()->format('d M Y H:i'))
             ->action('View Leave History', url('/hrm/leaves'))
             ->line('The leave balance has been restored.');
     }

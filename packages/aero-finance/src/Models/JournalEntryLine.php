@@ -18,7 +18,7 @@ class JournalEntryLine extends Model
         'description',
         'debit',
         'credit',
-        'line_number'
+        'line_number',
     ];
 
     protected $casts = [

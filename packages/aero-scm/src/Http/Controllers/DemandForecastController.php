@@ -2,10 +2,10 @@
 
 namespace Aero\Scm\Http\Controllers;
 
-use Illuminate\Routing\Controller;
-use App\Models\Tenant\IMS\InventoryItem;
-use App\Models\Tenant\SCM$1
+use Aero\Ims\Models\InventoryItem;
+use Aero\Scm\Models\DemandForecast;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;

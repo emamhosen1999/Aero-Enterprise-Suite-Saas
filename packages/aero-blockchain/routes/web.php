@@ -1,13 +1,13 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use Aero\Blockchain\Http\Controllers\AnalyticsController;
 use Aero\Blockchain\Http\Controllers\BlockchainController;
-use Aero\Blockchain\Http\Controllers\WalletController;
-use Aero\Blockchain\Http\Controllers\TransactionController;
+use Aero\Blockchain\Http\Controllers\ConsensusController;
 use Aero\Blockchain\Http\Controllers\SmartContractController;
 use Aero\Blockchain\Http\Controllers\TokenController;
-use Aero\Blockchain\Http\Controllers\ConsensusController;
-use Aero\Blockchain\Http\Controllers\AnalyticsController;
+use Aero\Blockchain\Http\Controllers\TransactionController;
+use Aero\Blockchain\Http\Controllers\WalletController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,12 +20,12 @@ use Aero\Blockchain\Http\Controllers\AnalyticsController;
 */
 
 Route::middleware(['web', 'auth'])->prefix('blockchain')->name('blockchain.')->group(function () {
-    
+
     // Dashboard
     Route::get('/', function () {
         return inertia('Blockchain/Dashboard');
     })->name('dashboard');
-    
+
     // Blockchain Networks
     Route::prefix('networks')->name('networks.')->group(function () {
         Route::get('/', [BlockchainController::class, 'index'])->name('index');
@@ -35,14 +35,14 @@ Route::middleware(['web', 'auth'])->prefix('blockchain')->name('blockchain.')->g
         Route::get('/{blockchain}/edit', [BlockchainController::class, 'edit'])->name('edit');
         Route::put('/{blockchain}', [BlockchainController::class, 'update'])->name('update');
         Route::delete('/{blockchain}', [BlockchainController::class, 'destroy'])->name('destroy');
-        
+
         // Network Actions
         Route::get('/{blockchain}/blocks', [BlockchainController::class, 'blocks'])->name('blocks');
         Route::get('/{blockchain}/transactions', [BlockchainController::class, 'transactions'])->name('transactions');
         Route::get('/{blockchain}/analytics', [BlockchainController::class, 'analytics'])->name('analytics');
         Route::post('/{blockchain}/sync', [BlockchainController::class, 'sync'])->name('sync');
     });
-    
+
     // Wallets
     Route::prefix('wallets')->name('wallets.')->group(function () {
         Route::get('/', [WalletController::class, 'index'])->name('index');
@@ -52,14 +52,14 @@ Route::middleware(['web', 'auth'])->prefix('blockchain')->name('blockchain.')->g
         Route::get('/{wallet}/edit', [WalletController::class, 'edit'])->name('edit');
         Route::put('/{wallet}', [WalletController::class, 'update'])->name('update');
         Route::delete('/{wallet}', [WalletController::class, 'destroy'])->name('destroy');
-        
+
         // Wallet Actions
         Route::get('/{wallet}/transactions', [WalletController::class, 'transactions'])->name('transactions');
         Route::get('/{wallet}/tokens', [WalletController::class, 'tokens'])->name('tokens');
         Route::post('/{wallet}/transfer', [WalletController::class, 'transfer'])->name('transfer');
         Route::post('/{wallet}/sync-balance', [WalletController::class, 'syncBalance'])->name('sync-balance');
     });
-    
+
     // Transactions
     Route::prefix('transactions')->name('transactions.')->group(function () {
         Route::get('/', [TransactionController::class, 'index'])->name('index');
@@ -69,7 +69,7 @@ Route::middleware(['web', 'auth'])->prefix('blockchain')->name('blockchain.')->g
         Route::post('/{transaction}/resend', [TransactionController::class, 'resend'])->name('resend');
         Route::post('/{transaction}/cancel', [TransactionController::class, 'cancel'])->name('cancel');
     });
-    
+
     // Smart Contracts
     Route::prefix('contracts')->name('contracts.')->group(function () {
         Route::get('/', [SmartContractController::class, 'index'])->name('index');
@@ -79,7 +79,7 @@ Route::middleware(['web', 'auth'])->prefix('blockchain')->name('blockchain.')->g
         Route::get('/{contract}/edit', [SmartContractController::class, 'edit'])->name('edit');
         Route::put('/{contract}', [SmartContractController::class, 'update'])->name('update');
         Route::delete('/{contract}', [SmartContractController::class, 'destroy'])->name('destroy');
-        
+
         // Contract Actions
         Route::post('/{contract}/deploy', [SmartContractController::class, 'deploy'])->name('deploy');
         Route::post('/{contract}/verify', [SmartContractController::class, 'verify'])->name('verify');
@@ -87,7 +87,7 @@ Route::middleware(['web', 'auth'])->prefix('blockchain')->name('blockchain.')->g
         Route::get('/{contract}/events', [SmartContractController::class, 'events'])->name('events');
         Route::get('/{contract}/transactions', [SmartContractController::class, 'transactions'])->name('transactions');
     });
-    
+
     // Tokens
     Route::prefix('tokens')->name('tokens.')->group(function () {
         Route::get('/', [TokenController::class, 'index'])->name('index');
@@ -97,14 +97,14 @@ Route::middleware(['web', 'auth'])->prefix('blockchain')->name('blockchain.')->g
         Route::get('/{token}/edit', [TokenController::class, 'edit'])->name('edit');
         Route::put('/{token}', [TokenController::class, 'update'])->name('update');
         Route::delete('/{token}', [TokenController::class, 'destroy'])->name('destroy');
-        
+
         // Token Actions
         Route::get('/{token}/holders', [TokenController::class, 'holders'])->name('holders');
         Route::get('/{token}/transfers', [TokenController::class, 'transfers'])->name('transfers');
         Route::post('/{token}/sync-data', [TokenController::class, 'syncData'])->name('sync-data');
         Route::post('/{token}/update-price', [TokenController::class, 'updatePrice'])->name('update-price');
     });
-    
+
     // Consensus Nodes
     Route::prefix('consensus')->name('consensus.')->group(function () {
         Route::get('/', [ConsensusController::class, 'index'])->name('index');
@@ -114,7 +114,7 @@ Route::middleware(['web', 'auth'])->prefix('blockchain')->name('blockchain.')->g
         Route::get('/{node}/edit', [ConsensusController::class, 'edit'])->name('edit');
         Route::put('/{node}', [ConsensusController::class, 'update'])->name('update');
         Route::delete('/{node}', [ConsensusController::class, 'destroy'])->name('destroy');
-        
+
         // Node Actions
         Route::post('/{node}/stake', [ConsensusController::class, 'stake'])->name('stake');
         Route::post('/{node}/unstake', [ConsensusController::class, 'unstake'])->name('unstake');
@@ -122,7 +122,7 @@ Route::middleware(['web', 'auth'])->prefix('blockchain')->name('blockchain.')->g
         Route::post('/{node}/unjail', [ConsensusController::class, 'unjail'])->name('unjail');
         Route::post('/{node}/slash', [ConsensusController::class, 'slash'])->name('slash');
     });
-    
+
     // Analytics
     Route::prefix('analytics')->name('analytics.')->group(function () {
         Route::get('/', [AnalyticsController::class, 'index'])->name('index');
@@ -133,7 +133,7 @@ Route::middleware(['web', 'auth'])->prefix('blockchain')->name('blockchain.')->g
         Route::get('/nft', [AnalyticsController::class, 'nft'])->name('nft');
         Route::get('/export', [AnalyticsController::class, 'export'])->name('export');
     });
-    
+
     // Block Explorer
     Route::prefix('explorer')->name('explorer.')->group(function () {
         Route::get('/', [BlockchainController::class, 'explorer'])->name('index');
@@ -143,7 +143,7 @@ Route::middleware(['web', 'auth'])->prefix('blockchain')->name('blockchain.')->g
         Route::get('/contract/{address}', [SmartContractController::class, 'showByAddress'])->name('contract');
         Route::get('/token/{address}', [TokenController::class, 'showByAddress'])->name('token');
     });
-    
+
     // Settings
     Route::prefix('settings')->name('settings.')->group(function () {
         Route::get('/', [BlockchainController::class, 'settings'])->name('index');

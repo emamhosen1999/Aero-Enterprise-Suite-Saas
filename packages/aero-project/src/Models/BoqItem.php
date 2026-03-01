@@ -10,9 +10,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * BoqItem Model
- * 
+ *
  * Represents a line item in the Bill of Quantities (BOQ).
- * 
+ *
  * @property int $id
  * @property int $project_id
  * @property string $item_code (e.g., "2.01.05")

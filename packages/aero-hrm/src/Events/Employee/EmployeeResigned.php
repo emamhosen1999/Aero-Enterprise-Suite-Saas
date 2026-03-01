@@ -25,7 +25,6 @@ class EmployeeResigned extends BaseHrmEvent
     /**
      * Create a new event instance.
      *
-     * @param  Employee  $employee
      * @param  \DateTimeInterface  $resignationDate  Date resignation was submitted
      * @param  \DateTimeInterface  $lastWorkingDate  Employee's last day
      * @param  string|null  $reason  Reason for resignation

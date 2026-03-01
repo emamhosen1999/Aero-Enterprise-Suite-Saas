@@ -20,9 +20,13 @@ use Illuminate\Support\Facades\App;
 class ActiveModulesWidget extends AbstractDashboardWidget
 {
     protected string $position = 'sidebar';
+
     protected int $order = 10;
+
     protected int|string $span = 1;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::DISPLAY;
+
     protected array $requiredPermissions = []; // No permissions needed - shows available modules only
 
     public function getKey(): string
@@ -77,10 +81,10 @@ class ActiveModulesWidget extends AbstractDashboardWidget
                     // ModuleProvider is an object implementing ModuleProviderInterface
                     // Get default route from navigation items or use fallback
                     $navItems = $moduleProvider->getNavigationItems();
-                    $defaultRoute = !empty($navItems) && isset($navItems[0]['route']) 
-                        ? $navItems[0]['route'] 
+                    $defaultRoute = ! empty($navItems) && isset($navItems[0]['route'])
+                        ? $navItems[0]['route']
                         : "{$code}.index";
-                    
+
                     $modules[] = [
                         'code' => $code,
                         'name' => $moduleProvider->getModuleName(),

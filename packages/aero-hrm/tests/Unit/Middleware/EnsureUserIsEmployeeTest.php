@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace Aero\HRM\Tests\Unit\Middleware;
 
+use Aero\Core\Models\User;
 use Aero\HRM\Http\Middleware\EnsureUserIsEmployee;
 use Aero\HRM\Models\Employee;
-use Aero\HRM\Exceptions\UserNotOnboardedException;
-use Aero\Core\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Tests\TestCase;
 
 /**
@@ -22,7 +21,7 @@ class EnsureUserIsEmployeeTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_allows_request_when_user_is_onboarded_as_employee()
     {
         // Arrange
@@ -45,7 +44,7 @@ class EnsureUserIsEmployeeTest extends TestCase
         $this->assertEquals($employee->id, $request->attributes->get('employee')->id);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_blocks_request_when_user_not_onboarded()
     {
         // Arrange
@@ -68,7 +67,7 @@ class EnsureUserIsEmployeeTest extends TestCase
         $this->assertEquals('user_not_onboarded', $data['error_code']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_blocks_request_when_employee_is_inactive()
     {
         // Arrange
@@ -94,7 +93,7 @@ class EnsureUserIsEmployeeTest extends TestCase
         $this->assertEquals('employee_inactive', $data['error_code']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_redirects_unauthenticated_requests_to_login()
     {
         // Arrange
@@ -110,7 +109,7 @@ class EnsureUserIsEmployeeTest extends TestCase
         $this->assertEquals(401, $response->getStatusCode());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_attaches_employee_to_request()
     {
         // Arrange
@@ -135,7 +134,7 @@ class EnsureUserIsEmployeeTest extends TestCase
         });
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_logs_failed_access_attempts()
     {
         // Arrange

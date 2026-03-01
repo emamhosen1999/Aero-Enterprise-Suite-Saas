@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Aero\Rfi\Services;
 
+use Aero\Core\Support\TenantCache;
 use Aero\Rfi\Models\Rfi;
 use Illuminate\Support\Collection;
-use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 
@@ -133,9 +133,6 @@ class RfiEscalationService
 
     /**
      * Check if an RFI needs escalation.
-     *
-     * @param Rfi $rfi
-     * @return bool
      */
     public function needsEscalation(Rfi $rfi): bool
     {
@@ -168,8 +165,7 @@ class RfiEscalationService
     /**
      * Escalate an RFI to the next level.
      *
-     * @param Rfi $rfi
-     * @param string|null $reason Custom reason for escalation
+     * @param  string|null  $reason  Custom reason for escalation
      * @return array Result of escalation
      */
     public function escalate(Rfi $rfi, ?string $reason = null): array
@@ -210,11 +206,7 @@ class RfiEscalationService
     /**
      * Manually escalate an RFI (by user action).
      *
-     * @param Rfi $rfi
-     * @param int $toLevel
-     * @param string $reason
-     * @param int $escalatedBy User ID
-     * @return array
+     * @param  int  $escalatedBy  User ID
      */
     public function manualEscalate(Rfi $rfi, int $toLevel, string $reason, int $escalatedBy): array
     {
@@ -244,10 +236,6 @@ class RfiEscalationService
 
     /**
      * De-escalate an RFI (usually after resolution or response).
-     *
-     * @param Rfi $rfi
-     * @param string $reason
-     * @return void
      */
     public function deescalate(Rfi $rfi, string $reason = 'Issue addressed'): void
     {
@@ -267,11 +255,6 @@ class RfiEscalationService
 
     /**
      * Pause escalation for an RFI.
-     *
-     * @param Rfi $rfi
-     * @param string $reason
-     * @param \DateTimeInterface|null $until
-     * @return void
      */
     public function pauseEscalation(Rfi $rfi, string $reason, ?\DateTimeInterface $until = null): void
     {
@@ -284,9 +267,6 @@ class RfiEscalationService
 
     /**
      * Resume escalation for an RFI.
-     *
-     * @param Rfi $rfi
-     * @return void
      */
     public function resumeEscalation(Rfi $rfi): void
     {
@@ -299,8 +279,6 @@ class RfiEscalationService
 
     /**
      * Get RFIs that need to be checked for escalation.
-     *
-     * @return Collection
      */
     protected function getRfisForEscalationCheck(): Collection
     {
@@ -317,9 +295,6 @@ class RfiEscalationService
 
     /**
      * Get current escalation level for an RFI.
-     *
-     * @param Rfi $rfi
-     * @return int
      */
     public function getCurrentEscalationLevel(Rfi $rfi): int
     {
@@ -328,9 +303,6 @@ class RfiEscalationService
 
     /**
      * Get hours since RFI entered current status.
-     *
-     * @param Rfi $rfi
-     * @return float
      */
     protected function getHoursInCurrentStatus(Rfi $rfi): float
     {
@@ -341,9 +313,6 @@ class RfiEscalationService
 
     /**
      * Check if escalation is paused for an RFI.
-     *
-     * @param Rfi $rfi
-     * @return bool
      */
     protected function isEscalationPaused(Rfi $rfi): bool
     {
@@ -363,9 +332,6 @@ class RfiEscalationService
 
     /**
      * Get escalation rules for a status.
-     *
-     * @param string $status
-     * @return array
      */
     protected function getRulesForStatus(string $status): array
     {
@@ -376,8 +342,6 @@ class RfiEscalationService
 
     /**
      * Get all escalation rules.
-     *
-     * @return array
      */
     public function getEscalationRules(): array
     {
@@ -398,9 +362,6 @@ class RfiEscalationService
 
     /**
      * Update escalation rules.
-     *
-     * @param array $rules
-     * @return void
      */
     public function updateRules(array $rules): void
     {
@@ -420,12 +381,6 @@ class RfiEscalationService
 
     /**
      * Record escalation in history.
-     *
-     * @param Rfi $rfi
-     * @param int $level
-     * @param string|null $reason
-     * @param int|null $byUserId
-     * @return void
      */
     protected function recordEscalation(
         Rfi $rfi,
@@ -447,10 +402,6 @@ class RfiEscalationService
 
     /**
      * Update RFI escalation metadata.
-     *
-     * @param Rfi $rfi
-     * @param int $level
-     * @return void
      */
     protected function updateRfiEscalationData(Rfi $rfi, int $level): void
     {
@@ -463,9 +414,6 @@ class RfiEscalationService
     /**
      * Send escalation notifications.
      *
-     * @param Rfi $rfi
-     * @param int $level
-     * @param array $notifyRoles
      * @return array List of notified users/roles
      */
     protected function sendEscalationNotifications(Rfi $rfi, int $level, array $notifyRoles): array
@@ -487,10 +435,6 @@ class RfiEscalationService
 
     /**
      * Get notification recipients for a role.
-     *
-     * @param Rfi $rfi
-     * @param string $role
-     * @return array
      */
     protected function getRecipientsForRole(Rfi $rfi, string $role): array
     {
@@ -524,9 +468,6 @@ class RfiEscalationService
 
     /**
      * Get escalation summary for an RFI.
-     *
-     * @param Rfi $rfi
-     * @return array
      */
     public function getEscalationSummary(Rfi $rfi): array
     {
@@ -548,8 +489,6 @@ class RfiEscalationService
 
     /**
      * Get all overdue RFIs grouped by escalation level.
-     *
-     * @return array
      */
     public function getOverdueRfisByLevel(): array
     {

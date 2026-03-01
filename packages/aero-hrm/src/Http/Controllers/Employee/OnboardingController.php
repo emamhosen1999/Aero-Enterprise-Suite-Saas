@@ -2,6 +2,13 @@
 
 namespace Aero\HRM\Http\Controllers\Employee;
 
+use Aero\Core\Models\User;
+use Aero\HRM\Events\Employee\EmployeeResigned;
+use Aero\HRM\Events\Offboarding\OffboardingCompleted;
+use Aero\HRM\Events\Offboarding\OffboardingStarted;
+use Aero\HRM\Events\Onboarding\OnboardingCompleted;
+use Aero\HRM\Events\Onboarding\OnboardingStarted;
+use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Http\Requests\HR\StoreOffboardingRequest;
 use Aero\HRM\Http\Requests\HR\StoreOnboardingRequest;
 use Aero\HRM\Http\Requests\HR\UpdateOffboardingRequest;
@@ -13,14 +20,7 @@ use Aero\HRM\Models\OffboardingTask;
 use Aero\HRM\Models\Onboarding;
 use Aero\HRM\Models\OnboardingStep;
 use Aero\HRM\Models\OnboardingTask;
-use Aero\HRM\Events\Onboarding\OnboardingStarted;
-use Aero\HRM\Events\Onboarding\OnboardingCompleted;
-use Aero\HRM\Events\Offboarding\OffboardingStarted;
-use Aero\HRM\Events\Offboarding\OffboardingCompleted;
-use Aero\HRM\Events\Employee\EmployeeResigned;
-use Aero\HRM\Http\Controllers\Controller;
 use App\Http\Controllers\Tenant\HRM\Employee\Request;
-use Aero\Core\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;

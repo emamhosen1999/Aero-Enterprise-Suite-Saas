@@ -15,7 +15,7 @@ class ShippingAddress extends Model
     protected $fillable = [
         'customer_id', 'type', 'first_name', 'last_name', 'company_name',
         'address_line_1', 'address_line_2', 'city', 'state', 'postal_code',
-        'country', 'phone', 'special_instructions', 'is_default', 'is_verified'
+        'country', 'phone', 'special_instructions', 'is_default', 'is_verified',
     ];
 
     protected $casts = [
@@ -25,7 +25,9 @@ class ShippingAddress extends Model
     ];
 
     const TYPE_HOME = 'home';
+
     const TYPE_WORK = 'work';
+
     const TYPE_OTHER = 'other';
 
     public function customer()
@@ -40,50 +42,50 @@ class ShippingAddress extends Model
 
     public function getFullNameAttribute()
     {
-        return trim($this->first_name . ' ' . $this->last_name);
+        return trim($this->first_name.' '.$this->last_name);
     }
 
     public function getFullAddressAttribute()
     {
         $address = $this->address_line_1;
-        
+
         if ($this->address_line_2) {
-            $address .= ', ' . $this->address_line_2;
+            $address .= ', '.$this->address_line_2;
         }
-        
-        $address .= ', ' . $this->city . ', ' . $this->state . ' ' . $this->postal_code;
-        
+
+        $address .= ', '.$this->city.', '.$this->state.' '.$this->postal_code;
+
         if ($this->country && $this->country !== 'US') {
-            $address .= ', ' . $this->country;
+            $address .= ', '.$this->country;
         }
-        
+
         return $address;
     }
 
     public function getFormattedAddressAttribute()
     {
         $lines = [];
-        
+
         if ($this->full_name) {
             $lines[] = $this->full_name;
         }
-        
+
         if ($this->company_name) {
             $lines[] = $this->company_name;
         }
-        
+
         $lines[] = $this->address_line_1;
-        
+
         if ($this->address_line_2) {
             $lines[] = $this->address_line_2;
         }
-        
-        $lines[] = $this->city . ', ' . $this->state . ' ' . $this->postal_code;
-        
+
+        $lines[] = $this->city.', '.$this->state.' '.$this->postal_code;
+
         if ($this->country && $this->country !== 'US') {
             $lines[] = $this->country;
         }
-        
+
         return implode('\n', $lines);
     }
 

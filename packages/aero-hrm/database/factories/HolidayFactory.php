@@ -26,7 +26,7 @@ class HolidayFactory extends Factory
     public function definition(): array
     {
         $date = Carbon::now()->addDays($this->faker->numberBetween(1, 365));
-        
+
         return [
             'title' => $this->faker->randomElement([
                 'New Year\'s Day',
@@ -66,6 +66,7 @@ class HolidayFactory extends Factory
     {
         return $this->state(function (array $attributes) {
             $startDate = Carbon::parse($attributes['date']);
+
             return [
                 'end_date' => $startDate->copy()->addDays($this->faker->numberBetween(1, 3)),
             ];

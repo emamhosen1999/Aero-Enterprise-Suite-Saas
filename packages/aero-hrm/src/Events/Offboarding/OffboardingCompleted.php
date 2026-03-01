@@ -25,9 +25,6 @@ class OffboardingCompleted extends BaseHrmEvent
     /**
      * Create a new event instance.
      *
-     * @param  Offboarding  $offboarding
-     * @param  \DateTimeInterface  $completedAt
-     * @param  bool  $allClearancesObtained
      * @param  int|null  $actorEmployeeId  Employee ID who marked completion
      */
     public function __construct(

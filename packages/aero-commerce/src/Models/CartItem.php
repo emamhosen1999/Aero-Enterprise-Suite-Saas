@@ -13,7 +13,7 @@ class CartItem extends Model
 
     protected $fillable = [
         'cart_id', 'product_id', 'product_variant_id', 'quantity',
-        'price', 'discount_amount', 'tax_amount', 'options'
+        'price', 'discount_amount', 'tax_amount', 'options',
     ];
 
     protected $casts = [

@@ -21,13 +21,13 @@ return new class extends Migration
         Schema::table('plans', function (Blueprint $table) {
             // Plan tier for categorization (free, starter, professional, enterprise)
             $table->string('tier')->default('starter')->after('slug');
-            
+
             // Visibility control (public, private, hidden)
             // - public: Shown on pricing pages and available for self-signup
             // - private: Only available via admin assignment or invite
             // - hidden: Not shown anywhere, for internal/legacy plans
             $table->string('visibility')->default('public')->after('is_featured');
-            
+
             // Index for common queries
             $table->index('tier');
             $table->index('visibility');

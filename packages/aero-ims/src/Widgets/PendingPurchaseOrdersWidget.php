@@ -18,10 +18,15 @@ use Aero\Core\Contracts\CoreWidgetCategory;
 class PendingPurchaseOrdersWidget extends AbstractDashboardWidget
 {
     protected string $position = 'main_left';
+
     protected int $order = 41;
+
     protected int|string $span = 1;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
+
     protected array $requiredPermissions = ['ims.purchase_orders'];
+
     protected array $dashboards = ['ims'];
 
     public function getKey(): string

@@ -2,10 +2,10 @@
 
 namespace Aero\IoT\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class DeviceType extends Model
 {
@@ -17,7 +17,7 @@ class DeviceType extends Model
         'type_code', 'type_name', 'description', 'category', 'manufacturer',
         'default_configuration', 'supported_protocols', 'sensor_capabilities',
         'power_requirements', 'connectivity_options', 'icon', 'is_active',
-        'created_by'
+        'created_by',
     ];
 
     protected $casts = [
@@ -31,15 +31,25 @@ class DeviceType extends Model
     ];
 
     const CATEGORY_SENSOR = 'sensor';
+
     const CATEGORY_ACTUATOR = 'actuator';
+
     const CATEGORY_GATEWAY = 'gateway';
+
     const CATEGORY_CONTROLLER = 'controller';
+
     const CATEGORY_MONITOR = 'monitor';
+
     const CATEGORY_CAMERA = 'camera';
+
     const CATEGORY_ENVIRONMENTAL = 'environmental';
+
     const CATEGORY_INDUSTRIAL = 'industrial';
+
     const CATEGORY_SMART_HOME = 'smart_home';
+
     const CATEGORY_WEARABLE = 'wearable';
+
     const CATEGORY_VEHICLE = 'vehicle';
 
     public function creator()
@@ -64,13 +74,13 @@ class DeviceType extends Model
 
     public function supportsProtocol($protocol)
     {
-        return is_array($this->supported_protocols) && 
+        return is_array($this->supported_protocols) &&
                in_array($protocol, $this->supported_protocols);
     }
 
     public function hasCapability($capability)
     {
-        return is_array($this->sensor_capabilities) && 
+        return is_array($this->sensor_capabilities) &&
                in_array($capability, $this->sensor_capabilities);
     }
 

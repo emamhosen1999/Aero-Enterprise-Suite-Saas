@@ -4,11 +4,10 @@ namespace Aero\HRM\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
  * AI Insight Model
- * 
+ *
  * AI-generated insights and alerts for HR decision-making.
  */
 class AIInsight extends Model

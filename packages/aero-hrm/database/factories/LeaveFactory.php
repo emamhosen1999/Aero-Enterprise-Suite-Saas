@@ -2,8 +2,8 @@
 
 namespace Aero\HRM\Database\Factories;
 
-use Aero\HRM\Models\Leave;
 use Aero\Core\Models\User;
+use Aero\HRM\Models\Leave;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -38,7 +38,7 @@ class LeaveFactory extends Factory
                 'Sick',
                 'Casual',
                 'Maternity',
-                'Paternity'
+                'Paternity',
             ]),
             'from_date' => $fromDate->format('Y-m-d'),
             'to_date' => $toDate->format('Y-m-d'),

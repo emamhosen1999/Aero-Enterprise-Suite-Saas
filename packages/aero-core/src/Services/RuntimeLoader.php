@@ -4,14 +4,13 @@ namespace Aero\Core\Services;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 /**
  * RuntimeLoader
- * 
+ *
  * Handles dynamic module loading for Standalone mode where modules are
  * uploaded as ZIP files without Composer.
- * 
+ *
  * This loader:
  * - Scans modules directory for module.json files
  * - Registers PSR-4 autoloading at runtime
@@ -22,15 +21,11 @@ class RuntimeLoader
 {
     /**
      * Modules directory path.
-     *
-     * @var string
      */
     protected string $modulesPath;
 
     /**
      * Loaded modules registry.
-     *
-     * @var array
      */
     protected array $loadedModules = [];
 
@@ -44,7 +39,6 @@ class RuntimeLoader
     /**
      * Create a new RuntimeLoader instance.
      *
-     * @param  string|null  $modulesPath
      * @return void
      */
     public function __construct(?string $modulesPath = null)
@@ -55,13 +49,12 @@ class RuntimeLoader
 
     /**
      * Discover and load all modules from the modules directory.
-     *
-     * @return array
      */
     public function loadModules(): array
     {
-        if (!File::isDirectory($this->modulesPath)) {
+        if (! File::isDirectory($this->modulesPath)) {
             Log::warning("RuntimeLoader: Modules directory does not exist: {$this->modulesPath}");
+
             return [];
         }
 
@@ -76,8 +69,6 @@ class RuntimeLoader
 
     /**
      * Discover all modules with module.json files.
-     *
-     * @return array
      */
     protected function discoverModules(): array
     {
@@ -85,12 +76,12 @@ class RuntimeLoader
         $directories = File::directories($this->modulesPath);
 
         foreach ($directories as $directory) {
-            $moduleJsonPath = $directory . '/module.json';
+            $moduleJsonPath = $directory.'/module.json';
 
             if (File::exists($moduleJsonPath)) {
                 try {
                     $moduleConfig = json_decode(File::get($moduleJsonPath), true);
-                    
+
                     if (json_last_error() === JSON_ERROR_NONE && $this->isValidModuleConfig($moduleConfig)) {
                         $moduleConfig['path'] = $directory;
                         $moduleConfig['name'] = basename($directory);
@@ -109,22 +100,16 @@ class RuntimeLoader
 
     /**
      * Validate module configuration.
-     *
-     * @param  array  $config
-     * @return bool
      */
     protected function isValidModuleConfig(array $config): bool
     {
-        return isset($config['namespace']) && 
-               isset($config['providers']) && 
+        return isset($config['namespace']) &&
+               isset($config['providers']) &&
                is_array($config['providers']);
     }
 
     /**
      * Load a single module.
-     *
-     * @param  array  $moduleConfig
-     * @return bool
      */
     protected function loadModule(array $moduleConfig): bool
     {
@@ -133,23 +118,23 @@ class RuntimeLoader
         // Check if module is already loaded via Composer
         if ($this->isLoadedViaComposer($moduleConfig['namespace'])) {
             Log::info("RuntimeLoader: Module '{$moduleName}' already loaded via Composer, skipping runtime load");
-            
+
             $this->loadedModules[$moduleName] = [
                 'status' => 'composer_loaded',
                 'namespace' => $moduleConfig['namespace'],
                 'path' => $moduleConfig['path'],
             ];
-            
+
             return true;
         }
 
         // Register PSR-4 autoloading
-        if (!$this->registerAutoloading($moduleConfig)) {
+        if (! $this->registerAutoloading($moduleConfig)) {
             return false;
         }
 
         // Register service providers
-        if (!$this->registerServiceProviders($moduleConfig)) {
+        if (! $this->registerServiceProviders($moduleConfig)) {
             return false;
         }
 
@@ -169,18 +154,15 @@ class RuntimeLoader
 
     /**
      * Check if a namespace is already loaded via Composer.
-     *
-     * @param  string  $namespace
-     * @return bool
      */
     protected function isLoadedViaComposer(string $namespace): bool
     {
         // Try to find a representative class from the namespace
         $testClasses = [
-            $namespace . '\\AeroHrmServiceProvider',
-            $namespace . '\\AeroCrmServiceProvider',
-            $namespace . '\\ServiceProvider',
-            $namespace . '\\Providers\\ModuleServiceProvider',
+            $namespace.'\\AeroHrmServiceProvider',
+            $namespace.'\\AeroCrmServiceProvider',
+            $namespace.'\\ServiceProvider',
+            $namespace.'\\Providers\\ModuleServiceProvider',
         ];
 
         foreach ($testClasses as $class) {
@@ -192,8 +174,8 @@ class RuntimeLoader
         // Check if namespace is registered in Composer's autoloader
         if ($this->composerLoader) {
             $prefixes = $this->composerLoader->getPrefixesPsr4();
-            $normalizedNamespace = rtrim($namespace, '\\') . '\\';
-            
+            $normalizedNamespace = rtrim($namespace, '\\').'\\';
+
             if (isset($prefixes[$normalizedNamespace])) {
                 return true;
             }
@@ -204,18 +186,16 @@ class RuntimeLoader
 
     /**
      * Register PSR-4 autoloading for a module.
-     *
-     * @param  array  $moduleConfig
-     * @return bool
      */
     protected function registerAutoloading(array $moduleConfig): bool
     {
         try {
-            $namespace = rtrim($moduleConfig['namespace'], '\\') . '\\';
-            $srcPath = $moduleConfig['path'] . '/src';
+            $namespace = rtrim($moduleConfig['namespace'], '\\').'\\';
+            $srcPath = $moduleConfig['path'].'/src';
 
-            if (!File::isDirectory($srcPath)) {
+            if (! File::isDirectory($srcPath)) {
                 Log::warning("RuntimeLoader: Source directory not found for module '{$moduleConfig['name']}': {$srcPath}");
+
                 return false;
             }
 
@@ -228,15 +208,13 @@ class RuntimeLoader
             return true;
         } catch (\Throwable $e) {
             Log::error("RuntimeLoader: Failed to register autoloading for '{$moduleConfig['name']}': {$e->getMessage()}");
+
             return false;
         }
     }
 
     /**
      * Register service providers for a module.
-     *
-     * @param  array  $moduleConfig
-     * @return bool
      */
     protected function registerServiceProviders(array $moduleConfig): bool
     {
@@ -247,14 +225,16 @@ class RuntimeLoader
         try {
             foreach ($moduleConfig['providers'] as $provider) {
                 // Check if provider class exists
-                if (!class_exists($provider)) {
+                if (! class_exists($provider)) {
                     Log::warning("RuntimeLoader: Provider class not found: {$provider}");
+
                     continue;
                 }
 
                 // Check if already registered
                 if ($this->isProviderRegistered($provider)) {
                     Log::debug("RuntimeLoader: Provider already registered: {$provider}");
+
                     continue;
                 }
 
@@ -266,43 +246,41 @@ class RuntimeLoader
             return true;
         } catch (\Throwable $e) {
             Log::error("RuntimeLoader: Failed to register providers for '{$moduleConfig['name']}': {$e->getMessage()}");
+
             return false;
         }
     }
 
     /**
      * Check if a service provider is already registered.
-     *
-     * @param  string  $provider
-     * @return bool
      */
     protected function isProviderRegistered(string $provider): bool
     {
         $registered = app()->getLoadedProviders();
+
         return isset($registered[$provider]);
     }
 
     /**
      * Load a specific module by name.
-     *
-     * @param  string  $moduleName
-     * @return bool
      */
     public function loadModuleByName(string $moduleName): bool
     {
-        $modulePath = $this->modulesPath . '/' . $moduleName;
-        $moduleJsonPath = $modulePath . '/module.json';
+        $modulePath = $this->modulesPath.'/'.$moduleName;
+        $moduleJsonPath = $modulePath.'/module.json';
 
-        if (!File::exists($moduleJsonPath)) {
+        if (! File::exists($moduleJsonPath)) {
             Log::warning("RuntimeLoader: Module not found: {$moduleName}");
+
             return false;
         }
 
         try {
             $moduleConfig = json_decode(File::get($moduleJsonPath), true);
-            
-            if (json_last_error() !== JSON_ERROR_NONE || !$this->isValidModuleConfig($moduleConfig)) {
+
+            if (json_last_error() !== JSON_ERROR_NONE || ! $this->isValidModuleConfig($moduleConfig)) {
                 Log::warning("RuntimeLoader: Invalid module.json for: {$moduleName}");
+
                 return false;
             }
 
@@ -312,14 +290,13 @@ class RuntimeLoader
             return $this->loadModule($moduleConfig);
         } catch (\Throwable $e) {
             Log::error("RuntimeLoader: Error loading module '{$moduleName}': {$e->getMessage()}");
+
             return false;
         }
     }
 
     /**
      * Get all loaded modules.
-     *
-     * @return array
      */
     public function getLoadedModules(): array
     {
@@ -328,9 +305,6 @@ class RuntimeLoader
 
     /**
      * Check if a module is loaded.
-     *
-     * @param  string  $moduleName
-     * @return bool
      */
     public function isModuleLoaded(string $moduleName): bool
     {
@@ -339,9 +313,6 @@ class RuntimeLoader
 
     /**
      * Get module information.
-     *
-     * @param  string  $moduleName
-     * @return array|null
      */
     public function getModuleInfo(string $moduleName): ?array
     {
@@ -350,28 +321,23 @@ class RuntimeLoader
 
     /**
      * Unload a module (for testing purposes).
-     *
-     * @param  string  $moduleName
-     * @return bool
      */
     public function unloadModule(string $moduleName): bool
     {
-        if (!isset($this->loadedModules[$moduleName])) {
+        if (! isset($this->loadedModules[$moduleName])) {
             return false;
         }
 
         unset($this->loadedModules[$moduleName]);
-        
+
         // Note: We cannot truly unload classes or service providers at runtime
         // This method is primarily for tracking purposes
-        
+
         return true;
     }
 
     /**
      * Get the modules path.
-     *
-     * @return string
      */
     public function getModulesPath(): string
     {
@@ -380,9 +346,6 @@ class RuntimeLoader
 
     /**
      * Set the modules path.
-     *
-     * @param  string  $path
-     * @return void
      */
     public function setModulesPath(string $path): void
     {

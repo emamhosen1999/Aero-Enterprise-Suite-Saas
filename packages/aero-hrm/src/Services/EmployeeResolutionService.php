@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Aero\HRM\Services;
 
-use Aero\HRM\Models\Employee;
-use Aero\HRM\Exceptions\UserNotOnboardedException;
 use Aero\HRM\Contracts\NotifiableUserInterface;
-use Illuminate\Support\Facades\Cache;
+use Aero\HRM\Exceptions\UserNotOnboardedException;
+use Aero\HRM\Models\Employee;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Employee Resolution Service
@@ -32,9 +32,9 @@ class EmployeeResolutionService
     /**
      * Resolve Employee from user ID
      *
-     * @param int $userId The user's ID
-     * @param bool $withRelations Whether to eager load common relationships
-     * @return Employee
+     * @param  int  $userId  The user's ID
+     * @param  bool  $withRelations  Whether to eager load common relationships
+     *
      * @throws UserNotOnboardedException If user is not onboarded
      */
     public function resolveFromUserId(int $userId, bool $withRelations = true): Employee
@@ -71,9 +71,8 @@ class EmployeeResolutionService
     /**
      * Resolve Employee from authenticated request
      *
-     * @param Request $request
-     * @param bool $withRelations Whether to eager load relationships
-     * @return Employee
+     * @param  bool  $withRelations  Whether to eager load relationships
+     *
      * @throws UserNotOnboardedException If user is not authenticated or not onboarded
      */
     public function resolveFromRequest(Request $request, bool $withRelations = true): Employee
@@ -89,9 +88,6 @@ class EmployeeResolutionService
 
     /**
      * Check if a user is onboarded as an Employee
-     *
-     * @param int $userId
-     * @return bool
      */
     public function hasEmployee(int $userId): bool
     {
@@ -104,10 +100,6 @@ class EmployeeResolutionService
 
     /**
      * Resolve Employee or return null (safe resolution)
-     *
-     * @param int $userId
-     * @param bool $withRelations
-     * @return Employee|null
      */
     public function resolveOrNull(int $userId, bool $withRelations = false): ?Employee
     {
@@ -121,8 +113,7 @@ class EmployeeResolutionService
     /**
      * Resolve multiple Employees from user IDs
      *
-     * @param array<int> $userIds
-     * @param bool $withRelations
+     * @param  array<int>  $userIds
      * @return \Illuminate\Database\Eloquent\Collection<Employee>
      */
     public function resolveBulk(array $userIds, bool $withRelations = false): \Illuminate\Database\Eloquent\Collection
@@ -141,9 +132,6 @@ class EmployeeResolutionService
      *
      * Returns a facade that provides notification routing while
      * maintaining Employee as the domain aggregate root.
-     *
-     * @param Employee $employee
-     * @return NotifiableUserInterface
      */
     public function getNotifiableUser(Employee $employee): NotifiableUserInterface
     {
@@ -156,9 +144,6 @@ class EmployeeResolutionService
      * Clear cached employee data
      *
      * Call this after updating employee records to invalidate cache
-     *
-     * @param int $userId
-     * @return void
      */
     public function clearCache(int $userId): void
     {
@@ -168,8 +153,6 @@ class EmployeeResolutionService
 
     /**
      * Clear all employee caches (use sparingly)
-     *
-     * @return void
      */
     public function clearAllCaches(): void
     {
@@ -182,9 +165,6 @@ class EmployeeResolutionService
      * Validate that Employee belongs to current tenant
      *
      * Important for multi-tenant systems
-     *
-     * @param Employee $employee
-     * @return bool
      */
     public function belongsToCurrentTenant(Employee $employee): bool
     {
@@ -196,8 +176,6 @@ class EmployeeResolutionService
     /**
      * Get Employee by employee code
      *
-     * @param string $employeeCode
-     * @return Employee
      * @throws UserNotOnboardedException
      */
     public function resolveByEmployeeCode(string $employeeCode): Employee
@@ -219,8 +197,6 @@ class EmployeeResolutionService
      * Get Employee statistics
      *
      * Useful for admin dashboards
-     *
-     * @return array
      */
     public function getStatistics(): array
     {

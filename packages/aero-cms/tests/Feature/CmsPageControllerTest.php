@@ -2,9 +2,9 @@
 
 namespace Tests\Feature\Cms;
 
-use Tests\TestCase;
-use Inertia\Testing\AssertableInertia;
 use App\Models\User;
+use Inertia\Testing\AssertableInertia;
+use Tests\TestCase;
 
 class CmsPageControllerTest extends TestCase
 {
@@ -27,9 +27,8 @@ class CmsPageControllerTest extends TestCase
             ->get(route('admin.cms.pages.index'));
 
         $response->assertStatus(200);
-        $response->assertInertia(fn (AssertableInertia $page) =>
-            $page->component('Platform/Admin/Cms/Pages/Index')
-                ->has('pages.data', 5)
+        $response->assertInertia(fn (AssertableInertia $page) => $page->component('Platform/Admin/Cms/Pages/Index')
+            ->has('pages.data', 5)
         );
     }
 
@@ -89,7 +88,7 @@ class CmsPageControllerTest extends TestCase
         $response = $this->actingAs($this->user)
             ->post(route('admin.cms.pages.duplicate', $page));
 
-        $this->assertEquals(2, CmsPage::where('slug', 'like', $page->slug . '%')->count());
+        $this->assertEquals(2, CmsPage::where('slug', 'like', $page->slug.'%')->count());
     }
 
     public function test_can_publish_cms_page()

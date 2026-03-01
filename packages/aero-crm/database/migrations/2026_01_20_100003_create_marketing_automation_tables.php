@@ -34,7 +34,7 @@ return new class extends Migration
                 'page_visited',
                 'date_based',
                 'manual',
-                'api'
+                'api',
             ]);
             $table->json('trigger_conditions')->nullable();
             $table->json('entry_criteria')->nullable();
@@ -74,7 +74,7 @@ return new class extends Migration
                 'internal_notification',
                 'score_lead',
                 'move_stage',
-                'goal'
+                'goal',
             ]);
             $table->json('config')->nullable();
             $table->json('conditions')->nullable();

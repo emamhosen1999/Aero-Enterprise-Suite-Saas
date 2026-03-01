@@ -14,7 +14,7 @@ class WorkCalendar extends Model
     protected $fillable = [
         'name', 'description', 'monday_hours', 'tuesday_hours', 'wednesday_hours',
         'thursday_hours', 'friday_hours', 'saturday_hours', 'sunday_hours',
-        'is_active'
+        'is_active',
     ];
 
     protected $casts = [

@@ -23,7 +23,6 @@ class TrainingScheduled extends BaseHrmEvent
     /**
      * Create a new event instance.
      *
-     * @param  Training  $training
      * @param  array<int>  $enrolledEmployeeIds  Array of employee IDs enrolled
      * @param  int|null  $actorEmployeeId  Employee ID who scheduled the training
      */
@@ -74,6 +73,6 @@ class TrainingScheduled extends BaseHrmEvent
 
     public function shouldNotify(): bool
     {
-        return !empty($this->enrolledEmployeeIds);
+        return ! empty($this->enrolledEmployeeIds);
     }
 }

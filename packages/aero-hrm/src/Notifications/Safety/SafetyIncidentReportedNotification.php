@@ -21,18 +21,18 @@ class SafetyIncidentReportedNotification extends Notification implements ShouldQ
     public function via($notifiable): array
     {
         $channels = ['database'];
-        
+
         if ($this->isChannelEnabled('mail', $notifiable)) {
             $channels[] = 'mail';
         }
-        
+
         // Always use push for high-severity incidents
         if ($this->requiresImmediateAction) {
             $channels[] = 'broadcast';
         } elseif ($this->isChannelEnabled('push', $notifiable)) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels;
     }
 
@@ -40,17 +40,17 @@ class SafetyIncidentReportedNotification extends Notification implements ShouldQ
     {
         $severityLabel = strtoupper($this->incident->severity);
         $urgentFlag = $this->requiresImmediateAction ? ' [URGENT]' : '';
-        
+
         $message = (new MailMessage)
             ->subject("Safety Incident Reported - {$severityLabel}{$urgentFlag}")
-            ->greeting("Safety Alert!")
+            ->greeting('Safety Alert!')
             ->line("A safety incident has been reported with {$severityLabel} severity.")
             ->line("Incident Type: {$this->incident->incident_type}")
             ->line("Reported Date: {$this->incident->incident_date->format('M d, Y \\a\\t h:i A')}")
             ->line("Location: {$this->incident->location}");
 
         if ($this->incident->description) {
-            $message->line("Description: " . substr($this->incident->description, 0, 200));
+            $message->line('Description: '.substr($this->incident->description, 0, 200));
         }
 
         if ($this->requiresImmediateAction) {
@@ -74,7 +74,7 @@ class SafetyIncidentReportedNotification extends Notification implements ShouldQ
             'location' => $this->incident->location,
             'requires_immediate_action' => $this->requiresImmediateAction,
             'reported_by' => $this->incident->reported_by,
-            'message' => $this->requiresImmediateAction 
+            'message' => $this->requiresImmediateAction
                 ? "⚠️ URGENT: {$this->incident->incident_type} - {$this->incident->severity} severity"
                 : "Safety incident reported: {$this->incident->incident_type}",
             'action_url' => route('safety.incidents.show', $this->incident->id),
@@ -85,7 +85,7 @@ class SafetyIncidentReportedNotification extends Notification implements ShouldQ
     public function toBroadcast($notifiable): array
     {
         $icon = $this->requiresImmediateAction ? '🚨' : '⚠️';
-        
+
         return [
             'title' => "{$icon} Safety Incident",
             'body' => "{$this->incident->incident_type} - {$this->incident->severity} severity",
@@ -100,15 +100,15 @@ class SafetyIncidentReportedNotification extends Notification implements ShouldQ
         $globalSetting = DB::table('notification_settings')
             ->where('key', "channels.{$channel}.enabled")
             ->first();
-        
-        if (!$globalSetting || !json_decode($globalSetting->value)) {
+
+        if (! $globalSetting || ! json_decode($globalSetting->value)) {
             return false;
         }
-        
+
         if (method_exists($notifiable, 'prefersNotificationChannel')) {
             return $notifiable->prefersNotificationChannel($channel, 'safety.incident_reported');
         }
-        
+
         return true;
     }
 }

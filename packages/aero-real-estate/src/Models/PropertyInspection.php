@@ -2,10 +2,10 @@
 
 namespace Aero\RealEstate\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class PropertyInspection extends Model
 {
@@ -17,7 +17,7 @@ class PropertyInspection extends Model
         'property_id', 'inspection_type', 'inspector_name', 'inspector_company',
         'inspector_license', 'scheduled_date', 'completed_date', 'status',
         'inspection_report', 'findings', 'recommendations', 'estimated_repair_cost',
-        'overall_condition', 'pass_fail', 'notes', 'created_by'
+        'overall_condition', 'pass_fail', 'notes', 'created_by',
     ];
 
     protected $casts = [
@@ -32,23 +32,37 @@ class PropertyInspection extends Model
     ];
 
     const TYPE_PRE_LISTING = 'pre_listing';
+
     const TYPE_BUYER = 'buyer';
+
     const TYPE_APPRAISAL = 'appraisal';
+
     const TYPE_MOVE_IN = 'move_in';
+
     const TYPE_MOVE_OUT = 'move_out';
+
     const TYPE_ANNUAL = 'annual';
+
     const TYPE_MAINTENANCE = 'maintenance';
+
     const TYPE_INSURANCE = 'insurance';
 
     const STATUS_SCHEDULED = 'scheduled';
+
     const STATUS_IN_PROGRESS = 'in_progress';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_CANCELLED = 'cancelled';
+
     const STATUS_RESCHEDULED = 'rescheduled';
 
     const CONDITION_EXCELLENT = 'excellent';
+
     const CONDITION_GOOD = 'good';
+
     const CONDITION_FAIR = 'fair';
+
     const CONDITION_POOR = 'poor';
 
     public function property()
@@ -88,9 +102,9 @@ class PropertyInspection extends Model
 
     public function isOverdue()
     {
-        return $this->scheduled_date && 
-               $this->scheduled_date < now() && 
-               !$this->isCompleted();
+        return $this->scheduled_date &&
+               $this->scheduled_date < now() &&
+               ! $this->isCompleted();
     }
 
     public function getDurationAttribute()
@@ -98,25 +112,30 @@ class PropertyInspection extends Model
         if ($this->scheduled_date && $this->completed_date) {
             return $this->scheduled_date->diffInMinutes($this->completed_date);
         }
+
         return null;
     }
 
     public function getCriticalIssuesAttribute()
     {
-        if (!is_array($this->findings)) return [];
-        
-        return array_filter($this->findings, function($finding) {
-            return isset($finding['severity']) && 
+        if (! is_array($this->findings)) {
+            return [];
+        }
+
+        return array_filter($this->findings, function ($finding) {
+            return isset($finding['severity']) &&
                    in_array($finding['severity'], ['critical', 'major']);
         });
     }
 
     public function getMinorIssuesAttribute()
     {
-        if (!is_array($this->findings)) return [];
-        
-        return array_filter($this->findings, function($finding) {
-            return isset($finding['severity']) && 
+        if (! is_array($this->findings)) {
+            return [];
+        }
+
+        return array_filter($this->findings, function ($finding) {
+            return isset($finding['severity']) &&
                    $finding['severity'] === 'minor';
         });
     }
@@ -133,7 +152,7 @@ class PropertyInspection extends Model
 
     public function getConditionScoreAttribute()
     {
-        return match($this->overall_condition) {
+        return match ($this->overall_condition) {
             self::CONDITION_EXCELLENT => 100,
             self::CONDITION_GOOD => 80,
             self::CONDITION_FAIR => 60,
@@ -170,6 +189,6 @@ class PropertyInspection extends Model
     public function scopeOverdue($query)
     {
         return $query->where('scheduled_date', '<', now())
-                    ->where('status', '!=', self::STATUS_COMPLETED);
+            ->where('status', '!=', self::STATUS_COMPLETED);
     }
 }

@@ -67,7 +67,7 @@ class LateArrivalNotification extends BaseHrmNotification
             'date' => $this->attendance->date?->format('Y-m-d'),
             'clock_in' => $this->attendance->punchin?->format('H:i:s'),
             'late_count' => $this->lateCount,
-            'message' => ($employee?->name ?? 'An employee') . " arrived late on {$this->attendance->date?->format('M d')}. Late count this month: {$this->lateCount}",
+            'message' => ($employee?->name ?? 'An employee')." arrived late on {$this->attendance->date?->format('M d')}. Late count this month: {$this->lateCount}",
             'action_url' => '/hrm/attendance',
         ];
     }

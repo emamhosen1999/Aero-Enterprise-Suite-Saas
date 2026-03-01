@@ -2,11 +2,10 @@
 
 namespace AeroHRM\Models;
 
+use AeroCore\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use AeroHRM\Models\Department;
-use AeroCore\Models\User;
 
 class TaskTemplate extends Model
 {

@@ -26,7 +26,6 @@ use Illuminate\Support\Facades\Auth;
  * @property \Carbon\Carbon|null $created_at
  * @property \Carbon\Carbon|null $updated_at
  * @property \Carbon\Carbon|null $deleted_at
- *
  * @property-read Employee $employee
  * @property-read User|null $creator
  * @property-read User|null $updater

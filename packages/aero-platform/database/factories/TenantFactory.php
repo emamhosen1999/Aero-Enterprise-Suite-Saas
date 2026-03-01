@@ -29,7 +29,7 @@ class TenantFactory extends Factory
     public function definition(): array
     {
         $companyName = fake()->company();
-        $subdomain = Str::slug($companyName) . '-' . fake()->unique()->numberBetween(1, 9999);
+        $subdomain = Str::slug($companyName).'-'.fake()->unique()->numberBetween(1, 9999);
 
         return [
             'id' => (string) Str::uuid(),
@@ -164,7 +164,7 @@ class TenantFactory extends Factory
     /**
      * Set up admin data for provisioning.
      */
-    public function withAdminData(string $name = null, string $email = null): static
+    public function withAdminData(?string $name = null, ?string $email = null): static
     {
         return $this->state(fn (array $attributes) => [
             'admin_data' => [

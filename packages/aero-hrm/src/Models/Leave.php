@@ -28,7 +28,6 @@ use Illuminate\Database\Eloquent\Model;
  * @property \Carbon\Carbon|null $submitted_at
  * @property \Carbon\Carbon|null $created_at
  * @property \Carbon\Carbon|null $updated_at
- *
  * @property-read User $user
  * @property-read User $employee Note: Returns User model, not Employee
  * @property-read LeaveSetting|null $leaveSetting

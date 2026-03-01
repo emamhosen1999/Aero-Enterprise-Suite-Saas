@@ -3,8 +3,8 @@
 namespace Aero\Core\Services;
 
 use Aero\Core\Contracts\ModuleProviderInterface;
-use Illuminate\Support\Collection;
 use Aero\Core\Support\TenantCache;
+use Illuminate\Support\Collection;
 
 /**
  * Module Registry Service
@@ -41,29 +41,23 @@ class ModuleRegistry
 
     /**
      * Register a module provider.
-     *
-     * @param ModuleProviderInterface $provider
-     * @return void
      */
     public function register(ModuleProviderInterface $provider): void
     {
         $moduleCode = $provider->getModuleCode();
-        
+
         if ($this->modules->has($moduleCode)) {
             throw new \RuntimeException("Module '{$moduleCode}' is already registered.");
         }
 
         $this->modules->put($moduleCode, $provider);
-        
+
         // Clear cache when new module is registered
         $this->clearCache();
     }
 
     /**
      * Get a registered module by code.
-     *
-     * @param string $moduleCode
-     * @return ModuleProviderInterface|null
      */
     public function get(string $moduleCode): ?ModuleProviderInterface
     {
@@ -94,9 +88,6 @@ class ModuleRegistry
 
     /**
      * Check if a module is registered.
-     *
-     * @param string $moduleCode
-     * @return bool
      */
     public function has(string $moduleCode): bool
     {
@@ -105,20 +96,17 @@ class ModuleRegistry
 
     /**
      * Check if a module is enabled.
-     *
-     * @param string $moduleCode
-     * @return bool
      */
     public function isEnabled(string $moduleCode): bool
     {
         $module = $this->get($moduleCode);
+
         return $module && $module->isEnabled();
     }
 
     /**
      * Get modules by category.
      *
-     * @param string $category
      * @return Collection<string, ModuleProviderInterface>
      */
     public function byCategory(string $category): Collection
@@ -142,14 +130,12 @@ class ModuleRegistry
 
     /**
      * Get navigation items for all enabled modules.
-     *
-     * @return array
      */
     public function getNavigationItems(): array
     {
         try {
             return TenantCache::remember(
-                self::CACHE_KEY . '.navigation',
+                self::CACHE_KEY.'.navigation',
                 self::CACHE_TTL,
                 function () {
                     return $this->enabled()
@@ -179,14 +165,12 @@ class ModuleRegistry
 
     /**
      * Get module hierarchy for all enabled modules.
-     *
-     * @return array
      */
     public function getModuleHierarchy(): array
     {
         try {
             return TenantCache::remember(
-                self::CACHE_KEY . '.hierarchy',
+                self::CACHE_KEY.'.hierarchy',
                 self::CACHE_TTL,
                 function () {
                     return $this->enabled()
@@ -236,8 +220,6 @@ class ModuleRegistry
 
     /**
      * Get routes for all enabled modules.
-     *
-     * @return array
      */
     public function getRoutes(): array
     {
@@ -251,48 +233,43 @@ class ModuleRegistry
     /**
      * Validate module dependencies.
      *
-     * @param string $moduleCode
-     * @return bool
      * @throws \RuntimeException
      */
     public function validateDependencies(string $moduleCode): bool
     {
         $module = $this->get($moduleCode);
-        
-        if (!$module) {
+
+        if (! $module) {
             throw new \RuntimeException("Module '{$moduleCode}' not found.");
         }
 
         $dependencies = $module->getDependencies();
-        
+
         foreach ($dependencies as $dependency) {
-            if (!$this->has($dependency)) {
+            if (! $this->has($dependency)) {
                 throw new \RuntimeException(
                     "Module '{$moduleCode}' requires '{$dependency}' which is not registered."
                 );
             }
-            
-            if (!$this->isEnabled($dependency)) {
+
+            if (! $this->isEnabled($dependency)) {
                 throw new \RuntimeException(
                     "Module '{$moduleCode}' requires '{$dependency}' which is not enabled."
                 );
             }
         }
-        
+
         return true;
     }
 
     /**
      * Get module metadata.
-     *
-     * @param string $moduleCode
-     * @return array|null
      */
     public function getMetadata(string $moduleCode): ?array
     {
         $module = $this->get($moduleCode);
-        
-        if (!$module) {
+
+        if (! $module) {
             return null;
         }
 
@@ -312,8 +289,6 @@ class ModuleRegistry
 
     /**
      * Get all module metadata.
-     *
-     * @return array
      */
     public function getAllMetadata(): array
     {
@@ -327,14 +302,12 @@ class ModuleRegistry
 
     /**
      * Clear the module cache.
-     *
-     * @return void
      */
     public function clearCache(): void
     {
         try {
-            TenantCache::forget(self::CACHE_KEY . '.navigation');
-            TenantCache::forget(self::CACHE_KEY . '.hierarchy');
+            TenantCache::forget(self::CACHE_KEY.'.navigation');
+            TenantCache::forget(self::CACHE_KEY.'.hierarchy');
         } catch (\Throwable $e) {
             // Cache not available during early boot, ignore
         }
@@ -342,8 +315,6 @@ class ModuleRegistry
 
     /**
      * Boot all registered modules.
-     *
-     * @return void
      */
     public function bootAll(): void
     {
@@ -351,7 +322,7 @@ class ModuleRegistry
             if ($provider->isEnabled()) {
                 // Validate dependencies before booting
                 $this->validateDependencies($provider->getModuleCode());
-                
+
                 // Boot the module
                 $provider->boot();
             }
@@ -360,8 +331,6 @@ class ModuleRegistry
 
     /**
      * Count registered modules.
-     *
-     * @return int
      */
     public function count(): int
     {
@@ -370,8 +339,6 @@ class ModuleRegistry
 
     /**
      * Count enabled modules.
-     *
-     * @return int
      */
     public function countEnabled(): int
     {

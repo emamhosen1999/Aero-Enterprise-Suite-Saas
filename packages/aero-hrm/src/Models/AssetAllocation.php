@@ -5,8 +5,8 @@ namespace Aero\HRM\Models;
 use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class AssetAllocation extends Model
 {
@@ -102,7 +102,7 @@ class AssetAllocation extends Model
      */
     public function isOverdue(): bool
     {
-        if (!$this->expected_return_date || $this->returned_date) {
+        if (! $this->expected_return_date || $this->returned_date) {
             return false;
         }
 

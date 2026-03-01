@@ -27,7 +27,7 @@ class NewApplicationNotification extends BaseHrmNotification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $candidateName = trim(($this->application->first_name ?? '') . ' ' . ($this->application->last_name ?? ''));
+        $candidateName = trim(($this->application->first_name ?? '').' '.($this->application->last_name ?? ''));
         if (empty($candidateName)) {
             $candidateName = $this->application->name ?? 'Candidate';
         }
@@ -40,8 +40,8 @@ class NewApplicationNotification extends BaseHrmNotification
             ->line('**Candidate Details:**')
             ->line("Name: {$candidateName}")
             ->line("Email: {$this->application->email}")
-            ->line('Phone: ' . ($this->application->phone ?? 'N/A'))
-            ->line('Experience: ' . ($this->application->years_of_experience ?? 0) . ' years')
+            ->line('Phone: '.($this->application->phone ?? 'N/A'))
+            ->line('Experience: '.($this->application->years_of_experience ?? 0).' years')
             ->action('Review Application', url("/hrm/recruitment/applicants/{$this->application->id}"))
             ->line('Please review the application and take appropriate action.');
     }
@@ -51,7 +51,7 @@ class NewApplicationNotification extends BaseHrmNotification
      */
     public function toArray(object $notifiable): array
     {
-        $candidateName = trim(($this->application->first_name ?? '') . ' ' . ($this->application->last_name ?? ''));
+        $candidateName = trim(($this->application->first_name ?? '').' '.($this->application->last_name ?? ''));
         if (empty($candidateName)) {
             $candidateName = $this->application->name ?? 'Candidate';
         }
@@ -82,7 +82,7 @@ class NewApplicationNotification extends BaseHrmNotification
      */
     protected function getFcmBody(): string
     {
-        $candidateName = trim(($this->application->first_name ?? '') . ' ' . ($this->application->last_name ?? ''));
+        $candidateName = trim(($this->application->first_name ?? '').' '.($this->application->last_name ?? ''));
         if (empty($candidateName)) {
             $candidateName = $this->application->name ?? 'A candidate';
         }

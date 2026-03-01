@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Aero\HRM\Tests\Unit\Services;
 
-use Aero\HRM\Services\EmployeeResolutionService;
-use Aero\HRM\Models\Employee;
-use Aero\HRM\Exceptions\UserNotOnboardedException;
 use Aero\Core\Models\User;
+use Aero\HRM\Exceptions\UserNotOnboardedException;
+use Aero\HRM\Models\Employee;
+use Aero\HRM\Services\EmployeeResolutionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -28,7 +28,7 @@ class EmployeeResolutionServiceTest extends TestCase
         $this->service = app(EmployeeResolutionService::class);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_resolves_employee_from_user_id()
     {
         // Arrange
@@ -43,7 +43,7 @@ class EmployeeResolutionServiceTest extends TestCase
         $this->assertEquals($user->id, $resolved->user_id);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_throws_exception_when_user_not_onboarded()
     {
         // Arrange
@@ -57,7 +57,7 @@ class EmployeeResolutionServiceTest extends TestCase
         $this->service->resolveFromUserId($user->id);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_checks_if_user_has_employee()
     {
         // Arrange
@@ -71,7 +71,7 @@ class EmployeeResolutionServiceTest extends TestCase
         $this->assertFalse($this->service->hasEmployee($userWithoutEmployee->id));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_resolves_employee_or_returns_null()
     {
         // Arrange
@@ -90,7 +90,7 @@ class EmployeeResolutionServiceTest extends TestCase
         $this->assertNull($notResolved);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_resolves_multiple_employees()
     {
         // Arrange
@@ -110,7 +110,7 @@ class EmployeeResolutionServiceTest extends TestCase
         $this->assertTrue($resolved->contains('id', $employee2->id));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_eagerly_loads_relationships()
     {
         // Arrange
@@ -126,7 +126,7 @@ class EmployeeResolutionServiceTest extends TestCase
         $this->assertTrue($resolved->relationLoaded('user'));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_resolves_employee_by_employee_code()
     {
         // Arrange
@@ -139,7 +139,7 @@ class EmployeeResolutionServiceTest extends TestCase
         $this->assertEquals($employee->id, $resolved->id);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_throws_exception_for_nonexistent_employee_code()
     {
         // Act & Assert
@@ -149,7 +149,7 @@ class EmployeeResolutionServiceTest extends TestCase
         $this->service->resolveByEmployeeCode('NONEXISTENT');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_gets_employee_statistics()
     {
         // Arrange
@@ -169,7 +169,7 @@ class EmployeeResolutionServiceTest extends TestCase
         $this->assertEquals(1, $stats['on_probation']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_clears_cache_for_employee()
     {
         // Arrange

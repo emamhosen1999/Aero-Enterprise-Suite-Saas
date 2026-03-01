@@ -6,16 +6,16 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * DUPLICATE MIGRATION - Also exists in database/migrations/
- * 
+ *
  * This migration creates the role_module_access table.
  * It exists in BOTH root and tenant migrations with DIFFERENT IMPLEMENTATIONS:
- * 
+ *
  * - Root (Central DB): Has foreign key constraints to modules, sub_modules, etc.
  *   (all tables are in the same central database)
- * 
+ *
  * - Tenant (Tenant DB): Uses unsigned integers WITHOUT foreign keys
  *   (module hierarchy is in central DB, so cross-database references not possible)
- * 
+ *
  * This architectural difference is intentional and required for multi-tenant isolation.
  * Module hierarchy definitions are centralized but tenant roles reference them by ID.
  */
@@ -33,7 +33,7 @@ return new class extends Migration
      * Example:
      * - role_id=1, module_id=5, others=null → Role has FULL access to module 5 (all children)
      * - role_id=1, action_id=42, others=null → Role has access to ONLY action 42
-     * 
+     *
      * NOTE: module_id, sub_module_id, component_id, and action_id are references to
      * tables in the CENTRAL database. They cannot have foreign key constraints since
      * they're cross-database references.

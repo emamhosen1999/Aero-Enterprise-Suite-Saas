@@ -21,7 +21,7 @@ class PublicPageControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_display_published_page()
     {
         $page = CmsPage::factory()->create([
@@ -38,7 +38,7 @@ class PublicPageControllerTest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_returns_404_for_non_existent_page()
     {
         $response = $this->get('/non-existent-page');
@@ -46,7 +46,7 @@ class PublicPageControllerTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_returns_404_for_draft_pages_to_public()
     {
         CmsPage::factory()->create([
@@ -59,7 +59,7 @@ class PublicPageControllerTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_allows_preview_of_draft_pages_for_authenticated_users()
     {
         $this->actingAsAuthenticatedUser();
@@ -74,7 +74,7 @@ class PublicPageControllerTest extends TestCase
         $response->assertStatus(200);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_includes_page_blocks_in_response()
     {
         $page = CmsPage::factory()
@@ -88,7 +88,7 @@ class PublicPageControllerTest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_orders_blocks_correctly()
     {
         $page = CmsPage::factory()->create(['status' => 'published']);
@@ -121,7 +121,7 @@ class PublicPageControllerTest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_excludes_hidden_blocks()
     {
         $page = CmsPage::factory()->create(['status' => 'published']);
@@ -143,7 +143,7 @@ class PublicPageControllerTest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_homepage_slug()
     {
         CmsPage::factory()->create([
@@ -157,7 +157,7 @@ class PublicPageControllerTest extends TestCase
         $response->assertStatus(200);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_sets_correct_meta_tags()
     {
         $page = CmsPage::factory()->create([
@@ -175,7 +175,7 @@ class PublicPageControllerTest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_increments_view_count()
     {
         $page = CmsPage::factory()->create([
@@ -191,7 +191,7 @@ class PublicPageControllerTest extends TestCase
         $this->assertEquals(3, $page->fresh()->view_count);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_scheduled_pages()
     {
         // Future scheduled page - should return 404

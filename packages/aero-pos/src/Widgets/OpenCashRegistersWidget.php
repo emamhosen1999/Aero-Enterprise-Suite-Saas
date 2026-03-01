@@ -18,10 +18,15 @@ use Aero\Core\Contracts\CoreWidgetCategory;
 class OpenCashRegistersWidget extends AbstractDashboardWidget
 {
     protected string $position = 'main_left';
+
     protected int $order = 51;
+
     protected int|string $span = 1;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
+
     protected array $requiredPermissions = ['pos.registers'];
+
     protected array $dashboards = ['pos'];
 
     public function getKey(): string

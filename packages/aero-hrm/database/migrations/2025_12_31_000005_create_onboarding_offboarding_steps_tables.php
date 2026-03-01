@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('onboarding_steps')) {
+        if (! Schema::hasTable('onboarding_steps')) {
             Schema::create('onboarding_steps', function (Blueprint $table) {
                 $table->id();
                 $table->string('name');
@@ -27,7 +27,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('offboardings')) {
+        if (! Schema::hasTable('offboardings')) {
             Schema::create('offboardings', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('employee_id')->constrained('employees')->cascadeOnDelete();
@@ -44,7 +44,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('offboarding_steps')) {
+        if (! Schema::hasTable('offboarding_steps')) {
             Schema::create('offboarding_steps', function (Blueprint $table) {
                 $table->id();
                 $table->string('name');
@@ -60,7 +60,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('offboarding_tasks')) {
+        if (! Schema::hasTable('offboarding_tasks')) {
             Schema::create('offboarding_tasks', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('offboarding_id')->constrained('offboardings')->cascadeOnDelete();

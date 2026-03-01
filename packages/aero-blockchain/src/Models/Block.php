@@ -16,7 +16,7 @@ class Block extends Model
         'blockchain_id', 'block_number', 'block_hash', 'parent_hash',
         'merkle_root', 'timestamp', 'parent_timestamp', 'nonce', 'difficulty',
         'gas_limit', 'gas_used', 'miner', 'reward', 'transaction_count',
-        'block_size', 'confirmation_count', 'is_finalized', 'block_data'
+        'block_size', 'confirmation_count', 'is_finalized', 'block_data',
     ];
 
     protected $casts = [
@@ -61,18 +61,25 @@ class Block extends Model
         if ($this->parent_timestamp) {
             return $this->timestamp->diffInSeconds($this->parent_timestamp);
         }
+
         return null;
     }
 
     public function getGasUtilizationAttribute()
     {
-        if (!$this->gas_limit) return 0;
+        if (! $this->gas_limit) {
+            return 0;
+        }
+
         return round(($this->gas_used / $this->gas_limit) * 100, 2);
     }
 
     public function getAverageTransactionFeeAttribute()
     {
-        if ($this->transaction_count === 0) return 0;
+        if ($this->transaction_count === 0) {
+            return 0;
+        }
+
         return $this->transactions()->avg('fee') ?: 0;
     }
 
@@ -84,8 +91,8 @@ class Block extends Model
     public function getConfirmationStatusAttribute()
     {
         $requiredConfirmations = $this->blockchain->confirmation_blocks ?: 6;
-        
-        return match(true) {
+
+        return match (true) {
             $this->confirmation_count >= $requiredConfirmations => 'confirmed',
             $this->confirmation_count > 0 => 'confirming',
             default => 'unconfirmed'
@@ -105,21 +112,21 @@ class Block extends Model
     public function validateHash()
     {
         // Basic hash validation - would need more sophisticated validation in production
-        return !empty($this->block_hash) && 
-               strlen($this->block_hash) === 66 && 
+        return ! empty($this->block_hash) &&
+               strlen($this->block_hash) === 66 &&
                str_starts_with($this->block_hash, '0x');
     }
 
     public function calculateMerkleRoot()
     {
         $transactionHashes = $this->transactions()
-                                 ->pluck('transaction_hash')
-                                 ->toArray();
-        
+            ->pluck('transaction_hash')
+            ->toArray();
+
         if (empty($transactionHashes)) {
             return null;
         }
-        
+
         // Simplified Merkle root calculation
         return hash('sha256', implode('', $transactionHashes));
     }
@@ -127,10 +134,10 @@ class Block extends Model
     public function incrementConfirmations()
     {
         $this->increment('confirmation_count');
-        
+
         // Check if block should be finalized
         $requiredConfirmations = $this->blockchain->confirmation_blocks ?: 6;
-        if ($this->confirmation_count >= $requiredConfirmations && !$this->is_finalized) {
+        if ($this->confirmation_count >= $requiredConfirmations && ! $this->is_finalized) {
             $this->update(['is_finalized' => true]);
         }
     }

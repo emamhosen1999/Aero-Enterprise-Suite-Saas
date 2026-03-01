@@ -7,8 +7,8 @@ namespace Aero\Cms\Models;
 use Aero\Cms\Database\Factories\CmsPageFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
@@ -84,7 +84,7 @@ class CmsPage extends Model
             $originalSlug = $page->slug;
             $counter = 1;
             while (static::where('slug', $page->slug)->exists()) {
-                $page->slug = $originalSlug . '-' . $counter++;
+                $page->slug = $originalSlug.'-'.$counter++;
             }
         });
 
@@ -229,7 +229,7 @@ class CmsPage extends Model
             return '/';
         }
 
-        return '/' . $this->slug;
+        return '/'.$this->slug;
     }
 
     /**
@@ -238,7 +238,7 @@ class CmsPage extends Model
     public function getFullPathAttribute(): string
     {
         if ($this->parent) {
-            return $this->parent->full_path . '/' . $this->slug;
+            return $this->parent->full_path.'/'.$this->slug;
         }
 
         return $this->slug;

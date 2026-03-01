@@ -29,7 +29,6 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $remarks
  * @property \Carbon\Carbon|null $created_at
  * @property \Carbon\Carbon|null $updated_at
- *
  * @property-read User $employee
  * @property-read User|null $processedBy
  * @property-read string $period

@@ -2,10 +2,10 @@
 
 namespace Aero\FieldService\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class ServiceAgreement extends Model
 {
@@ -18,7 +18,7 @@ class ServiceAgreement extends Model
         'title', 'description', 'start_date', 'end_date', 'status',
         'billing_frequency', 'contract_value', 'currency', 'response_time_hours',
         'coverage_hours', 'included_services', 'excluded_services',
-        'terms_and_conditions', 'created_by', 'approved_by', 'approved_at'
+        'terms_and_conditions', 'created_by', 'approved_by', 'approved_at',
     ];
 
     protected $casts = [
@@ -37,19 +37,29 @@ class ServiceAgreement extends Model
     ];
 
     const TYPE_MAINTENANCE = 'maintenance';
+
     const TYPE_FULL_SERVICE = 'full_service';
+
     const TYPE_WARRANTY = 'warranty';
+
     const TYPE_ON_DEMAND = 'on_demand';
 
     const STATUS_DRAFT = 'draft';
+
     const STATUS_ACTIVE = 'active';
+
     const STATUS_EXPIRED = 'expired';
+
     const STATUS_CANCELLED = 'cancelled';
+
     const STATUS_SUSPENDED = 'suspended';
 
     const BILLING_MONTHLY = 'monthly';
+
     const BILLING_QUARTERLY = 'quarterly';
+
     const BILLING_ANNUALLY = 'annually';
+
     const BILLING_PER_SERVICE = 'per_service';
 
     public function customer()
@@ -105,6 +115,7 @@ class ServiceAgreement extends Model
         if ($this->end_date) {
             return now()->diffInDays($this->end_date, false);
         }
+
         return null;
     }
 }

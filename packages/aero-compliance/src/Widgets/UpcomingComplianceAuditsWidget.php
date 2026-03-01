@@ -18,10 +18,15 @@ use Aero\Core\Contracts\CoreWidgetCategory;
 class UpcomingComplianceAuditsWidget extends AbstractDashboardWidget
 {
     protected string $position = 'main_right';
+
     protected int $order = 30;
+
     protected int|string $span = 1;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::DISPLAY;
+
     protected array $requiredPermissions = ['compliance.audits'];
+
     protected array $dashboards = ['compliance'];
 
     public function getKey(): string

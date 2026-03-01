@@ -8,7 +8,7 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     * 
+     *
      * Adds chainage gap analysis and layer sequencing support.
      * This is the PATENTABLE enhancement for spatial indexing.
      */
@@ -17,32 +17,32 @@ return new class extends Migration
         // Enhance work_locations with numeric chainage for precise calculations
         Schema::table('work_locations', function (Blueprint $table) {
             // Numeric chainage in meters for precise gap analysis
-            if (!Schema::hasColumn('work_locations', 'start_chainage_m')) {
+            if (! Schema::hasColumn('work_locations', 'start_chainage_m')) {
                 $table->decimal('start_chainage_m', 12, 3)->nullable()->after('end_chainage')
                     ->comment('Start chainage in meters (e.g., 15200.500)');
             }
-            if (!Schema::hasColumn('work_locations', 'end_chainage_m')) {
+            if (! Schema::hasColumn('work_locations', 'end_chainage_m')) {
                 $table->decimal('end_chainage_m', 12, 3)->nullable()->after('start_chainage_m')
                     ->comment('End chainage in meters');
             }
-            
+
             // Offset and elevation for 3D positioning (roads have left/right sides)
-            if (!Schema::hasColumn('work_locations', 'offset_left')) {
+            if (! Schema::hasColumn('work_locations', 'offset_left')) {
                 $table->decimal('offset_left', 8, 3)->nullable()->after('end_chainage_m')
                     ->comment('Left offset from centerline in meters');
             }
-            if (!Schema::hasColumn('work_locations', 'offset_right')) {
+            if (! Schema::hasColumn('work_locations', 'offset_right')) {
                 $table->decimal('offset_right', 8, 3)->nullable()->after('offset_left')
                     ->comment('Right offset from centerline in meters');
             }
-            
+
             // Project reference (multi-project support)
-            if (!Schema::hasColumn('work_locations', 'project_id')) {
+            if (! Schema::hasColumn('work_locations', 'project_id')) {
                 $table->foreignId('project_id')->nullable()->after('id')
                     ->comment('Associated project for this work location');
             }
         });
-        
+
         // Add indexes separately to avoid issues with conditional column creation
         if (Schema::hasColumn('work_locations', 'start_chainage_m') && Schema::hasColumn('work_locations', 'end_chainage_m')) {
             try {
@@ -85,7 +85,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();
-            
+
             // Only create unique constraint if project_id is present
             if (Schema::hasTable('projects')) {
                 $table->unique(['project_id', 'code']);
@@ -107,11 +107,11 @@ return new class extends Migration
             $table->foreignId('work_layer_id')->constrained()->cascadeOnDelete();
             $table->decimal('start_chainage_m', 12, 3);
             $table->decimal('end_chainage_m', 12, 3);
-            
+
             // Status tracking
             $table->string('status')->default('not_started')
                 ->comment('not_started, rfi_submitted, inspected, approved, rejected');
-            
+
             // Links to source records
             $table->foreignId('daily_work_id')->nullable()
                 ->constrained('daily_works')->nullOnDelete()
@@ -120,17 +120,17 @@ return new class extends Migration
                 ->comment('The quality inspection for this segment');
             $table->foreignId('boq_measurement_id')->nullable()
                 ->comment('The approved measurement for billing');
-            
+
             // Audit trail
             $table->timestamp('rfi_submitted_at')->nullable();
             $table->timestamp('inspected_at')->nullable();
             $table->timestamp('approved_at')->nullable();
             // Users table may not exist during migration - skip FK
             $table->unsignedBigInteger('approved_by_user_id')->nullable()->index();
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             // Indexes for gap analysis queries
             $table->index(['project_id', 'work_layer_id', 'status']);
             $table->index(['start_chainage_m', 'end_chainage_m']);
@@ -144,7 +144,7 @@ return new class extends Migration
     {
         Schema::dropIfExists('chainage_progress');
         Schema::dropIfExists('work_layers');
-        
+
         // Drop indexes if they exist
         try {
             Schema::table('work_locations', function (Blueprint $table) {
@@ -160,7 +160,7 @@ return new class extends Migration
         } catch (\Exception $e) {
             // Index may not exist
         }
-        
+
         // Drop columns if they exist
         $columnsToDrop = [];
         foreach (['start_chainage_m', 'end_chainage_m', 'offset_left', 'offset_right', 'project_id'] as $column) {
@@ -168,7 +168,7 @@ return new class extends Migration
                 $columnsToDrop[] = $column;
             }
         }
-        if (!empty($columnsToDrop)) {
+        if (! empty($columnsToDrop)) {
             Schema::table('work_locations', function (Blueprint $table) use ($columnsToDrop) {
                 $table->dropColumn($columnsToDrop);
             });

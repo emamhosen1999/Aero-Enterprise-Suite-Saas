@@ -4,8 +4,8 @@ namespace Aero\HRM\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Exit Interview Model
@@ -72,24 +72,38 @@ class ExitInterview extends Model
      * Departure reasons.
      */
     public const REASON_BETTER_OPPORTUNITY = 'better_opportunity';
+
     public const REASON_COMPENSATION = 'compensation';
+
     public const REASON_CAREER_GROWTH = 'career_growth';
+
     public const REASON_MANAGEMENT = 'management';
+
     public const REASON_WORK_LIFE_BALANCE = 'work_life_balance';
+
     public const REASON_RELOCATION = 'relocation';
+
     public const REASON_PERSONAL = 'personal';
+
     public const REASON_RETIREMENT = 'retirement';
+
     public const REASON_HEALTH = 'health';
+
     public const REASON_LAYOFF = 'layoff';
+
     public const REASON_TERMINATION = 'termination';
+
     public const REASON_OTHER = 'other';
 
     /**
      * Status options.
      */
     public const STATUS_SCHEDULED = 'scheduled';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_DECLINED = 'declined';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     public function employee(): BelongsTo

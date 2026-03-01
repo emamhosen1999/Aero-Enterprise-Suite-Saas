@@ -10,10 +10,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * BoqMeasurement Model
- * 
+ *
  * Represents a recorded measurement of work done, linked to an RFI.
  * This is the "Patentable Link" between RFI (Field) and Finance (Billing).
- * 
+ *
  * @property int $id
  * @property int $boq_item_id
  * @property int|null $daily_work_id (The RFI reference - column name preserved for DB compatibility)
@@ -36,13 +36,13 @@ class BoqMeasurement extends Model
         'location_description',
         'status',
         'verified_by_user_id',
-        'verified_at'
+        'verified_at',
     ];
 
     protected $casts = [
         'measured_quantity' => 'decimal:3',
         'dimensions' => 'array',
-        'verified_at' => 'datetime'
+        'verified_at' => 'datetime',
     ];
 
     public function boqItem(): BelongsTo

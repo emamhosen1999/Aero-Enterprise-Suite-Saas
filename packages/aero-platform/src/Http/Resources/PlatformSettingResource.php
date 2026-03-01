@@ -34,6 +34,8 @@ class PlatformSettingResource extends JsonResource
             'legal' => $setting->legal ?? [],
             'integrations' => $setting->integrations ?? [],
             'admin_preferences' => $setting->admin_preferences ?? [],
+            // hosting_settings: token field replaced with boolean flag for security
+            'hosting_settings' => $setting->getSanitizedHostingSettings(),
             'created_at' => $setting->created_at,
             'updated_at' => $setting->updated_at,
         ];

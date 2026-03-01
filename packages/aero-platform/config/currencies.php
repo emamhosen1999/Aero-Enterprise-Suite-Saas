@@ -73,19 +73,19 @@ return [
     'exchange_rate_api' => [
         // API provider (exchangerate-api.com, fixer.io, currencyapi.com)
         'provider' => env('EXCHANGE_RATE_PROVIDER', 'exchangerate-api'),
-        
+
         // API key (required for most providers)
         'api_key' => env('EXCHANGE_RATE_API_KEY', ''),
-        
+
         // Base URL for the API
         'api_url' => env('EXCHANGE_RATE_API_URL', 'https://api.exchangerate-api.com/v4/latest'),
-        
+
         // Enable automatic synchronization
         'auto_sync' => env('EXCHANGE_RATE_AUTO_SYNC', true),
-        
+
         // Sync frequency (daily via SyncExchangeRatesJob)
         'sync_frequency' => 'daily',
-        
+
         // Fallback to manual rates if API fails
         'fallback_to_manual' => true,
     ],
@@ -116,7 +116,7 @@ return [
 
     'regional_pricing' => [
         'enabled' => env('REGIONAL_PRICING_ENABLED', true),
-        
+
         // Psychological pricing rules (USD amount => local amount)
         'rules' => [
             'EUR' => [
@@ -175,7 +175,7 @@ return [
                 499 => 55000,
             ],
         ],
-        
+
         // Rounding strategy for non-predefined amounts
         'rounding' => [
             'EUR' => 'down_to_nearest_9',  // €88.42 → €89

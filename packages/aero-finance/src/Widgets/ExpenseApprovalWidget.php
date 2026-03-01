@@ -18,10 +18,15 @@ use Aero\Core\Contracts\CoreWidgetCategory;
 class ExpenseApprovalWidget extends AbstractDashboardWidget
 {
     protected string $position = 'main_left';
+
     protected int $order = 21;
+
     protected int|string $span = 1;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
+
     protected array $requiredPermissions = ['finance.expenses'];
+
     protected array $dashboards = ['finance'];
 
     public function getKey(): string

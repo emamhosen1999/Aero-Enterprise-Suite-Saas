@@ -2,12 +2,11 @@
 
 namespace Aero\HRM\Http\Controllers\Performance;
 
+use Aero\HRM\Events\Performance\PerformanceReviewCompleted;
+use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\PerformanceReview;
 use Aero\HRM\Models\PerformanceReviewTemplate;
-use Aero\HRM\Events\Performance\PerformanceReviewCompleted;
-use Aero\HRM\Http\Controllers\Controller;
-use Aero\Core\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;

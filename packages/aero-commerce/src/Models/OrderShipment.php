@@ -2,10 +2,10 @@
 
 namespace Aero\Commerce\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class OrderShipment extends Model
 {
@@ -17,7 +17,7 @@ class OrderShipment extends Model
         'order_id', 'shipping_method_id', 'carrier_id', 'tracking_number',
         'shipped_at', 'estimated_delivery_at', 'delivered_at', 'status',
         'weight', 'dimensions', 'shipping_cost', 'insurance_cost',
-        'created_by', 'notes'
+        'created_by', 'notes',
     ];
 
     protected $casts = [
@@ -35,12 +35,19 @@ class OrderShipment extends Model
     ];
 
     const STATUS_PENDING = 'pending';
+
     const STATUS_PROCESSING = 'processing';
+
     const STATUS_SHIPPED = 'shipped';
+
     const STATUS_IN_TRANSIT = 'in_transit';
+
     const STATUS_OUT_FOR_DELIVERY = 'out_for_delivery';
+
     const STATUS_DELIVERED = 'delivered';
+
     const STATUS_RETURNED = 'returned';
+
     const STATUS_LOST = 'lost';
 
     public function order()
@@ -73,6 +80,7 @@ class OrderShipment extends Model
         if ($this->carrier && $this->tracking_number) {
             return $this->carrier->generateTrackingUrl($this->tracking_number);
         }
+
         return null;
     }
 
@@ -86,7 +94,7 @@ class OrderShipment extends Model
         return in_array($this->status, [
             self::STATUS_SHIPPED,
             self::STATUS_IN_TRANSIT,
-            self::STATUS_OUT_FOR_DELIVERY
+            self::STATUS_OUT_FOR_DELIVERY,
         ]);
     }
 
@@ -95,11 +103,11 @@ class OrderShipment extends Model
         if ($this->shipped_at && $this->delivered_at) {
             return $this->shipped_at->diffInDays($this->delivered_at);
         }
-        
-        if ($this->shipped_at && !$this->delivered_at) {
+
+        if ($this->shipped_at && ! $this->delivered_at) {
             return $this->shipped_at->diffInDays(now());
         }
-        
+
         return null;
     }
 
@@ -113,7 +121,7 @@ class OrderShipment extends Model
         return $query->whereIn('status', [
             self::STATUS_SHIPPED,
             self::STATUS_IN_TRANSIT,
-            self::STATUS_OUT_FOR_DELIVERY
+            self::STATUS_OUT_FOR_DELIVERY,
         ]);
     }
 }

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Talent Mobility Recommendation Model
- * 
+ *
  * AI-generated recommendations for internal talent movement.
  * Supports career development and retention strategies.
  */
@@ -82,7 +82,7 @@ class TalentMobilityRecommendation extends Model
 
     public function isActive(): bool
     {
-        return $this->status === 'active' && 
+        return $this->status === 'active' &&
                ($this->valid_until === null || $this->valid_until->isFuture());
     }
 

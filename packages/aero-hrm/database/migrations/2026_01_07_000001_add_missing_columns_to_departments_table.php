@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         // Only run if table exists
-        if (!Schema::hasTable('departments')) {
+        if (! Schema::hasTable('departments')) {
             return;
         }
 
@@ -47,4 +47,3 @@ return new class extends Migration
         });
     }
 };
-

@@ -2,14 +2,13 @@
 
 namespace Aero\Finance\Http\Controllers;
 
-use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Chart of Accounts Controller
- * 
+ *
  * Manages the chart of accounts structure and account management
  */
 class ChartOfAccountsController extends Controller
@@ -21,7 +20,7 @@ class ChartOfAccountsController extends Controller
     {
         // TODO: Fetch accounts from database
         $accounts = [];
-        
+
         return Inertia::render('Finance/ChartOfAccounts/Index', [
             'title' => 'Chart of Accounts',
             'accounts' => $accounts,
@@ -43,7 +42,7 @@ class ChartOfAccountsController extends Controller
         ]);
 
         // TODO: Create account in database
-        
+
         return redirect()->back()->with('success', 'Account created successfully');
     }
 
@@ -62,7 +61,7 @@ class ChartOfAccountsController extends Controller
         ]);
 
         // TODO: Update account in database
-        
+
         return redirect()->back()->with('success', 'Account updated successfully');
     }
 
@@ -72,7 +71,7 @@ class ChartOfAccountsController extends Controller
     public function destroy($id)
     {
         // TODO: Soft delete account
-        
+
         return redirect()->back()->with('success', 'Account deleted successfully');
     }
 }

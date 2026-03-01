@@ -2,10 +2,10 @@
 
 namespace Aero\Healthcare\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class MedicalRecord extends Model
 {
@@ -17,7 +17,7 @@ class MedicalRecord extends Model
         'patient_id', 'provider_id', 'appointment_id', 'record_type',
         'chief_complaint', 'present_illness', 'physical_examination',
         'assessment', 'plan', 'vital_signs', 'diagnosis_codes',
-        'procedure_codes', 'notes', 'is_confidential', 'created_by'
+        'procedure_codes', 'notes', 'is_confidential', 'created_by',
     ];
 
     protected $casts = [
@@ -32,11 +32,17 @@ class MedicalRecord extends Model
     ];
 
     const TYPE_CONSULTATION = 'consultation';
+
     const TYPE_FOLLOW_UP = 'follow_up';
+
     const TYPE_EMERGENCY = 'emergency';
+
     const TYPE_PROCEDURE = 'procedure';
+
     const TYPE_LAB_RESULT = 'lab_result';
+
     const TYPE_IMAGING = 'imaging';
+
     const TYPE_DISCHARGE = 'discharge';
 
     public function patient()
@@ -71,37 +77,37 @@ class MedicalRecord extends Model
 
     public function getVitalSignsFormattedAttribute()
     {
-        if (!$this->vital_signs) {
+        if (! $this->vital_signs) {
             return null;
         }
-        
+
         $vitals = $this->vital_signs;
         $formatted = [];
-        
+
         if (isset($vitals['blood_pressure'])) {
-            $formatted[] = 'BP: ' . $vitals['blood_pressure'];
+            $formatted[] = 'BP: '.$vitals['blood_pressure'];
         }
         if (isset($vitals['heart_rate'])) {
-            $formatted[] = 'HR: ' . $vitals['heart_rate'] . ' bpm';
+            $formatted[] = 'HR: '.$vitals['heart_rate'].' bpm';
         }
         if (isset($vitals['temperature'])) {
-            $formatted[] = 'Temp: ' . $vitals['temperature'] . '°F';
+            $formatted[] = 'Temp: '.$vitals['temperature'].'°F';
         }
         if (isset($vitals['weight'])) {
-            $formatted[] = 'Weight: ' . $vitals['weight'] . ' lbs';
+            $formatted[] = 'Weight: '.$vitals['weight'].' lbs';
         }
-        
+
         return implode(', ', $formatted);
     }
 
     public function hasDiagnosisCodes()
     {
-        return !empty($this->diagnosis_codes);
+        return ! empty($this->diagnosis_codes);
     }
 
     public function hasProcedureCodes()
     {
-        return !empty($this->procedure_codes);
+        return ! empty($this->procedure_codes);
     }
 
     public function scopeByType($query, $type)

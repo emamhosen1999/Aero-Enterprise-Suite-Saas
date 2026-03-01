@@ -9,10 +9,10 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * PermitValidationService - Safety Authorization Validator (PATENTABLE)
- * 
+ *
  * Automatically checks if workers have valid Permit to Work (PTW) before
  * allowing high-risk activities like RFI submissions or equipment usage.
- * 
+ *
  * Prevents unauthorized work and ensures HSE compliance.
  */
 class PermitValidationService
@@ -32,11 +32,11 @@ class PermitValidationService
     /**
      * Check if a valid permit exists for the proposed work
      *
-     * @param string $workType Type of work being performed
-     * @param int $projectId Project context
-     * @param float $chainage Location of work
-     * @param Carbon $proposedDate When work will be performed
-     * @param int|null $userId Optional: specific worker ID
+     * @param  string  $workType  Type of work being performed
+     * @param  int  $projectId  Project context
+     * @param  float  $chainage  Location of work
+     * @param  Carbon  $proposedDate  When work will be performed
+     * @param  int|null  $userId  Optional: specific worker ID
      * @return array ['has_permit' => bool, 'permit' => PermitToWork|null, 'violations' => array]
      */
     public function validatePermit(
@@ -49,14 +49,14 @@ class PermitValidationService
         // Check if this work type requires a permit
         $permitCategory = $this->getRequiredPermitCategory($workType);
 
-        if (!$permitCategory) {
+        if (! $permitCategory) {
             return [
                 'has_permit' => true, // No permit required
                 'permit' => null,
                 'violations' => [],
                 'message' => 'No permit required for this work type',
                 'permit_category' => null,
-                'required' => false
+                'required' => false,
             ];
         }
 
@@ -78,12 +78,12 @@ class PermitValidationService
 
         $violations = [];
 
-        if (!$permit) {
+        if (! $permit) {
             $violations[] = [
                 'type' => 'missing_permit',
                 'severity' => 'critical',
                 'message' => "No valid {$permitCategory} permit found for chainage {$chainage}",
-                'blocking' => true
+                'blocking' => true,
             ];
 
             // Check if permit exists but expired
@@ -103,20 +103,20 @@ class PermitValidationService
                     'days_ago' => $expiredPermit->valid_until->diffInDays($proposedDate),
                     'message' => "Previous permit expired on {$expiredPermit->valid_until->toDateString()}",
                     'permit_id' => $expiredPermit->id,
-                    'blocking' => true
+                    'blocking' => true,
                 ];
             }
         } else {
             // Permit found - check additional conditions
             if ($permit->conditions && is_array($permit->conditions)) {
                 foreach ($permit->conditions as $condition) {
-                    if (!$this->checkConditionMet($condition, $proposedDate, $projectId)) {
+                    if (! $this->checkConditionMet($condition, $proposedDate, $projectId)) {
                         $violations[] = [
                             'type' => 'condition_not_met',
                             'severity' => 'high',
                             'condition' => $condition,
                             'message' => "Permit condition not satisfied: {$condition['description']}",
-                            'blocking' => $condition['mandatory'] ?? true
+                            'blocking' => $condition['mandatory'] ?? true,
                         ];
                     }
                 }
@@ -129,12 +129,12 @@ class PermitValidationService
                     'severity' => 'warning',
                     'expires_in_hours' => $permit->valid_until->diffInHours($proposedDate),
                     'message' => "Permit expires in {$permit->valid_until->diffInHours($proposedDate)} hours",
-                    'blocking' => false
+                    'blocking' => false,
                 ];
             }
         }
 
-        $hasPermit = $permit !== null && empty(array_filter($violations, fn($v) => $v['blocking']));
+        $hasPermit = $permit !== null && empty(array_filter($violations, fn ($v) => $v['blocking']));
 
         // Log validation for compliance audit
         Log::channel('compliance')->info('PTW validation', [
@@ -146,7 +146,7 @@ class PermitValidationService
             'has_valid_permit' => $hasPermit,
             'permit_id' => $permit?->id,
             'violations' => count($violations),
-            'user_id' => $userId
+            'user_id' => $userId,
         ]);
 
         return [
@@ -155,10 +155,10 @@ class PermitValidationService
             'violations' => $violations,
             'message' => $hasPermit
                 ? 'Valid permit found - work authorized'
-                : 'STOP WORK: No valid permit for ' . $permitCategory,
+                : 'STOP WORK: No valid permit for '.$permitCategory,
             'permit_category' => $permitCategory,
             'required' => true,
-            'blocking' => !empty(array_filter($violations, fn($v) => $v['blocking']))
+            'blocking' => ! empty(array_filter($violations, fn ($v) => $v['blocking'])),
         ];
     }
 
@@ -172,6 +172,7 @@ class PermitValidationService
                 return $category;
             }
         }
+
         return null;
     }
 
@@ -222,9 +223,7 @@ class PermitValidationService
     /**
      * Batch validate permits for multiple workers/activities
      *
-     * @param array $workItems Array of ['work_type', 'chainage', 'date', 'user_id']
-     * @param int $projectId
-     * @return array
+     * @param  array  $workItems  Array of ['work_type', 'chainage', 'date', 'user_id']
      */
     public function validateBatchPermits(array $workItems, int $projectId): array
     {
@@ -241,8 +240,8 @@ class PermitValidationService
             );
 
             $results[$index] = $validation;
-            
-            if (!$validation['has_permit']) {
+
+            if (! $validation['has_permit']) {
                 $allValid = false;
             }
         }
@@ -250,18 +249,14 @@ class PermitValidationService
         return [
             'all_valid' => $allValid,
             'total_items' => count($workItems),
-            'valid_count' => count(array_filter($results, fn($r) => $r['has_permit'])),
-            'invalid_count' => count(array_filter($results, fn($r) => !$r['has_permit'])),
-            'results' => $results
+            'valid_count' => count(array_filter($results, fn ($r) => $r['has_permit'])),
+            'invalid_count' => count(array_filter($results, fn ($r) => ! $r['has_permit'])),
+            'results' => $results,
         ];
     }
 
     /**
      * Get upcoming permit expirations (proactive monitoring)
-     *
-     * @param int $projectId
-     * @param int $daysAhead
-     * @return array
      */
     public function getUpcomingExpirations(int $projectId, int $daysAhead = 7): array
     {
@@ -273,27 +268,24 @@ class PermitValidationService
 
         return [
             'count' => $expiringPermits->count(),
-            'permits' => $expiringPermits->map(fn($p) => [
+            'permits' => $expiringPermits->map(fn ($p) => [
                 'id' => $p->id,
                 'type' => $p->permit_type,
                 'expires_in_days' => now()->diffInDays($p->valid_until),
                 'expires_in_hours' => now()->diffInHours($p->valid_until),
                 'location' => "Ch {$p->start_chainage} - {$p->end_chainage}",
-                'urgency' => $p->valid_until->diffInHours(now()) < 24 ? 'critical' : 'medium'
+                'urgency' => $p->valid_until->diffInHours(now()) < 24 ? 'critical' : 'medium',
             ]),
             'critical_count' => $expiringPermits->filter(
-                fn($p) => $p->valid_until->diffInHours(now()) < 24
-            )->count()
+                fn ($p) => $p->valid_until->diffInHours(now()) < 24
+            )->count(),
         ];
     }
 
     /**
      * Emergency permit revocation (immediate stop-work)
      *
-     * @param int $permitId
-     * @param string $reason
-     * @param int $revokedBy User ID
-     * @return array
+     * @param  int  $revokedBy  User ID
      */
     public function emergencyRevoke(int $permitId, string $reason, int $revokedBy): array
     {
@@ -303,7 +295,7 @@ class PermitValidationService
             'status' => 'revoked',
             'revoked_at' => now(),
             'revoked_by' => $revokedBy,
-            'revocation_reason' => $reason
+            'revocation_reason' => $reason,
         ]);
 
         // Notify all authorized workers
@@ -316,7 +308,7 @@ class PermitValidationService
             ->where('status', 'pending')
             ->update([
                 'locked' => true,
-                'lock_reason' => 'PTW Revoked: ' . $reason
+                'lock_reason' => 'PTW Revoked: '.$reason,
             ]);
 
         Log::channel('compliance')->emergency('PTW Emergency Revocation', [
@@ -324,14 +316,14 @@ class PermitValidationService
             'permit_type' => $permit->permit_type,
             'reason' => $reason,
             'revoked_by' => $revokedBy,
-            'affected_workers' => count($permit->authorized_workers ?? [])
+            'affected_workers' => count($permit->authorized_workers ?? []),
         ]);
 
         return [
             'success' => true,
             'permit_id' => $permitId,
             'affected_rfis_locked' => DB::affectedRows(),
-            'message' => 'Permit revoked - all related work stopped'
+            'message' => 'Permit revoked - all related work stopped',
         ];
     }
 
@@ -345,7 +337,7 @@ class PermitValidationService
         Log::channel('compliance')->alert('PTW Revocation Notification', [
             'permit_id' => $permit->id,
             'workers' => $permit->authorized_workers,
-            'reason' => $reason
+            'reason' => $reason,
         ]);
     }
 }

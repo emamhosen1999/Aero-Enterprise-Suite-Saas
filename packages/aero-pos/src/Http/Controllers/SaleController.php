@@ -2,9 +2,9 @@
 
 namespace Aero\Pos\Http\Controllers;
 
-use Illuminate\Routing\Controller;
 use App\Models\Tenant\POS\Sale;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 
 class SaleController extends Controller

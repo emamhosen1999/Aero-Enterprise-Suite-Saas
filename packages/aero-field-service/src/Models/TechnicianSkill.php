@@ -14,7 +14,7 @@ class TechnicianSkill extends Model
 
     protected $fillable = [
         'skill_name', 'skill_category', 'description', 'certification_required',
-        'skill_level', 'is_active'
+        'skill_level', 'is_active',
     ];
 
     protected $casts = [
@@ -23,21 +23,29 @@ class TechnicianSkill extends Model
     ];
 
     const CATEGORY_ELECTRICAL = 'electrical';
+
     const CATEGORY_MECHANICAL = 'mechanical';
+
     const CATEGORY_HVAC = 'hvac';
+
     const CATEGORY_PLUMBING = 'plumbing';
+
     const CATEGORY_SOFTWARE = 'software';
+
     const CATEGORY_SAFETY = 'safety';
 
     const LEVEL_BASIC = 'basic';
+
     const LEVEL_INTERMEDIATE = 'intermediate';
+
     const LEVEL_ADVANCED = 'advanced';
+
     const LEVEL_EXPERT = 'expert';
 
     public function technicians()
     {
         return $this->belongsToMany(Technician::class, 'field_service_technician_skill_assignments')
-                    ->withPivot('proficiency_level', 'certification_date', 'expiry_date');
+            ->withPivot('proficiency_level', 'certification_date', 'expiry_date');
     }
 
     public function workOrderRequirements()

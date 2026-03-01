@@ -3,8 +3,8 @@
 namespace Aero\Hrm\Jobs;
 
 use Aero\Hrm\Models\Onboarding;
-use Aero\Hrm\Notifications\OnboardingReminderNotification;
 use Aero\Hrm\Notifications\ManagerOnboardingReminderNotification;
+use Aero\Hrm\Notifications\OnboardingReminderNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -19,8 +19,6 @@ class OnboardingReminderJob implements ShouldQueue
 
     /**
      * The tenant instance (for SaaS mode).
-     *
-     * @var \Stancl\Tenancy\Contracts\Tenant|null
      */
     public ?Tenant $tenant = null;
 
@@ -31,8 +29,6 @@ class OnboardingReminderJob implements ShouldQueue
 
     /**
      * Create a new job instance.
-     *
-     * @param \Stancl\Tenancy\Contracts\Tenant|null $tenant
      */
     public function __construct(?Tenant $tenant = null)
     {
@@ -46,8 +42,6 @@ class OnboardingReminderJob implements ShouldQueue
 
     /**
      * Get the middleware the job should pass through.
-     *
-     * @return array
      */
     public function middleware(): array
     {
@@ -86,7 +80,7 @@ class OnboardingReminderJob implements ShouldQueue
                     $onboarding->employee->user->notify(
                         new OnboardingReminderNotification($onboarding, $progress)
                     );
-                    
+
                     Log::info('OnboardingReminderJob: Sent reminder to employee', [
                         'employee_id' => $onboarding->employee_id,
                         'user_id' => $onboarding->employee->user->id,
@@ -99,7 +93,7 @@ class OnboardingReminderJob implements ShouldQueue
                     $onboarding->employee->manager->user->notify(
                         new ManagerOnboardingReminderNotification($onboarding, $progress)
                     );
-                    
+
                     Log::info('OnboardingReminderJob: Sent reminder to manager', [
                         'employee_id' => $onboarding->employee_id,
                         'manager_id' => $onboarding->employee->manager_id,

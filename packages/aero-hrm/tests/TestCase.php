@@ -15,7 +15,7 @@ abstract class TestCase extends BaseTestCase
         parent::setUp();
 
         // Run migrations
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
     }
 
     /**
@@ -42,9 +42,9 @@ abstract class TestCase extends BaseTestCase
         // Setup default database to use sqlite :memory:
         $app['config']->set('database.default', 'testbench');
         $app['config']->set('database.connections.testbench', [
-            'driver'   => 'sqlite',
+            'driver' => 'sqlite',
             'database' => ':memory:',
-            'prefix'   => '',
+            'prefix' => '',
         ]);
 
         // Set other test configurations
@@ -59,7 +59,7 @@ abstract class TestCase extends BaseTestCase
     protected function actingAsEmployee($attributes = [])
     {
         $employee = \Aero\HRM\Models\Employee::factory()->create($attributes);
-        
+
         return $this->actingAs($employee);
     }
 

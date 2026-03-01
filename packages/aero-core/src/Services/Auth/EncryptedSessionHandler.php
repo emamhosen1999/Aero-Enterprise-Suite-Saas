@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Aero\Core\Services\Auth;
 
-use Aero\Core\Services\Auth\SessionEncryptionService;
 use Illuminate\Session\DatabaseSessionHandler;
 use Illuminate\Support\Facades\Log;
 
@@ -37,17 +36,17 @@ class EncryptedSessionHandler extends DatabaseSessionHandler
         try {
             // Parse session data
             $sessionData = $this->parseSessionData($data);
-            
+
             // Encrypt the payload
             $encryptedData = $this->encryptionService->encryptSessionPayload($sessionData);
-            
+
             return parent::write($sessionId, $encryptedData);
         } catch (\Exception $e) {
             Log::error('Session encryption write failed', [
                 'session_id' => $sessionId,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
-            
+
             // Fallback to unencrypted write for stability
             return parent::write($sessionId, $data);
         }
@@ -62,7 +61,7 @@ class EncryptedSessionHandler extends DatabaseSessionHandler
     {
         try {
             $encryptedData = parent::read($sessionId);
-            
+
             if (empty($encryptedData)) {
                 return '';
             }
@@ -70,6 +69,7 @@ class EncryptedSessionHandler extends DatabaseSessionHandler
             // Check if data is encrypted
             if ($this->encryptionService->isEncrypted($encryptedData)) {
                 $decryptedData = $this->encryptionService->decryptSessionPayload($encryptedData);
+
                 return $this->serializeSessionData($decryptedData);
             }
 
@@ -78,9 +78,9 @@ class EncryptedSessionHandler extends DatabaseSessionHandler
         } catch (\Exception $e) {
             Log::error('Session decryption read failed', [
                 'session_id' => $sessionId,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
-            
+
             // Return empty session on decryption failure
             return '';
         }
@@ -89,7 +89,7 @@ class EncryptedSessionHandler extends DatabaseSessionHandler
     /**
      * Parse session data string into array.
      *
-     * @param string $data Session data string
+     * @param  string  $data  Session data string
      * @return array Parsed session data
      */
     protected function parseSessionData(string $data): array
@@ -101,10 +101,12 @@ class EncryptedSessionHandler extends DatabaseSessionHandler
         // Laravel session data format: key|serialized_value;key|serialized_value;...
         $parsed = [];
         $parts = explode(';', $data);
-        
+
         foreach ($parts as $part) {
-            if (empty($part)) continue;
-            
+            if (empty($part)) {
+                continue;
+            }
+
             $keyValue = explode('|', $part, 2);
             if (count($keyValue) === 2) {
                 [$key, $serializedValue] = $keyValue;
@@ -123,16 +125,16 @@ class EncryptedSessionHandler extends DatabaseSessionHandler
     /**
      * Serialize session data array back to string format.
      *
-     * @param array $data Session data array
+     * @param  array  $data  Session data array
      * @return string Serialized session data
      */
     protected function serializeSessionData(array $data): string
     {
         $parts = [];
-        
+
         foreach ($data as $key => $value) {
             $serializedValue = serialize($value);
-            $parts[] = $key . '|' . $serializedValue;
+            $parts[] = $key.'|'.$serializedValue;
         }
 
         return implode(';', $parts);

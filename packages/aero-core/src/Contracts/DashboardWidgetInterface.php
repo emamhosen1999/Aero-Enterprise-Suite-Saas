@@ -124,7 +124,7 @@ interface DashboardWidgetInterface
 
     /**
      * Get the dashboards this widget should appear on.
-     * 
+     *
      * Options:
      * - 'core' - Core Dashboard (/dashboard)
      * - 'hrm' - HRM Manager Dashboard (/hrm/dashboard)
@@ -135,7 +135,7 @@ interface DashboardWidgetInterface
      * - 'finance' - Finance Dashboard (/finance/dashboard)
      * - 'rfi' - RFI Dashboard (/rfi/dashboard)
      * - 'compliance' - Compliance Dashboard (/compliance/dashboard)
-     * 
+     *
      * @return array<string> Dashboard keys where this widget should appear
      */
     public function getDashboards(): array;

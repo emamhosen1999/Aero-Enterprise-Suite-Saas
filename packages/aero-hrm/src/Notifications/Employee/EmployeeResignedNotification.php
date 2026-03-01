@@ -25,19 +25,19 @@ class EmployeeResignedNotification extends Notification implements ShouldQueue
     public function via($notifiable): array
     {
         $channels = ['database'];
-        
+
         if ($this->isChannelEnabled('mail', $notifiable)) {
             $channels[] = 'mail';
         }
-        
+
         return $channels;
     }
 
     public function toMail($notifiable): MailMessage
     {
         $message = (new MailMessage)
-            ->subject('Resignation Notice - ' . $this->employee->full_name)
-            ->greeting("Dear HR Team,")
+            ->subject('Resignation Notice - '.$this->employee->full_name)
+            ->greeting('Dear HR Team,')
             ->line("{$this->employee->full_name} has submitted a resignation.")
             ->line("Employee ID: {$this->employee->employee_id}")
             ->line("Department: {$this->employee->department?->name}")
@@ -79,15 +79,15 @@ class EmployeeResignedNotification extends Notification implements ShouldQueue
         $globalSetting = DB::table('notification_settings')
             ->where('key', "channels.{$channel}.enabled")
             ->first();
-        
-        if (!$globalSetting || !json_decode($globalSetting->value)) {
+
+        if (! $globalSetting || ! json_decode($globalSetting->value)) {
             return false;
         }
-        
+
         if (method_exists($notifiable, 'prefersNotificationChannel')) {
             return $notifiable->prefersNotificationChannel($channel, 'employee.resigned');
         }
-        
+
         return true;
     }
 }

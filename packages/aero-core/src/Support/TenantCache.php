@@ -17,8 +17,9 @@ class TenantCache
     public static function key(string $key): string
     {
         if (is_saas_mode() && tenancy()->initialized) {
-            return "tenant:" . tenant()->id . ":{$key}";
+            return 'tenant:'.tenant()->id.":{$key}";
         }
+
         return "global:{$key}";
     }
 

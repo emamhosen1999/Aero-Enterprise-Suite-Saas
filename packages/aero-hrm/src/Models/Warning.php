@@ -5,8 +5,8 @@ namespace Aero\HRM\Models;
 use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Warning extends Model
 {
@@ -35,7 +35,9 @@ class Warning extends Model
      * Warning type constants
      */
     public const TYPE_VERBAL = 'verbal';
+
     public const TYPE_WRITTEN = 'written';
+
     public const TYPE_FINAL = 'final';
 
     /**
@@ -106,6 +108,6 @@ class Warning extends Model
 
         $nextNumber = $lastWarning ? (int) substr($lastWarning->warning_number, -4) + 1 : 1;
 
-        return 'WRN' . $year . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+        return 'WRN'.$year.str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
     }
 }

@@ -72,7 +72,7 @@ class NavigationRegistry
 
     /**
      * Register self-service navigation items for a module.
-     * 
+     *
      * Self-service items are employee-facing pages like "My Attendance", "My Leaves", etc.
      * They are aggregated under a single "My Workspace" menu item.
      *
@@ -94,11 +94,11 @@ class NavigationRegistry
 
     /**
      * Get aggregated self-service navigation.
-     * 
+     *
      * Returns a single "My Workspace" menu item containing all self-service
      * items from all modules, sorted by priority.
      *
-     * @return array|null  Self-service navigation item or null if no items
+     * @return array|null Self-service navigation item or null if no items
      */
     public function getSelfServiceNavigation(): ?array
     {
@@ -147,7 +147,7 @@ class NavigationRegistry
      */
     public function hasSelfService(string $moduleCode): bool
     {
-        return isset($this->selfServiceItems[$moduleCode]) && !empty($this->selfServiceItems[$moduleCode]['items']);
+        return isset($this->selfServiceItems[$moduleCode]) && ! empty($this->selfServiceItems[$moduleCode]['items']);
     }
 
     /**
@@ -295,12 +295,12 @@ class NavigationRegistry
      * - If user has access to 2+ dashboards: Returns "Dashboards" parent with children
      *
      * @param  \Aero\Core\Models\User|null  $user  User to filter by permissions
-     * @return array|null  Navigation item or null if no dashboards available
+     * @return array|null Navigation item or null if no dashboards available
      */
     public function getDashboardNavigation($user = null): ?array
     {
         // Check if DashboardRegistry is available
-        if (!app()->bound(DashboardRegistry::class)) {
+        if (! app()->bound(DashboardRegistry::class)) {
             // Fallback to a simple dashboard link if registry not available
             return [
                 'name' => 'Dashboard',
@@ -338,7 +338,7 @@ class NavigationRegistry
         if ($dashboardCount === 1) {
             // Single dashboard - show as "Dashboard" without children
             $dashboard = reset($validDashboards);
-            
+
             return [
                 'name' => 'Dashboard',
                 'path' => $this->getRouteUrl($dashboard['key']),
@@ -429,7 +429,7 @@ class NavigationRegistry
     {
         $user = $user ?? Auth::user();
         $userId = $user?->id ?? 'guest';
-        $cacheKey = self::CACHE_KEY . '.frontend.' . $userId;
+        $cacheKey = self::CACHE_KEY.'.frontend.'.$userId;
 
         try {
             return TenantCache::remember(

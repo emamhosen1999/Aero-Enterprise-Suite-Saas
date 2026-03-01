@@ -6,12 +6,12 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * DUPLICATE MIGRATION - Also exists in database/migrations/
- * 
+ *
  * This migration adds scope and protection columns to RBAC tables.
  * It exists in BOTH root and tenant migrations because:
  * - Root (Central DB): Updates landlord permission tables (platform admin roles)
  * - Tenant (Tenant DB): Updates tenant permission tables (tenant user roles)
- * 
+ *
  * Both contexts need these columns for proper role/permission management.
  */
 return new class extends Migration
@@ -62,7 +62,6 @@ return new class extends Migration
             }
         }
 
-       
     }
 
     /**
@@ -70,7 +69,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-      
+
         if (Schema::hasTable('roles')) {
             Schema::table('roles', function (Blueprint $table) {
                 try {

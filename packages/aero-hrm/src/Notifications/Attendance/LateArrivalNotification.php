@@ -24,15 +24,15 @@ class LateArrivalNotification extends Notification implements ShouldQueue
     public function via($notifiable): array
     {
         $channels = ['database'];
-        
+
         if ($this->isChannelEnabled('mail', $notifiable)) {
             $channels[] = 'mail';
         }
-        
+
         if ($this->isChannelEnabled('push', $notifiable)) {
             $channels[] = 'broadcast';
         }
-        
+
         return $channels;
     }
 
@@ -41,7 +41,7 @@ class LateArrivalNotification extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject('Late Arrival Notification')
             ->greeting("Hello {$notifiable->name}!")
-            ->line("You were late to work today.")
+            ->line('You were late to work today.')
             ->line("Scheduled Time: {$this->scheduledTime->format('h:i A')}")
             ->line("Actual Arrival: {$this->actualTime->format('h:i A')}")
             ->line("Late By: {$this->lateMinutes} minutes")
@@ -80,15 +80,15 @@ class LateArrivalNotification extends Notification implements ShouldQueue
         $globalSetting = DB::table('notification_settings')
             ->where('key', "channels.{$channel}.enabled")
             ->first();
-        
-        if (!$globalSetting || !json_decode($globalSetting->value)) {
+
+        if (! $globalSetting || ! json_decode($globalSetting->value)) {
             return false;
         }
-        
+
         if (method_exists($notifiable, 'prefersNotificationChannel')) {
             return $notifiable->prefersNotificationChannel($channel, 'attendance.late_arrival');
         }
-        
+
         return true;
     }
 }

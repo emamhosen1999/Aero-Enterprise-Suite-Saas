@@ -37,7 +37,6 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property \Carbon\Carbon|null $created_at
  * @property \Carbon\Carbon|null $updated_at
  * @property \Carbon\Carbon|null $deleted_at
- *
  * @property-read TrainingCategory|null $category
  * @property-read User|null $instructor
  * @property-read User|null $creator

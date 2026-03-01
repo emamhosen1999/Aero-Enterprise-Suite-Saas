@@ -2,10 +2,10 @@
 
 namespace Aero\Healthcare\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class Prescription extends Model
 {
@@ -18,7 +18,7 @@ class Prescription extends Model
         'generic_name', 'dosage', 'frequency', 'route', 'quantity',
         'refills_allowed', 'refills_remaining', 'prescribed_date',
         'start_date', 'end_date', 'status', 'instructions',
-        'contraindications', 'side_effects', 'created_by'
+        'contraindications', 'side_effects', 'created_by',
     ];
 
     protected $casts = [
@@ -37,15 +37,23 @@ class Prescription extends Model
     ];
 
     const ROUTE_ORAL = 'oral';
+
     const ROUTE_INJECTION = 'injection';
+
     const ROUTE_TOPICAL = 'topical';
+
     const ROUTE_INHALATION = 'inhalation';
+
     const ROUTE_SUBLINGUAL = 'sublingual';
 
     const STATUS_ACTIVE = 'active';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_DISCONTINUED = 'discontinued';
+
     const STATUS_ON_HOLD = 'on_hold';
+
     const STATUS_EXPIRED = 'expired';
 
     public function patient()
@@ -85,17 +93,17 @@ class Prescription extends Model
 
     public function canBeRefilled()
     {
-        return $this->refills_remaining > 0 && 
-               $this->isActive() && 
-               !$this->isExpired();
+        return $this->refills_remaining > 0 &&
+               $this->isActive() &&
+               ! $this->isExpired();
     }
 
     public function getDaysRemainingAttribute()
     {
-        if (!$this->end_date) {
+        if (! $this->end_date) {
             return null;
         }
-        
+
         return now()->diffInDays($this->end_date, false);
     }
 
@@ -103,8 +111,9 @@ class Prescription extends Model
     {
         $name = $this->medication_name;
         if ($this->dosage) {
-            $name .= ' (' . $this->dosage . ')';
+            $name .= ' ('.$this->dosage.')';
         }
+
         return $name;
     }
 
@@ -118,7 +127,7 @@ class Prescription extends Model
             'QID' => 'Four times daily',
             'PRN' => 'As needed',
         ];
-        
+
         return $frequencies[$this->frequency] ?? $this->frequency;
     }
 
@@ -135,10 +144,10 @@ class Prescription extends Model
     public function scopeRefillable($query)
     {
         return $query->where('refills_remaining', '>', 0)
-                    ->where('status', self::STATUS_ACTIVE)
-                    ->where(function ($q) {
-                        $q->whereNull('end_date')
-                          ->orWhere('end_date', '>=', now()->toDateString());
-                    });
+            ->where('status', self::STATUS_ACTIVE)
+            ->where(function ($q) {
+                $q->whereNull('end_date')
+                    ->orWhere('end_date', '>=', now()->toDateString());
+            });
     }
 }

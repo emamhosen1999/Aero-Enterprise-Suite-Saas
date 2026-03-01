@@ -3,7 +3,10 @@
 namespace Aero\HRM\Http\Controllers\Asset;
 
 use Aero\HRM\Http\Controllers\Controller;
-use Aero\HRM\Models\{Asset, AssetCategory, AssetAllocation, Employee};
+use Aero\HRM\Models\Asset;
+use Aero\HRM\Models\AssetAllocation;
+use Aero\HRM\Models\AssetCategory;
+use Aero\HRM\Models\Employee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -59,10 +62,10 @@ class AssetController extends Controller
         $perPage = $request->get('perPage', 30);
         $query = Asset::with(['category', 'currentAllocation.employee'])
             ->orderBy('created_at', 'desc');
-        
+
         if ($search = $request->get('search')) {
             $query->where('asset_tag', 'like', "%{$search}%")
-                  ->orWhere('name', 'like', "%{$search}%");
+                ->orWhere('name', 'like', "%{$search}%");
         }
 
         if ($status = $request->get('status')) {
@@ -119,7 +122,7 @@ class AssetController extends Controller
 
         $asset = Asset::findOrFail($id);
 
-        if (!$asset->canBeAllocated()) {
+        if (! $asset->canBeAllocated()) {
             return response()->json(['message' => 'Asset cannot be allocated'], 422);
         }
 
@@ -134,9 +137,11 @@ class AssetController extends Controller
             $asset->update(['status' => Asset::STATUS_ALLOCATED]);
 
             DB::commit();
+
             return response()->json(['message' => 'Asset allocated successfully']);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json(['message' => 'Failed to allocate asset'], 500);
         }
     }
@@ -151,7 +156,7 @@ class AssetController extends Controller
 
         $allocation = AssetAllocation::findOrFail($id);
 
-        if (!$allocation->canBeReturned()) {
+        if (! $allocation->canBeReturned()) {
             return response()->json(['message' => 'Allocation cannot be returned'], 422);
         }
 
@@ -165,9 +170,11 @@ class AssetController extends Controller
             $allocation->asset->update(['status' => Asset::STATUS_AVAILABLE]);
 
             DB::commit();
+
             return response()->json(['message' => 'Asset returned successfully']);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json(['message' => 'Failed to return asset'], 500);
         }
     }
@@ -198,6 +205,7 @@ class AssetController extends Controller
         }
 
         $asset->delete();
+
         return response()->json(['message' => 'Asset deleted']);
     }
 }

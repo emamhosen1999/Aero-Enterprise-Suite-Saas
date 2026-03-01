@@ -27,7 +27,9 @@ abstract class BaseHrmEvent implements DomainEventContract
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     protected \DateTimeInterface $timestamp;
+
     protected ?int $actorEmployeeId;
+
     protected array $metadata;
 
     public function __construct(?int $actorEmployeeId = null, array $metadata = [])

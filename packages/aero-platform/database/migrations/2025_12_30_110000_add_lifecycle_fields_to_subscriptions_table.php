@@ -66,11 +66,11 @@ return new class extends Migration
             $table->dropForeign(['upgraded_from_plan_id']);
             $table->dropForeign(['downgraded_from_plan_id']);
             $table->dropForeign(['pending_plan_id']);
-            
+
             $table->dropIndex(['pending_plan_id']);
             $table->dropIndex(['downgrade_scheduled_at']);
             $table->dropIndex(['grace_period_ends_at']);
-            
+
             $table->dropColumn([
                 'upgraded_from_plan_id',
                 'upgraded_at',

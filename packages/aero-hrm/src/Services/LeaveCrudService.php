@@ -22,7 +22,7 @@ class LeaveCrudService
     {
         $fromDate = Carbon::parse($data['fromDate']);
         $toDate = Carbon::parse($data['toDate']);
-        
+
         $leaveTypeId = LeaveSetting::where('name', $data['leaveType'])->value('id');
         $leaveSetting = LeaveSetting::find($leaveTypeId);
 
@@ -37,7 +37,7 @@ class LeaveCrudService
         ]);
 
         // Check if approval is required or auto-approve is enabled
-        if ($leaveSetting && (!$leaveSetting->requires_approval || $leaveSetting->auto_approve)) {
+        if ($leaveSetting && (! $leaveSetting->requires_approval || $leaveSetting->auto_approve)) {
             // Auto-approve the leave
             $leave->update([
                 'status' => 'Approved',

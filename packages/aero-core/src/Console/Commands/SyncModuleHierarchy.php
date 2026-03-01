@@ -88,17 +88,19 @@ class SyncModuleHierarchy extends Command
 
             if ($modules->isEmpty()) {
                 $this->warn('⚠️  No module definitions found in packages.');
-                
+
                 // If pruning is enabled, remove all non-core modules
                 if ($prune) {
                     $this->warn('🗑️  Pruning enabled - removing all non-core modules from database...');
                     $this->pruneRemovedModules(collect([]));
                     DB::commit();
                     $this->displayStats();
+
                     return self::SUCCESS;
                 }
-                
+
                 DB::rollBack();
+
                 return self::SUCCESS;
             }
 
@@ -115,6 +117,7 @@ class SyncModuleHierarchy extends Command
                 $moduleScope = $moduleDef['scope'] ?? 'tenant';
                 if ($scope && $scope !== 'all' && $moduleScope !== $scope) {
                     $progressBar->advance();
+
                     continue;
                 }
 
@@ -153,7 +156,7 @@ class SyncModuleHierarchy extends Command
     protected function pruneRemovedModules($installedModules): void
     {
         $installedCodes = $installedModules->pluck('code')->toArray();
-        
+
         // Find modules in DB that are not in installed packages (exclude core modules)
         $removedModules = Module::whereNotIn('code', $installedCodes)
             ->where('is_core', false)
@@ -167,22 +170,22 @@ class SyncModuleHierarchy extends Command
 
         foreach ($removedModules as $module) {
             $this->line("   - Removing: {$module->name} ({$module->code})");
-            
+
             // Count items being removed for stats
             $submoduleCount = $module->subModules()->count();
             $componentCount = ModuleComponent::where('module_id', $module->id)->count();
             $actionCount = ModuleComponentAction::whereIn(
-                'module_component_id', 
+                'module_component_id',
                 ModuleComponent::where('module_id', $module->id)->pluck('id')
             )->count();
 
             // Delete in reverse order (actions -> components -> submodules -> module)
             // Due to foreign key constraints
             ModuleComponentAction::whereIn(
-                'module_component_id', 
+                'module_component_id',
                 ModuleComponent::where('module_id', $module->id)->pluck('id')
             )->delete();
-            
+
             ModuleComponent::where('module_id', $module->id)->delete();
             $module->subModules()->delete();
             $module->delete();
@@ -469,11 +472,11 @@ class SyncModuleHierarchy extends Command
             ]
         );
 
-        $totalCreated = $this->stats['modules_created'] + $this->stats['submodules_created'] + 
+        $totalCreated = $this->stats['modules_created'] + $this->stats['submodules_created'] +
                        $this->stats['components_created'] + $this->stats['actions_created'];
-        $totalUpdated = $this->stats['modules_updated'] + $this->stats['submodules_updated'] + 
+        $totalUpdated = $this->stats['modules_updated'] + $this->stats['submodules_updated'] +
                        $this->stats['components_updated'] + $this->stats['actions_updated'];
-        $totalRemoved = $this->stats['modules_removed'] + $this->stats['submodules_removed'] + 
+        $totalRemoved = $this->stats['modules_removed'] + $this->stats['submodules_removed'] +
                        $this->stats['components_removed'] + $this->stats['actions_removed'];
 
         $this->newLine();

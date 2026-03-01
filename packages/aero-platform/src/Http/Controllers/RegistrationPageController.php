@@ -68,6 +68,11 @@ class RegistrationPageController extends Controller
             return SafeRedirect::toRoute('platform.register.index', [], 'platform.register.index');
         }
 
+        // In debug mode, skip email & phone verification entirely
+        if (config('app.debug')) {
+            return SafeRedirect::toRoute('platform.register.plan', [], 'platform.register.plan');
+        }
+
         $details = $this->registrationSession->get()['details'] ?? [];
 
         return $this->render('Platform/Public/Register/VerifyEmail', 'verify-email', [
@@ -84,6 +89,11 @@ class RegistrationPageController extends Controller
         // Require verification step to have been started
         if (! $this->registrationSession->ensureSteps(['account', 'details', 'verification'])) {
             return SafeRedirect::toRoute('platform.register.index', [], 'platform.register.index');
+        }
+
+        // In debug mode, skip phone verification entirely
+        if (config('app.debug')) {
+            return SafeRedirect::toRoute('platform.register.plan', [], 'platform.register.plan');
         }
 
         $details = $this->registrationSession->get()['details'] ?? [];

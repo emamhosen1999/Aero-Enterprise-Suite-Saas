@@ -3,8 +3,8 @@
 namespace Packages\AeroHrm\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Packages\AeroHrm\Models\DisciplinaryCase;
 use Packages\AeroHrm\Models\DisciplinaryActionType;
+use Packages\AeroHrm\Models\DisciplinaryCase;
 use Packages\AeroHrm\Models\Employee;
 
 class DisciplinaryCaseFactory extends Factory
@@ -16,7 +16,7 @@ class DisciplinaryCaseFactory extends Factory
         return [
             'employee_id' => Employee::factory(),
             'disciplinary_action_type_id' => DisciplinaryActionType::factory(),
-            'case_number' => 'DC' . now()->format('Y') . str_pad($this->faker->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
+            'case_number' => 'DC'.now()->format('Y').str_pad($this->faker->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
             'incident_date' => $this->faker->dateTimeBetween('-30 days', 'now'),
             'description' => $this->faker->paragraph(),
             'employee_statement' => $this->faker->optional()->paragraph(),

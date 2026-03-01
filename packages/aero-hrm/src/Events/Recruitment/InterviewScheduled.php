@@ -23,7 +23,6 @@ class InterviewScheduled extends BaseHrmEvent
     /**
      * Create a new event instance.
      *
-     * @param  JobInterview  $interview
      * @param  int|null  $actorEmployeeId  Employee ID (HR/recruiter) who scheduled the interview
      */
     public function __construct(

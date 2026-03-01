@@ -31,7 +31,7 @@ return new class extends Migration
             $table->date('closed_date')->nullable();
             $table->timestamps();
             $table->softDeletes();
-            
+
             // Indexes
             $table->index('case_number');
             $table->index('status');

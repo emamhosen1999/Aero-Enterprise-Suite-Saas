@@ -2,16 +2,16 @@
 
 namespace Aero\Rfi\Tests\Unit\Models;
 
-use Aero\Rfi\Models\Rfi;
-use Aero\Rfi\Models\WorkLocation;
-use Aero\Rfi\Models\WorkLayer;
 use Aero\Rfi\Models\ChainageProgress;
-use Tests\TestCase;
+use Aero\Rfi\Models\Rfi;
+use Aero\Rfi\Models\WorkLayer;
+use Aero\Rfi\Models\WorkLocation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 /**
  * RfiTest - Test RFI model behavior
- * 
+ *
  * Tests model relationships, scopes, and business logic:
  * - Model relationships (workLocation, workLayer, progress)
  * - Status scopes (pending, approved, rejected)
@@ -21,7 +21,7 @@ class RfiTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_belongs_to_work_location()
     {
         $rfi = Rfi::factory()->create();
@@ -29,7 +29,7 @@ class RfiTest extends TestCase
         $this->assertInstanceOf(WorkLocation::class, $rfi->workLocation);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_belongs_to_work_layer()
     {
         $rfi = Rfi::factory()->create();
@@ -37,7 +37,7 @@ class RfiTest extends TestCase
         $this->assertInstanceOf(WorkLayer::class, $rfi->workLayer);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_has_many_chainage_progress_records()
     {
         $rfi = Rfi::factory()->create();
@@ -46,7 +46,7 @@ class RfiTest extends TestCase
         $this->assertCount(3, $rfi->chainageProgress);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_scopes_pending_rfis()
     {
         Rfi::factory()->count(3)->create(['status' => 'pending']);
@@ -57,7 +57,7 @@ class RfiTest extends TestCase
         $this->assertCount(3, $pending);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_scopes_approved_rfis()
     {
         Rfi::factory()->count(2)->create(['status' => 'approved']);
@@ -68,7 +68,7 @@ class RfiTest extends TestCase
         $this->assertCount(2, $approved);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_validates_chainage_start_less_than_end()
     {
         $rfi = Rfi::factory()->make([
@@ -80,7 +80,7 @@ class RfiTest extends TestCase
         $rfi->save();
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_formats_chainage_display()
     {
         $rfi = Rfi::factory()->create([

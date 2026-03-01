@@ -2,9 +2,8 @@
 
 namespace Aero\HRM\Http\Controllers;
 
-use Aero\HRM\Models\CompensationReview;
 use Aero\HRM\Models\CompensationAdjustment;
-use Aero\HRM\Models\Employee;
+use Aero\HRM\Models\CompensationReview;
 use Aero\HRM\Models\Department;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;

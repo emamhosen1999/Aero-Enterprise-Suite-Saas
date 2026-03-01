@@ -3,9 +3,9 @@
 namespace Aero\Crm\Services;
 
 use Aero\Crm\Models\Deal;
+use Aero\Crm\Models\Pipeline;
 use App\Models\CRM\DealActivity;
 use App\Models\CRM\DealStageHistory;
-use Aero\Crm\Models\Pipeline;
 use App\Models\CRM\PipelineStage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

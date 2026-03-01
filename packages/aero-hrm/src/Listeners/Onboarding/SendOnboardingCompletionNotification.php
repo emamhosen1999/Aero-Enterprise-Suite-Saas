@@ -16,10 +16,11 @@ class SendOnboardingCompletionNotification implements ShouldQueue
         $employee = $onboarding->employee;
         $user = $employee?->user;
 
-        if (!$user) {
+        if (! $user) {
             Log::warning('Employee has no user for onboarding completion notification', [
                 'onboarding_id' => $onboarding->id,
             ]);
+
             return;
         }
 

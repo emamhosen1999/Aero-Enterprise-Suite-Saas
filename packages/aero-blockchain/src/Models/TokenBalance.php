@@ -14,7 +14,7 @@ class TokenBalance extends Model
 
     protected $fillable = [
         'wallet_id', 'token_id', 'balance', 'locked_balance', 'staked_balance',
-        'last_updated', 'is_frozen', 'metadata'
+        'last_updated', 'is_frozen', 'metadata',
     ];
 
     protected $casts = [
@@ -48,9 +48,10 @@ class TokenBalance extends Model
         if ($this->token) {
             $decimals = $this->token->decimals ?: 18;
             $displayBalance = $this->balance / pow(10, $decimals);
-            return number_format($displayBalance, min(8, $decimals)) . ' ' . $this->token->token_symbol;
+
+            return number_format($displayBalance, min(8, $decimals)).' '.$this->token->token_symbol;
         }
-        
+
         return number_format($this->balance, 8);
     }
 
@@ -59,9 +60,10 @@ class TokenBalance extends Model
         if ($this->token && $this->token->price_usd) {
             $decimals = $this->token->decimals ?: 18;
             $displayBalance = $this->balance / pow(10, $decimals);
+
             return $displayBalance * $this->token->price_usd;
         }
-        
+
         return null;
     }
 
@@ -69,7 +71,7 @@ class TokenBalance extends Model
     {
         $this->update([
             'balance' => $newBalance,
-            'last_updated' => now()
+            'last_updated' => now(),
         ]);
     }
 

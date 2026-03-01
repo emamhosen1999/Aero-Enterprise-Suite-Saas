@@ -2,18 +2,18 @@
 
 namespace Aero\HRM\Http\Controllers\Employee;
 
+use Aero\Core\Models\User;
+use Aero\HRM\Events\Training\TrainingScheduled;
+use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Training;
 use Aero\HRM\Models\TrainingCategory;
 use Aero\HRM\Models\TrainingEnrollment;
 use Aero\HRM\Models\TrainingMaterial;
-use Aero\HRM\Events\Training\TrainingScheduled;
-use Aero\HRM\Http\Controllers\Controller;
-use Aero\Core\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Inertia\Inertia;
 
 class TrainingController extends Controller

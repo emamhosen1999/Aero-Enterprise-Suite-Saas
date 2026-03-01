@@ -15,7 +15,7 @@ class ProductReview extends Model
     protected $fillable = [
         'product_id', 'customer_id', 'order_id', 'rating', 'title', 'review_text',
         'is_verified_purchase', 'is_approved', 'approved_at', 'helpful_votes',
-        'not_helpful_votes', 'response_text', 'responded_at'
+        'not_helpful_votes', 'response_text', 'responded_at',
     ];
 
     protected $casts = [
@@ -62,12 +62,13 @@ class ProductReview extends Model
         if ($totalVotes === 0) {
             return 0;
         }
+
         return round(($this->helpful_votes / $totalVotes) * 100, 1);
     }
 
     public function getStarDisplayAttribute()
     {
-        return str_repeat('★', $this->rating) . str_repeat('☆', 5 - $this->rating);
+        return str_repeat('★', $this->rating).str_repeat('☆', 5 - $this->rating);
     }
 
     public function isApproved()
@@ -77,7 +78,7 @@ class ProductReview extends Model
 
     public function hasResponse()
     {
-        return !empty($this->response_text);
+        return ! empty($this->response_text);
     }
 
     public function scopeApproved($query)

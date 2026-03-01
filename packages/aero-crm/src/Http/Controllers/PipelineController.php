@@ -2,9 +2,8 @@
 
 namespace Aero\Crm\Http\Controllers;
 
-use Aero\Crm\Http\Controllers\Controller;
-use Aero\Crm\Models\Pipeline;
 use Aero\Core\Models\User;
+use Aero\Crm\Models\Pipeline;
 use App\Services\CRM\PipelineService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

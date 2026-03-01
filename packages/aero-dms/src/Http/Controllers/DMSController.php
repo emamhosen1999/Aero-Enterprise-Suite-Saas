@@ -3,7 +3,6 @@
 namespace Aero\Dms\Http\Controllers;
 
 use Aero\Core\Services\DashboardWidgetRegistry;
-use Aero\Dms\Http\Controllers\Controller;
 use Aero\Dms\Models\Category;
 use Aero\Dms\Models\Document;
 use Aero\Dms\Models\DocumentVersion;
@@ -31,7 +30,7 @@ class DMSController extends Controller
         $user = Auth::user();
         $statistics = $this->dmsService->getStatistics($user);
         $recentActivity = $this->dmsService->getRecentActivity(10);
-        
+
         // Get dynamic widgets for DMS dashboard
         $dynamicWidgets = $this->widgetRegistry->getWidgetsForFrontend('dms');
 

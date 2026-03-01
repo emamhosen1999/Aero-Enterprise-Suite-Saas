@@ -7,7 +7,7 @@ use Aero\Rfi\Events\RfiRejected;
 
 /**
  * CreateNcrOnRfiRejection Listener
- * 
+ *
  * Automatically creates an NCR when an RFI is rejected with high severity.
  * PATENTABLE: "Automated non-conformance creation from inspection rejection"
  */

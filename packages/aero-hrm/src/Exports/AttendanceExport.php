@@ -2,10 +2,10 @@
 
 namespace Aero\HRM\Exports;
 
+use Aero\Core\Models\User;
 use Aero\HRM\Models\Attendance;
 use Aero\HRM\Models\Leave;
 use Aero\HRM\Models\LeaveSetting;
-use Aero\Core\Models\User;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;

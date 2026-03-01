@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------

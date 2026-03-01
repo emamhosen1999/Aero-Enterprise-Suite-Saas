@@ -19,19 +19,18 @@ class InitializeTenantForJob
     /**
      * Handle the job.
      *
-     * @param mixed $job
-     * @param \Closure $next
+     * @param  mixed  $job
      * @return mixed
      */
     public function handle($job, Closure $next)
     {
         // Only initialize tenancy in SaaS mode
-        if (!is_saas_mode()) {
+        if (! is_saas_mode()) {
             return $next($job);
         }
 
         // Check if job has tenant property
-        if (!property_exists($job, 'tenant') || !$job->tenant) {
+        if (! property_exists($job, 'tenant') || ! $job->tenant) {
             // Job doesn't need tenant context
             return $next($job);
         }

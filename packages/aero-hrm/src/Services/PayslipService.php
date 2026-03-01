@@ -2,9 +2,9 @@
 
 namespace Aero\HRM\Services;
 
+use Aero\Core\Services\MailService;
 use Aero\HRM\Models\Payroll;
 use Aero\HRM\Models\Payslip;
-use Aero\Core\Services\MailService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
 

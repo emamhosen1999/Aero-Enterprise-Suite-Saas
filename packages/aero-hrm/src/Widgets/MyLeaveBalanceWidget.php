@@ -20,10 +20,15 @@ use Illuminate\Support\Facades\DB;
 class MyLeaveBalanceWidget extends AbstractDashboardWidget
 {
     protected string $position = 'main_right';
+
     protected int $order = 2;
+
     protected int|string $span = 1;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::SUMMARY;
+
     protected array $requiredPermissions = ['hrm.leaves']; // HRMAC format: module.submodule
+
     protected array $dashboards = ['hrm.employee'];
 
     public function getKey(): string
@@ -56,7 +61,7 @@ class MyLeaveBalanceWidget extends AbstractDashboardWidget
     {
         return $this->safeResolve(function () {
             $user = Auth::user();
-            if (!$user) {
+            if (! $user) {
                 return ['totalRemaining' => 0, 'breakdown' => []];
             }
 
@@ -77,7 +82,7 @@ class MyLeaveBalanceWidget extends AbstractDashboardWidget
 
             return [
                 'totalRemaining' => $totalRemaining,
-                'breakdown' => $balances->map(fn($b) => [
+                'breakdown' => $balances->map(fn ($b) => [
                     'type' => $b->leave_type,
                     'remaining' => $b->remaining_days,
                     'allocated' => $b->allocated_days,

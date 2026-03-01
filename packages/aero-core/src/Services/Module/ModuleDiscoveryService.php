@@ -7,10 +7,10 @@ use Illuminate\Support\Facades\File;
 
 /**
  * Module Discovery Service
- * 
+ *
  * Scans installed Aero packages and loads their config/module.php files
  * into a single unified structure for permission syncing.
- * 
+ *
  * Only discovers modules that are:
  * 1. Installed via Composer (in vendor/aero/)
  * 2. Or loaded as runtime modules (in modules/)
@@ -24,15 +24,13 @@ class ModuleDiscoveryService
 
     /**
      * Get all module definitions from installed packages
-     * 
-     * @return Collection
      */
     public function getModuleDefinitions(): Collection
     {
         $definitions = collect();
 
         // 1. Discover packages installed via Composer (vendor/aero/*)
-        $vendorPath = base_path('vendor/' . $this->vendorPrefix);
+        $vendorPath = base_path('vendor/'.$this->vendorPrefix);
         if (File::exists($vendorPath)) {
             foreach (File::directories($vendorPath) as $packagePath) {
                 $moduleConfig = $this->loadModuleConfig($packagePath);
@@ -58,28 +56,25 @@ class ModuleDiscoveryService
 
     /**
      * Load module config from a package path
-     * 
-     * @param string $packagePath
-     * @return array|null
      */
     protected function loadModuleConfig(string $packagePath): ?array
     {
-        $configPath = $packagePath . '/config/module.php';
+        $configPath = $packagePath.'/config/module.php';
 
-        if (!File::exists($configPath)) {
+        if (! File::exists($configPath)) {
             return null;
         }
 
         try {
             $moduleConfig = require $configPath;
-            
+
             if (is_array($moduleConfig) && $this->isValidModuleConfig($moduleConfig)) {
                 return $moduleConfig;
             }
-            
+
             \Log::debug("Skipping incomplete module config from {$packagePath}");
         } catch (\Exception $e) {
-            \Log::warning("Failed to load module config from {$packagePath}: " . $e->getMessage());
+            \Log::warning("Failed to load module config from {$packagePath}: ".$e->getMessage());
         }
 
         return null;
@@ -87,8 +82,6 @@ class ModuleDiscoveryService
 
     /**
      * Get flat list of all permissions across all modules
-     * 
-     * @return Collection
      */
     public function getAllPermissions(): Collection
     {
@@ -105,9 +98,6 @@ class ModuleDiscoveryService
 
     /**
      * Extract permissions from module config recursively
-     * 
-     * @param array $moduleConfig
-     * @return Collection
      */
     protected function extractPermissionsFromModule(array $moduleConfig): Collection
     {
@@ -137,10 +127,6 @@ class ModuleDiscoveryService
 
     /**
      * Extract permissions from submodule
-     * 
-     * @param array $submodule
-     * @param string $moduleCode
-     * @return Collection
      */
     protected function extractPermissionsFromSubmodule(array $submodule, string $moduleCode): Collection
     {
@@ -171,11 +157,6 @@ class ModuleDiscoveryService
 
     /**
      * Extract permissions from component (includes actions)
-     * 
-     * @param array $component
-     * @param string $moduleCode
-     * @param string $submoduleCode
-     * @return Collection
      */
     protected function extractPermissionsFromComponent(array $component, string $moduleCode, string $submoduleCode): Collection
     {
@@ -215,8 +196,6 @@ class ModuleDiscoveryService
 
     /**
      * Get module structure as nested array (for admin UI)
-     * 
-     * @return array
      */
     public function getModuleTree(): array
     {
@@ -225,9 +204,6 @@ class ModuleDiscoveryService
 
     /**
      * Check if a package exists
-     * 
-     * @param string $packagePath
-     * @return bool
      */
     public function packageExists(string $packagePath): bool
     {
@@ -236,37 +212,32 @@ class ModuleDiscoveryService
 
     /**
      * Get list of available packages
-     * 
-     * @return Collection
      */
     public function getAvailablePackages(): Collection
     {
         return collect($this->packagePaths)
-            ->filter(fn($path) => $this->packageExists($path))
-            ->map(fn($path) => [
+            ->filter(fn ($path) => $this->packageExists($path))
+            ->map(fn ($path) => [
                 'path' => $path,
                 'name' => basename($path),
-                'has_config' => File::exists(base_path($path . '/config/module.php')),
+                'has_config' => File::exists(base_path($path.'/config/module.php')),
             ]);
     }
 
     /**
      * Validate if a module config has all required fields
-     * 
-     * @param array $config
-     * @return bool
      */
     protected function isValidModuleConfig(array $config): bool
     {
         // Required fields for a valid module config
         $requiredFields = ['code', 'name', 'scope'];
-        
+
         foreach ($requiredFields as $field) {
-            if (!isset($config[$field]) || empty($config[$field])) {
+            if (! isset($config[$field]) || empty($config[$field])) {
                 return false;
             }
         }
-        
+
         return true;
     }
 }

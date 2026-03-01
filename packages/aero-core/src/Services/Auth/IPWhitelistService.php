@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Aero\Core\Services\Auth;
 
 use Aero\Core\Models\User;
-use Illuminate\Http\Request;
 use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\Log;
 
@@ -57,10 +56,6 @@ class IPWhitelistService
 
     /**
      * Check if an IP address is allowed.
-     *
-     * @param string $ip
-     * @param User|null $user
-     * @return bool
      */
     public function isIpAllowed(string $ip, ?User $user = null): bool
     {
@@ -107,8 +102,6 @@ class IPWhitelistService
 
     /**
      * Get the IP configuration for the current tenant.
-     *
-     * @return array
      */
     public function getConfig(): array
     {
@@ -129,8 +122,6 @@ class IPWhitelistService
 
     /**
      * Get default configuration.
-     *
-     * @return array
      */
     protected function getDefaultConfig(): array
     {
@@ -145,9 +136,6 @@ class IPWhitelistService
 
     /**
      * Update tenant IP configuration.
-     *
-     * @param array $config
-     * @return void
      */
     public function updateConfig(array $config): void
     {
@@ -171,8 +159,7 @@ class IPWhitelistService
     /**
      * Set the IP access mode.
      *
-     * @param string $mode disabled|whitelist|blacklist
-     * @return void
+     * @param  string  $mode  disabled|whitelist|blacklist
      */
     public function setMode(string $mode): void
     {
@@ -188,10 +175,9 @@ class IPWhitelistService
     /**
      * Add an IP or range to the whitelist.
      *
-     * @param string $ip IP address, CIDR, or range
-     * @param string $label Description
-     * @param string|null $expiresAt Optional expiration date
-     * @return void
+     * @param  string  $ip  IP address, CIDR, or range
+     * @param  string  $label  Description
+     * @param  string|null  $expiresAt  Optional expiration date
      */
     public function addToWhitelist(string $ip, string $label = '', ?string $expiresAt = null): void
     {
@@ -219,10 +205,9 @@ class IPWhitelistService
     /**
      * Add an IP or range to the blacklist.
      *
-     * @param string $ip IP address, CIDR, or range
-     * @param string $reason Reason for blocking
-     * @param string|null $expiresAt Optional expiration date
-     * @return void
+     * @param  string  $ip  IP address, CIDR, or range
+     * @param  string  $reason  Reason for blocking
+     * @param  string|null  $expiresAt  Optional expiration date
      */
     public function addToBlacklist(string $ip, string $reason = '', ?string $expiresAt = null): void
     {
@@ -249,9 +234,6 @@ class IPWhitelistService
 
     /**
      * Remove an IP from whitelist.
-     *
-     * @param string $ip
-     * @return void
      */
     public function removeFromWhitelist(string $ip): void
     {
@@ -265,9 +247,6 @@ class IPWhitelistService
 
     /**
      * Remove an IP from blacklist.
-     *
-     * @param string $ip
-     * @return void
      */
     public function removeFromBlacklist(string $ip): void
     {
@@ -281,10 +260,6 @@ class IPWhitelistService
 
     /**
      * Check if IP is in a list (supports CIDR and ranges).
-     *
-     * @param string $ip
-     * @param array $list
-     * @return bool
      */
     protected function isIpInList(string $ip, array $list): bool
     {
@@ -321,10 +296,6 @@ class IPWhitelistService
 
     /**
      * Check if IP matches CIDR notation.
-     *
-     * @param string $ip
-     * @param string $cidr
-     * @return bool
      */
     protected function ipMatchesCidr(string $ip, string $cidr): bool
     {
@@ -372,10 +343,6 @@ class IPWhitelistService
 
     /**
      * Check if IP matches a range.
-     *
-     * @param string $ip
-     * @param string $range
-     * @return bool
      */
     protected function ipMatchesRange(string $ip, string $range): bool
     {
@@ -396,9 +363,6 @@ class IPWhitelistService
 
     /**
      * Check if IP is a local address.
-     *
-     * @param string $ip
-     * @return bool
      */
     protected function isLocalAddress(string $ip): bool
     {
@@ -408,9 +372,6 @@ class IPWhitelistService
 
     /**
      * Validate IP entry format.
-     *
-     * @param string $ip
-     * @return void
      */
     protected function validateIpEntry(string $ip): void
     {
@@ -446,10 +407,6 @@ class IPWhitelistService
 
     /**
      * Check user-specific IP restrictions.
-     *
-     * @param User $user
-     * @param string $ip
-     * @return bool
      */
     protected function isUserIpAllowed(User $user, string $ip): bool
     {
@@ -470,11 +427,6 @@ class IPWhitelistService
 
     /**
      * Set user-specific IP restrictions.
-     *
-     * @param User $user
-     * @param array $allowedIps
-     * @param bool $enabled
-     * @return void
      */
     public function setUserIpRestrictions(User $user, array $allowedIps, bool $enabled = true): void
     {
@@ -493,11 +445,6 @@ class IPWhitelistService
 
     /**
      * Log blocked access attempt.
-     *
-     * @param string $ip
-     * @param User|null $user
-     * @param string $reason
-     * @return void
      */
     protected function logBlockedAccess(string $ip, ?User $user, string $reason): void
     {
@@ -526,9 +473,6 @@ class IPWhitelistService
 
     /**
      * Get blocked access logs.
-     *
-     * @param int $days
-     * @return array
      */
     public function getBlockedAccessLogs(int $days = 7): array
     {
@@ -539,8 +483,6 @@ class IPWhitelistService
 
     /**
      * Get the current whitelist entries.
-     *
-     * @return array
      */
     public function getWhitelist(): array
     {
@@ -549,8 +491,6 @@ class IPWhitelistService
 
     /**
      * Get the current blacklist entries.
-     *
-     * @return array
      */
     public function getBlacklist(): array
     {

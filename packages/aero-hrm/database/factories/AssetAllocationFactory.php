@@ -3,8 +3,8 @@
 namespace Packages\AeroHrm\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Packages\AeroHrm\Models\AssetAllocation;
 use Packages\AeroHrm\Models\Asset;
+use Packages\AeroHrm\Models\AssetAllocation;
 use Packages\AeroHrm\Models\Employee;
 
 class AssetAllocationFactory extends Factory

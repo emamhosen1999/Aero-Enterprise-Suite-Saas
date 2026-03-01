@@ -2,9 +2,9 @@
 
 namespace Aero\Ims\Http\Controllers;
 
-use Illuminate\Routing\Controller;
 use App\Models\Tenant\IMS\InventoryItem;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 
 class InventoryItemController extends Controller

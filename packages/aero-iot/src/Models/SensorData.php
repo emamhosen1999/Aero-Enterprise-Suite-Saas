@@ -14,7 +14,7 @@ class SensorData extends Model
 
     protected $fillable = [
         'sensor_id', 'value', 'unit', 'quality_indicator', 'timestamp',
-        'metadata', 'is_anomaly', 'processing_status', 'batch_id'
+        'metadata', 'is_anomaly', 'processing_status', 'batch_id',
     ];
 
     protected $casts = [
@@ -27,9 +27,13 @@ class SensorData extends Model
     ];
 
     const STATUS_RAW = 'raw';
+
     const STATUS_VALIDATED = 'validated';
+
     const STATUS_PROCESSED = 'processed';
+
     const STATUS_ARCHIVED = 'archived';
+
     const STATUS_ERROR = 'error';
 
     public function sensor()
@@ -51,8 +55,9 @@ class SensorData extends Model
     {
         $unit = $this->unit ?: $this->sensor?->measurement_unit;
         if ($unit) {
-            return number_format($this->value, 2) . ' ' . $unit;
+            return number_format($this->value, 2).' '.$unit;
         }
+
         return number_format($this->value, 2);
     }
 
@@ -74,8 +79,10 @@ class SensorData extends Model
     public function isOutOfRange()
     {
         $sensor = $this->sensor;
-        if (!$sensor) return false;
-        
+        if (! $sensor) {
+            return false;
+        }
+
         return ($sensor->min_value && $this->value < $sensor->min_value) ||
                ($sensor->max_value && $this->value > $sensor->max_value);
     }
@@ -86,8 +93,8 @@ class SensorData extends Model
             'is_anomaly' => true,
             'metadata' => array_merge($this->metadata ?: [], [
                 'anomaly_detected_at' => now(),
-                'anomaly_reason' => $reason
-            ])
+                'anomaly_reason' => $reason,
+            ]),
         ]);
     }
 

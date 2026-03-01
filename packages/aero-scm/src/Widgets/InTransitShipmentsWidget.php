@@ -18,10 +18,15 @@ use Aero\Core\Contracts\CoreWidgetCategory;
 class InTransitShipmentsWidget extends AbstractDashboardWidget
 {
     protected string $position = 'main_right';
+
     protected int $order = 30;
+
     protected int|string $span = 1;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::DISPLAY;
+
     protected array $requiredPermissions = ['scm.shipments'];
+
     protected array $dashboards = ['scm'];
 
     public function getKey(): string

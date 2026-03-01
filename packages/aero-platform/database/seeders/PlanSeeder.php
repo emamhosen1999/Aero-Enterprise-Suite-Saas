@@ -9,7 +9,7 @@ use Illuminate\Database\Seeder;
  * Seeds the subscription plans for the SaaS platform.
  *
  * Creates a range of plans from Free to Enterprise.
- * 
+ *
  * Module Codes Available:
  * - core: Core functionality (always included)
  * - hrm: Human Resources Management
@@ -204,8 +204,14 @@ class PlanSeeder extends Seeder
                 $planData
             );
 
-            // Auto-sync modules with fallback for standalone mode
-            if (!empty($moduleCodes)) {
+            // Persist module_codes directly as JSON on the plan record
+            if (! empty($moduleCodes)) {
+                $plan->module_codes = $moduleCodes;
+                $plan->save();
+            }
+
+            // Also sync via pivot relationship if Module records exist
+            if (! empty($moduleCodes)) {
                 try {
                     $moduleIds = \Aero\Platform\Models\Module::whereIn('code', $moduleCodes)->pluck('id');
                     if ($moduleIds->isNotEmpty()) {

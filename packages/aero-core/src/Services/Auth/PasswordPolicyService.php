@@ -73,9 +73,9 @@ class PasswordPolicyService
     /**
      * Validate a password against the current policy.
      *
-     * @param string $password The plain text password
-     * @param User|null $user The user (for history/username checks)
-     * @param array|null $customPolicy Override default policy
+     * @param  string  $password  The plain text password
+     * @param  User|null  $user  The user (for history/username checks)
+     * @param  array|null  $customPolicy  Override default policy
      * @return array ['valid' => bool, 'errors' => array]
      */
     public function validate(
@@ -114,7 +114,7 @@ class PasswordPolicyService
 
         // Consecutive character check
         if ($policy['max_consecutive_chars'] > 0) {
-            $pattern = '/(.)\1{' . $policy['max_consecutive_chars'] . ',}/';
+            $pattern = '/(.)\1{'.$policy['max_consecutive_chars'].',}/';
             if (preg_match($pattern, $password)) {
                 $errors[] = "Password cannot have more than {$policy['max_consecutive_chars']} consecutive identical characters.";
             }
@@ -154,9 +154,6 @@ class PasswordPolicyService
 
     /**
      * Get Laravel Password validation rule based on policy.
-     *
-     * @param User|null $user
-     * @return Password
      */
     public function getPasswordRule(?User $user = null): Password
     {
@@ -185,9 +182,6 @@ class PasswordPolicyService
 
     /**
      * Check if a user's password has expired.
-     *
-     * @param User $user
-     * @return bool
      */
     public function isPasswordExpired(User $user): bool
     {
@@ -209,7 +203,6 @@ class PasswordPolicyService
     /**
      * Get days until password expires.
      *
-     * @param User $user
      * @return int|null Null if no expiration
      */
     public function getDaysUntilExpiry(User $user): ?int
@@ -234,10 +227,6 @@ class PasswordPolicyService
 
     /**
      * Record a password change in the user's history.
-     *
-     * @param User $user
-     * @param string $hashedPassword
-     * @return void
      */
     public function recordPasswordChange(User $user, string $hashedPassword): void
     {
@@ -267,9 +256,6 @@ class PasswordPolicyService
 
     /**
      * Get the password policy for a user (tenant-specific or default).
-     *
-     * @param User|null $user
-     * @return array
      */
     public function getPolicy(?User $user = null): array
     {
@@ -291,9 +277,6 @@ class PasswordPolicyService
 
     /**
      * Update tenant password policy.
-     *
-     * @param array $policySettings
-     * @return void
      */
     public function updatePolicy(array $policySettings): void
     {
@@ -317,7 +300,6 @@ class PasswordPolicyService
     /**
      * Calculate password strength score.
      *
-     * @param string $password
      * @return array ['score' => 0-100, 'label' => string]
      */
     public function calculateStrength(string $password): array
@@ -382,9 +364,6 @@ class PasswordPolicyService
 
     /**
      * Check if password is in the common passwords list.
-     *
-     * @param string $password
-     * @return bool
      */
     protected function isCommonPassword(string $password): bool
     {
@@ -393,11 +372,6 @@ class PasswordPolicyService
 
     /**
      * Check if password was used recently.
-     *
-     * @param User $user
-     * @param string $password
-     * @param int $historyCount
-     * @return bool
      */
     protected function wasPasswordUsedRecently(User $user, string $password, int $historyCount): bool
     {
@@ -419,9 +393,6 @@ class PasswordPolicyService
 
     /**
      * Get password requirements as human-readable list.
-     *
-     * @param User|null $user
-     * @return array
      */
     public function getRequirementsList(?User $user = null): array
     {

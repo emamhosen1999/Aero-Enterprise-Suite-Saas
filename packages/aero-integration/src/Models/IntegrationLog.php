@@ -13,7 +13,7 @@ class IntegrationLog extends Model
 
     protected $fillable = [
         'integration_endpoint_id', 'log_type', 'level', 'message', 'context',
-        'request_data', 'response_data', 'duration_ms', 'user_id', 'ip_address'
+        'request_data', 'response_data', 'duration_ms', 'user_id', 'ip_address',
     ];
 
     protected $casts = [
@@ -26,16 +26,25 @@ class IntegrationLog extends Model
     ];
 
     const TYPE_API_REQUEST = 'api_request';
+
     const TYPE_WEBHOOK = 'webhook';
+
     const TYPE_DATA_SYNC = 'data_sync';
+
     const TYPE_WORKFLOW = 'workflow';
+
     const TYPE_HEALTH_CHECK = 'health_check';
+
     const TYPE_AUTHENTICATION = 'authentication';
 
     const LEVEL_DEBUG = 'debug';
+
     const LEVEL_INFO = 'info';
+
     const LEVEL_WARNING = 'warning';
+
     const LEVEL_ERROR = 'error';
+
     const LEVEL_CRITICAL = 'critical';
 
     public function integrationEndpoint()

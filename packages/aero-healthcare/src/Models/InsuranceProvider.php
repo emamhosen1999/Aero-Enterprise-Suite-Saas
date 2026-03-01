@@ -2,10 +2,10 @@
 
 namespace Aero\Healthcare\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class InsuranceProvider extends Model
 {
@@ -16,7 +16,7 @@ class InsuranceProvider extends Model
     protected $fillable = [
         'name', 'code', 'type', 'contact_phone', 'contact_email', 'website',
         'address', 'payer_id', 'is_active', 'eligibility_check_enabled',
-        'copay_amount', 'deductible_amount', 'coverage_details', 'created_by'
+        'copay_amount', 'deductible_amount', 'coverage_details', 'created_by',
     ];
 
     protected $casts = [
@@ -30,11 +30,17 @@ class InsuranceProvider extends Model
     ];
 
     const TYPE_PPO = 'ppo';
+
     const TYPE_HMO = 'hmo';
+
     const TYPE_EPO = 'epo';
+
     const TYPE_POS = 'pos';
+
     const TYPE_MEDICARE = 'medicare';
+
     const TYPE_MEDICAID = 'medicaid';
+
     const TYPE_PRIVATE = 'private';
 
     public function creator()
@@ -59,26 +65,32 @@ class InsuranceProvider extends Model
 
     public function getFormattedAddressAttribute()
     {
-        if (!$this->address) {
+        if (! $this->address) {
             return null;
         }
-        
+
         $addr = $this->address;
         $lines = [];
-        
+
         if (isset($addr['street'])) {
             $lines[] = $addr['street'];
         }
-        
+
         $cityState = [];
-        if (isset($addr['city'])) $cityState[] = $addr['city'];
-        if (isset($addr['state'])) $cityState[] = $addr['state'];
-        if (isset($addr['zip'])) $cityState[] = $addr['zip'];
-        
+        if (isset($addr['city'])) {
+            $cityState[] = $addr['city'];
+        }
+        if (isset($addr['state'])) {
+            $cityState[] = $addr['state'];
+        }
+        if (isset($addr['zip'])) {
+            $cityState[] = $addr['zip'];
+        }
+
         if ($cityState) {
             $lines[] = implode(', ', $cityState);
         }
-        
+
         return implode('\n', $lines);
     }
 
@@ -89,20 +101,20 @@ class InsuranceProvider extends Model
 
     public function supportsCoverage($serviceType)
     {
-        if (!$this->coverage_details) {
+        if (! $this->coverage_details) {
             return false;
         }
-        
-        return isset($this->coverage_details[$serviceType]) && 
+
+        return isset($this->coverage_details[$serviceType]) &&
                $this->coverage_details[$serviceType]['covered'] === true;
     }
 
     public function getCoveragePercentage($serviceType)
     {
-        if (!$this->supportsCoverage($serviceType)) {
+        if (! $this->supportsCoverage($serviceType)) {
             return 0;
         }
-        
+
         return $this->coverage_details[$serviceType]['percentage'] ?? 0;
     }
 

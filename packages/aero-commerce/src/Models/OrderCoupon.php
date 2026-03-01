@@ -12,7 +12,7 @@ class OrderCoupon extends Model
     protected $table = 'commerce_order_coupons';
 
     protected $fillable = [
-        'order_id', 'coupon_id', 'coupon_code', 'discount_amount', 'applied_at'
+        'order_id', 'coupon_id', 'coupon_code', 'discount_amount', 'applied_at',
     ];
 
     protected $casts = [
@@ -37,6 +37,7 @@ class OrderCoupon extends Model
         if ($this->order && $this->order->subtotal > 0) {
             return round(($this->discount_amount / $this->order->subtotal) * 100, 2);
         }
+
         return 0;
     }
 }

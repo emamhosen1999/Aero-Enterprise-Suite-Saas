@@ -2,9 +2,9 @@
 
 namespace Aero\Finance\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Aero\Core\Models\User;
 
 class AssetMaintenance extends Model
 {
@@ -15,7 +15,7 @@ class AssetMaintenance extends Model
     protected $fillable = [
         'fixed_asset_id', 'maintenance_type', 'maintenance_date',
         'scheduled_date', 'cost', 'vendor_id', 'performed_by',
-        'description', 'next_maintenance_date', 'status', 'notes'
+        'description', 'next_maintenance_date', 'status', 'notes',
     ];
 
     protected $casts = [
@@ -29,13 +29,19 @@ class AssetMaintenance extends Model
     ];
 
     const TYPE_PREVENTIVE = 'preventive';
+
     const TYPE_CORRECTIVE = 'corrective';
+
     const TYPE_EMERGENCY = 'emergency';
+
     const TYPE_ROUTINE = 'routine';
 
     const STATUS_SCHEDULED = 'scheduled';
+
     const STATUS_IN_PROGRESS = 'in_progress';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_CANCELLED = 'cancelled';
 
     public function fixedAsset()

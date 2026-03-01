@@ -2,8 +2,8 @@
 
 namespace Aero\Rfi\Services;
 
-use Aero\Rfi\Models\Rfi;
 use Aero\Rfi\Models\Objection;
+use Aero\Rfi\Models\Rfi;
 use Aero\Rfi\Models\SubmissionOverrideLog;
 use Aero\Rfi\Models\WorkLocation;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;

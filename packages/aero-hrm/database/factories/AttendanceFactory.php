@@ -2,9 +2,8 @@
 
 namespace Aero\HRM\Database\Factories;
 
-use Aero\HRM\Models\Attendance;
-use Aero\HRM\Models\AttendanceType;
 use Aero\Core\Models\User;
+use Aero\HRM\Models\Attendance;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -38,8 +37,8 @@ class AttendanceFactory extends Factory
             'date' => $date->format('Y-m-d'),
             'punchin' => $punchin,
             'punchout' => $punchout,
-            'punchin_location' => $this->faker->latitude() . ',' . $this->faker->longitude(),
-            'punchout_location' => $this->faker->latitude() . ',' . $this->faker->longitude(),
+            'punchin_location' => $this->faker->latitude().','.$this->faker->longitude(),
+            'punchout_location' => $this->faker->latitude().','.$this->faker->longitude(),
             'punchin_ip' => $this->faker->ipv4(),
             'punchout_ip' => $this->faker->ipv4(),
             'work_hours' => $workHours,
@@ -72,6 +71,7 @@ class AttendanceFactory extends Factory
     public function late(): static
     {
         $punchin = Carbon::now()->setTime(9, 30, 0);
+
         return $this->state(fn (array $attributes) => [
             'punchin' => $punchin,
             'is_late' => true,
@@ -84,6 +84,7 @@ class AttendanceFactory extends Factory
     public function earlyLeave(): static
     {
         $punchout = Carbon::now()->setTime(17, 0, 0);
+
         return $this->state(fn (array $attributes) => [
             'punchout' => $punchout,
             'is_early_leave' => true,

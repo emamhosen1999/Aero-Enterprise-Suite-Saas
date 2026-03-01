@@ -2,10 +2,10 @@
 
 namespace Aero\Integration\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class DataSyncJob extends Model
 {
@@ -17,7 +17,7 @@ class DataSyncJob extends Model
         'job_name', 'job_type', 'source_endpoint_id', 'target_endpoint_id',
         'sync_direction', 'entity_type', 'mapping_rules', 'transformation_rules',
         'schedule_expression', 'is_active', 'last_run_at', 'next_run_at',
-        'status', 'success_count', 'error_count', 'created_by'
+        'status', 'success_count', 'error_count', 'created_by',
     ];
 
     protected $casts = [
@@ -34,17 +34,25 @@ class DataSyncJob extends Model
     ];
 
     const TYPE_FULL_SYNC = 'full_sync';
+
     const TYPE_INCREMENTAL = 'incremental';
+
     const TYPE_REAL_TIME = 'real_time';
 
     const DIRECTION_IMPORT = 'import';
+
     const DIRECTION_EXPORT = 'export';
+
     const DIRECTION_BIDIRECTIONAL = 'bidirectional';
 
     const STATUS_PENDING = 'pending';
+
     const STATUS_RUNNING = 'running';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_FAILED = 'failed';
+
     const STATUS_CANCELLED = 'cancelled';
 
     public function sourceEndpoint()
@@ -83,6 +91,7 @@ class DataSyncJob extends Model
         if ($total === 0) {
             return 0;
         }
+
         return round(($this->success_count / $total) * 100, 2);
     }
 
@@ -99,6 +108,6 @@ class DataSyncJob extends Model
     public function scopeDue($query)
     {
         return $query->where('is_active', true)
-                    ->where('next_run_at', '<=', now());
+            ->where('next_run_at', '<=', now());
     }
 }

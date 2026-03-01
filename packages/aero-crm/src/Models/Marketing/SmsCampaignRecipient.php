@@ -40,9 +40,13 @@ class SmsCampaignRecipient extends Model
     }
 
     const STATUS_PENDING = 'pending';
+
     const STATUS_SENT = 'sent';
+
     const STATUS_DELIVERED = 'delivered';
+
     const STATUS_FAILED = 'failed';
+
     const STATUS_CLICKED = 'clicked';
 
     public function campaign(): BelongsTo
@@ -55,7 +59,7 @@ class SmsCampaignRecipient extends Model
         return $this->morphTo();
     }
 
-    public function markAsSent(string $messageId = null, float $cost = null): void
+    public function markAsSent(?string $messageId = null, ?float $cost = null): void
     {
         $this->update([
             'status' => self::STATUS_SENT,
@@ -73,7 +77,7 @@ class SmsCampaignRecipient extends Model
         ]);
     }
 
-    public function markAsFailed(string $code, string $message = null): void
+    public function markAsFailed(string $code, ?string $message = null): void
     {
         $this->update([
             'status' => self::STATUS_FAILED,

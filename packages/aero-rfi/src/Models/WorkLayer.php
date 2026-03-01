@@ -11,10 +11,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * WorkLayer Model
- * 
+ *
  * Defines the layers/activities that must be completed in sequence.
  * Example: "Embankment Layer 1" must be approved before "Embankment Layer 2".
- * 
+ *
  * This is a PATENTABLE component: "Sequential work validation using layer dependencies".
  *
  * @property int $id
@@ -90,8 +90,6 @@ class WorkLayer extends Model
 
     /**
      * Check if the prerequisite layer is approved at the given chainage.
-     * 
-     * @return bool
      */
     public function isPrerequisiteSatisfiedAt(float $startChainage, float $endChainage): bool
     {
@@ -110,7 +108,7 @@ class WorkLayer extends Model
 
     /**
      * Get the gap analysis - chainage ranges where this layer is not yet approved.
-     * 
+     *
      * @return array Array of gap ranges [{start: x, end: y}, ...]
      */
     public function getGapsInRange(float $rangeStart, float $rangeEnd): array

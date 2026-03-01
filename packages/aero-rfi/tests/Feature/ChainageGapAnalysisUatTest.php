@@ -19,7 +19,7 @@ class ChainageGapAnalysisUatTest extends TestCase
         parent::setUp();
 
         // Ensure the in-memory DB has the tables we need.
-        $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
+        $this->loadMigrationsFrom(__DIR__.'/../../database/migrations');
     }
 
     public function test_rfi_is_valid_when_prerequisite_and_no_ncr(): void
@@ -49,7 +49,8 @@ class ChainageGapAnalysisUatTest extends TestCase
             'status' => 'approved',
         ]);
 
-        $fakeNcrService = new class implements NcrBlockingServiceInterface {
+        $fakeNcrService = new class implements NcrBlockingServiceInterface
+        {
             public function getOpenNcrsAtChainage(int $projectId, float $startM, float $endM): Collection
             {
                 return collect();
@@ -79,7 +80,8 @@ class ChainageGapAnalysisUatTest extends TestCase
             'is_active' => true,
         ]);
 
-        $fakeNcrService = new class implements NcrBlockingServiceInterface {
+        $fakeNcrService = new class implements NcrBlockingServiceInterface
+        {
             public function getOpenNcrsAtChainage(int $projectId, float $startM, float $endM): Collection
             {
                 return collect([(object) ['ncr_number' => 'NCR-1']]);
@@ -114,7 +116,8 @@ class ChainageGapAnalysisUatTest extends TestCase
             'end_chainage_m' => 100,
         ])->save();
 
-        $fakeNcrService = new class implements NcrBlockingServiceInterface {
+        $fakeNcrService = new class implements NcrBlockingServiceInterface
+        {
             public function getOpenNcrsAtChainage(int $projectId, float $startM, float $endM): Collection
             {
                 return collect();

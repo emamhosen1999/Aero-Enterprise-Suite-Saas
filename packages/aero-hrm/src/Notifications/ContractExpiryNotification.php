@@ -47,11 +47,11 @@ class ContractExpiryNotification extends BaseHrmNotification
         }
 
         return $message
-            ->line("**Employee Details:**")
+            ->line('**Employee Details:**')
             ->line("Name: {$employeeName}")
-            ->line("Department: " . ($this->employee->department?->name ?? 'N/A'))
-            ->line("Designation: " . ($this->employee->designation?->name ?? 'N/A'))
-            ->line("Employment Type: " . ($this->employee->employment_type ?? 'Contract'))
+            ->line('Department: '.($this->employee->department?->name ?? 'N/A'))
+            ->line('Designation: '.($this->employee->designation?->name ?? 'N/A'))
+            ->line('Employment Type: '.($this->employee->employment_type ?? 'Contract'))
             ->line("Contract End Date: {$endDate}")
             ->action('View Employee', url("/hrm/employees/{$this->employee->id}"))
             ->line('Please take necessary action regarding contract renewal or offboarding.');

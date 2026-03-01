@@ -37,7 +37,7 @@ return new class extends Migration
             // Foreign key for tenant
             $table->foreign('tenant_id')->references('id')->on('tenants')->onDelete('cascade');
             $table->foreign('created_plan_id')->references('id')->on('plans')->onDelete('set null');
-            
+
             // Composite indexes for common queries
             $table->index(['tenant_id', 'status']);
             $table->index(['status', 'created_at']);

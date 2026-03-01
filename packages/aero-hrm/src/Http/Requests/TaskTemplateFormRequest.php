@@ -26,7 +26,7 @@ class TaskTemplateFormRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                'unique:task_templates,name,' . $templateId . ',id,department_id,' . ($this->department_id ?? 'NULL'),
+                'unique:task_templates,name,'.$templateId.',id,department_id,'.($this->department_id ?? 'NULL'),
             ],
             'department_id' => 'nullable|exists:departments,id',
             'role' => 'nullable|string|max:255',

@@ -3,6 +3,7 @@
 namespace Aero\Core\Http\Controllers\Auth;
 
 use Aero\Core\Models\User;
+use Aero\HRMAC\Models\Role;
 use Aero\Platform\Models\Tenant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -13,7 +14,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
-use Aero\HRMAC\Models\Role;
 
 /**
  * AdminSetupController

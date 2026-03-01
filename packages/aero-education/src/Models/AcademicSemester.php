@@ -2,10 +2,10 @@
 
 namespace Aero\Education\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class AcademicSemester extends Model
 {
@@ -17,7 +17,7 @@ class AcademicSemester extends Model
         'semester_name', 'academic_year', 'semester_type', 'start_date',
         'end_date', 'registration_start', 'registration_end', 'add_drop_deadline',
         'withdraw_deadline', 'final_exam_start', 'final_exam_end',
-        'graduation_date', 'is_active', 'is_current', 'status', 'created_by'
+        'graduation_date', 'is_active', 'is_current', 'status', 'created_by',
     ];
 
     protected $casts = [
@@ -36,16 +36,25 @@ class AcademicSemester extends Model
     ];
 
     const TYPE_FALL = 'fall';
+
     const TYPE_SPRING = 'spring';
+
     const TYPE_SUMMER = 'summer';
+
     const TYPE_WINTER = 'winter';
+
     const TYPE_INTERSESSION = 'intersession';
 
     const STATUS_PLANNING = 'planning';
+
     const STATUS_REGISTRATION = 'registration';
+
     const STATUS_ACTIVE = 'active';
+
     const STATUS_FINALS = 'finals';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_CANCELLED = 'cancelled';
 
     public function creator()
@@ -70,7 +79,7 @@ class AcademicSemester extends Model
 
     public function getFullNameAttribute()
     {
-        return $this->semester_name . ' ' . $this->academic_year;
+        return $this->semester_name.' '.$this->academic_year;
     }
 
     public function getDurationInWeeksAttribute()
@@ -83,50 +92,56 @@ class AcademicSemester extends Model
         if ($this->end_date > now()) {
             return now()->diffInDays($this->end_date);
         }
+
         return 0;
     }
 
     public function getTotalEnrollmentAttribute()
     {
         return $this->enrollments()
-                   ->where('status', Enrollment::STATUS_ENROLLED)
-                   ->count();
+            ->where('status', Enrollment::STATUS_ENROLLED)
+            ->count();
     }
 
     public function getTotalSectionsAttribute()
     {
         return $this->courseSections()
-                   ->where('status', CourseSection::STATUS_OPEN)
-                   ->count();
+            ->where('status', CourseSection::STATUS_OPEN)
+            ->count();
     }
 
     public function isRegistrationOpen()
     {
         $today = now()->toDateString();
+
         return $this->registration_start <= $today && $this->registration_end >= $today;
     }
 
     public function isAddDropPeriod()
     {
         $today = now()->toDateString();
+
         return $this->start_date <= $today && $this->add_drop_deadline >= $today;
     }
 
     public function isWithdrawPeriod()
     {
         $today = now()->toDateString();
+
         return $this->add_drop_deadline < $today && $this->withdraw_deadline >= $today;
     }
 
     public function isCurrentSemester()
     {
         $today = now()->toDateString();
+
         return $this->start_date <= $today && $this->end_date >= $today;
     }
 
     public function isFinalExamPeriod()
     {
         $today = now()->toDateString();
+
         return $this->final_exam_start <= $today && $this->final_exam_end >= $today;
     }
 
@@ -138,7 +153,7 @@ class AcademicSemester extends Model
     public function getRegistrationStatus()
     {
         $today = now()->toDateString();
-        
+
         if ($today < $this->registration_start) {
             return 'Registration Not Yet Open';
         } elseif ($today <= $this->registration_end) {
@@ -151,7 +166,7 @@ class AcademicSemester extends Model
     public function getAcademicPeriodStatus()
     {
         $today = now()->toDateString();
-        
+
         if ($today < $this->start_date) {
             return 'Upcoming';
         } elseif ($today <= $this->add_drop_deadline) {
@@ -170,23 +185,23 @@ class AcademicSemester extends Model
     public static function current()
     {
         return static::where('is_current', true)
-                    ->where('is_active', true)
-                    ->first();
+            ->where('is_active', true)
+            ->first();
     }
 
     public static function upcoming()
     {
         return static::where('start_date', '>', now())
-                    ->where('is_active', true)
-                    ->orderBy('start_date')
-                    ->first();
+            ->where('is_active', true)
+            ->orderBy('start_date')
+            ->first();
     }
 
     public function makeCurrentSemester()
     {
         // Set all other semesters as not current
         static::where('is_current', true)->update(['is_current' => false]);
-        
+
         // Set this semester as current
         $this->is_current = true;
         $this->save();
@@ -215,7 +230,7 @@ class AcademicSemester extends Model
     public function scopeUpcoming($query)
     {
         return $query->where('start_date', '>', now())
-                    ->orderBy('start_date');
+            ->orderBy('start_date');
     }
 
     public function scopeCompleted($query)

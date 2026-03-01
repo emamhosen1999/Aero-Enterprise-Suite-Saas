@@ -1866,8 +1866,8 @@ class SystemMonitoringController extends Controller
     private function analyzeCacheUsage()
     {
         $cacheStats = [
-            'config_cached' => file_exists(bootstrap_path('cache/config.php')),
-            'routes_cached' => file_exists(bootstrap_path('cache/routes-v7.php')),
+            'config_cached' => file_exists(base_path('bootstrap/cache/config.php')),
+            'routes_cached' => file_exists(base_path('bootstrap/cache/routes-v7.php')),
             'views_cached' => file_exists(storage_path('framework/views')),
             'cache_size' => 0,
         ];

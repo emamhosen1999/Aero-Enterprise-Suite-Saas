@@ -2,9 +2,9 @@
 
 namespace Aero\HRM\Models;
 
+use Aero\Core\Models\User;
 use App\Models\PerformanceCompetency;
 use App\Models\PerformanceCompetencyCategory;
-use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;

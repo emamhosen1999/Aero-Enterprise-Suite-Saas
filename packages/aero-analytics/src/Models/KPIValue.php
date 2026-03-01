@@ -13,7 +13,7 @@ class KPIValue extends Model
 
     protected $fillable = [
         'kpi_id', 'value', 'target_value', 'period_start', 'period_end',
-        'calculated_at', 'data_context', 'notes'
+        'calculated_at', 'data_context', 'notes',
     ];
 
     protected $casts = [

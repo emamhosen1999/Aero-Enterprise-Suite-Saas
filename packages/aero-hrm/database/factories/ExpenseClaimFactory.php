@@ -3,9 +3,9 @@
 namespace Packages\AeroHrm\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Packages\AeroHrm\Models\ExpenseClaim;
-use Packages\AeroHrm\Models\ExpenseCategory;
 use Packages\AeroHrm\Models\Employee;
+use Packages\AeroHrm\Models\ExpenseCategory;
+use Packages\AeroHrm\Models\ExpenseClaim;
 
 class ExpenseClaimFactory extends Factory
 {
@@ -16,7 +16,7 @@ class ExpenseClaimFactory extends Factory
         return [
             'employee_id' => Employee::factory(),
             'expense_category_id' => ExpenseCategory::factory(),
-            'claim_number' => 'EXP' . now()->format('Ym') . str_pad($this->faker->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
+            'claim_number' => 'EXP'.now()->format('Ym').str_pad($this->faker->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
             'amount' => $this->faker->randomFloat(2, 10, 2000),
             'claim_date' => $this->faker->dateTimeBetween('-30 days', 'now'),
             'description' => $this->faker->sentence(),
@@ -84,7 +84,7 @@ class ExpenseClaimFactory extends Factory
             'approved_at' => now()->subDays(2),
             'paid_at' => now(),
             'payment_method' => $this->faker->randomElement(['bank_transfer', 'cash', 'cheque']),
-            'payment_reference' => 'PAY' . $this->faker->unique()->numberBetween(10000, 99999),
+            'payment_reference' => 'PAY'.$this->faker->unique()->numberBetween(10000, 99999),
         ]);
     }
 

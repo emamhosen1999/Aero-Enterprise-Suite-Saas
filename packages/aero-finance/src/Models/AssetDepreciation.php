@@ -14,7 +14,7 @@ class AssetDepreciation extends Model
     protected $fillable = [
         'fixed_asset_id', 'depreciation_date', 'depreciation_amount',
         'accumulated_depreciation', 'book_value', 'period_type',
-        'journal_entry_id', 'notes'
+        'journal_entry_id', 'notes',
     ];
 
     protected $casts = [
@@ -27,7 +27,9 @@ class AssetDepreciation extends Model
     ];
 
     const PERIOD_MONTHLY = 'monthly';
+
     const PERIOD_QUARTERLY = 'quarterly';
+
     const PERIOD_YEARLY = 'yearly';
 
     public function fixedAsset()

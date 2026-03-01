@@ -205,7 +205,7 @@ return [
                 ],
             ],
         ],
-        
+
         // ==================== BOQ Items Master (Preserved) ====================
         [
             'code' => 'boq-items',

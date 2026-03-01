@@ -15,10 +15,11 @@ class SendPromotionNotification implements ShouldQueue
         $employee = $event->employee;
         $user = $employee->user;
 
-        if (!$user) {
+        if (! $user) {
             Log::warning('Employee has no associated user for promotion notification', [
                 'employee_id' => $employee->id,
             ]);
+
             return;
         }
 

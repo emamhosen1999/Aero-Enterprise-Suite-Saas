@@ -16,8 +16,11 @@ use Aero\Project\Notifications\BaseProjectNotification;
 class MemberAddedNotification extends BaseProjectNotification
 {
     protected string $eventType = 'project.member.added';
+
     protected string $subModuleCode = 'projects';
+
     protected ?string $componentCode = 'team-management';
+
     protected string $actionCode = 'view';
 
     public function __construct(
@@ -28,8 +31,7 @@ class MemberAddedNotification extends BaseProjectNotification
         public string $role,
         public float $allocationPercentage,
         public ?int $addedByUserId
-    ) {
-    }
+    ) {}
 
     /**
      * Create from MemberAdded event.
@@ -63,6 +65,7 @@ class MemberAddedNotification extends BaseProjectNotification
     protected function getMailLine(): string
     {
         $roleText = ucfirst(str_replace('_', ' ', $this->role));
+
         return "You have been added to project '{$this->projectName}' as a {$roleText} with {$this->allocationPercentage}% allocation.";
     }
 

@@ -6,10 +6,10 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Create roles tables for Role-Module Access system
- * 
+ *
  * This creates ONLY the roles and model_has_roles tables.
  * We use role_module_access (created in separate migration) instead of permissions.
- * 
+ *
  * The system works as follows:
  * - roles: Define user roles (Admin, Manager, Employee, etc.)
  * - model_has_roles: Assign roles to users
@@ -23,7 +23,7 @@ return new class extends Migration
     public function up(): void
     {
         // Create roles table
-        if (!Schema::hasTable('roles')) {
+        if (! Schema::hasTable('roles')) {
             Schema::create('roles', function (Blueprint $table) {
                 $table->id();
                 $table->string('name');
@@ -37,12 +37,12 @@ return new class extends Migration
         }
 
         // Create model_has_roles pivot table (users <-> roles)
-        if (!Schema::hasTable('model_has_roles')) {
+        if (! Schema::hasTable('model_has_roles')) {
             Schema::create('model_has_roles', function (Blueprint $table) {
                 $table->unsignedBigInteger('role_id');
                 $table->string('model_type');
                 $table->unsignedBigInteger('model_id');
-                
+
                 $table->foreign('role_id')
                     ->references('id')
                     ->on('roles')

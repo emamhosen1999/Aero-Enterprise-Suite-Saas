@@ -13,14 +13,23 @@ use Aero\Core\Providers\AbstractModuleProvider;
 class ProjectModuleProvider extends AbstractModuleProvider
 {
     protected string $moduleCode = 'project';
+
     protected string $moduleName = 'Project Management';
+
     protected string $moduleDescription = 'Complete project management with tasks, milestones, time tracking, resources, and Gantt charts';
+
     protected string $moduleVersion = '1.0.0';
+
     protected string $moduleCategory = 'business';
+
     protected string $moduleIcon = 'BriefcaseIcon';
+
     protected int $modulePriority = 13;
+
     protected bool $enabled = true;
+
     protected ?string $minimumPlan = 'professional';
+
     protected array $dependencies = ['core'];
 
     protected array $navigationItems = [
@@ -167,7 +176,8 @@ class ProjectModuleProvider extends AbstractModuleProvider
     protected function getModulePath(string $path = ''): string
     {
         $basePath = dirname(__DIR__, 2);
-        return $path ? $basePath . '/' . $path : $basePath;
+
+        return $path ? $basePath.'/'.$path : $basePath;
     }
 
     protected function registerServices(): void
@@ -178,7 +188,7 @@ class ProjectModuleProvider extends AbstractModuleProvider
     protected function bootModule(): void
     {
         // Register module-specific middleware, policies, etc.
-        
+
         // Register dashboard widgets
         $this->registerDashboardWidgets();
     }

@@ -36,7 +36,6 @@ use Illuminate\Support\Facades\Storage;
  * @property \Carbon\Carbon|null $created_at
  * @property \Carbon\Carbon|null $updated_at
  * @property \Carbon\Carbon|null $deleted_at
- *
  * @property-read User $user
  * @property-read bool $is_expiring_soon
  * @property-read bool $is_expired
@@ -93,6 +92,14 @@ class EmployeePersonalDocument extends Model
     public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the employee record associated with this document (via user_id).
+     */
+    public function employee(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Employee::class, 'user_id', 'user_id');
     }
 
     public function verifier(): \Illuminate\Database\Eloquent\Relations\BelongsTo

@@ -16,7 +16,7 @@ class TokenTransfer extends Model
         'transaction_id', 'token_address', 'from_address', 'to_address',
         'amount', 'token_id', 'transfer_type', 'log_index', 'block_number',
         'transaction_index', 'event_signature', 'raw_data', 'decoded_data',
-        'timestamp'
+        'timestamp',
     ];
 
     protected $casts = [
@@ -32,8 +32,11 @@ class TokenTransfer extends Model
     ];
 
     const TYPE_ERC20 = 'erc20';
+
     const TYPE_ERC721 = 'erc721';
+
     const TYPE_ERC1155 = 'erc1155';
+
     const TYPE_NATIVE = 'native';
 
     public function transaction()
@@ -81,16 +84,22 @@ class TokenTransfer extends Model
         if ($this->token) {
             $decimals = $this->token->decimals ?: 18;
             $displayAmount = $this->amount / pow(10, $decimals);
-            return number_format($displayAmount, min(8, $decimals)) . ' ' . $this->token->symbol;
+
+            return number_format($displayAmount, min(8, $decimals)).' '.$this->token->symbol;
         }
-        
+
         return number_format($this->amount, 8);
     }
 
     public function getTransferDirectionAttribute()
     {
-        if ($this->isMint()) return 'mint';
-        if ($this->isBurn()) return 'burn';
+        if ($this->isMint()) {
+            return 'mint';
+        }
+        if ($this->isBurn()) {
+            return 'burn';
+        }
+
         return 'transfer';
     }
 
@@ -113,9 +122,9 @@ class TokenTransfer extends Model
 
     public function scopeByAddress($query, $address)
     {
-        return $query->where(function($q) use ($address) {
+        return $query->where(function ($q) use ($address) {
             $q->where('from_address', $address)
-              ->orWhere('to_address', $address);
+                ->orWhere('to_address', $address);
         });
     }
 

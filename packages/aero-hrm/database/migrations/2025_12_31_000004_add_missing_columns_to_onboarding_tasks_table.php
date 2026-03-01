@@ -12,15 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         // Only run if table exists
-        if (!Schema::hasTable('onboarding_tasks')) {
+        if (! Schema::hasTable('onboarding_tasks')) {
             return;
         }
 
         Schema::table('onboarding_tasks', function (Blueprint $table) {
-            if (!Schema::hasColumn('onboarding_tasks', 'completed_date')) {
+            if (! Schema::hasColumn('onboarding_tasks', 'completed_date')) {
                 $table->timestamp('completed_date')->nullable()->after('due_date');
             }
-            if (!Schema::hasColumn('onboarding_tasks', 'deleted_at')) {
+            if (! Schema::hasColumn('onboarding_tasks', 'deleted_at')) {
                 $table->softDeletes();
             }
         });
@@ -36,4 +36,3 @@ return new class extends Migration
         });
     }
 };
-

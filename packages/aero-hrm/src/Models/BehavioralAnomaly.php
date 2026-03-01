@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Behavioral Anomaly Model
- * 
+ *
  * Detects and tracks unusual patterns in employee behavior.
  * Supports early intervention and performance management.
  */

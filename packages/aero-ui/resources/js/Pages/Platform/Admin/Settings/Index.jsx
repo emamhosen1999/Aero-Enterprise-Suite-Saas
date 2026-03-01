@@ -13,6 +13,7 @@ import {
   Cog6ToothIcon,
   CreditCardIcon,
   EnvelopeIcon,
+  ServerIcon,
   ShieldCheckIcon,
   WrenchScrewdriverIcon,
 } from '@heroicons/react/24/outline';
@@ -41,6 +42,12 @@ const shortcuts = [
     description: 'Control maintenance mode, bypass rules, and downtime messaging.',
     icon: WrenchScrewdriverIcon,
     href: route('admin.settings.maintenance.index'),
+  },
+  {
+    title: 'Infrastructure & Hosting',
+    description: 'Toggle dedicated vs shared hosting and configure cPanel credentials.',
+    icon: ServerIcon,
+    href: route('admin.settings.infrastructure'),
   },
 ];
 

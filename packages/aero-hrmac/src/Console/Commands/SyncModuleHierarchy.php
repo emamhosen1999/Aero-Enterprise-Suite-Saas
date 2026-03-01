@@ -238,7 +238,7 @@ class SyncModuleHierarchy extends Command
         }
 
         // Sync self-service items as a special "Self Service" submodule
-        if (isset($moduleDef['self_service']) && is_array($moduleDef['self_service']) && !empty($moduleDef['self_service'])) {
+        if (isset($moduleDef['self_service']) && is_array($moduleDef['self_service']) && ! empty($moduleDef['self_service'])) {
             $this->syncSelfServiceSubModule($module, $moduleDef['self_service']);
         }
     }
@@ -311,7 +311,7 @@ class SyncModuleHierarchy extends Command
                     ],
                     [
                         'name' => $actionDef['name'],
-                        'description' => $actionDef['name'] . ' ' . $item['name'],
+                        'description' => $actionDef['name'].' '.$item['name'],
                         'is_active' => true,
                     ]
                 );

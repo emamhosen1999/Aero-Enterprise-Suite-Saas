@@ -11,16 +11,21 @@ use Aero\Core\Contracts\CoreWidgetCategory;
  * Team Attendance Widget
  *
  * Displays team attendance overview for managers.
- * 
+ *
  * Appears on: HRM Manager Dashboard (/hrm/dashboard)
  */
 class TeamAttendanceWidget extends AbstractDashboardWidget
 {
     protected string $position = 'stats_row';
+
     protected int $order = 95;
+
     protected int|string $span = 1;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::SUMMARY;
+
     protected array $requiredPermissions = ['hrm.attendance']; // HRMAC format: module.submodule
+
     protected array $dashboards = ['hrm'];
 
     public function getKey(): string
@@ -51,8 +56,8 @@ class TeamAttendanceWidget extends AbstractDashboardWidget
     public function getData(): array
     {
         $user = auth()->user();
-        
-        if (!$user) {
+
+        if (! $user) {
             return [
                 'present' => 0,
                 'absent' => 0,
@@ -93,7 +98,7 @@ class TeamAttendanceWidget extends AbstractDashboardWidget
             return true;
         }
 
-        if (!$this->isModuleActive()) {
+        if (! $this->isModuleActive()) {
             return false;
         }
 

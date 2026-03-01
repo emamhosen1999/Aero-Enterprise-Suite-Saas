@@ -2,16 +2,16 @@
 
 namespace Aero\HRM\Http\Controllers\Employee;
 
+use Aero\Core\Models\User;
+use Aero\HRM\Http\Controllers\Controller;
+use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Payroll;
 use Aero\HRM\Models\PayrollAllowance;
 use Aero\HRM\Models\PayrollDeduction;
 use Aero\HRM\Models\Payslip;
-use Aero\HRM\Models\Employee;
 use Aero\HRM\Services\PayrollCalculationService;
 use Aero\HRM\Services\PayrollReportService;
 use Aero\HRM\Services\PayslipService;
-use Aero\HRM\Http\Controllers\Controller;
-use Aero\Core\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

@@ -13,7 +13,7 @@ class ServiceWorkOrderPart extends Model
 
     protected $fillable = [
         'work_order_id', 'service_part_id', 'quantity_used', 'unit_cost',
-        'total_cost', 'charged_to_customer', 'warranty_applicable', 'notes'
+        'total_cost', 'charged_to_customer', 'warranty_applicable', 'notes',
     ];
 
     protected $casts = [

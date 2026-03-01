@@ -18,7 +18,7 @@ class SessionEncryptionService
     /**
      * Encrypt session payload data.
      *
-     * @param array $data Session data to encrypt
+     * @param  array  $data  Session data to encrypt
      * @return string Encrypted payload
      */
     public function encryptSessionPayload(array $data): string
@@ -26,7 +26,7 @@ class SessionEncryptionService
         try {
             // Remove sensitive keys that shouldn't be encrypted (for performance)
             $sensitiveData = $this->extractSensitiveData($data);
-            
+
             // Only encrypt if there's sensitive data
             if (empty($sensitiveData)) {
                 return serialize($data);
@@ -34,7 +34,7 @@ class SessionEncryptionService
 
             // Encrypt sensitive data
             $encryptedSensitive = Crypt::encryptString(serialize($sensitiveData));
-            
+
             // Replace sensitive data with encrypted version
             $safeData = array_diff_key($data, $sensitiveData);
             $safeData['_encrypted_payload'] = $encryptedSensitive;
@@ -43,9 +43,9 @@ class SessionEncryptionService
         } catch (\Exception $e) {
             Log::error('Session encryption failed', [
                 'error' => $e->getMessage(),
-                'data_keys' => array_keys($data)
+                'data_keys' => array_keys($data),
             ]);
-            
+
             // Fallback to unencrypted for stability
             return serialize($data);
         }
@@ -54,15 +54,15 @@ class SessionEncryptionService
     /**
      * Decrypt session payload data.
      *
-     * @param string $encryptedPayload Encrypted session payload
+     * @param  string  $encryptedPayload  Encrypted session payload
      * @return array Decrypted session data
      */
     public function decryptSessionPayload(string $encryptedPayload): array
     {
         try {
             $data = unserialize($encryptedPayload);
-            
-            if (!is_array($data)) {
+
+            if (! is_array($data)) {
                 return [];
             }
 
@@ -73,7 +73,7 @@ class SessionEncryptionService
 
                 // Decrypt sensitive data
                 $sensitiveData = unserialize(Crypt::decryptString($encryptedSensitive));
-                
+
                 // Merge back with safe data
                 return array_merge($data, $sensitiveData);
             }
@@ -82,9 +82,9 @@ class SessionEncryptionService
         } catch (\Exception $e) {
             Log::error('Session decryption failed', [
                 'error' => $e->getMessage(),
-                'payload_length' => strlen($encryptedPayload)
+                'payload_length' => strlen($encryptedPayload),
             ]);
-            
+
             // Return empty array on decryption failure
             return [];
         }
@@ -93,14 +93,14 @@ class SessionEncryptionService
     /**
      * Extract sensitive data that should be encrypted.
      *
-     * @param array $data Original session data
+     * @param  array  $data  Original session data
      * @return array Sensitive data to encrypt
      */
     protected function extractSensitiveData(array $data): array
     {
         $sensitiveKeys = [
             'password',
-            'password_confirmation', 
+            'password_confirmation',
             'current_password',
             'two_factor_secret',
             'recovery_codes',
@@ -114,7 +114,7 @@ class SessionEncryptionService
             'user_permissions',
             'role_permissions',
             'impersonation_data',
-            'sensitive_user_data'
+            'sensitive_user_data',
         ];
 
         $sensitive = [];
@@ -130,13 +130,14 @@ class SessionEncryptionService
     /**
      * Check if session payload contains encrypted data.
      *
-     * @param string $payload Session payload
+     * @param  string  $payload  Session payload
      * @return bool True if payload is encrypted
      */
     public function isEncrypted(string $payload): bool
     {
         try {
             $data = unserialize($payload);
+
             return is_array($data) && isset($data['_encrypted_payload']);
         } catch (\Exception $e) {
             return false;
@@ -146,7 +147,7 @@ class SessionEncryptionService
     /**
      * Encrypt specific session value.
      *
-     * @param mixed $value Value to encrypt
+     * @param  mixed  $value  Value to encrypt
      * @return string Encrypted value
      */
     public function encryptValue($value): string
@@ -157,7 +158,7 @@ class SessionEncryptionService
     /**
      * Decrypt specific session value.
      *
-     * @param string $encrypted Encrypted value
+     * @param  string  $encrypted  Encrypted value
      * @return mixed Decrypted value
      */
     public function decryptValue(string $encrypted)

@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('vendor_name')->nullable();
             $table->string('receipt_number')->nullable();
             $table->enum('status', ['draft', 'submitted', 'pending', 'approved', 'rejected', 'paid', 'cancelled'])->default('draft');
-            
+
             // Approval workflow
             $table->json('approval_chain')->nullable();
             $table->integer('current_approval_level')->default(0);
@@ -31,20 +31,20 @@ return new class extends Migration
             $table->foreignId('rejected_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamp('rejected_at')->nullable();
             $table->text('rejection_reason')->nullable();
-            
+
             // Payment tracking
             $table->string('payment_method')->nullable();
             $table->string('payment_reference')->nullable();
             $table->date('payment_date')->nullable();
             $table->foreignId('paid_by')->nullable()->constrained('users')->onDelete('set null');
-            
+
             // Audit
             $table->foreignId('submitted_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamp('submitted_at')->nullable();
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             // Indexes
             $table->index('claim_number');
             $table->index('status');

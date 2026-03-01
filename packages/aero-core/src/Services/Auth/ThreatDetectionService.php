@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace Aero\Core\Services\Auth;
 
 use Aero\Core\Models\User;
-use Aero\Core\Services\Auth\IpGeolocationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Advanced Threat Detection Service
@@ -24,10 +22,10 @@ use Illuminate\Support\Facades\Log;
  * Usage:
  * ```php
  * $threatDetection = app(ThreatDetectionService::class);
- * 
+ *
  * // Analyze login attempt
  * $riskScore = $threatDetection->analyzeLoginAttempt($user, $request);
- * 
+ *
  * // Check for impossible travel
  * if ($threatDetection->detectImpossibleTravel($user, $request)) {
  *     // Handle suspicious login
@@ -40,8 +38,11 @@ class ThreatDetectionService
 
     // Risk score thresholds
     protected const RISK_LOW = 1;
+
     protected const RISK_MEDIUM = 4;
+
     protected const RISK_HIGH = 7;
+
     protected const RISK_CRITICAL = 10;
 
     public function __construct(IpGeolocationService $geolocationService)
@@ -52,8 +53,8 @@ class ThreatDetectionService
     /**
      * Comprehensive threat analysis for login attempts.
      *
-     * @param User $user User attempting to login
-     * @param Request $request Login request
+     * @param  User  $user  User attempting to login
+     * @param  Request  $request  Login request
      * @return array ['risk_level' => string, 'risk_score' => int, 'threats' => array, 'actions' => array]
      */
     public function analyzeLoginAttempt(User $user, Request $request): array
@@ -128,32 +129,32 @@ class ThreatDetectionService
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
                 'timestamp' => now()->toISOString(),
-            ]
+            ],
         ];
     }
 
     /**
      * Detect impossible travel between login locations.
      *
-     * @param User $user User attempting login
-     * @param Request $request Current request
+     * @param  User  $user  User attempting login
+     * @param  Request  $request  Current request
      * @return bool True if impossible travel detected
      */
     public function detectImpossibleTravel(User $user, Request $request): bool
     {
-        if (!config('security.threat_detection.enable_impossible_travel_detection', true)) {
+        if (! config('security.threat_detection.enable_impossible_travel_detection', true)) {
             return false;
         }
 
         $currentLocation = $this->geolocationService->getLocation($request->ip());
         $lastLogin = $this->getLastLoginLocation($user);
 
-        if (!$lastLogin || empty($lastLogin['location'])) {
+        if (! $lastLogin || empty($lastLogin['location'])) {
             return false;
         }
 
         $timeDiff = now()->diffInSeconds($lastLogin['timestamp']);
-        
+
         // If less than 10 minutes, skip check (could be session refresh)
         if ($timeDiff < 600) {
             return false;
@@ -169,8 +170,8 @@ class ThreatDetectionService
     /**
      * Analyze login velocity patterns.
      *
-     * @param User $user User attempting login
-     * @param Request $request Current request  
+     * @param  User  $user  User attempting login
+     * @param  Request  $request  Current request
      * @return int Risk score (0-5)
      */
     public function analyzeLoginVelocity(User $user, Request $request): int
@@ -209,8 +210,8 @@ class ThreatDetectionService
     /**
      * Detect login from unusual location.
      *
-     * @param User $user User attempting login
-     * @param Request $request Current request
+     * @param  User  $user  User attempting login
+     * @param  Request  $request  Current request
      * @return bool True if location is unusual
      */
     public function detectUnusualLocation(User $user, Request $request): bool
@@ -226,14 +227,14 @@ class ThreatDetectionService
         $recentCountries = array_column($recentLocations, 'country_code');
 
         // Check if current country has been seen before
-        return !in_array($currentCountry, $recentCountries);
+        return ! in_array($currentCountry, $recentCountries);
     }
 
     /**
      * Analyze device patterns for suspicious behavior.
      *
-     * @param User $user User attempting login
-     * @param Request $request Current request
+     * @param  User  $user  User attempting login
+     * @param  Request  $request  Current request
      * @return int Risk score (0-3)
      */
     public function analyzeDevicePattern(User $user, Request $request): int
@@ -248,7 +249,7 @@ class ThreatDetectionService
 
         // Check device frequency
         $deviceFingerprint = $this->generateDeviceFingerprint($request);
-        if (!$this->isKnownDevice($user, $deviceFingerprint)) {
+        if (! $this->isKnownDevice($user, $deviceFingerprint)) {
             $riskScore += 1;
         }
 
@@ -258,8 +259,8 @@ class ThreatDetectionService
     /**
      * Detect unusual login times based on user's historical pattern.
      *
-     * @param User $user User attempting login
-     * @param Request $request Current request
+     * @param  User  $user  User attempting login
+     * @param  Request  $request  Current request
      * @return bool True if time is unusual
      */
     public function detectUnusualLoginTime(User $user, Request $request): bool
@@ -283,17 +284,17 @@ class ThreatDetectionService
     /**
      * Detect bot or automated behavior.
      *
-     * @param Request $request Current request
+     * @param  Request  $request  Current request
      * @return bool True if bot behavior detected
      */
     public function detectBotBehavior(Request $request): bool
     {
         $userAgent = $request->userAgent();
-        
+
         // Common bot indicators
         $botSignatures = [
-            'bot', 'crawler', 'spider', 'scraper', 'curl', 'wget', 'python', 
-            'java', 'go-http', 'okhttp', 'axios', 'postman'
+            'bot', 'crawler', 'spider', 'scraper', 'curl', 'wget', 'python',
+            'java', 'go-http', 'okhttp', 'axios', 'postman',
         ];
 
         foreach ($botSignatures as $signature) {
@@ -305,7 +306,7 @@ class ThreatDetectionService
         // Check for missing common headers that browsers always send
         $requiredHeaders = ['accept', 'accept-language'];
         foreach ($requiredHeaders as $header) {
-            if (!$request->hasHeader($header)) {
+            if (! $request->hasHeader($header)) {
                 return true;
             }
         }
@@ -316,7 +317,7 @@ class ThreatDetectionService
     /**
      * Analyze concurrent sessions for unusual patterns.
      *
-     * @param User $user User attempting login
+     * @param  User  $user  User attempting login
      * @return int Risk score (0-2)
      */
     public function analyzeConcurrentSessions(User $user): int
@@ -341,7 +342,7 @@ class ThreatDetectionService
     /**
      * Calculate risk level from risk score.
      *
-     * @param int $riskScore Total risk score
+     * @param  int  $riskScore  Total risk score
      * @return string Risk level (low, medium, high, critical)
      */
     protected function calculateRiskLevel(int $riskScore): string
@@ -360,7 +361,7 @@ class ThreatDetectionService
     /**
      * Get automated actions based on risk level.
      *
-     * @param string $riskLevel Risk level
+     * @param  string  $riskLevel  Risk level
      * @return array Actions to take
      */
     protected function getAutomatedActions(string $riskLevel): array
@@ -411,7 +412,7 @@ class ThreatDetectionService
             ->orderBy('occurred_at', 'desc')
             ->first();
 
-        if (!$lastLogin) {
+        if (! $lastLogin) {
             return null;
         }
 
@@ -420,7 +421,7 @@ class ThreatDetectionService
 
         return $location ? [
             'location' => $location,
-            'timestamp' => $lastLogin->occurred_at
+            'timestamp' => $lastLogin->occurred_at,
         ] : null;
     }
 
@@ -434,6 +435,7 @@ class ThreatDetectionService
             ->get()
             ->map(function ($event) {
                 $metadata = json_decode($event->metadata ?? '{}', true);
+
                 return $metadata['location'] ?? null;
             })
             ->filter()
@@ -450,7 +452,7 @@ class ThreatDetectionService
             ->where('status', 'success')
             ->where('occurred_at', '>=', now()->subDays($days))
             ->get()
-            ->map(fn($event) => \Carbon\Carbon::parse($event->occurred_at)->hour)
+            ->map(fn ($event) => \Carbon\Carbon::parse($event->occurred_at)->hour)
             ->toArray();
     }
 
@@ -489,7 +491,7 @@ class ThreatDetectionService
         return Cache::remember(
             "known_device:{$user->id}:{$fingerprint}",
             3600,
-            fn() => DB::table('user_sessions')
+            fn () => DB::table('user_sessions')
                 ->where('user_id', $user->id)
                 ->where('device_fingerprint', $fingerprint)
                 ->exists()

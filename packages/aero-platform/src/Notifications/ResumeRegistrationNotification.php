@@ -43,14 +43,14 @@ class ResumeRegistrationNotification extends Notification implements ShouldQueue
         $siteName = config('app.name', 'Enterprise Suite');
 
         return (new MailMessage)
-            ->subject('Continue Your ' . $siteName . ' Registration')
+            ->subject('Continue Your '.$siteName.' Registration')
             ->greeting('Hello!')
-            ->line('You started creating your workspace on ' . $siteName . ' and saved your progress.')
+            ->line('You started creating your workspace on '.$siteName.' and saved your progress.')
             ->line('Click the button below to pick up right where you left off.')
             ->action('Resume Registration', $resumeUrl)
             ->line('This link will expire in 7 days for your security.')
             ->line('If you didn\'t request this link, you can safely ignore this email.')
-            ->salutation('Best regards,<br>The ' . $siteName . ' Team');
+            ->salutation('Best regards,<br>The '.$siteName.' Team');
     }
 
     /**

@@ -2,8 +2,8 @@
 
 namespace Aero\HRM\Http\Controllers\Employee;
 
-use Aero\HRM\Models\Holiday;
 use Aero\HRM\Http\Controllers\Controller;
+use Aero\HRM\Models\Holiday;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;

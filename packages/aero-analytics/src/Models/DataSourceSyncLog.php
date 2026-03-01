@@ -2,9 +2,9 @@
 
 namespace Aero\Analytics\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Aero\Core\Models\User;
 
 class DataSourceSyncLog extends Model
 {
@@ -15,7 +15,7 @@ class DataSourceSyncLog extends Model
     protected $fillable = [
         'data_source_id', 'sync_type', 'status', 'started_at', 'completed_at',
         'records_processed', 'records_inserted', 'records_updated', 'records_failed',
-        'error_message', 'sync_config', 'triggered_by'
+        'error_message', 'sync_config', 'triggered_by',
     ];
 
     protected $casts = [
@@ -31,12 +31,17 @@ class DataSourceSyncLog extends Model
     ];
 
     const TYPE_FULL = 'full';
+
     const TYPE_INCREMENTAL = 'incremental';
+
     const TYPE_DELTA = 'delta';
 
     const STATUS_RUNNING = 'running';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_FAILED = 'failed';
+
     const STATUS_CANCELLED = 'cancelled';
 
     public function dataSource()
@@ -54,6 +59,7 @@ class DataSourceSyncLog extends Model
         if ($this->completed_at) {
             return $this->started_at->diffInSeconds($this->completed_at);
         }
+
         return $this->started_at->diffInSeconds(now());
     }
 

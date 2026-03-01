@@ -2,8 +2,8 @@
 
 namespace Aero\Ims\Http\Controllers;
 
-use Illuminate\Routing\Controller;
 use App\Services\Tenant\IMS\IMSService;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 

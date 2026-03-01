@@ -15,7 +15,7 @@ class RouteOperation extends Model
         'route_id', 'work_center_id', 'sequence', 'operation_name',
         'description', 'setup_time_minutes', 'run_time_per_unit_minutes',
         'cost_per_hour', 'move_time_minutes', 'wait_time_minutes',
-        'is_outside_operation', 'vendor_id'
+        'is_outside_operation', 'vendor_id',
     ];
 
     protected $casts = [
@@ -55,12 +55,13 @@ class RouteOperation extends Model
     {
         $setupCost = ($this->setup_time_minutes / 60) * $this->cost_per_hour;
         $runCost = ($this->run_time_per_unit_minutes / 60) * $this->cost_per_hour;
+
         return $setupCost + $runCost;
     }
 
     public function getTotalTimeMinutesAttribute()
     {
-        return $this->setup_time_minutes + $this->run_time_per_unit_minutes + 
+        return $this->setup_time_minutes + $this->run_time_per_unit_minutes +
                $this->move_time_minutes + $this->wait_time_minutes;
     }
 }

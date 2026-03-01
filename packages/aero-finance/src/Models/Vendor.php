@@ -14,9 +14,9 @@ class Vendor extends Model
 
     protected $fillable = [
         'vendor_code', 'name', 'email', 'phone', 'website',
-        'billing_address', 'shipping_address', 'tax_number', 
-        'payment_terms', 'currency', 'vendor_category_id', 
-        'contact_person', 'is_active', 'notes', 'bank_details'
+        'billing_address', 'shipping_address', 'tax_number',
+        'payment_terms', 'currency', 'vendor_category_id',
+        'contact_person', 'is_active', 'notes', 'bank_details',
     ];
 
     protected $casts = [

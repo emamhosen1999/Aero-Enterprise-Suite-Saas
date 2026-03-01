@@ -3,8 +3,6 @@
 namespace Aero\RFI\Services;
 
 use Carbon\Carbon;
-use Carbon\CarbonPeriod;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -20,31 +18,47 @@ class InspectionSchedulingService
      * Schedule statuses.
      */
     public const STATUS_DRAFT = 'draft';
+
     public const STATUS_SCHEDULED = 'scheduled';
+
     public const STATUS_CONFIRMED = 'confirmed';
+
     public const STATUS_IN_PROGRESS = 'in_progress';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_CANCELLED = 'cancelled';
+
     public const STATUS_RESCHEDULED = 'rescheduled';
+
     public const STATUS_NO_SHOW = 'no_show';
 
     /**
      * Recurrence patterns.
      */
     public const RECURRENCE_NONE = 'none';
+
     public const RECURRENCE_DAILY = 'daily';
+
     public const RECURRENCE_WEEKLY = 'weekly';
+
     public const RECURRENCE_BI_WEEKLY = 'bi_weekly';
+
     public const RECURRENCE_MONTHLY = 'monthly';
+
     public const RECURRENCE_QUARTERLY = 'quarterly';
+
     public const RECURRENCE_YEARLY = 'yearly';
 
     /**
      * Priority levels.
      */
     public const PRIORITY_LOW = 'low';
+
     public const PRIORITY_NORMAL = 'normal';
+
     public const PRIORITY_HIGH = 'high';
+
     public const PRIORITY_URGENT = 'urgent';
 
     /**
@@ -54,7 +68,7 @@ class InspectionSchedulingService
     {
         // Validate scheduling data
         $validation = $this->validateScheduleData($data);
-        if (!$validation['valid']) {
+        if (! $validation['valid']) {
             return [
                 'success' => false,
                 'errors' => $validation['errors'],
@@ -63,7 +77,7 @@ class InspectionSchedulingService
 
         // Check for conflicts
         $conflicts = $this->detectConflicts($data);
-        if (!empty($conflicts) && !($data['allow_conflicts'] ?? false)) {
+        if (! empty($conflicts) && ! ($data['allow_conflicts'] ?? false)) {
             return [
                 'success' => false,
                 'error' => 'Schedule conflicts detected',
@@ -141,7 +155,7 @@ class InspectionSchedulingService
     ): array {
         $schedule = $this->getSchedule($scheduleId);
 
-        if (!$schedule) {
+        if (! $schedule) {
             return ['success' => false, 'error' => 'Schedule not found'];
         }
 
@@ -157,7 +171,7 @@ class InspectionSchedulingService
             'exclude_schedule_id' => $scheduleId,
         ]);
 
-        if (!empty($conflicts)) {
+        if (! empty($conflicts)) {
             return [
                 'success' => false,
                 'error' => 'Conflicts at new time slot',
@@ -202,7 +216,7 @@ class InspectionSchedulingService
     {
         $schedule = $this->getSchedule($scheduleId);
 
-        if (!$schedule) {
+        if (! $schedule) {
             return ['success' => false, 'error' => 'Schedule not found'];
         }
 
@@ -288,8 +302,8 @@ class InspectionSchedulingService
 
         // Generate all possible slots
         $slots = [];
-        $currentTime = Carbon::parse($date->toDateString() . ' ' . $workingHours['start']);
-        $endOfDay = Carbon::parse($date->toDateString() . ' ' . $workingHours['end']);
+        $currentTime = Carbon::parse($date->toDateString().' '.$workingHours['start']);
+        $endOfDay = Carbon::parse($date->toDateString().' '.$workingHours['end']);
 
         while ($currentTime->copy()->addMinutes($durationMinutes)->lte($endOfDay)) {
             $slotEnd = $currentTime->copy()->addMinutes($durationMinutes);
@@ -297,7 +311,7 @@ class InspectionSchedulingService
             // Check if slot conflicts with existing schedules
             $isAvailable = true;
             foreach ($existingSchedules as $schedule) {
-                $scheduleStart = Carbon::parse($schedule['scheduled_date'] . ' ' . $schedule['scheduled_time']);
+                $scheduleStart = Carbon::parse($schedule['scheduled_date'].' '.$schedule['scheduled_time']);
                 $scheduleEnd = Carbon::parse($schedule['end_time']);
 
                 if ($currentTime->lt($scheduleEnd) && $slotEnd->gt($scheduleStart)) {
@@ -420,7 +434,7 @@ class InspectionSchedulingService
         // Supported providers: google, outlook, apple
         $supportedProviders = ['google', 'outlook', 'apple'];
 
-        if (!in_array($provider, $supportedProviders)) {
+        if (! in_array($provider, $supportedProviders)) {
             return [
                 'success' => false,
                 'error' => 'Unsupported calendar provider',
@@ -487,7 +501,7 @@ class InspectionSchedulingService
 
         $existingSchedules = $this->getSchedulesForDate($inspectorId, $date);
 
-        $newStart = Carbon::parse($date->toDateString() . ' ' . $time);
+        $newStart = Carbon::parse($date->toDateString().' '.$time);
         $newEnd = $newStart->copy()->addMinutes($duration);
 
         foreach ($existingSchedules as $schedule) {
@@ -495,7 +509,7 @@ class InspectionSchedulingService
                 continue;
             }
 
-            $scheduleStart = Carbon::parse($schedule['scheduled_date'] . ' ' . $schedule['scheduled_time']);
+            $scheduleStart = Carbon::parse($schedule['scheduled_date'].' '.$schedule['scheduled_time']);
             $scheduleEnd = Carbon::parse($schedule['end_time']);
 
             if ($newStart->lt($scheduleEnd) && $newEnd->gt($scheduleStart)) {
@@ -558,6 +572,7 @@ class InspectionSchedulingService
             // Skip exceptions
             if (in_array($currentDate->toDateString(), $recurrence['exceptions'] ?? [])) {
                 $currentDate = $this->advanceByPattern($currentDate, $recurrence['pattern'], $recurrence['interval'] ?? 1);
+
                 continue;
             }
 
@@ -595,7 +610,8 @@ class InspectionSchedulingService
      */
     protected function calculateEndTime(string $date, ?string $time, int $durationMinutes): string
     {
-        $start = Carbon::parse($date . ' ' . ($time ?? '09:00'));
+        $start = Carbon::parse($date.' '.($time ?? '09:00'));
+
         return $start->addMinutes($durationMinutes)->toIso8601String();
     }
 
@@ -604,7 +620,7 @@ class InspectionSchedulingService
      */
     protected function formatAsCalendarEvent(array $schedule): array
     {
-        $startDateTime = Carbon::parse($schedule['scheduled_date'] . ' ' . ($schedule['scheduled_time'] ?? '09:00'));
+        $startDateTime = Carbon::parse($schedule['scheduled_date'].' '.($schedule['scheduled_time'] ?? '09:00'));
 
         return [
             'id' => $schedule['id'],
@@ -629,25 +645,25 @@ class InspectionSchedulingService
      */
     protected function formatAsICalEvent(array $schedule): string
     {
-        $startDateTime = Carbon::parse($schedule['scheduled_date'] . ' ' . ($schedule['scheduled_time'] ?? '09:00'));
+        $startDateTime = Carbon::parse($schedule['scheduled_date'].' '.($schedule['scheduled_time'] ?? '09:00'));
         $endDateTime = Carbon::parse($schedule['end_time']);
 
         $event = "BEGIN:VEVENT\r\n";
         $event .= "UID:{$schedule['id']}@aero-rfi\r\n";
-        $event .= "DTSTAMP:" . now()->format('Ymd\THis\Z') . "\r\n";
-        $event .= "DTSTART:" . $startDateTime->format('Ymd\THis') . "\r\n";
-        $event .= "DTEND:" . $endDateTime->format('Ymd\THis') . "\r\n";
-        $event .= "SUMMARY:" . $this->escapeIcalText($schedule['title']) . "\r\n";
+        $event .= 'DTSTAMP:'.now()->format('Ymd\THis\Z')."\r\n";
+        $event .= 'DTSTART:'.$startDateTime->format('Ymd\THis')."\r\n";
+        $event .= 'DTEND:'.$endDateTime->format('Ymd\THis')."\r\n";
+        $event .= 'SUMMARY:'.$this->escapeIcalText($schedule['title'])."\r\n";
 
-        if (!empty($schedule['description'])) {
-            $event .= "DESCRIPTION:" . $this->escapeIcalText($schedule['description']) . "\r\n";
+        if (! empty($schedule['description'])) {
+            $event .= 'DESCRIPTION:'.$this->escapeIcalText($schedule['description'])."\r\n";
         }
 
-        if (!empty($schedule['location'])) {
-            $event .= "LOCATION:" . $this->escapeIcalText($schedule['location']) . "\r\n";
+        if (! empty($schedule['location'])) {
+            $event .= 'LOCATION:'.$this->escapeIcalText($schedule['location'])."\r\n";
         }
 
-        $event .= "STATUS:" . strtoupper($schedule['status']) . "\r\n";
+        $event .= 'STATUS:'.strtoupper($schedule['status'])."\r\n";
         $event .= "END:VEVENT\r\n";
 
         return $event;
@@ -658,7 +674,7 @@ class InspectionSchedulingService
      */
     protected function escapeIcalText(string $text): string
     {
-        return str_replace(["\n", "\r", ";", ","], ["\\n", "", "\\;", "\\,"], $text);
+        return str_replace(["\n", "\r", ';', ','], ['\\n', '', '\\;', '\\,'], $text);
     }
 
     /**
@@ -684,6 +700,7 @@ class InspectionSchedulingService
         foreach ($schedules as $schedule) {
             $totalMinutes += $schedule['duration_minutes'] ?? 60;
         }
+
         return round($totalMinutes / 60, 2);
     }
 
@@ -699,8 +716,23 @@ class InspectionSchedulingService
     }
 
     // Placeholder methods for database operations
-    protected function getSchedule(string $scheduleId): ?array { return null; }
-    protected function getSchedulesInRange(int $inspectorId, Carbon $startDate, Carbon $endDate): array { return []; }
-    protected function getSchedulesForDate(int $inspectorId, Carbon $date): array { return []; }
-    protected function getAvailabilitySlots(int $inspectorId, Carbon $startDate, Carbon $endDate): array { return []; }
+    protected function getSchedule(string $scheduleId): ?array
+    {
+        return null;
+    }
+
+    protected function getSchedulesInRange(int $inspectorId, Carbon $startDate, Carbon $endDate): array
+    {
+        return [];
+    }
+
+    protected function getSchedulesForDate(int $inspectorId, Carbon $date): array
+    {
+        return [];
+    }
+
+    protected function getAvailabilitySlots(int $inspectorId, Carbon $startDate, Carbon $endDate): array
+    {
+        return [];
+    }
 }

@@ -52,8 +52,11 @@ class ProjectMember extends Model
      * Project role constants.
      */
     public const ROLE_PROJECT_MANAGER = 'project_manager';
+
     public const ROLE_LEAD = 'lead';
+
     public const ROLE_MEMBER = 'member';
+
     public const ROLE_VIEWER = 'viewer';
 
     /**

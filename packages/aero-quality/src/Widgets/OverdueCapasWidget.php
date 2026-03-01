@@ -18,10 +18,15 @@ use Aero\Core\Contracts\CoreWidgetCategory;
 class OverdueCapasWidget extends AbstractDashboardWidget
 {
     protected string $position = 'main_right';
+
     protected int $order = 31;
+
     protected int|string $span = 1;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
+
     protected array $requiredPermissions = ['quality.capa'];
+
     protected array $dashboards = ['quality'];
 
     public function getKey(): string

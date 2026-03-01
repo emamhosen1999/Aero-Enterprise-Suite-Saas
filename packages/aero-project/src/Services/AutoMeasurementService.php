@@ -11,9 +11,9 @@ use Aero\Rfi\Models\WorkLayer;
 
 /**
  * AutoMeasurementService
- * 
+ *
  * PATENTABLE: "Automated quantity calculation from approved RFI spatial data"
- * 
+ *
  * This service:
  * 1. Listens for RfiApproved events
  * 2. Calculates quantity based on chainage length and work dimensions
@@ -75,14 +75,14 @@ class AutoMeasurementService
     /**
      * Calculate dimensions from RFI and work location.
      * PATENTABLE: "Automatic dimension extraction from chainage data"
-     * 
+     *
      * @return array{length: float, width: float, depth: float, area: float, volume: float}
      */
     protected function calculateDimensions(Rfi $rfi, $workLocation): array
     {
         // Length from chainage (in meters)
         $length = ($workLocation->end_chainage_m ?? 0) - ($workLocation->start_chainage_m ?? 0);
-        
+
         // Width from offset or from RFI metadata
         $width = ($workLocation->offset_right ?? 0) + ($workLocation->offset_left ?? 0);
         if ($width <= 0) {
@@ -176,8 +176,8 @@ class AutoMeasurementService
         return BoqItem::query()
             ->where('project_id', $rfi->project_id)
             ->where(function ($q) use ($layer) {
-                $q->where('item_code', 'LIKE', '%' . $layer->code . '%')
-                    ->orWhere('description', 'LIKE', '%' . $layer->name . '%');
+                $q->where('item_code', 'LIKE', '%'.$layer->code.'%')
+                    ->orWhere('description', 'LIKE', '%'.$layer->name.'%');
             })
             ->first();
     }
@@ -233,6 +233,7 @@ class AutoMeasurementService
         $formatCh = function (float $meters): string {
             $km = floor($meters / 1000);
             $m = $meters - ($km * 1000);
+
             return sprintf('%d+%03d', $km, $m);
         };
 

@@ -2,10 +2,10 @@
 
 namespace Aero\Education\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class CourseSection extends Model
 {
@@ -17,7 +17,7 @@ class CourseSection extends Model
         'course_id', 'semester_id', 'section_number', 'instructor_id',
         'room_id', 'max_enrollment', 'current_enrollment', 'credits',
         'meeting_pattern', 'start_date', 'end_date', 'status',
-        'delivery_method', 'special_instructions', 'created_by'
+        'delivery_method', 'special_instructions', 'created_by',
     ];
 
     protected $casts = [
@@ -35,13 +35,19 @@ class CourseSection extends Model
     ];
 
     const STATUS_OPEN = 'open';
+
     const STATUS_CLOSED = 'closed';
+
     const STATUS_CANCELLED = 'cancelled';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_WAITLIST_ONLY = 'waitlist_only';
 
     const DELIVERY_IN_PERSON = 'in_person';
+
     const DELIVERY_ONLINE = 'online';
+
     const DELIVERY_HYBRID = 'hybrid';
 
     public function course()
@@ -86,12 +92,12 @@ class CourseSection extends Model
 
     public function getSectionCodeAttribute()
     {
-        return $this->course->course_code . '-' . $this->section_number;
+        return $this->course->course_code.'-'.$this->section_number;
     }
 
     public function getFullSectionNameAttribute()
     {
-        return $this->course->course_name . ' (Section ' . $this->section_number . ')';
+        return $this->course->course_name.' (Section '.$this->section_number.')';
     }
 
     public function getAvailableSpotsAttribute()
@@ -102,27 +108,27 @@ class CourseSection extends Model
     public function getWaitlistCountAttribute()
     {
         return $this->enrollments()
-                   ->where('status', Enrollment::STATUS_WAITLISTED)
-                   ->count();
+            ->where('status', Enrollment::STATUS_WAITLISTED)
+            ->count();
     }
 
     public function getActiveEnrollmentsAttribute()
     {
         return $this->enrollments()
-                   ->where('status', Enrollment::STATUS_ENROLLED)
-                   ->get();
+            ->where('status', Enrollment::STATUS_ENROLLED)
+            ->get();
     }
 
     public function getTotalSessionsAttribute()
     {
-        if (!is_array($this->meeting_pattern) || empty($this->meeting_pattern)) {
+        if (! is_array($this->meeting_pattern) || empty($this->meeting_pattern)) {
             return 0;
         }
-        
+
         $totalSessions = 0;
         $startDate = $this->start_date;
         $endDate = $this->end_date;
-        
+
         foreach ($this->meeting_pattern as $pattern) {
             if (isset($pattern['days']) && is_array($pattern['days'])) {
                 $daysPerWeek = count($pattern['days']);
@@ -130,7 +136,7 @@ class CourseSection extends Model
                 $totalSessions += $daysPerWeek * $weeks;
             }
         }
-        
+
         return $totalSessions;
     }
 
@@ -166,12 +172,13 @@ class CourseSection extends Model
                 'enrollment_type' => $enrollmentType,
                 'affects_gpa' => true,
             ]);
-            
+
             $this->increment('current_enrollment');
+
             return $enrollment;
         } elseif ($this->canWaitlist()) {
             $waitlistPosition = $this->getWaitlistCountAttribute() + 1;
-            
+
             return $this->enrollments()->create([
                 'student_id' => $student->id,
                 'semester_id' => $this->semester_id,
@@ -183,7 +190,7 @@ class CourseSection extends Model
                 'affects_gpa' => true,
             ]);
         }
-        
+
         return null;
     }
 
@@ -191,14 +198,14 @@ class CourseSection extends Model
     {
         while ($this->hasAvailableSpots()) {
             $nextWaitlistedStudent = $this->enrollments()
-                                        ->where('status', Enrollment::STATUS_WAITLISTED)
-                                        ->orderBy('waitlist_position')
-                                        ->first();
-            
-            if (!$nextWaitlistedStudent || !$nextWaitlistedStudent->moveFromWaitlist()) {
+                ->where('status', Enrollment::STATUS_WAITLISTED)
+                ->orderBy('waitlist_position')
+                ->first();
+
+            if (! $nextWaitlistedStudent || ! $nextWaitlistedStudent->moveFromWaitlist()) {
                 break;
             }
-            
+
             $this->increment('current_enrollment');
         }
     }
@@ -211,6 +218,7 @@ class CourseSection extends Model
     public function scopeCurrentSemester($query)
     {
         $currentSemester = AcademicSemester::current();
+
         return $currentSemester ? $query->where('semester_id', $currentSemester->id) : $query->whereRaw('1 = 0');
     }
 

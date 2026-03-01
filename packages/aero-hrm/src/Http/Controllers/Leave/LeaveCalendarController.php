@@ -7,7 +7,6 @@ use Aero\HRM\Services\LeaveCalendarService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
@@ -182,7 +181,7 @@ class LeaveCalendarController extends Controller
 
         return response($ical, 200, [
             'Content-Type' => 'text/calendar; charset=utf-8',
-            'Content-Disposition' => 'attachment; filename="leave-calendar-' . $validated['month'] . '.ics"',
+            'Content-Disposition' => 'attachment; filename="leave-calendar-'.$validated['month'].'.ics"',
         ]);
     }
 
@@ -203,7 +202,7 @@ class LeaveCalendarController extends Controller
 
         return response($csv, 200, [
             'Content-Type' => 'text/csv; charset=utf-8',
-            'Content-Disposition' => 'attachment; filename="leave-calendar-' . $validated['month'] . '.csv"',
+            'Content-Disposition' => 'attachment; filename="leave-calendar-'.$validated['month'].'.csv"',
         ]);
     }
 }

@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace Aero\Rfi\Tests\Unit\Services;
 
 use Aero\Quality\Contracts\NcrBlockingServiceInterface;
-use Aero\Rfi\Models\ChainageProgress;
 use Aero\Rfi\Models\WorkLayer;
 use Aero\Rfi\Services\ChainageGapAnalysisService;
 use Aero\Rfi\Tests\TestCase;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Mockery;
 
@@ -24,12 +22,13 @@ use Mockery;
 class ChainageGapAnalysisServiceTest extends TestCase
 {
     protected ChainageGapAnalysisService $service;
+
     protected NcrBlockingServiceInterface $ncrService;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Mock NCR blocking service
         $this->ncrService = Mockery::mock(NcrBlockingServiceInterface::class);
         $this->service = new ChainageGapAnalysisService($this->ncrService);
@@ -41,7 +40,7 @@ class ChainageGapAnalysisServiceTest extends TestCase
         parent::tearDown();
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_detects_prerequisite_layer_gaps(): void
     {
         // Create work layers with dependency
@@ -51,7 +50,7 @@ class ChainageGapAnalysisServiceTest extends TestCase
             'sequence_order' => 1,
             'is_active' => true,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         $workLayerId = DB::table('work_layers')->insertGetId([
@@ -61,12 +60,12 @@ class ChainageGapAnalysisServiceTest extends TestCase
             'prerequisite_layer_id' => $prerequisiteLayerId,
             'is_active' => true,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         // Mock that prerequisite is NOT satisfied
         $workLayer = WorkLayer::find($workLayerId);
-        
+
         // Mock NCR service to return no blocking NCRs
         $this->ncrService->shouldReceive('getOpenNcrsAtChainage')
             ->once()
@@ -87,7 +86,7 @@ class ChainageGapAnalysisServiceTest extends TestCase
         $this->assertStringContainsString('Sub-base', $result['errors'][0]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_integrates_with_ncr_blocking_service(): void
     {
         // Create work layer without prerequisites
@@ -97,16 +96,16 @@ class ChainageGapAnalysisServiceTest extends TestCase
             'sequence_order' => 1,
             'is_active' => true,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         // Mock NCR service to return blocking NCRs
-        $mockNcr = (object)[
+        $mockNcr = (object) [
             'id' => 1,
             'ncr_number' => 'NCR-2024-001',
             'description' => 'Soil compaction failed',
             'start_chainage_m' => 50.0,
-            'end_chainage_m' => 75.0
+            'end_chainage_m' => 75.0,
         ];
 
         $this->ncrService->shouldReceive('getOpenNcrsAtChainage')
@@ -129,7 +128,7 @@ class ChainageGapAnalysisServiceTest extends TestCase
         $this->assertStringContainsString('NCR-2024-001', $result['errors'][0]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_prevents_duplicate_pending_rfis(): void
     {
         // Create work layer
@@ -139,7 +138,7 @@ class ChainageGapAnalysisServiceTest extends TestCase
             'sequence_order' => 1,
             'is_active' => true,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         // Create existing pending progress at this chainage
@@ -150,7 +149,7 @@ class ChainageGapAnalysisServiceTest extends TestCase
             'end_chainage_m' => 100.0,
             'status' => 'rfi_submitted', // Pending status
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         // Mock NCR service
@@ -171,7 +170,7 @@ class ChainageGapAnalysisServiceTest extends TestCase
         $this->assertStringContainsString('pending RFI already exists', $result['warnings'][0]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_validates_chainage_within_project_bounds(): void
     {
         // Create work layer
@@ -181,7 +180,7 @@ class ChainageGapAnalysisServiceTest extends TestCase
             'sequence_order' => 1,
             'is_active' => true,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         // Mock NCR service
@@ -206,7 +205,7 @@ class ChainageGapAnalysisServiceTest extends TestCase
         $this->assertArrayHasKey('gaps', $result);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_suggests_optimal_next_work_locations(): void
     {
         // This test verifies the getProgressAtChainage method
@@ -219,7 +218,7 @@ class ChainageGapAnalysisServiceTest extends TestCase
             'sequence_order' => 1,
             'is_active' => true,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         $layer2Id = DB::table('work_layers')->insertGetId([
@@ -229,7 +228,7 @@ class ChainageGapAnalysisServiceTest extends TestCase
             'prerequisite_layer_id' => $layer1Id,
             'is_active' => true,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         // Create progress for layer 1
@@ -241,7 +240,7 @@ class ChainageGapAnalysisServiceTest extends TestCase
             'status' => 'approved',
             'approved_at' => now(),
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         // Get progress at chainage 100
@@ -249,20 +248,20 @@ class ChainageGapAnalysisServiceTest extends TestCase
 
         $this->assertIsArray($progress);
         $this->assertNotEmpty($progress);
-        
+
         // Should have entries for both layers
         $this->assertCount(2, $progress);
-        
+
         // Layer 1 should be approved
         $layer1Progress = collect($progress)->firstWhere('layer.id', $layer1Id);
         $this->assertEquals('approved', $layer1Progress['status']);
-        
+
         // Layer 2 should be not_started
         $layer2Progress = collect($progress)->firstWhere('layer.id', $layer2Id);
         $this->assertEquals('not_started', $layer2Progress['status']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_resubmissions_after_rejection(): void
     {
         // Create work layer
@@ -272,7 +271,7 @@ class ChainageGapAnalysisServiceTest extends TestCase
             'sequence_order' => 1,
             'is_active' => true,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         // Create rejected progress (should allow resubmission)
@@ -283,7 +282,7 @@ class ChainageGapAnalysisServiceTest extends TestCase
             'end_chainage_m' => 100.0,
             'status' => 'rejected', // Rejected status
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         // Mock NCR service
@@ -301,10 +300,10 @@ class ChainageGapAnalysisServiceTest extends TestCase
 
         // Should allow resubmission (rejected is not "pending")
         // Should not have warning about existing pending RFI
-        $pendingWarnings = array_filter($result['warnings'], function($warning) {
+        $pendingWarnings = array_filter($result['warnings'], function ($warning) {
             return str_contains($warning, 'pending RFI already exists');
         });
-        
+
         $this->assertEmpty($pendingWarnings, 'Rejected RFIs should allow resubmission');
     }
 }

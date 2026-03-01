@@ -13,14 +13,23 @@ use Aero\Core\Providers\AbstractModuleProvider;
 class PosModuleProvider extends AbstractModuleProvider
 {
     protected string $moduleCode = 'pos';
+
     protected string $moduleName = 'Point of Sale';
+
     protected string $moduleDescription = 'Complete POS system with sales processing, inventory integration, and payment management';
+
     protected string $moduleVersion = '1.0.0';
+
     protected string $moduleCategory = 'business';
+
     protected string $moduleIcon = 'ShoppingCartIcon';
+
     protected int $modulePriority = 14;
+
     protected bool $enabled = true;
+
     protected ?string $minimumPlan = 'professional';
+
     protected array $dependencies = ['core'];
 
     protected array $navigationItems = [
@@ -117,7 +126,8 @@ class PosModuleProvider extends AbstractModuleProvider
     protected function getModulePath(string $path = ''): string
     {
         $basePath = dirname(__DIR__, 2);
-        return $path ? $basePath . '/' . $path : $basePath;
+
+        return $path ? $basePath.'/'.$path : $basePath;
     }
 
     protected function registerServices(): void
@@ -130,7 +140,7 @@ class PosModuleProvider extends AbstractModuleProvider
     {
         // Register dashboard widgets
         $this->registerDashboardWidgets();
-        
+
         // Register module-specific middleware, policies, etc.
     }
 

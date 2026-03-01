@@ -24,7 +24,6 @@ class OnboardingStarted extends BaseHrmEvent
     /**
      * Create a new event instance.
      *
-     * @param  Onboarding  $onboarding
      * @param  int|null  $actorEmployeeId  Employee ID who initiated onboarding
      */
     public function __construct(

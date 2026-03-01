@@ -2,10 +2,10 @@
 
 namespace Aero\RealEstate\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class MaintenanceRequest extends Model
 {
@@ -17,7 +17,7 @@ class MaintenanceRequest extends Model
         'property_id', 'tenant_id', 'request_number', 'category', 'priority',
         'title', 'description', 'status', 'requested_date', 'scheduled_date',
         'completed_date', 'estimated_cost', 'actual_cost', 'vendor_id',
-        'assigned_to', 'notes', 'created_by'
+        'assigned_to', 'notes', 'created_by',
     ];
 
     protected $casts = [
@@ -34,25 +34,41 @@ class MaintenanceRequest extends Model
     ];
 
     const CATEGORY_PLUMBING = 'plumbing';
+
     const CATEGORY_ELECTRICAL = 'electrical';
+
     const CATEGORY_HVAC = 'hvac';
+
     const CATEGORY_APPLIANCES = 'appliances';
+
     const CATEGORY_FLOORING = 'flooring';
+
     const CATEGORY_PAINTING = 'painting';
+
     const CATEGORY_LANDSCAPING = 'landscaping';
+
     const CATEGORY_SECURITY = 'security';
+
     const CATEGORY_OTHER = 'other';
 
     const PRIORITY_LOW = 'low';
+
     const PRIORITY_MEDIUM = 'medium';
+
     const PRIORITY_HIGH = 'high';
+
     const PRIORITY_EMERGENCY = 'emergency';
 
     const STATUS_OPEN = 'open';
+
     const STATUS_ASSIGNED = 'assigned';
+
     const STATUS_IN_PROGRESS = 'in_progress';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_CANCELLED = 'cancelled';
+
     const STATUS_ON_HOLD = 'on_hold';
 
     public function property()
@@ -107,14 +123,15 @@ class MaintenanceRequest extends Model
 
     public function isOverdue()
     {
-        return $this->scheduled_date && 
-               $this->scheduled_date < now()->toDateString() && 
-               !$this->isCompleted();
+        return $this->scheduled_date &&
+               $this->scheduled_date < now()->toDateString() &&
+               ! $this->isCompleted();
     }
 
     public function getDaysOpenAttribute()
     {
         $endDate = $this->completed_date ?? now();
+
         return $this->requested_date->diffInDays($endDate);
     }
 
@@ -123,12 +140,13 @@ class MaintenanceRequest extends Model
         if ($this->estimated_cost && $this->actual_cost) {
             return $this->actual_cost - $this->estimated_cost;
         }
+
         return 0;
     }
 
     public function getPriorityColorAttribute()
     {
-        return match($this->priority) {
+        return match ($this->priority) {
             self::PRIORITY_LOW => 'green',
             self::PRIORITY_MEDIUM => 'yellow',
             self::PRIORITY_HIGH => 'orange',
@@ -155,7 +173,7 @@ class MaintenanceRequest extends Model
     public function scopeOverdue($query)
     {
         return $query->where('scheduled_date', '<', now())
-                    ->whereNotIn('status', [self::STATUS_COMPLETED, self::STATUS_CANCELLED]);
+            ->whereNotIn('status', [self::STATUS_COMPLETED, self::STATUS_CANCELLED]);
     }
 
     public function scopeByCategory($query, $category)

@@ -2,11 +2,11 @@
 
 namespace Aero\Assistant\Providers;
 
-use Aero\Core\Providers\AbstractModuleProvider;
 use Aero\Assistant\Services\AiModelService;
-use Aero\Assistant\Services\RagService;
 use Aero\Assistant\Services\AssistantService;
 use Aero\Assistant\Services\IndexingService;
+use Aero\Assistant\Services\RagService;
+use Aero\Core\Providers\AbstractModuleProvider;
 
 /**
  * Assistant Module Provider
@@ -27,7 +27,8 @@ class AssistantModuleProvider extends AbstractModuleProvider
     protected function getModulePath(string $path = ''): string
     {
         $basePath = dirname(__DIR__, 2);
-        return $path ? $basePath . '/' . $path : $basePath;
+
+        return $path ? $basePath.'/'.$path : $basePath;
     }
 
     /**
@@ -73,7 +74,7 @@ class AssistantModuleProvider extends AbstractModuleProvider
     public function register(): void
     {
         parent::register();
-        
+
         // Register with module registry if available
         if ($this->app->bound(\Aero\Core\Services\ModuleRegistry::class)) {
             $registry = $this->app->make(\Aero\Core\Services\ModuleRegistry::class);
@@ -87,7 +88,7 @@ class AssistantModuleProvider extends AbstractModuleProvider
     public function boot(): void
     {
         parent::boot();
-        
+
         // Boot module-specific logic
         $this->bootModule();
     }

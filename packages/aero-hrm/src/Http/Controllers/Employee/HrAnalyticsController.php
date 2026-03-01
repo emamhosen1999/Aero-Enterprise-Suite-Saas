@@ -2,8 +2,8 @@
 
 namespace Aero\HRM\Http\Controllers\Employee;
 
-use Aero\HRM\Models\Department;
 use Aero\HRM\Http\Controllers\Controller;
+use Aero\HRM\Models\Department;
 use Aero\HRM\Services\HRMetricsAggregatorService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

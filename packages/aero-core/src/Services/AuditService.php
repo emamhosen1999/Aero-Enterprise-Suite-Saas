@@ -3,12 +3,12 @@
 namespace Aero\Core\Services;
 
 use Aero\Core\Models\AuditLog;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Audit Service
- * 
+ *
  * Centralized service for logging user actions and system events.
  * Provides consistent audit trail for compliance and security.
  */
@@ -26,7 +26,7 @@ class AuditService
         ?array $metadata = null
     ): AuditLog {
         $user = Auth::user();
-        
+
         return AuditLog::create([
             'user_id' => $user?->id,
             'user_name' => $user?->name,
@@ -92,12 +92,12 @@ class AuditService
     {
         $action = $active ? 'activated' : 'deactivated';
         $status = $active ? 'active' : 'inactive';
-        
+
         return $this->log(
             $action,
             $user,
-            ucfirst($action) . " user: {$user->name} ({$user->email})",
-            ['active' => !$active],
+            ucfirst($action)." user: {$user->name} ({$user->email})",
+            ['active' => ! $active],
             ['active' => $active]
         );
     }
@@ -165,7 +165,7 @@ class AuditService
     {
         $action = $active ? 'bulk_activated' : 'bulk_deactivated';
         $status = $active ? 'activated' : 'deactivated';
-        
+
         return $this->log(
             $action,
             null,
@@ -341,7 +341,7 @@ class AuditService
     public function logRoleAccessChanged(Model $role, ?array $oldAccess, array $newAccess): AuditLog
     {
         $summary = $this->summarizeAccessChanges($oldAccess, $newAccess);
-        
+
         return $this->log(
             'role_access_changed',
             null,
@@ -362,12 +362,12 @@ class AuditService
      */
     private function summarizeAccessChanges(?array $oldAccess, array $newAccess): string
     {
-        if (!$oldAccess) {
+        if (! $oldAccess) {
             return 'Initial access configuration';
         }
 
         $changes = [];
-        
+
         // Count modules
         $oldModules = count($oldAccess['modules'] ?? []);
         $newModules = count($newAccess['modules'] ?? []);
@@ -408,27 +408,27 @@ class AuditService
             ->orderBy('created_at', 'desc');
 
         // Filter by action
-        if (!empty($filters['action'])) {
+        if (! empty($filters['action'])) {
             $query->action($filters['action']);
         }
 
         // Filter by auditable type
-        if (!empty($filters['auditable_type'])) {
+        if (! empty($filters['auditable_type'])) {
             $query->auditableType($filters['auditable_type']);
         }
 
         // Filter by user
-        if (!empty($filters['user_id'])) {
+        if (! empty($filters['user_id'])) {
             $query->byUser($filters['user_id']);
         }
 
         // Filter by date range
-        if (!empty($filters['from']) || !empty($filters['to'])) {
+        if (! empty($filters['from']) || ! empty($filters['to'])) {
             $query->dateRange($filters['from'] ?? null, $filters['to'] ?? null);
         }
 
         // Search in description
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $query->where('description', 'like', "%{$filters['search']}%");
         }
 
@@ -471,7 +471,7 @@ class AuditService
     public function cleanup(int $daysToKeep = 365): int
     {
         $date = now()->subDays($daysToKeep);
-        
+
         return AuditLog::where('created_at', '<', $date)->delete();
     }
 
@@ -612,7 +612,7 @@ class AuditService
     public function logSessionTerminated(Model $user, ?string $sessionId = null, bool $terminatedByUser = true): AuditLog
     {
         $reason = $terminatedByUser ? 'User action' : 'Automatic expiration';
-        
+
         return $this->log(
             'session_terminated',
             $user,
@@ -688,14 +688,14 @@ class AuditService
      */
     protected function generateDescription(string $action, ?Model $model): string
     {
-        if (!$model) {
+        if (! $model) {
             return ucfirst(str_replace('_', ' ', $action));
         }
 
         $type = class_basename($model);
         $identifier = $model->name ?? $model->email ?? $model->id;
 
-        return ucfirst(str_replace('_', ' ', $action)) . " {$type}: {$identifier}";
+        return ucfirst(str_replace('_', ' ', $action))." {$type}: {$identifier}";
     }
 
     /**
@@ -704,7 +704,7 @@ class AuditService
     protected function filterSensitiveData(array $data): array
     {
         $sensitiveKeys = ['password', 'password_confirmation', 'token', 'secret', 'api_key'];
-        
+
         return collect($data)
             ->except($sensitiveKeys)
             ->toArray();

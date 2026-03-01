@@ -2,13 +2,13 @@
 
 namespace Aero\Finance\Http\Controllers;
 
-use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 
 /**
  * Accounts Payable Controller
- * 
+ *
  * Manages accounts payable (bills, vendor payments)
  */
 class AccountsPayableController extends Controller
@@ -20,7 +20,7 @@ class AccountsPayableController extends Controller
     {
         // TODO: Fetch payables from database
         $payables = [];
-        
+
         return Inertia::render('Finance/AccountsPayable/Index', [
             'title' => 'Accounts Payable',
             'payables' => $payables,
@@ -42,7 +42,7 @@ class AccountsPayableController extends Controller
         ]);
 
         // TODO: Create payable in database
-        
+
         return redirect()->back()->with('success', 'Bill created successfully');
     }
 
@@ -61,7 +61,7 @@ class AccountsPayableController extends Controller
         ]);
 
         // TODO: Update payable in database
-        
+
         return redirect()->back()->with('success', 'Bill updated successfully');
     }
 
@@ -71,7 +71,7 @@ class AccountsPayableController extends Controller
     public function destroy($id)
     {
         // TODO: Soft delete payable
-        
+
         return redirect()->back()->with('success', 'Bill deleted successfully');
     }
 }

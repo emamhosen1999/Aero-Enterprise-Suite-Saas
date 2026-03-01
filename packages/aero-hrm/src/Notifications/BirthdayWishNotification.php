@@ -33,10 +33,10 @@ class BirthdayWishNotification extends BaseHrmNotification
         return (new MailMessage)
             ->subject("🎂 Happy Birthday, {$name}!")
             ->greeting("Happy Birthday, {$name}! 🎉")
-            ->line("Wishing you a wonderful birthday filled with joy and happiness!")
-            ->line("On behalf of the entire team, we want to express our appreciation for your contributions and dedication.")
-            ->line("May this year bring you success, good health, and all the happiness you deserve.")
-            ->line("Enjoy your special day!")
+            ->line('Wishing you a wonderful birthday filled with joy and happiness!')
+            ->line('On behalf of the entire team, we want to express our appreciation for your contributions and dedication.')
+            ->line('May this year bring you success, good health, and all the happiness you deserve.')
+            ->line('Enjoy your special day!')
             ->salutation("Best Wishes,\nYour Team");
     }
 
@@ -50,7 +50,7 @@ class BirthdayWishNotification extends BaseHrmNotification
             'employee_id' => $this->employee->id,
             'employee_name' => $this->employee->user?->name ?? 'Team Member',
             'age' => $this->age,
-            'message' => "🎂 Happy Birthday! Wishing you a wonderful day!",
+            'message' => '🎂 Happy Birthday! Wishing you a wonderful day!',
         ];
     }
 
@@ -67,6 +67,6 @@ class BirthdayWishNotification extends BaseHrmNotification
      */
     protected function getFcmBody(): string
     {
-        return "Wishing you a wonderful birthday filled with joy and happiness!";
+        return 'Wishing you a wonderful birthday filled with joy and happiness!';
     }
 }

@@ -2,10 +2,10 @@
 
 namespace Aero\Finance\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class Invoice extends Model
 {
@@ -14,11 +14,11 @@ class Invoice extends Model
     protected $table = 'finance_invoices';
 
     protected $fillable = [
-        'invoice_number', 'customer_id', 'invoice_date', 'due_date', 
-        'subtotal', 'tax_amount', 'total_amount', 'paid_amount', 
-        'status', 'currency', 'exchange_rate', 'notes', 
+        'invoice_number', 'customer_id', 'invoice_date', 'due_date',
+        'subtotal', 'tax_amount', 'total_amount', 'paid_amount',
+        'status', 'currency', 'exchange_rate', 'notes',
         'payment_terms', 'billing_address', 'shipping_address',
-        'created_by', 'approved_by', 'approved_at'
+        'created_by', 'approved_by', 'approved_at',
     ];
 
     protected $casts = [
@@ -36,10 +36,15 @@ class Invoice extends Model
     ];
 
     const STATUS_DRAFT = 'draft';
+
     const STATUS_SENT = 'sent';
+
     const STATUS_PARTIAL = 'partial';
+
     const STATUS_PAID = 'paid';
+
     const STATUS_OVERDUE = 'overdue';
+
     const STATUS_CANCELLED = 'cancelled';
 
     public function customer()

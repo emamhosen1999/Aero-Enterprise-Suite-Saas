@@ -5,14 +5,15 @@ namespace Aero\HRM\Models;
 use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany};
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 class DisciplinaryCase extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia;
+    use HasFactory, InteractsWithMedia, SoftDeletes;
 
     protected $fillable = [
         'case_number',
@@ -44,9 +45,13 @@ class DisciplinaryCase extends Model implements HasMedia
      * Status constants
      */
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_INVESTIGATING = 'investigating';
+
     public const STATUS_ACTION_TAKEN = 'action_taken';
+
     public const STATUS_CLOSED = 'closed';
+
     public const STATUS_DISMISSED = 'dismissed';
 
     /**
@@ -125,7 +130,7 @@ class DisciplinaryCase extends Model implements HasMedia
      */
     public function canBeAppealed(): bool
     {
-        return $this->status === self::STATUS_ACTION_TAKEN && !$this->appeal_filed;
+        return $this->status === self::STATUS_ACTION_TAKEN && ! $this->appeal_filed;
     }
 
     /**
@@ -140,7 +145,7 @@ class DisciplinaryCase extends Model implements HasMedia
 
         $nextNumber = $lastCase ? (int) substr($lastCase->case_number, -4) + 1 : 1;
 
-        return 'DC' . $year . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+        return 'DC'.$year.str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
     }
 
     /**

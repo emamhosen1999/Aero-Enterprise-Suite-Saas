@@ -26,9 +26,13 @@ use Illuminate\Support\Facades\Schema;
 class RecentActivityWidget extends AbstractDashboardWidget
 {
     protected string $position = 'main_left';
+
     protected int $order = 3;
+
     protected int|string $span = 2;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::FEED;
+
     protected array $requiredPermissions = ['dashboard.view_activity'];
 
     public function getKey(): string
@@ -66,13 +70,13 @@ class RecentActivityWidget extends AbstractDashboardWidget
 
     /**
      * Get widget data for frontend.
-     * 
+     *
      * Uses optimized UNION query and 3-minute caching for activity feed.
      */
     public function getData(): array
     {
         // Cache activity feed for 3 minutes
-        return Cache::remember('dashboard.recent_activity.' . auth()->id(), 180, function () {
+        return Cache::remember('dashboard.recent_activity.'.auth()->id(), 180, function () {
             return $this->fetchRecentActivities();
         });
     }
@@ -96,7 +100,7 @@ class RecentActivityWidget extends AbstractDashboardWidget
         } catch (\Throwable $e) {
             Log::warning('RecentActivityWidget: Failed to fetch activities', [
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id()
+                'user_id' => auth()->id(),
             ]);
         }
 
@@ -159,13 +163,13 @@ class RecentActivityWidget extends AbstractDashboardWidget
 
         return array_map(function ($event) {
             $isAuth = str_starts_with($event->id, 'auth_');
-            
+
             return [
                 'id' => $event->id,
                 'type' => $this->mapEventType($event->type, $isAuth),
                 'icon' => $isAuth ? $this->getEventIcon($event->type) : $this->getAuditIcon($event->type),
                 'color' => $isAuth ? $this->getEventColor($event->type) : $this->getAuditColor($event->type),
-                'message' => $isAuth 
+                'message' => $isAuth
                     ? $this->formatAuthMessage($event)
                     : $this->formatSimpleAuditMessage($event),
                 'user' => $event->user_name,
@@ -195,7 +199,7 @@ class RecentActivityWidget extends AbstractDashboardWidget
 
         return $authEvents->map(function ($event) {
             return [
-                'id' => 'auth_' . $event->id,
+                'id' => 'auth_'.$event->id,
                 'type' => $this->mapEventType($event->event_type, true),
                 'icon' => $this->getEventIcon($event->event_type),
                 'color' => $this->getEventColor($event->event_type),
@@ -227,7 +231,7 @@ class RecentActivityWidget extends AbstractDashboardWidget
 
         return $auditEvents->map(function ($event) {
             return [
-                'id' => 'audit_' . $event->id,
+                'id' => 'audit_'.$event->id,
                 'type' => $event->action,
                 'icon' => $this->getAuditIcon($event->action),
                 'color' => $this->getAuditColor($event->action),
@@ -244,10 +248,10 @@ class RecentActivityWidget extends AbstractDashboardWidget
      */
     protected function mapEventType(string $eventType, bool $isAuth = false): string
     {
-        if (!$isAuth) {
+        if (! $isAuth) {
             return $eventType;
         }
-        
+
         return match ($eventType) {
             'login' => 'login',
             'logout' => 'logout',
@@ -271,6 +275,7 @@ class RecentActivityWidget extends AbstractDashboardWidget
         };
 
         $ip = $event->ip_address ? " from {$event->ip_address}" : '';
+
         return "{$event->user_name} {$action}{$ip}";
     }
 
@@ -280,6 +285,7 @@ class RecentActivityWidget extends AbstractDashboardWidget
     protected function formatSimpleAuditMessage(object $event): string
     {
         $action = ucfirst(strtolower($event->type));
+
         return "{$event->user_name} {$action}";
     }
 
@@ -325,7 +331,7 @@ class RecentActivityWidget extends AbstractDashboardWidget
         };
 
         $ip = $event->ip_address ? " from {$event->ip_address}" : '';
-        
+
         return "{$event->user_name} {$action}{$ip}";
     }
 
@@ -363,7 +369,7 @@ class RecentActivityWidget extends AbstractDashboardWidget
         $model = class_basename($event->auditable_type ?? 'Record');
         $action = ucfirst(strtolower($event->action));
         $user = $event->user_name ?? 'System';
-        
+
         return "{$user} {$action} {$model}";
     }
 }

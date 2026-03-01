@@ -4,9 +4,9 @@ namespace Aero\HRM\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Grievance Model
@@ -65,41 +65,62 @@ class Grievance extends Model
      * Grievance types.
      */
     public const TYPE_HARASSMENT = 'harassment';
+
     public const TYPE_DISCRIMINATION = 'discrimination';
+
     public const TYPE_WORKPLACE_SAFETY = 'workplace_safety';
+
     public const TYPE_COMPENSATION = 'compensation';
+
     public const TYPE_MANAGEMENT = 'management';
+
     public const TYPE_POLICY = 'policy';
+
     public const TYPE_WORKLOAD = 'workload';
+
     public const TYPE_INTERPERSONAL = 'interpersonal';
+
     public const TYPE_OTHER = 'other';
 
     /**
      * Severity levels.
      */
     public const SEVERITY_LOW = 'low';
+
     public const SEVERITY_MEDIUM = 'medium';
+
     public const SEVERITY_HIGH = 'high';
+
     public const SEVERITY_CRITICAL = 'critical';
 
     /**
      * Status options.
      */
     public const STATUS_SUBMITTED = 'submitted';
+
     public const STATUS_UNDER_REVIEW = 'under_review';
+
     public const STATUS_INVESTIGATING = 'investigating';
+
     public const STATUS_PENDING_RESOLUTION = 'pending_resolution';
+
     public const STATUS_RESOLVED = 'resolved';
+
     public const STATUS_CLOSED = 'closed';
+
     public const STATUS_APPEALED = 'appealed';
+
     public const STATUS_WITHDRAWN = 'withdrawn';
 
     /**
      * Appeal statuses.
      */
     public const APPEAL_NONE = 'none';
+
     public const APPEAL_PENDING = 'pending';
+
     public const APPEAL_APPROVED = 'approved';
+
     public const APPEAL_REJECTED = 'rejected';
 
     public function employee(): BelongsTo

@@ -47,10 +47,11 @@ class AeroRfiServiceProvider extends ServiceProvider
         $interfaceName = \Aero\Rfi\Contracts\NcrBlockingServiceInterface::class;
 
         // Only register fallback if not already bound
-        if (!$this->app->bound($interfaceName)) {
+        if (! $this->app->bound($interfaceName)) {
             $this->app->singleton($interfaceName, function () {
                 // Return a null implementation that doesn't block anything
-                return new class implements \Aero\Rfi\Contracts\NcrBlockingServiceInterface {
+                return new class implements \Aero\Rfi\Contracts\NcrBlockingServiceInterface
+                {
                     public function getBlockingNcrsInRange(int $projectId, float $startChainage, float $endChainage): array
                     {
                         return [];
@@ -103,7 +104,7 @@ class AeroRfiServiceProvider extends ServiceProvider
     protected function registerDashboardWidgets(): void
     {
         // Only register if the registry is available
-        if (!$this->app->bound(\Aero\Core\Services\DashboardWidgetRegistry::class)) {
+        if (! $this->app->bound(\Aero\Core\Services\DashboardWidgetRegistry::class)) {
             return;
         }
 
@@ -111,9 +112,9 @@ class AeroRfiServiceProvider extends ServiceProvider
 
         // Register RFI widgets for Core Dashboard
         $registry->registerMany([
-            new \Aero\Rfi\Widgets\MyRfiStatusWidget(),
-            new \Aero\Rfi\Widgets\PendingInspectionsWidget(),
-            new \Aero\Rfi\Widgets\OverdueRfisWidget(),
+            new \Aero\Rfi\Widgets\MyRfiStatusWidget,
+            new \Aero\Rfi\Widgets\PendingInspectionsWidget,
+            new \Aero\Rfi\Widgets\OverdueRfisWidget,
         ]);
     }
 
@@ -172,7 +173,7 @@ class AeroRfiServiceProvider extends ServiceProvider
     {
         $apiRoutesPath = __DIR__.'/../routes/api.php';
 
-        if (!file_exists($apiRoutesPath)) {
+        if (! file_exists($apiRoutesPath)) {
             return;
         }
 

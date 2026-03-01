@@ -2,9 +2,9 @@
 
 namespace Aero\Analytics\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Aero\Core\Models\User;
 
 class KPIAlert extends Model
 {
@@ -15,7 +15,7 @@ class KPIAlert extends Model
     protected $fillable = [
         'kpi_id', 'alert_type', 'threshold_value', 'current_value',
         'triggered_at', 'resolved_at', 'status', 'message',
-        'notified_users', 'created_by'
+        'notified_users', 'created_by',
     ];
 
     protected $casts = [
@@ -29,11 +29,15 @@ class KPIAlert extends Model
     ];
 
     const TYPE_WARNING = 'warning';
+
     const TYPE_CRITICAL = 'critical';
+
     const TYPE_INFO = 'info';
 
     const STATUS_ACTIVE = 'active';
+
     const STATUS_RESOLVED = 'resolved';
+
     const STATUS_DISMISSED = 'dismissed';
 
     public function kpi()
@@ -51,6 +55,7 @@ class KPIAlert extends Model
         if ($this->resolved_at) {
             return $this->triggered_at->diffInMinutes($this->resolved_at);
         }
+
         return $this->triggered_at->diffInMinutes(now());
     }
 }

@@ -2,10 +2,10 @@
 
 namespace Aero\RealEstate\Models;
 
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Aero\Core\Models\User;
 
 class PropertyPhoto extends Model
 {
@@ -16,7 +16,7 @@ class PropertyPhoto extends Model
     protected $fillable = [
         'property_id', 'filename', 'original_filename', 'file_path', 'file_size',
         'mime_type', 'width', 'height', 'alt_text', 'caption', 'photo_type',
-        'room_type', 'is_primary', 'sort_order', 'created_by'
+        'room_type', 'is_primary', 'sort_order', 'created_by',
     ];
 
     protected $casts = [
@@ -30,22 +30,37 @@ class PropertyPhoto extends Model
     ];
 
     const TYPE_EXTERIOR = 'exterior';
+
     const TYPE_INTERIOR = 'interior';
+
     const TYPE_AERIAL = 'aerial';
+
     const TYPE_FLOOR_PLAN = 'floor_plan';
+
     const TYPE_VIRTUAL_TOUR = 'virtual_tour';
 
     const ROOM_LIVING_ROOM = 'living_room';
+
     const ROOM_KITCHEN = 'kitchen';
+
     const ROOM_MASTER_BEDROOM = 'master_bedroom';
+
     const ROOM_BEDROOM = 'bedroom';
+
     const ROOM_BATHROOM = 'bathroom';
+
     const ROOM_DINING_ROOM = 'dining_room';
+
     const ROOM_GARAGE = 'garage';
+
     const ROOM_BASEMENT = 'basement';
+
     const ROOM_ATTIC = 'attic';
+
     const ROOM_YARD = 'yard';
+
     const ROOM_POOL = 'pool';
+
     const ROOM_OTHER = 'other';
 
     public function property()
@@ -60,26 +75,27 @@ class PropertyPhoto extends Model
 
     public function getUrlAttribute()
     {
-        return asset('storage/' . $this->file_path);
+        return asset('storage/'.$this->file_path);
     }
 
     public function getThumbnailUrlAttribute()
     {
         $pathInfo = pathinfo($this->file_path);
-        $thumbnailPath = $pathInfo['dirname'] . '/thumbnails/' . $pathInfo['filename'] . '_thumb.' . $pathInfo['extension'];
-        return asset('storage/' . $thumbnailPath);
+        $thumbnailPath = $pathInfo['dirname'].'/thumbnails/'.$pathInfo['filename'].'_thumb.'.$pathInfo['extension'];
+
+        return asset('storage/'.$thumbnailPath);
     }
 
     public function getFileSizeHumanAttribute()
     {
         $bytes = $this->file_size;
         $units = ['B', 'KB', 'MB', 'GB'];
-        
+
         for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
             $bytes /= 1024;
         }
-        
-        return round($bytes, 2) . ' ' . $units[$i];
+
+        return round($bytes, 2).' '.$units[$i];
     }
 
     public function getAspectRatioAttribute()
@@ -87,6 +103,7 @@ class PropertyPhoto extends Model
         if ($this->width && $this->height) {
             return round($this->width / $this->height, 2);
         }
+
         return null;
     }
 
@@ -123,7 +140,7 @@ class PropertyPhoto extends Model
     public function scopeOrdered($query)
     {
         return $query->orderBy('is_primary', 'desc')
-                    ->orderBy('sort_order')
-                    ->orderBy('created_at');
+            ->orderBy('sort_order')
+            ->orderBy('created_at');
     }
 }

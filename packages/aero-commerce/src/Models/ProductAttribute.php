@@ -14,7 +14,7 @@ class ProductAttribute extends Model
 
     protected $fillable = [
         'name', 'slug', 'attribute_type', 'is_required', 'is_filterable',
-        'is_variation', 'sort_order', 'options'
+        'is_variation', 'sort_order', 'options',
     ];
 
     protected $casts = [
@@ -26,19 +26,27 @@ class ProductAttribute extends Model
     ];
 
     const TYPE_TEXT = 'text';
+
     const TYPE_TEXTAREA = 'textarea';
+
     const TYPE_SELECT = 'select';
+
     const TYPE_MULTISELECT = 'multiselect';
+
     const TYPE_BOOLEAN = 'boolean';
+
     const TYPE_NUMBER = 'number';
+
     const TYPE_DATE = 'date';
+
     const TYPE_COLOR = 'color';
+
     const TYPE_IMAGE = 'image';
 
     public function products()
     {
         return $this->belongsToMany(Product::class, 'commerce_product_attribute_values')
-                    ->withPivot('value', 'price_modifier');
+            ->withPivot('value', 'price_modifier');
     }
 
     public function getFormattedOptionsAttribute()
@@ -48,6 +56,7 @@ class ProductAttribute extends Model
                 return is_array($option) ? $option : ['label' => $option, 'value' => $option];
             });
         }
+
         return collect();
     }
 }

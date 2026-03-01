@@ -22,7 +22,7 @@ class ExpenseCategoryFactory extends Factory
                 'Accommodation',
                 'Communication',
                 'Entertainment',
-                'Miscellaneous'
+                'Miscellaneous',
             ]),
             'description' => $this->faker->sentence(),
             'max_amount' => $this->faker->optional(0.7)->randomFloat(2, 100, 5000),

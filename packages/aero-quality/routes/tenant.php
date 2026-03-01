@@ -1,10 +1,10 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Aero\Quality\Http\Controllers\QualityController;
 use Aero\Quality\Http\Controllers\InspectionController;
-use Aero\Quality\Http\Controllers\NCRController;
 use Aero\Quality\Http\Controllers\LabController;
+use Aero\Quality\Http\Controllers\NCRController;
+use Aero\Quality\Http\Controllers\QualityController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,7 +30,7 @@ Route::middleware(['auth', 'module:quality,inspections'])->group(function () {
     // Named routes for sidebar menu items (must be defined before resource routes)
     Route::get('inspections/wir', [InspectionController::class, 'index'])->name('inspections.wir');
     Route::get('inspections/checklists', [InspectionController::class, 'checklists'])->name('inspections.checklists');
-    
+
     // Resource routes
     Route::resource('inspections', InspectionController::class);
 });

@@ -58,7 +58,7 @@ class ChainageProgressController extends Controller
         $request->validate([
             'work_location_id' => 'required|exists:work_locations,id',
             'layer_id' => 'nullable|exists:work_layers,id',
-            'status' => 'nullable|in:' . implode(',', array_keys(ChainageProgress::$statuses)),
+            'status' => 'nullable|in:'.implode(',', array_keys(ChainageProgress::$statuses)),
             'chainage_from' => 'nullable|numeric|min:0',
             'chainage_to' => 'nullable|numeric|min:0',
         ]);

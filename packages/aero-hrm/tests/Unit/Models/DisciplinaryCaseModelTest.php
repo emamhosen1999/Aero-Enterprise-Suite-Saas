@@ -2,9 +2,8 @@
 
 namespace AeroHRM\Tests\Unit\Models;
 
-use AeroHRM\Models\DisciplinaryCase;
 use AeroHRM\Models\DisciplinaryActionType;
-use AeroHRM\Models\Warning;
+use AeroHRM\Models\DisciplinaryCase;
 use AeroHRM\Models\Employee;
 use AeroHRM\Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -13,7 +12,7 @@ class DisciplinaryCaseModelTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_has_correct_status_workflow_states()
     {
         $validStatuses = ['pending', 'investigating', 'action_taken', 'closed', 'dismissed'];
@@ -24,23 +23,23 @@ class DisciplinaryCaseModelTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_auto_generates_unique_case_number_on_creation()
     {
         $case1 = DisciplinaryCase::factory()->create();
         $case2 = DisciplinaryCase::factory()->create();
 
         $this->assertNotEquals($case1->case_number, $case2->case_number);
-        $this->assertStringStartsWith('DC' . date('Y'), $case1->case_number);
-        $this->assertStringStartsWith('DC' . date('Y'), $case2->case_number);
+        $this->assertStringStartsWith('DC'.date('Y'), $case1->case_number);
+        $this->assertStringStartsWith('DC'.date('Y'), $case2->case_number);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_belongs_to_employee_and_action_type()
     {
         $employee = Employee::factory()->create();
         $actionType = DisciplinaryActionType::factory()->create();
-        
+
         $case = DisciplinaryCase::factory()->create([
             'employee_id' => $employee->id,
             'disciplinary_action_type_id' => $actionType->id,
@@ -52,7 +51,7 @@ class DisciplinaryCaseModelTest extends TestCase
         $this->assertEquals($actionType->id, $case->actionType->id);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_check_if_case_can_be_closed()
     {
         $pendingCase = DisciplinaryCase::factory()->create(['status' => 'pending']);
@@ -66,7 +65,7 @@ class DisciplinaryCaseModelTest extends TestCase
         $this->assertFalse($closedCase->canBeClosed());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_check_if_case_can_be_appealed()
     {
         $pendingCase = DisciplinaryCase::factory()->create(['status' => 'pending']);
@@ -78,7 +77,7 @@ class DisciplinaryCaseModelTest extends TestCase
         $this->assertFalse($appealedCase->canBeAppealed());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_tracks_investigation_dates()
     {
         $case = DisciplinaryCase::factory()->investigating()->create([
@@ -89,7 +88,7 @@ class DisciplinaryCaseModelTest extends TestCase
         $this->assertInstanceOf(\Carbon\Carbon::class, $case->investigation_start_date);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_soft_deletes_correctly()
     {
         $case = DisciplinaryCase::factory()->create();

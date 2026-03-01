@@ -2,19 +2,19 @@
 
 namespace Aero\HRM\Http\Controllers\Attendance;
 
+use Aero\Core\Models\User;
+use Aero\HRM\Events\Attendance\AttendancePunchedIn;
+use Aero\HRM\Events\Attendance\AttendancePunchedOut;
+use Aero\HRM\Events\Attendance\LateArrivalDetected;
+use Aero\HRM\Exports\AttendanceExport;
+use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Models\Attendance;
 use Aero\HRM\Models\AttendanceSetting;
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Holiday;
 use Aero\HRM\Models\LeaveSetting;
-use Aero\HRM\Events\Attendance\AttendancePunchedIn;
-use Aero\HRM\Events\Attendance\AttendancePunchedOut;
-use Aero\HRM\Events\Attendance\LateArrivalDetected;
 use Aero\HRM\Services\HRMAuthorizationService;
 use App\Exports\AttendanceAdminExport;
-use Aero\HRM\Exports\AttendanceExport;
-use Aero\HRM\Http\Controllers\Controller;
-use Aero\Core\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -415,9 +415,9 @@ class AttendanceController extends Controller
             if ($user && $user->attendanceType) {
                 $config = $user->attendanceType->config;
                 if (isset($config['start_time'])) {
-                    $scheduledTime = Carbon::parse($today->format('Y-m-d') . ' ' . $config['start_time']);
+                    $scheduledTime = Carbon::parse($today->format('Y-m-d').' '.$config['start_time']);
                     $actualTime = $attendance->punchin;
-                    
+
                     if ($actualTime->greaterThan($scheduledTime)) {
                         $isLate = true;
                         $lateMinutes = $actualTime->diffInMinutes($scheduledTime);
@@ -486,15 +486,15 @@ class AttendanceController extends Controller
             $user = User::find($request->user_id);
             if ($user && $user->attendanceType) {
                 $config = $user->attendanceType->config;
-                
+
                 // Check for early departure
                 if (isset($config['end_time'])) {
-                    $scheduledEndTime = Carbon::parse($attendance->date->format('Y-m-d') . ' ' . $config['end_time']);
+                    $scheduledEndTime = Carbon::parse($attendance->date->format('Y-m-d').' '.$config['end_time']);
                     if ($attendance->punchout->lessThan($scheduledEndTime)) {
                         $isEarly = true;
                     }
                 }
-                
+
                 // Check for overtime (standard 8-hour workday assumed)
                 $standardMinutes = 8 * 60; // 8 hours
                 if ($totalMinutes > $standardMinutes) {
@@ -1934,15 +1934,15 @@ class AttendanceController extends Controller
     {
         try {
             $date = $request->input('date');
-            
+
             // Validate date input
-            if (!$date) {
+            if (! $date) {
                 return response()->json(['error' => 'Date parameter is required'], 400);
             }
-            
+
             // Get the data collection
             $rows = (new AttendanceExport($date))->collection();
-            
+
             // Check if we have any data
             if ($rows->isEmpty()) {
                 // Create a minimal row with message indicating no data
@@ -1962,7 +1962,7 @@ class AttendanceController extends Controller
                     'Remarks' => 'No attendance data available for this date',
                 ]]);
             }
-            
+
             // Generate PDF
             $pdf = PDF::loadView('attendance_pdf', [
                 'title' => 'Daily Timesheet - '.date('F d, Y', strtotime($date)),
@@ -1971,15 +1971,15 @@ class AttendanceController extends Controller
             ])->setPaper('a4', 'landscape');
 
             return $pdf->download('Daily_Timesheet_'.date('Y_m_d', strtotime($date)).'.pdf');
-            
+
         } catch (\Exception $e) {
             \Log::error('PDF Export Error', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
-            
+
             return response()->json([
-                'error' => 'Failed to generate PDF: ' . $e->getMessage()
+                'error' => 'Failed to generate PDF: '.$e->getMessage(),
             ], 500);
         }
     }

@@ -11,15 +11,19 @@ use Aero\Core\Contracts\CoreWidgetCategory;
  * Recent Documents Widget
  *
  * Displays recently uploaded or modified documents for the current user.
- * 
+ *
  * Appears on: DMS Dashboard (/dms/dashboard)
  */
 class RecentDocumentsWidget extends AbstractDashboardWidget
 {
     protected string $position = 'main_left';
+
     protected int $order = 20;
+
     protected int|string $span = 1;
+
     protected array $requiredPermissions = ['dms.dashboard']; // HRMAC format: module.submodule
+
     protected array $dashboards = ['dms'];
 
     public function getCategory(): CoreWidgetCategory
@@ -56,8 +60,8 @@ class RecentDocumentsWidget extends AbstractDashboardWidget
     {
         // Get recent documents for the current user
         $user = auth()->user();
-        
-        if (!$user) {
+
+        if (! $user) {
             return [
                 'documents' => [],
                 'total' => 0,

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Aero\HRM\Http\Middleware;
 
+use Aero\HRM\Exceptions\UserNotOnboardedException;
+use Aero\HRM\Services\EmployeeResolutionService;
 use Closure;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Symfony\Component\HttpFoundation\Response;
-use Aero\HRM\Services\EmployeeResolutionService;
-use Aero\HRM\Exceptions\UserNotOnboardedException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Ensure User Is Employee Middleware
@@ -33,9 +33,7 @@ class EnsureUserIsEmployee
     /**
      * Handle an incoming request.
      *
-     * @param Request $request
-     * @param Closure(Request): Response $next
-     * @return Response
+     * @param  Closure(Request): Response  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -101,7 +99,7 @@ class EnsureUserIsEmployee
         }
 
         // For web requests, redirect to onboarding notice page
-        return new RedirectResponse(route('hrm.onboarding.required'))
+        return (new RedirectResponse(route('hrm.onboarding.required')))
             ->with('error', $e->getMessage());
     }
 
@@ -125,7 +123,7 @@ class EnsureUserIsEmployee
             ], 403);
         }
 
-        return new RedirectResponse(route('hrm.account.inactive'))
+        return (new RedirectResponse(route('hrm.account.inactive')))
             ->with('error', 'Your employee account is inactive. Contact HR for assistance.');
     }
 
@@ -148,7 +146,7 @@ class EnsureUserIsEmployee
             ], 500);
         }
 
-        return new RedirectResponse(route('dashboard'))
+        return (new RedirectResponse(route('dashboard')))
             ->with('error', 'An error occurred. Please try again or contact support.');
     }
 }

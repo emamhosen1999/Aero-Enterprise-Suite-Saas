@@ -20,10 +20,15 @@ use Illuminate\Support\Facades\Auth;
 class MyRfiStatusWidget extends AbstractDashboardWidget
 {
     protected string $position = 'main_left';
+
     protected int $order = 10;
+
     protected int|string $span = 1;
+
     protected CoreWidgetCategory $category = CoreWidgetCategory::ACTION;
+
     protected array $requiredPermissions = ['rfi.dashboard']; // HRMAC format: module.submodule
+
     protected array $dashboards = ['rfi'];
 
     public function getKey(): string
@@ -55,7 +60,7 @@ class MyRfiStatusWidget extends AbstractDashboardWidget
     {
         return $this->safeResolve(function () {
             $user = Auth::user();
-            if (!$user) {
+            if (! $user) {
                 return $this->getEmptyState();
             }
 
@@ -63,9 +68,9 @@ class MyRfiStatusWidget extends AbstractDashboardWidget
 
             // Get user's today's RFIs (as incharge or assigned)
             $myTodayRfis = Rfi::where(function ($q) use ($user) {
-                    $q->where('incharge_user_id', $user->id)
-                      ->orWhere('assigned_user_id', $user->id);
-                })
+                $q->where('incharge_user_id', $user->id)
+                    ->orWhere('assigned_user_id', $user->id);
+            })
                 ->whereDate('date', $today)
                 ->get();
 

@@ -15,7 +15,7 @@ class ServiceSupplier extends Model
     protected $fillable = [
         'supplier_name', 'supplier_code', 'contact_person', 'email', 'phone',
         'website', 'address', 'payment_terms', 'discount_terms',
-        'lead_time_days', 'minimum_order_value', 'status', 'rating', 'notes'
+        'lead_time_days', 'minimum_order_value', 'status', 'rating', 'notes',
     ];
 
     protected $casts = [
@@ -26,13 +26,15 @@ class ServiceSupplier extends Model
     ];
 
     const STATUS_ACTIVE = 'active';
+
     const STATUS_INACTIVE = 'inactive';
+
     const STATUS_SUSPENDED = 'suspended';
 
     public function parts()
     {
         return $this->belongsToMany(ServicePart::class, 'field_service_part_suppliers')
-                    ->withPivot('supplier_part_number', 'cost', 'lead_time_days');
+            ->withPivot('supplier_part_number', 'cost', 'lead_time_days');
     }
 
     public function purchaseOrders()

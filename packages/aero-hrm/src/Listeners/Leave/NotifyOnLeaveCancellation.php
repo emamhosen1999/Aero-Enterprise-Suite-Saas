@@ -35,23 +35,35 @@ class NotifyOnLeaveCancellation implements ShouldQueue
             return;
         }
 
-        // Determine who cancelled the leave (use event parameter or fall back to auth)
-        $cancelledBy = $event->cancelledBy ?? auth()->user();
-        $cancelledByName = $cancelledBy?->name ?? 'System';
+        // Determine who cancelled using the actor employee ID from the event
+        $cancellerEmployeeId = $event->getActorEmployeeId();
 
-        // Notify the manager if the employee cancelled
+        // Resolve the canceller's display name
+        $cancelledByName = 'System';
+        if ($cancellerEmployeeId) {
+            $cancellerEmployee = \Aero\HRM\Models\Employee::find($cancellerEmployeeId);
+            $cancelledByName = $cancellerEmployee?->user?->name ?? 'System';
+        }
+
+        // Compare canceller with leave owner to determine direction of cancellation
+        $leaveOwnerEmployee = \Aero\HRM\Models\Employee::where('user_id', $employee->id)->first();
+        $employeeSelfCancelled = $cancellerEmployeeId !== null
+            && $leaveOwnerEmployee !== null
+            && $cancellerEmployeeId === $leaveOwnerEmployee->id;
+
+        // Notify the manager when the employee cancels their own leave
         $manager = $this->getManager($employee);
-        if ($manager && $manager->id !== $cancelledBy?->id) {
+        if ($manager && $employeeSelfCancelled) {
             $manager->notify(new LeaveCancelledNotification($leave, $cancelledByName));
         }
 
-        // Notify the employee if someone else cancelled (manager/HR)
-        if ($cancelledBy && $cancelledBy->id !== $employee->id) {
+        // Notify the employee if someone else (manager/HR) cancelled
+        if (! $employeeSelfCancelled) {
             $employee->notify(new LeaveCancelledNotification($leave, $cancelledByName));
         }
 
         // Notify users with access to leave management (via HRMAC module access)
-        $this->notifyUsersWithLeaveAccess($leave, $cancelledByName, $cancelledBy, $employee);
+        $this->notifyUsersWithLeaveAccess($leave, $cancelledByName, $cancellerEmployeeId, $employee);
     }
 
     /**
@@ -73,23 +85,29 @@ class NotifyOnLeaveCancellation implements ShouldQueue
     /**
      * Notify users who have access to leave management via HRMAC.
      */
-    protected function notifyUsersWithLeaveAccess($leave, string $cancelledByName, $cancelledBy, $employee): void
+    protected function notifyUsersWithLeaveAccess($leave, string $cancelledByName, ?int $cancellerEmployeeId, $employee): void
     {
         // Use HRMAC to get users with access to hrm.leaves submodule
         if (! app()->bound('Aero\HRMAC\Contracts\RoleModuleAccessInterface')) {
-            Log::debug('HRMAC service not bound, skipping module-based notifications');
             return;
+        }
+
+        // Resolve the canceller's user ID so we can exclude them from notifications
+        $cancellerUserId = null;
+        if ($cancellerEmployeeId) {
+            $cancellerEmployee = \Aero\HRM\Models\Employee::find($cancellerEmployeeId);
+            $cancellerUserId = $cancellerEmployee?->user_id;
         }
 
         try {
             $hrmacService = app('Aero\HRMAC\Contracts\RoleModuleAccessInterface');
-            
+
             // Get users with access to the 'leaves' submodule in 'hrm' module
             $usersWithAccess = $hrmacService->getUsersWithSubModuleAccess('hrm', 'leaves');
 
             foreach ($usersWithAccess as $user) {
                 // Don't notify if they're the one who cancelled or the employee
-                if ($user->id !== $cancelledBy?->id && $user->id !== $employee->id) {
+                if ($user->id !== $cancellerUserId && $user->id !== $employee->id) {
                     $user->notify(new LeaveCancelledNotification($leave, $cancelledByName));
                 }
             }

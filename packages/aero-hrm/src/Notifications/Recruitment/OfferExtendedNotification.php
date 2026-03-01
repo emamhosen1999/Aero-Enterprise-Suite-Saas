@@ -45,7 +45,7 @@ class OfferExtendedNotification extends Notification implements ShouldQueue
         $expiryDate = $this->offer->expires_at?->format('F j, Y') ?? 'Soon';
 
         return (new MailMessage)
-            ->subject("Job Offer - {$jobTitle} at " . config('app.name'))
+            ->subject("Job Offer - {$jobTitle} at ".config('app.name'))
             ->greeting("Dear {$candidateName},")
             ->line('We are pleased to extend an offer of employment to you!')
             ->line("Position: {$jobTitle}")
@@ -85,7 +85,7 @@ class OfferExtendedNotification extends Notification implements ShouldQueue
         $salary = $this->offer->salary ?? 0;
         $currency = $this->offer->currency ?? config('hrm.default_currency', 'USD');
 
-        return number_format($salary, 2) . ' ' . $currency;
+        return number_format($salary, 2).' '.$currency;
     }
 
     /**
@@ -96,7 +96,7 @@ class OfferExtendedNotification extends Notification implements ShouldQueue
         try {
             return route('hrm.recruitment.offers.show', $this->offer->id);
         } catch (\Exception $e) {
-            return url('/hrm/recruitment/offers/' . $this->offer->id);
+            return url('/hrm/recruitment/offers/'.$this->offer->id);
         }
     }
 

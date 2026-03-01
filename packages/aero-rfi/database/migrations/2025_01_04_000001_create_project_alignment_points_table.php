@@ -8,10 +8,10 @@ return new class extends Migration
 {
     /**
      * Project Alignment Points - PATENTABLE CORE IP
-     * 
+     *
      * Stores surveyed GPS coordinates for chainage-to-GPS conversion.
      * Used by GeoFencingService for linear interpolation validation.
-     * 
+     *
      * NOVELTY: Enables GPS validation on linear infrastructure projects
      * by mapping chainage positions to actual GPS coordinates.
      */
@@ -40,7 +40,7 @@ return new class extends Migration
             $table->index(['project_id', 'chainage'], 'idx_project_chainage');
             $table->index(['project_id', 'latitude', 'longitude'], 'idx_project_gps');
             $table->index('is_verified');
-            
+
             // Unique constraint: one point per chainage per project
             $table->unique(['project_id', 'chainage']);
         });

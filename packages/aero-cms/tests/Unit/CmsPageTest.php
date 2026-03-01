@@ -15,14 +15,14 @@ class CmsPageTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->artisan('migrate', [
             '--path' => 'packages/aero-cms/database/migrations',
             '--realpath' => true,
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_create_a_page()
     {
         $page = CmsPage::create([
@@ -38,7 +38,7 @@ class CmsPageTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_generates_slug_from_title()
     {
         $page = CmsPage::create([
@@ -49,11 +49,11 @@ class CmsPageTest extends TestCase
         $this->assertEquals('my-amazing-page-title', $page->slug);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_has_many_blocks()
     {
         $page = CmsPage::factory()->create();
-        
+
         CmsPageBlock::factory()->count(3)->create([
             'page_id' => $page->id,
         ]);
@@ -62,11 +62,11 @@ class CmsPageTest extends TestCase
         $this->assertInstanceOf(CmsPageBlock::class, $page->blocks->first());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_has_many_versions()
     {
         $page = CmsPage::factory()->create();
-        
+
         CmsPageVersion::factory()->count(2)->create([
             'page_id' => $page->id,
         ]);
@@ -75,7 +75,7 @@ class CmsPageTest extends TestCase
         $this->assertInstanceOf(CmsPageVersion::class, $page->versions->first());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_scopes_by_published_status()
     {
         CmsPage::factory()->count(3)->create(['status' => 'published']);
@@ -86,7 +86,7 @@ class CmsPageTest extends TestCase
         $this->assertCount(3, $publishedPages);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_scopes_by_draft_status()
     {
         CmsPage::factory()->count(2)->create(['status' => 'published']);
@@ -97,7 +97,7 @@ class CmsPageTest extends TestCase
         $this->assertCount(4, $draftPages);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_casts_meta_tags_to_array()
     {
         $page = CmsPage::factory()->create([
@@ -108,7 +108,7 @@ class CmsPageTest extends TestCase
         $this->assertEquals('Test', $page->meta_tags['og:title']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_casts_settings_to_array()
     {
         $page = CmsPage::factory()->create([
@@ -119,11 +119,11 @@ class CmsPageTest extends TestCase
         $this->assertTrue($page->settings['show_header']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_orders_blocks_by_order_column()
     {
         $page = CmsPage::factory()->create();
-        
+
         CmsPageBlock::factory()->create(['page_id' => $page->id, 'order' => 2]);
         CmsPageBlock::factory()->create(['page_id' => $page->id, 'order' => 0]);
         CmsPageBlock::factory()->create(['page_id' => $page->id, 'order' => 1]);
@@ -135,7 +135,7 @@ class CmsPageTest extends TestCase
         $this->assertEquals(2, $blocks[2]->order);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_check_if_published()
     {
         $publishedPage = CmsPage::factory()->create(['status' => 'published']);
@@ -145,16 +145,16 @@ class CmsPageTest extends TestCase
         $this->assertFalse($draftPage->isPublished());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_get_visible_blocks()
     {
         $page = CmsPage::factory()->create();
-        
+
         CmsPageBlock::factory()->count(2)->create([
             'page_id' => $page->id,
             'is_visible' => true,
         ]);
-        
+
         CmsPageBlock::factory()->count(1)->create([
             'page_id' => $page->id,
             'is_visible' => false,
@@ -165,7 +165,7 @@ class CmsPageTest extends TestCase
         $this->assertCount(2, $visibleBlocks);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_returns_full_url()
     {
         $page = CmsPage::factory()->create(['slug' => 'about-us']);
@@ -173,7 +173,7 @@ class CmsPageTest extends TestCase
         $this->assertStringContainsString('/about-us', $page->url);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_returns_edit_url()
     {
         $page = CmsPage::factory()->create();

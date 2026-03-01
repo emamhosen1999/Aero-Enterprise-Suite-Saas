@@ -2,10 +2,10 @@
 
 namespace Aero\HRM\Services;
 
+use Aero\HRM\Exceptions\UserNotOnboardedException;
 use Aero\HRM\Models\Attendance;
 use Aero\HRM\Models\AttendanceSetting;
 use Aero\HRM\Models\Employee;
-use Aero\HRM\Exceptions\UserNotOnboardedException;
 use Carbon\Carbon;
 
 class AttendanceCalculationService
@@ -132,10 +132,10 @@ class AttendanceCalculationService
 
     /**
      * Calculate monthly work hours summary
-     * 
-     * @param Employee $employee The employee to calculate hours for
-     * @param int $month The month (1-12)
-     * @param int $year The year
+     *
+     * @param  Employee  $employee  The employee to calculate hours for
+     * @param  int  $month  The month (1-12)
+     * @param  int  $year  The year
      * @return array Work hours summary
      */
     public function getMonthlyWorkHours(Employee $employee, int $month, int $year): array
@@ -218,10 +218,10 @@ class AttendanceCalculationService
 
     /**
      * Recalculate all attendance records for an employee in a date range
-     * 
-     * @param Employee $employee The employee to recalculate for
-     * @param Carbon $startDate Start of date range
-     * @param Carbon $endDate End of date range
+     *
+     * @param  Employee  $employee  The employee to recalculate for
+     * @param  Carbon  $startDate  Start of date range
+     * @param  Carbon  $endDate  End of date range
      * @return int Number of records updated
      */
     public function recalculateForEmployee(Employee $employee, Carbon $startDate, Carbon $endDate): int
@@ -253,8 +253,8 @@ class AttendanceCalculationService
 
         // If passed a User, resolve to Employee
         $employee = Employee::where('user_id', $userOrEmployee->id)->first();
-        
-        if (!$employee) {
+
+        if (! $employee) {
             throw new UserNotOnboardedException(
                 'Cannot calculate attendance for non-onboarded user',
                 $userOrEmployee->id

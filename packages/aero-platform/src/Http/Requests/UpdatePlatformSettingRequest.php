@@ -9,40 +9,13 @@ class UpdatePlatformSettingRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     *
+     * Authorization is handled by route middleware (auth:landlord + module:).
+     * No hardcoded role names here — roles are managed via the module access system.
      */
     public function authorize(): bool
     {
-        \Log::info('Platform Settings Update - FormRequest authorize() called', [
-            'has_site_name' => $this->has('site_name'),
-            'site_name_value' => $this->input('site_name'),
-            'has_support_email' => $this->has('support_email'),
-            'support_email_value' => $this->input('support_email'),
-            'all_keys' => array_keys($this->all()),
-            'method' => $this->method(),
-        ]);
-
-        // Use landlord guard for platform admin
-        $user = $this->user('landlord');
-
-        if (! $user) {
-            \Log::warning('Platform Settings Update - No landlord user found in request');
-
-            return false;
-        }
-
-        // Check for Platform Super Admin role or platform.settings.update permission
-        $hasRole = method_exists($user, 'hasRole') && $user->hasRole('Platform Super Admin');
-        $hasPermission = $user->can('platform.settings.update');
-
-        \Log::info('Platform Settings Update - Authorization Check in FormRequest', [
-            'user_id' => $user->id,
-            'user_email' => $user->email,
-            'has_super_admin_role' => $hasRole,
-            'has_update_permission' => $hasPermission,
-            'will_authorize' => $hasRole || $hasPermission,
-        ]);
-
-        return $hasRole || $hasPermission;
+        return true;
     }
 
     /**
@@ -98,6 +71,15 @@ class UpdatePlatformSettingRequest extends FormRequest
             'admin_preferences' => ['sometimes', 'array'],
             'admin_preferences.show_beta_features' => ['nullable', 'boolean'],
             'admin_preferences.enable_impersonation' => ['nullable', 'boolean'],
+
+            // Infrastructure / Hosting mode
+            'hosting_settings'                       => ['sometimes', 'array'],
+            'hosting_settings.mode'                  => ['sometimes', 'string', 'in:shared,dedicated'],
+            'hosting_settings.cpanel_host'           => ['nullable', 'string', 'max:255'],
+            'hosting_settings.cpanel_port'           => ['nullable', 'integer', 'min:1', 'max:65535'],
+            'hosting_settings.cpanel_username'       => ['nullable', 'string', 'max:64'],
+            'hosting_settings.cpanel_api_token'      => ['nullable', 'string', 'max:512'],
+            'hosting_settings.cpanel_db_user'        => ['nullable', 'string', 'max:64'],
 
             'logo' => ['nullable', 'file', 'mimetypes:image/jpeg,image/png,image/svg+xml,image/webp', 'max:4096'],
             'square_logo' => ['nullable', 'file', 'mimetypes:image/jpeg,image/png,image/svg+xml,image/webp', 'max:4096'],

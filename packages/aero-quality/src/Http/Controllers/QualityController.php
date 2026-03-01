@@ -3,10 +3,8 @@
 namespace Aero\Quality\Http\Controllers;
 
 use Aero\Core\Services\DashboardWidgetRegistry;
-use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
-use Aero\Quality\Models\QualityInspection;
 
 class QualityController extends Controller
 {

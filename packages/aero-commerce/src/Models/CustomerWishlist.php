@@ -13,7 +13,7 @@ class CustomerWishlist extends Model
     protected $table = 'commerce_customer_wishlists';
 
     protected $fillable = [
-        'customer_id', 'name', 'description', 'is_public', 'is_default'
+        'customer_id', 'name', 'description', 'is_public', 'is_default',
     ];
 
     protected $casts = [
@@ -40,7 +40,7 @@ class CustomerWishlist extends Model
     public function getTotalValueAttribute()
     {
         return $this->items()->join('commerce_products', 'commerce_wishlist_items.product_id', '=', 'commerce_products.id')
-                            ->sum('commerce_products.price');
+            ->sum('commerce_products.price');
     }
 
     public function hasProduct($productId)

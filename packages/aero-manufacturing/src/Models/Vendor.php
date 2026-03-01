@@ -15,7 +15,7 @@ class Vendor extends Model
     protected $fillable = [
         'vendor_code', 'name', 'contact_person', 'email', 'phone',
         'address', 'vendor_type', 'lead_time_days', 'quality_rating',
-        'is_active', 'notes'
+        'is_active', 'notes',
     ];
 
     protected $casts = [
@@ -25,7 +25,9 @@ class Vendor extends Model
     ];
 
     const TYPE_MATERIAL_SUPPLIER = 'material_supplier';
+
     const TYPE_OUTSIDE_PROCESSOR = 'outside_processor';
+
     const TYPE_SERVICE_PROVIDER = 'service_provider';
 
     public function routeOperations()

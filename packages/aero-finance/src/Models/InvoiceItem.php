@@ -12,9 +12,9 @@ class InvoiceItem extends Model
     protected $table = 'finance_invoice_items';
 
     protected $fillable = [
-        'invoice_id', 'product_id', 'description', 'quantity', 
+        'invoice_id', 'product_id', 'description', 'quantity',
         'unit_price', 'line_total', 'tax_rate', 'tax_amount',
-        'discount_rate', 'discount_amount', 'account_id'
+        'discount_rate', 'discount_amount', 'account_id',
     ];
 
     protected $casts = [

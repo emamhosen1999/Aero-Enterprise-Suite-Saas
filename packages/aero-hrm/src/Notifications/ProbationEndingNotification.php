@@ -44,12 +44,12 @@ class ProbationEndingNotification extends BaseHrmNotification
         }
 
         return $message
-            ->line("**Employee Details:**")
+            ->line('**Employee Details:**')
             ->line("Name: {$employeeName}")
-            ->line("Department: " . ($this->employee->department?->name ?? 'N/A'))
-            ->line("Designation: " . ($this->employee->designation?->name ?? 'N/A'))
+            ->line('Department: '.($this->employee->department?->name ?? 'N/A'))
+            ->line('Designation: '.($this->employee->designation?->name ?? 'N/A'))
             ->line("Probation End Date: {$endDate}")
-            ->line("Date of Joining: " . ($this->employee->date_of_joining?->format('d M Y') ?? 'N/A'))
+            ->line('Date of Joining: '.($this->employee->date_of_joining?->format('d M Y') ?? 'N/A'))
             ->action('Conduct Review', url("/hrm/employees/{$this->employee->id}/performance"))
             ->line('Please conduct a performance review and make a confirmation decision.');
     }

@@ -7,7 +7,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
-use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 /**
  * Validate Inertia Response Middleware
@@ -24,8 +23,6 @@ class ValidateInertiaResponse
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
      * @return mixed
      */
     public function handle(Request $request, Closure $next)
@@ -45,9 +42,6 @@ class ValidateInertiaResponse
 
     /**
      * Check if request is an Inertia request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return bool
      */
     protected function isInertiaRequest(Request $request): bool
     {
@@ -57,9 +51,7 @@ class ValidateInertiaResponse
     /**
      * Validate that response type is appropriate for Inertia.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  mixed  $response
-     * @return void
      */
     protected function validateResponseType(Request $request, $response): void
     {
@@ -82,11 +74,7 @@ class ValidateInertiaResponse
      *
      * These should return redirects, not JSON (except for validation errors).
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  mixed  $response
-     * @param  string  $method
-     * @param  string  $url
-     * @return void
      */
     protected function validateMutationResponse(Request $request, $response, string $method, string $url): void
     {
@@ -146,10 +134,7 @@ class ValidateInertiaResponse
      *
      * These should return Inertia responses (HTML with page data).
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  mixed  $response
-     * @param  string  $url
-     * @return void
      */
     protected function validateGetResponse(Request $request, $response, string $url): void
     {
@@ -189,7 +174,6 @@ class ValidateInertiaResponse
      * Check if response is a redirect.
      *
      * @param  mixed  $response
-     * @return bool
      */
     protected function isRedirectResponse($response): bool
     {
@@ -201,7 +185,6 @@ class ValidateInertiaResponse
      * Check if response is an Inertia response.
      *
      * @param  mixed  $response
-     * @return bool
      */
     protected function isInertiaResponse($response): bool
     {
