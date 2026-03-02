@@ -251,7 +251,7 @@ export default function CareersApply({ job }) {
 
                                 <Textarea
                                     label="Cover Letter"
-                                    placeholder="Tell us why you're interested in this position and what makes you a great fit..."
+                                    placeholder="Describe your interest in this position and relevant qualifications that make you a strong candidate..."
                                     value={data.cover_letter}
                                     onChange={e => setData('cover_letter', e.target.value)}
                                     minRows={6}

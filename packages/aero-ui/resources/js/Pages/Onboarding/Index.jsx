@@ -369,8 +369,8 @@ export default function OnboardingWizard({
                             Welcome to {tenant?.name || 'Your Organization'}!
                         </h1>
                         <p className="text-lg text-default-500 mb-8 max-w-lg mx-auto">
-                            Hi {user?.name}! Let's set up your workspace in just a few steps.
-                            This will only take about 5 minutes.
+                            Welcome, {user?.name}. Complete the following steps to configure your workspace.
+                            This process takes approximately five minutes.
                         </p>
                         <div className="flex justify-center gap-4">
                             <Button
@@ -380,7 +380,7 @@ export default function OnboardingWizard({
                                 endContent={<ArrowRight className="w-5 h-5" />}
                                 onPress={nextStep}
                             >
-                                Let's Get Started
+                                Begin Setup
                             </Button>
                             <Button
                                 variant="flat"
@@ -389,7 +389,7 @@ export default function OnboardingWizard({
                                 startContent={<SkipForward className="w-5 h-5" />}
                                 onPress={handleSkip}
                             >
-                                Skip for Now
+                                Skip Setup
                             </Button>
                         </div>
                     </motion.div>
@@ -1009,7 +1009,7 @@ export default function OnboardingWizard({
                     >
                         <form onSubmit={handleTeamSubmit} className="space-y-6">
                             <p className="text-default-500">
-                                Invite your team members to join the platform. They'll receive an email invitation.
+                                Invite team members to join the platform. Each invitee will receive an email invitation.
                             </p>
 
                             <div className="space-y-3">
@@ -1191,10 +1191,10 @@ export default function OnboardingWizard({
                             <CheckCircle2 className="w-10 h-10 text-success" />
                         </div>
                         <h1 className="text-3xl font-bold text-foreground mb-4">
-                            You're All Set!
+                            Setup Complete
                         </h1>
                         <p className="text-lg text-default-500 mb-8 max-w-lg mx-auto">
-                            Your organization is ready to go. You can always adjust these settings later.
+                            Your organisation has been configured. These settings can be modified at any time from the administration panel.
                         </p>
                         <div className="flex flex-wrap justify-center gap-4">
                             <Button

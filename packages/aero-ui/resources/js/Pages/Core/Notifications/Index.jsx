@@ -390,7 +390,7 @@ const NotificationsIndex = () => {
           <div className="flex flex-col items-center justify-center py-16 text-default-400">
             <InboxIcon className="w-16 h-16 mb-4" />
             <p className="text-lg font-medium">No notifications</p>
-            <p className="text-sm">You're all caught up!</p>
+            <p className="text-sm">All notifications have been reviewed.</p>
           </div>
         ) : (
           <>

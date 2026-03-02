@@ -103,8 +103,7 @@ const Status = () => {
               Trust Center & System Status
             </h1>
             <p className={`${palette.mutedText} max-w-3xl mx-auto text-sm md:text-base`}>
-              Real-time visibility into platform health, scheduled maintenance, and incident history. 
-              We're committed to transparency and keeping you informed.
+              Real-time visibility into platform health, scheduled maintenance windows, and full incident history. Aero maintains a public status posture as a foundational commitment to operational transparency.
             </p>
           </div>
         </section>
@@ -263,9 +262,9 @@ const Status = () => {
           <div className="max-w-4xl mx-auto">
             <Card className={palette.card}>
               <CardBody className="p-6 text-center">
-                <h3 className="text-xl md:text-2xl font-semibold">Stay Updated</h3>
+                <h3 className="text-xl md:text-2xl font-semibold">Subscribe to Platform Status Notifications</h3>
                 <p className={`${palette.mutedText} mt-2 mb-4`}>
-                  Get notified about incidents and maintenance via email or Slack.
+                  Receive automated alerts for service incidents, degraded performance events, and scheduled maintenance windows via email or Slack.
                 </p>
                 <div className="flex flex-wrap justify-center gap-3">
                   <Button as={Link} href={route('support')} className={palette.buttonPrimary}>

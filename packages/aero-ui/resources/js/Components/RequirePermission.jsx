@@ -85,7 +85,7 @@ const RequirePermission = ({
         return (
             <AccessDeniedCard
                 title={deniedTitle || 'Access Denied'}
-                message={deniedMessage || `You don't have permission to access this feature. Required: ${permissionNames.join(', ')}`}
+                message={deniedMessage || `Access to this feature is not permitted. Required permission: ${permissionNames.join(', ')}`}
                 className={className}
             />
         );

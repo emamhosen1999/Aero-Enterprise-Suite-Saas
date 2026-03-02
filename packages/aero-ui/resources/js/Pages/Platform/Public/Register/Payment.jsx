@@ -98,12 +98,12 @@ export default function Payment({ steps = [], currentStep, savedData = {}, trial
 
   return (
     <RegisterLayout>
-      <Head title={`Review & launch - ${siteName || 'aeos365'}`} />
+      <Head title={`Review & Activate — Step 5 - ${siteName || 'aeos365'}`} />
       <section className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-6 sm:space-y-8">
         <div className="space-y-2 sm:space-y-3 text-center">
           <p className={`text-[10px] sm:text-sm uppercase tracking-[0.3em] ${palette.badge}`}>Step 5</p>
-          <h1 className={`text-2xl sm:text-4xl font-semibold ${palette.heading} px-2`}>Review and start your trial.</h1>
-          <p className={`${palette.copy} text-sm sm:text-base px-2`}>Payments go live later. Today we just launch your {trialDays}-day sandbox and wire up the products you picked.</p>
+          <h1 className={`text-2xl sm:text-4xl font-semibold ${palette.heading} px-2`}>Review and Activate Your Trial</h1>
+          <p className={`${palette.copy} text-sm sm:text-base px-2`}>Billing activates at the close of your trial period. Your {trialDays}-day workspace will be provisioned with the modules you have selected.</p>
         </div>
 
         <ProgressSteps steps={steps} currentStep={currentStep} />
@@ -187,10 +187,10 @@ export default function Payment({ steps = [], currentStep, savedData = {}, trial
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
               <SafeLink route="platform.register.plan" className={`text-xs sm:text-sm transition-colors text-center sm:text-left ${palette.link}`}>
-                ← Back to products
+                ← Back to Module Selection
               </SafeLink>
               <Button type="submit" color="success" className="px-6 w-full sm:w-auto" isLoading={processing}>
-                Launch trial workspace
+                Provision Workspace
               </Button>
             </div>
           </form>

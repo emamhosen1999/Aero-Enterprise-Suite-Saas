@@ -397,7 +397,7 @@ const PlanList = ({ plans: initialPlans = [], stats: initialStats = {}, title })
                                     ) : filteredPlans.length === 0 ? (
                                         <Card radius={getThemeRadius()}>
                                             <CardBody className="p-12 text-center">
-                                                <p className="text-default-500">No plans found. Create your first plan to get started.</p>
+                                                <p className="text-default-500">No subscription plans have been configured. Create a plan to begin.</p>
                                                 <Button
                                                     color="primary"
                                                     className="mt-4"

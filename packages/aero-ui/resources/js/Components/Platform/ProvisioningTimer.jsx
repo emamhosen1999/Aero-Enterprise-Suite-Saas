@@ -88,7 +88,7 @@ export default function ProvisioningTimer({
       
       if (response.data?.success) {
         setNotifyRequested(true);
-        showToast.success("We'll email you when your workspace is ready!");
+        showToast.success("You will be notified by email when your workspace is ready.");
       }
     } catch (error) {
       showToast.error(error.response?.data?.message || 'Failed to set notification. Please try again.');
@@ -145,12 +145,12 @@ export default function ProvisioningTimer({
           </div>
           <div className="flex-1 min-w-0">
             <p className={`text-sm font-medium ${palette.text}`}>
-              Don't want to wait?
+              Prefer not to wait?
             </p>
             <p className={`text-xs ${palette.muted} truncate`}>
               {notifyRequested 
-                ? "We'll send you an email when ready!"
-                : "Close this tab and we'll notify you."}
+                ? "An email notification will be sent once provisioning is complete."
+                : "Close this tab and you will be notified by email when ready."}
             </p>
           </div>
           {!notifyRequested ? (

@@ -115,8 +115,8 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-6 sm:space-y-8">
         <div className="space-y-2 sm:space-y-3 text-center">
           <p className={`text-[10px] sm:text-sm uppercase tracking-[0.3em] ${palette.badge}`}>Step 4</p>
-          <h1 className={`text-2xl sm:text-4xl font-semibold ${palette.heading} px-2`}>Choose Your Plan & Products</h1>
-          <p className={`${palette.copy} text-sm sm:text-base px-2`}>Select a pre-configured plan or customize with individual products.</p>
+          <h1 className={`text-2xl sm:text-4xl font-semibold ${palette.heading} px-2`}>Select Your Subscription Plan and Modules</h1>
+          <p className={`${palette.copy} text-sm sm:text-base px-2`}>Select a pre-configured subscription plan or build a custom module set to match your operational requirements.</p>
         </div>
 
         {/* Social Proof Banner */}
@@ -377,7 +377,7 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
 
               <Textarea
                 label="Implementation notes (optional)"
-                placeholder="Tell us about integrations, compliance packs, or migration timelines."
+                placeholder="Describe any integration requirements, compliance needs, or migration timelines."
                 minRows={3}
                 value={data.notes}
                 onChange={(event) => setData('notes', event.target.value)}
@@ -391,7 +391,7 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
                 <SafeLink route="platform.register.details" className={`text-xs sm:text-sm transition-colors text-center sm:text-left ${palette.link}`}>
-                  ← Back to details
+                  ← Back to Account Details
                 </SafeLink>
                 <Button 
                   type="submit" 

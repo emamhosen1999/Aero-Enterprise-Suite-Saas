@@ -888,7 +888,7 @@ const PlatformSettings = () => {
                   </Switch>
                   <p className="text-xs text-warning-600 dark:text-warning-400 mt-1">
                     Enable this if your mail server uses a shared hosting certificate (e.g., *.web-hosting.com). 
-                    This is common on cPanel/shared hosts where the SSL cert doesn't match your domain.
+                    This is common on cPanel/shared hosts where the SSL certificate does not match your domain.
                   </p>
                 </div>
                 <TestEmailButton emailSettings={data.email_settings} />

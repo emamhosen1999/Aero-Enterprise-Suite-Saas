@@ -256,7 +256,7 @@ const CheckRegistration = ({ registration, event }) => {
                                     onPress={() => router.get(route('public.events.index'))}
                                     radius={getThemeRadius()}
                                 >
-                                    Back to Events
+                                    Return to Events
                                 </Button>
                                 {registration.status === 'approved' && (
                                     <Button

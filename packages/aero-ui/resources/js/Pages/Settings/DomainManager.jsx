@@ -577,10 +577,10 @@ const DomainManager = () => {
                                 <InformationCircleIcon className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
                                 <div>
                                     <p className="text-sm font-medium text-warning-600 dark:text-warning-400">
-                                        After adding, you'll need to configure DNS
+                                        After adding, DNS configuration will be required.
                                     </p>
                                     <p className="text-sm text-default-500 mt-1">
-                                        You'll be shown instructions on how to verify domain ownership through DNS records.
+                                        Instructions for verifying domain ownership via DNS records will be provided.
                                     </p>
                                 </div>
                             </div>

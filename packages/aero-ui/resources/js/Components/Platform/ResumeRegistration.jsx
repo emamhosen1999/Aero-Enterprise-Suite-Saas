@@ -112,17 +112,17 @@ export default function ResumeRegistration({
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-success/10 flex items-center justify-center">
                   <CheckCircleIcon className="w-8 h-8 text-success" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">Progress Saved!</h3>
+                <h3 className="text-lg font-semibold mb-2">Progress Saved</h3>
                 <p className="text-default-500 text-sm">
-                  We've sent a magic link to <strong>{email}</strong>. 
-                  Click the link to resume your registration anytime within the next 7 days.
+                  A secure link has been sent to <strong>{email}</strong>. 
+                  Use that link to resume your registration at any time within the next 7 days.
                 </p>
               </div>
             ) : (
               <div className="space-y-4">
                 <p className="text-default-500 text-sm">
-                  Enter your email and we'll send you a secure link to pick up where you left off.
-                  Your progress will be saved for 7 days.
+                  Enter your email address to receive a secure link and resume your registration session.
+                  Progress is retained for 7 days.
                 </p>
                 
                 <Input
@@ -151,7 +151,7 @@ export default function ResumeRegistration({
                   </div>
                   <p className="text-xs text-default-500">
                     Your registration data is encrypted and stored securely. 
-                    The magic link expires after 7 days for your protection.
+                    The secure link expires after 7 days.
                   </p>
                 </div>
               </div>
@@ -160,7 +160,7 @@ export default function ResumeRegistration({
           <ModalFooter>
             {isSaved ? (
               <Button color="primary" onPress={closeModal}>
-                Got it, thanks!
+                Understood
               </Button>
             ) : (
               <>
@@ -173,7 +173,7 @@ export default function ResumeRegistration({
                   isLoading={isSaving}
                   startContent={!isSaving && <EnvelopeIcon className="w-4 h-4" />}
                 >
-                  Send Magic Link
+                  Send Secure Link
                 </Button>
               </>
             )}

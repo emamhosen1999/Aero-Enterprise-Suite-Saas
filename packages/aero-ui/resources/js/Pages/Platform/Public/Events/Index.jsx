@@ -42,7 +42,7 @@ const PublicEventsIndex = ({ events }) => {
             <div className="bg-white shadow-sm border-b">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <h1 className="text-3xl font-bold text-gray-900">Upcoming Events</h1>
-                    <p className="mt-2 text-gray-600">Browse and register for our exciting events</p>
+                    <p className="mt-2 text-gray-600">Browse and register for scheduled events and programmes</p>
                 </div>
             </div>
             

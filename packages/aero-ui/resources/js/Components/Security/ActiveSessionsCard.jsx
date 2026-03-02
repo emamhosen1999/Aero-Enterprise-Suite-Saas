@@ -116,7 +116,7 @@ const ActiveSessionsCard = ({ sessions = [], onSessionTerminated, activeSessions
                         <div>
                             <h3 className="text-lg font-semibold">Active Sessions</h3>
                             <p className="text-sm text-default-500">
-                                Manage devices where you're currently logged in
+                                Manage devices with active authenticated sessions
                             </p>
                         </div>
                     </div>
@@ -202,7 +202,7 @@ const ActiveSessionsCard = ({ sessions = [], onSessionTerminated, activeSessions
                         </div>
                         <p className="text-default-500 font-medium">No active sessions</p>
                         <p className="text-sm text-default-400 mt-1">
-                            You'll see your active login sessions here
+                            Active authenticated sessions will appear here.
                         </p>
                     </div>
                 )}

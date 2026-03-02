@@ -154,10 +154,10 @@ export default function AdminSetup({
                             <BuildingOfficeIcon className="w-8 h-8 text-white" />
                         </div>
                         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                            Welcome to {tenant.name || 'Your Organization'}
+                            {tenant.name || 'Your Organisation'} — Administrator Setup
                         </h1>
                         <p className="text-gray-600 dark:text-gray-300">
-                            Complete your account setup to get started
+                            Complete the following steps to configure your administrator account
                         </p>
                     </div>
 

@@ -26,29 +26,29 @@ const tierData = [
   {
     name: 'Launch',
     price: 12,
-    description: 'For pilot squads validating value in weeks.',
+    description: 'Ideal for pilot deployments validating platform ROI within a structured evaluation period.',
     includes: ['2 modules included', 'Guided onboarding', 'Community support'],
   },
   {
     name: 'Scale',
     price: 20,
     highlighted: true,
-    description: 'Most popular. Full automation layer with advanced analytics.',
+    description: 'Most adopted. Complete automation layer with advanced analytics and AI-driven operational insights.',
     includes: ['Unlimited modules', 'Automation builder', 'Premium support', 'AI copilots'],
   },
   {
     name: 'Enterprise',
     price: 0,
     custom: true,
-    description: 'Global rollouts, dedicated pods, and private cloud controls.',
+    description: 'Designed for global multi-region deployments with dedicated delivery pods and private cloud infrastructure.',
     includes: ['Dedicated CSM', 'Private cloud / GovCloud', 'Custom compliance packs'],
   },
 ];
 
 const addons = [
-  { name: 'AI Incident Copilot', price: '$4 / user', description: 'Generative guidance for audits, incidents, and RCA.' },
-  { name: 'Edge Attendance Terminals', price: '$39 / device', description: 'Biometric devices with secure setup and management.' },
-  { name: 'Dedicated Compliance Pods', price: 'Custom', description: 'ISO, HIPAA, SOC2 readiness operations.' },
+  { name: 'AI Incident Copilot', price: '$4 / user', description: 'AI-assisted guidance for audit management, incident response, and root cause analysis workflows.' },
+  { name: 'Edge Attendance Terminals', price: '$39 / device', description: 'Enterprise biometric attendance hardware with centralised device management and full audit trail logging.' },
+  { name: 'Dedicated Compliance Pods', price: 'Custom', description: 'Managed compliance readiness operations covering ISO, HIPAA, and SOC 2 certification frameworks.' },
 ];
 
 const featureComparison = [
@@ -62,19 +62,19 @@ const featureComparison = [
 const faqs = [
   {
     title: 'How does per-product billing work?',
-    content: 'Each active product is priced per user per month. Archive products anytime. Annual plans include 2 months free.',
+    content: 'Each active product suite is licensed on a per-user, per-month basis. Suites can be deactivated at any time without penalty. Annual subscription plans include two months of complimentary access.',
   },
   {
-    title: 'Can we mix environments (prod, sandbox, regions)?',
-    content: 'Yes. Sandbox is free. Additional production regions are billed at 50% of your base per-product price.',
+    title: 'Can we run multiple environments (production, sandbox, multi-region)?',
+    content: 'Yes. Sandbox environments are provided at no additional charge. Additional production regions are billed at 50% of the base per-product licence rate.',
   },
   {
-    title: 'What is the minimum contract length?',
-    content: 'Monthly plans have no lock-in. Enterprise plans often opt for 12-36 month agreements with rate guarantees.',
+    title: 'What is the minimum contract commitment?',
+    content: 'Monthly plans carry no minimum commitment period. Enterprise agreements are typically structured on 12 to 36-month terms with contracted rate guarantees.',
   },
   {
-    title: 'How are implementation services billed?',
-    content: 'Launch and Scale get onboarding included. Larger rollouts can add fixed-fee pods or ongoing managed services.',
+    title: 'How are implementation and professional services billed?',
+    content: 'Launch and Scale tiers include structured onboarding programmes. Larger enterprise deployments may optionally include fixed-fee implementation pods or ongoing managed service arrangements.',
   },
 ];
 
@@ -125,10 +125,10 @@ export default function Pricing() {
         <div className="relative">
           <Chip variant="flat" color="success" className="uppercase tracking-[0.3em] text-[10px] md:text-xs">Pricing</Chip>
           <h1 className="text-2xl md:text-5xl font-bold mt-3 md:mt-4 mb-4 md:mb-6">
-            Pricing built around the products you actually use.
+            Consumption-based pricing aligned to your active product suite.
           </h1>
           <p className={`max-w-3xl mx-auto mb-6 md:mb-10 text-sm md:text-lg ${palette.mutedText}`}>
-            Pick monthly or annual billing, add products when teams are ready, and pause what you are not using without renegotiating a contract.
+            Select monthly or annual billing, activate product suites as business units come online, and deactivate unused modules without contract renegotiation.
           </p>
           <div className="flex items-center justify-center gap-2 md:gap-3">
             <span className={`text-xs md:text-sm ${annual ? 'font-semibold' : palette.mutedText}`}>Annual (2 months free)</span>
@@ -153,7 +153,7 @@ export default function Pricing() {
               <CardBody className="space-y-3 md:space-y-4">
                 <div>
                   {tier.custom ? (
-                    <p className="text-3xl md:text-4xl font-bold">Let's Talk</p>
+                    <p className="text-3xl md:text-4xl font-bold">Contact Sales</p>
                   ) : (
                     <>
                       <span className="text-4xl md:text-5xl font-bold">${tier.price}</span>
@@ -229,9 +229,9 @@ export default function Pricing() {
       <section className="px-4 md:px-6 pb-8 md:pb-16">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-6 md:mb-12">
-            <Chip color="secondary" variant="flat" className="mb-2 md:mb-3 text-[10px] md:text-xs">Support fabric</Chip>
-            <h2 className="text-xl md:text-3xl font-semibold">Channels backed by clear response times.</h2>
-            <p className={`mt-2 text-sm md:text-base ${palette.mutedText}`}>Every plan ships with a dedicated escalation path. Enterprise adds private pods and Slack Connect.</p>
+            <Chip color="secondary" variant="flat" className="mb-2 md:mb-3 text-[10px] md:text-xs">Support Infrastructure</Chip>
+            <h2 className="text-xl md:text-3xl font-semibold">Enterprise support channels with committed response times.</h2>
+            <p className={`mt-2 text-sm md:text-base ${palette.mutedText}`}>Every plan includes a defined escalation path. Enterprise tier adds dedicated pods and Slack Connect integration.</p>
           </div>
           <div className="grid gap-3 md:gap-6 md:grid-cols-2">
             {supportChannels.map((channel) => (
@@ -250,8 +250,8 @@ export default function Pricing() {
       <section className={`px-4 md:px-6 pb-8 md:pb-16 ${palette.tint}`}>
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-6 md:mb-10">
-            <Chip color="primary" variant="flat" className="mb-2 md:mb-3 text-[10px] md:text-xs">SLA Matrix</Chip>
-            <h2 className="text-xl md:text-3xl font-semibold">Response commitments per plan.</h2>
+            <Chip color="primary" variant="flat" className="mb-2 md:mb-3 text-[10px] md:text-xs">Service Level Commitments</Chip>
+            <h2 className="text-xl md:text-3xl font-semibold">Contractual response commitments by plan tier.</h2>
           </div>
           <div className="overflow-x-auto">
             <Table aria-label="SLA matrix" className="min-w-[700px]">
@@ -278,10 +278,10 @@ export default function Pricing() {
 
       <section className="px-4 md:px-6 pb-8 md:pb-16">
         <div className="max-w-4xl mx-auto text-center mb-6 md:mb-10">
-          <Chip color="primary" variant="flat" className="text-[10px] md:text-xs">FAQ</Chip>
-          <h2 className="text-xl md:text-3xl font-semibold mt-3 md:mt-4 mb-3 md:mb-4">Everything you need to know</h2>
+          <Chip color="primary" variant="flat" className="text-[10px] md:text-xs">Frequently Asked Questions</Chip>
+          <h2 className="text-xl md:text-3xl font-semibold mt-3 md:mt-4 mb-3 md:mb-4">Common questions about pricing and commercial terms</h2>
           <p className={`text-sm md:text-base ${palette.mutedText}`}>
-            We keep pricing transparent. Reach out if you need tailored modules, data residency commitments, or procurement paperwork.
+            Pricing is designed to be transparent and predictable. Contact our commercial team for tailored module configurations, data residency requirements, or procurement documentation.
           </p>
         </div>
         <div className="max-w-4xl mx-auto">
@@ -304,9 +304,9 @@ export default function Pricing() {
         <Card className={`max-w-5xl mx-auto text-center ${palette.highlightCard}`}>
           <CardBody className="space-y-4 md:space-y-6">
             <Chip variant="flat" color="success" className="text-[10px] md:text-xs">Next Steps</Chip>
-            <h3 className="text-2xl md:text-4xl font-semibold">Bundle products, launch faster.</h3>
+            <h3 className="text-2xl md:text-4xl font-semibold">Customise your product bundle and accelerate time to value.</h3>
             <p className={`text-sm md:text-base ${palette.mutedText}`}>
-              Our pricing team will tailor a package across HR, Projects, Compliance, SCM, and CRM with the right SLAs and integrations.
+              Our commercial team will architect a tailored package spanning your required modules with aligned SLAs and certified integrations.
             </p>
             <div className="grid gap-2 md:gap-4 md:grid-cols-3 text-left">
               {demoSteps.map((step) => (

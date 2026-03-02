@@ -334,7 +334,7 @@ const NotificationDropdown = ({
             <BellIcon className="w-12 h-12 mx-auto text-default-300 mb-3" />
             <p className="text-default-500 font-medium">No notifications</p>
             <p className="text-sm text-default-400 mt-1">
-                You're all caught up!
+                All notifications have been reviewed.
             </p>
         </div>
     );

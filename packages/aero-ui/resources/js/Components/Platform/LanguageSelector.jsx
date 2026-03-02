@@ -24,7 +24,7 @@ const defaultTranslations = {
       soloWorkspace: 'Solo or consultant',
       soloDescription: 'Perfect for individual operators validating processes.',
       
-      step2Title: 'Tell us about your company',
+      step2Title: 'Company Information',
       companyName: 'Company Name',
       email: 'Email Address',
       phone: 'Phone Number',

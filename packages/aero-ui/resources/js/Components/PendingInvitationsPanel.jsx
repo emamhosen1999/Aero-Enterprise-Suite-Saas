@@ -374,8 +374,8 @@ const PendingInvitationsPanel = ({ onInvitationChange }) => {
                             <strong>{deleteModal.invitation?.email}</strong>?
                         </p>
                         <p className="text-sm text-default-500 mt-2">
-                            The invitation link will no longer work, and they won't be able to
-                            join your organization using this invitation.
+                            The invitation link will be revoked and the recipient will no longer be able to
+                            join your organisation using this invitation.
                         </p>
                     </ModalBody>
                     <ModalFooter>

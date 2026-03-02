@@ -229,7 +229,7 @@ const BlockchainAnalytics = ({ title }) => {
     if (!canViewAnalytics) {
         return (
             <div className="flex items-center justify-center h-64">
-                <p className="text-default-500">You don't have permission to view blockchain analytics.</p>
+                <p className="text-default-500">Access to blockchain analytics is not permitted for your account.</p>
             </div>
         );
     }

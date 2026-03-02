@@ -46,10 +46,20 @@ class CpanelDatabaseManager implements TenantDatabaseManager
             ]);
 
             if (! $response['success']) {
-                throw new \RuntimeException('Failed to create database: '.($response['error'] ?? 'Unknown error'));
-            }
+                $error = $response['error'] ?? 'Unknown error';
 
-            Log::info('✅ cPanel: Database created successfully', ['db_name' => $fullDbName]);
+                // Handle case where database already exists from a previous failed/rolled-back attempt
+                if (str_contains(strtolower($error), 'already exists') || str_contains(strtolower($error), 'exists already')) {
+                    Log::info('ℹ️ cPanel: Database already exists, proceeding to set privileges', [
+                        'db_name' => $fullDbName,
+                        'error' => $error,
+                    ]);
+                } else {
+                    throw new \RuntimeException('Failed to create database: '.$error);
+                }
+            } else {
+                Log::info('✅ cPanel: Database created successfully', ['db_name' => $fullDbName]);
+            }
 
             // Step 2: Grant privileges to the database user
             $dbUser = $this->getDatabaseUser();
@@ -305,16 +315,20 @@ class CpanelDatabaseManager implements TenantDatabaseManager
     }
 
     /**
-     * Get the database user (typically same as cPanel username with prefix).
+     * Get the database user for cPanel UAPI calls.
+     *
+     * cPanel UAPI expects the short username WITHOUT the cPanel prefix.
+     * e.g. config value 'aeos365_emamhosen' → return 'emamhosen'
+     * cPanel will auto-prepend 'aeos365_' internally.
      */
     protected function getDatabaseUser(): string
     {
         $username = config('tenancy.cpanel.username');
         $dbUser = config('tenancy.cpanel.db_user', $username);
 
-        // If db_user doesn't have prefix, add it
-        if (! str_starts_with($dbUser, $username.'_')) {
-            return "{$username}_{$dbUser}";
+        // Strip the cPanel username prefix if present — UAPI expects short name
+        if (str_starts_with($dbUser, $username.'_')) {
+            return substr($dbUser, strlen($username) + 1);
         }
 
         return $dbUser;

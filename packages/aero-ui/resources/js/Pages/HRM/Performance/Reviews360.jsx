@@ -649,8 +649,7 @@ const Reviews360 = ({ title, employees: initialEmployees = [] }) => {
                         <ModalBody>
                             <p>Are you ready to launch the 360° review for <strong>{selectedReview.employee?.name}</strong>?</p>
                             <p className="text-sm text-default-500">
-                                This will notify all assigned reviewers and make the review active. 
-                                You won't be able to edit the review settings once it's launched.
+                                All assigned reviewers will be notified and the review will become active. Review settings cannot be modified after launch.
                             </p>
                         </ModalBody>
                         <ModalFooter>

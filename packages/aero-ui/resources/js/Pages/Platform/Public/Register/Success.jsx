@@ -23,9 +23,9 @@ export default function Success({ steps = [], currentStep, result = {}, baseDoma
       <Head title={`Workspace ready - ${siteName || 'aeos365'}`} />
       <section className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-6 sm:space-y-8 text-center">
         <div className="space-y-3 sm:space-y-4">
-          <Chip color="success" variant="flat" size="lg" className={`${palette.badge} text-xs sm:text-sm`}>Workspace live</Chip>
+          <Chip color="success" variant="flat" size="lg" className={`${palette.badge} text-xs sm:text-sm`}>Workspace Active</Chip>
           <h1 className={`text-2xl sm:text-4xl font-semibold ${palette.heading} px-2`}>Welcome to {siteName || 'Enterprise Suite'}.</h1>
-          <p className={`${palette.copy} text-sm sm:text-base px-2`}>We are provisioning your tenant and sending first-login credentials. You can jump in using the link below.</p>
+          <p className={`${palette.copy} text-sm sm:text-base px-2`}>Your workspace environment is being provisioned and initial access credentials are being dispatched. Access your workspace using the link below.</p>
         </div>
 
         <ProgressSteps steps={steps} currentStep={currentStep} />
@@ -44,11 +44,11 @@ export default function Success({ steps = [], currentStep, result = {}, baseDoma
               <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 pt-3 sm:pt-4">
                 {workspaceUrl && (
                   <Button as="a" href={`${workspaceUrl}/login`} target="_blank" rel="noopener noreferrer" color="primary" className="bg-gradient-to-r from-blue-500 to-purple-600 w-full sm:w-auto">
-                    Go to workspace
+                    Access Workspace
                   </Button>
                 )}
                 <Button as={Link} href={route('landing')} variant="bordered" className="w-full sm:w-auto">
-                  Back to home
+                  Return to Home
                 </Button>
               </div>
             </CardBody>

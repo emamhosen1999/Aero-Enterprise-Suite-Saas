@@ -74,16 +74,16 @@ export default function Contact() {
           </div>
           <div className="relative max-w-5xl mx-auto text-center space-y-4 md:space-y-6">
             <Chip color="secondary" variant="flat" className="uppercase tracking-[0.35em] text-[10px] md:text-xs">Contact</Chip>
-            <h1 className="text-2xl md:text-5xl font-bold">Talk to the team that builds and supports Aero.</h1>
+            <h1 className="text-2xl md:text-5xl font-bold">Connect with the team that builds, deploys, and supports the platform.</h1>
             <p className={`text-sm md:text-lg ${palette.mutedText}`}>
-              We answer sales, procurement, partnership, and support requests around the clock. Pick the path that fits what you need today.
+              Our commercial, technical, and partner teams are available around the clock to address sales enquiries, procurement requirements, integration partnerships, and escalation requests.
             </p>
             <div className="flex flex-wrap justify-center gap-2 md:gap-4">
               <Button as={Link} href={route('demo')} size="sm" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-6 md:px-10">
-                Book a product tour
+                Schedule a Product Tour
               </Button>
               <Button as={Link} href={route('support')} size="sm" variant="bordered" className="border-current px-6 md:px-10">
-                Visit support center
+                Visit Support Centre
               </Button>
             </div>
           </div>
@@ -107,7 +107,7 @@ export default function Contact() {
           <div className="max-w-5xl mx-auto grid gap-5 md:gap-8 lg:grid-cols-[3fr,2fr]">
             <Card className={palette.card}>
               <CardBody className="space-y-4 md:space-y-5">
-                <Chip color="primary" variant="flat" size="sm" className="text-[10px] md:text-xs">Send a message</Chip>
+                <Chip color="primary" variant="flat" size="sm" className="text-[10px] md:text-xs">Submit an Enquiry</Chip>
                 <div className="grid gap-4 md:grid-cols-2">
                   <Input label="Full name" variant="bordered" classNames={fieldClasses} />
                   <Input label="Work email" type="email" variant="bordered" classNames={fieldClasses} />
@@ -131,7 +131,7 @@ export default function Contact() {
             </Card>
             <Card className={palette.card}>
               <CardBody className="space-y-3 md:space-y-4">
-                <Chip color="success" variant="flat" size="sm" className="text-[10px] md:text-xs">Other ways to connect</Chip>
+                <Chip color="success" variant="flat" size="sm" className="text-[10px] md:text-xs">Additional Contact Channels</Chip>
                 <div className="space-y-3 md:space-y-4">
                   {supportChannels.slice(0, 3).map((channel) => (
                     <div
@@ -161,20 +161,20 @@ export default function Contact() {
           <div className="max-w-5xl mx-auto grid gap-4 md:gap-6 md:grid-cols-2">
             <Card className={palette.card}>
               <CardBody className="space-y-2 md:space-y-3">
-                <Chip color="warning" variant="flat" size="sm" className="text-[10px] md:text-xs">Offices & hours</Chip>
+                <Chip color="warning" variant="flat" size="sm" className="text-[10px] md:text-xs">Global Offices &amp; Operating Hours</Chip>
                 <p className={`text-xs md:text-sm ${palette.mutedText}`}>
-                  Distributed HQ in Singapore, Bengaluru, and Toronto with rollout pods in Dubai, London, and Austin.
+                  Distributed headquarters in Singapore, Bengaluru, and Toronto with regional delivery pods in Dubai, London, and Austin.
                 </p>
                 <p className={`text-xs md:text-sm ${palette.mutedText}`}>
-                  Field teams operate on customer time zones. We run follow-the-sun response for incidents.
+                  Field teams operate aligned to customer time zones. Follow-the-sun incident response is maintained at all hours.
                 </p>
               </CardBody>
             </Card>
             <Card className={palette.card}>
               <CardBody className="space-y-2 md:space-y-3">
-                <Chip color="secondary" variant="flat" size="sm" className="text-[10px] md:text-xs">Need help fast?</Chip>
+                <Chip color="secondary" variant="flat" size="sm" className="text-[10px] md:text-xs">Need Immediate Assistance?</Chip>
                 <p className={`text-sm md:text-base ${palette.mutedText}`}>
-                  Visit the Support page for live chat, Slack Connect invites, and status updates before filing a ticket.
+                  Visit the Support Centre for live assistance, Slack Connect access, and real-time platform status before submitting a formal support ticket.
                 </p>
                 <Button as={Link} href={route('support')} className={`${palette.buttonPrimary} w-full`}>
                   Open support center

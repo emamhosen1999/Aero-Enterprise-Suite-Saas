@@ -115,9 +115,8 @@ const Footer = () => {
                                         }
                                     </p>
                                     <div className="flex items-center gap-2 text-sm text-default-500 mt-4">
-                                        <span>Crafted with</span>
                                         <HeartIcon className="w-4 h-4 text-red-500 animate-pulse" />
-                                        <span>by the Aero Team</span>
+                                        <span>Developed and maintained by the Aero Engineering Team</span>
                                     </div>
                                 </div>
                             </div>
@@ -126,7 +125,7 @@ const Footer = () => {
                             <div className="md:col-span-1">
                                 <div className="space-y-4">
                                     <h4 className="font-semibold text-foreground text-lg">
-                                        Quick Links
+                                        Site Navigation
                                     </h4>
                                     <div className="grid grid-cols-2 gap-2">
                                         {quickLinks.map((link, index) => {
@@ -173,7 +172,7 @@ const Footer = () => {
                             <div className="md:col-span-1">
                                 <div className="space-y-4">
                                     <h4 className="font-semibold text-foreground text-lg">
-                                        Contact Info
+                                        Contact Information
                                     </h4>
                                     <div className="space-y-3">
                                         {contactInfo.map((contact, index) => {

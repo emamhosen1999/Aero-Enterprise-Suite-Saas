@@ -184,7 +184,7 @@ export default function SubscriptionPlans({ plans = [], currentPlan, billingCycl
 
                                         {/* Features List */}
                                         <div className="space-y-3">
-                                            <p className="text-sm font-semibold mb-3">What's included:</p>
+                                            <p className="text-sm font-semibold mb-3">Included Features:</p>
                                             {plan.features?.map((feature, idx) => (
                                                 <div key={idx} className="flex items-start gap-2">
                                                     <CheckIcon className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />

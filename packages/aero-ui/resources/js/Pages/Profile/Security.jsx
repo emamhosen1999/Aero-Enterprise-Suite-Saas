@@ -272,7 +272,7 @@ const Security = ({ title, twoFactorEnabled, recoveryCodesCount, sessions, devic
                                                     <div className="flex-1">
                                                         <h3 className="text-lg font-semibold">Active Sessions</h3>
                                                         <p className="text-sm text-default-500">
-                                                            Manage devices where you're currently logged in
+                                                            Manage devices with active authenticated sessions
                                                         </p>
                                                     </div>
                                                     <Chip 

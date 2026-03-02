@@ -40,7 +40,7 @@ const defaultLogos = [
 const defaultTestimonials = [
   {
     id: 1,
-    quote: "EOS365 transformed how we manage our operations. The all-in-one approach saved us from juggling multiple tools.",
+    quote: "EOS365 consolidated our operational management into a single platform, eliminating the need to maintain multiple disparate tools.",
     author: "Sarah Chen",
     role: "COO",
     company: "TechFlow Industries",
@@ -48,7 +48,7 @@ const defaultTestimonials = [
   },
   {
     id: 2,
-    quote: "Implementation was smooth and the support team was exceptional. We were up and running in just 2 weeks.",
+    quote: "The implementation process was seamless and the support team was exceptional. We were fully operational within two weeks.",
     author: "Michael Rodriguez",
     role: "IT Director",
     company: "Global Manufacturing Co.",

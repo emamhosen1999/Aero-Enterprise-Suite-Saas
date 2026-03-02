@@ -225,10 +225,10 @@ export default function Provisioning({
                     Workspace Ready
                   </Chip>
                   <h1 className={`text-xl sm:text-3xl font-semibold ${palette.heading}`}>
-                    {isRedirecting ? 'Redirecting to complete setup...' : 'Almost Done!'}
+                    {isRedirecting ? 'Redirecting to administrator setup...' : 'Provisioning Complete'}
                   </h1>
                   <p className={`${palette.copy} text-sm sm:text-base`}>
-                    Your workspace <strong>{tenant.name}</strong> is now live. Complete your admin account setup to get started.
+                    Your workspace <strong>{tenant.name}</strong> is now active. Complete your administrator account configuration to proceed.
                   </p>
                 </div>
 
@@ -242,7 +242,7 @@ export default function Provisioning({
                 {isRedirecting && (
                   <div className="flex items-center justify-center gap-2">
                     <Spinner size="sm" />
-                    <span className={`${palette.copy} text-sm sm:text-base`}>Redirecting to admin setup...</span>
+                    <span className={`${palette.copy} text-sm sm:text-base`}>Redirecting to administrator setup...</span>
                   </div>
                 )}
 
@@ -254,10 +254,10 @@ export default function Provisioning({
                       color="primary"
                       className="bg-gradient-to-r from-blue-500 to-purple-600 w-full sm:w-auto"
                     >
-                      Complete Admin Setup
+                      Complete Administrator Setup
                     </Button>
                     <Button as={Link} href={route('landing')} variant="bordered" className="w-full sm:w-auto">
-                      Back to home
+                      Return to Home
                     </Button>
                   </div>
                 )}
@@ -359,12 +359,12 @@ export default function Provisioning({
       <Head title="Setting up your workspace" />
       <section className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-6 sm:space-y-8 text-center">
         <div className="space-y-2 sm:space-y-3 px-2">
-          <p className={`text-[10px] sm:text-sm uppercase tracking-[0.3em] ${palette.badge}`}>Almost there</p>
+          <p className={`text-[10px] sm:text-sm uppercase tracking-[0.3em] ${palette.badge}`}>Provisioning in Progress</p>
           <h1 className={`text-2xl sm:text-4xl font-semibold ${palette.heading}`}>
             Setting up your workspace
           </h1>
           <p className={`${palette.copy} text-sm sm:text-base break-words`}>
-            We're preparing everything for <strong>{tenant.name}</strong>. This usually takes less
+            Workspace provisioning is underway for <strong>{tenant.name}</strong>. This process typically completes in less
             than a minute.
           </p>
         </div>
@@ -477,7 +477,7 @@ export default function Provisioning({
 
         {/* Help text */}
         <p className={`text-xs sm:text-sm ${palette.copy} px-2`}>
-          Please don't close this page. You'll be redirected automatically when ready.
+          Please keep this page open. You will be redirected automatically once provisioning is complete.
         </p>
       </section>
     </RegisterLayout>

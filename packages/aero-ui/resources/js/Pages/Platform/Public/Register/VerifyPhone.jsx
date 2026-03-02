@@ -211,10 +211,10 @@ export default function VerifyPhone({ steps = [], currentStep, savedData = {}, p
           <p className={`text-[10px] sm:text-sm uppercase tracking-[0.3em] ${palette.badge}`}>Step 5</p>
           <h1 className={`text-2xl sm:text-4xl font-semibold ${palette.heading} px-2`}>Verify Company Phone</h1>
           <p className={`${palette.copy} text-sm sm:text-base px-2`}>
-            We've sent a 6-digit verification code to your company phone <strong className={palette.heading}>{phone}</strong>
+            A 6-digit verification code has been sent to your company phone <strong className={palette.heading}>{phone}</strong>
           </p>
           <p className={`${palette.copy} text-xs sm:text-sm px-2 italic`}>
-            Note: You'll create your admin account after completing registration
+            Note: Your administrator account will be configured following registration completion
           </p>
         </div>
 
@@ -300,9 +300,9 @@ export default function VerifyPhone({ steps = [], currentStep, savedData = {}, p
 
             <div className="text-center space-y-3">
               <p className={`text-xs ${palette.copy}`}>
-                Didn't receive the code?{' '}
+                Did not receive the code?{' '}
                 <button onClick={handleSendCode} disabled={countdown > 0 || isSending} className={palette.link}>
-                  Resend it
+                  Resend Code
                 </button>
               </p>
               <div className="pt-2 border-t border-divider">

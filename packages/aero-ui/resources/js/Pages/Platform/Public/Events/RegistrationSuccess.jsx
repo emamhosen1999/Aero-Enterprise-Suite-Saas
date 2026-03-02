@@ -36,9 +36,9 @@ const RegistrationSuccess = ({ event, registration }) => {
                         <CheckCircleIcon className="w-12 h-12 text-success" />
                     </div>
                     
-                    <h1 className="text-3xl font-bold mb-3">Registration Successful!</h1>
+                    <h1 className="text-3xl font-bold mb-3">Registration Confirmed</h1>
                     <p className="text-lg text-default-600 mb-8">
-                        Thank you for registering for <span className="font-semibold">{event.title}</span>
+                        Your registration for <span className="font-semibold">{event.title}</span> has been received
                     </p>
                     
                     <Divider className="my-6" />
@@ -47,7 +47,7 @@ const RegistrationSuccess = ({ event, registration }) => {
                         <p className="text-sm text-default-600 mb-2">Your Registration Token</p>
                         <p className="text-3xl font-mono font-bold text-primary">{registration.token}</p>
                         <p className="text-xs text-default-500 mt-3">
-                            Please save this token. You'll need it to check your registration status.
+                            Please retain this token. It will be required to verify your registration status.
                         </p>
                     </div>
                     
@@ -83,10 +83,10 @@ const RegistrationSuccess = ({ event, registration }) => {
                     
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
                         <p className="text-sm text-blue-900">
-                            <strong>What's Next?</strong><br />
-                            Your registration is currently <strong>{registration.status}</strong>. 
-                            {registration.status === 'pending' && ' The organizers will review your registration and notify you via email.'}
-                            {registration.status === 'approved' && ' You can now print your registration token for the event.'}
+                            <strong>Next Steps</strong><br />
+                            Your registration status is currently <strong>{registration.status}</strong>. 
+                            {registration.status === 'pending' && ' The event organisers will review your application and notify you by email.'}
+                            {registration.status === 'approved' && ' Your registration is confirmed. You may print your registration token for admission.'}
                         </p>
                     </div>
                     
@@ -97,7 +97,7 @@ const RegistrationSuccess = ({ event, registration }) => {
                             onPress={() => router.get(route('public.events.index'))}
                             radius={getThemeRadius()}
                         >
-                            Back to Events
+                            Return to Events
                         </Button>
                         <Button
                             color="primary"

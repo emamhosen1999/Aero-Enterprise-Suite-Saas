@@ -166,7 +166,7 @@ const LayerDependencyIndicator = ({ layer, projectId, chainageStart, chainageEnd
                                     </Chip>
                                 </div>
                                 <p className="text-xs text-default-600 mt-0.5">
-                                    This is the layer you're submitting
+                                    This is the layer currently being submitted
                                 </p>
                             </div>
                         </div>

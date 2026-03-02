@@ -625,8 +625,7 @@ const AppraisalCycles = ({ title, employees: initialEmployees = [], templates: i
                         <ModalBody>
                             <p>Are you ready to launch the appraisal cycle "<strong>{selectedCycle.name}</strong>"?</p>
                             <p className="text-sm text-default-500">
-                                This will notify all participants and make the cycle active. You won't be able to edit 
-                                the cycle settings once it's launched.
+                                All participants will be notified and the cycle will become active. Cycle settings cannot be modified after launch.
                             </p>
                         </ModalBody>
                         <ModalFooter>

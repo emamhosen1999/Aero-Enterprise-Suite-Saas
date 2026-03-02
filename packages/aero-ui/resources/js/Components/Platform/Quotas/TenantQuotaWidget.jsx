@@ -263,8 +263,8 @@ export default function TenantQuotaWidget({ tenantId, initialQuotas, collapsible
                     <div className="text-xs">
                       <p className="font-semibold text-warning mb-1">Quota Alert</p>
                       <p className="text-default-600">
-                        You're approaching or exceeding quota limits. 
-                        Consider upgrading your plan or reducing usage.
+                        One or more quota limits are approaching or have been exceeded.
+                        Consider upgrading your plan or reducing current usage.
                       </p>
                       {quotas.some(q => q.grace_period_ends_at) && (
                         <p className="text-default-600 mt-1">

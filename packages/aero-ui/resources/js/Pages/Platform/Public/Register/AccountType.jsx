@@ -71,11 +71,11 @@ export default function AccountType({ steps = [], currentStep, savedData = {}, t
   return (
     <RegisterLayout>
       <SkipLink targetId="account-form" />
-      <Head title={`Create your workspace - ${siteName || 'aeos365'}`} />
+      <Head title={`Workspace Setup — Step 1 - ${siteName || 'aeos365'}`} />
       <section className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-6 sm:space-y-8">
         <div className="space-y-3 sm:space-y-5 text-center">
           <Chip color="secondary" variant="flat" className={`uppercase tracking-[0.3em] text-[10px] sm:text-xs ${palette.badge}`}>Step 1</Chip>
-          <h1 className={`text-2xl sm:text-4xl md:text-5xl font-semibold ${palette.heading} px-2`}>Who is this workspace for?</h1>
+          <h1 className={`text-2xl sm:text-4xl md:text-5xl font-semibold ${palette.heading} px-2`}>Select Your Workspace Type</h1>
           <p className={`${palette.copy} max-w-3xl mx-auto text-sm sm:text-base px-2`}>{description}</p>
         </div>
 

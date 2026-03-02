@@ -232,8 +232,8 @@ export default function SubscriptionInvoices({ invoices, pagination }) {
                                 </h3>
                                 <p className="text-default-500">
                                     {searchQuery 
-                                        ? 'Try adjusting your search query'
-                                        : 'Invoices will appear here once you start your subscription'
+                                        ? 'No invoices match the current search query.'
+                                        : 'Invoices will appear here once a subscription is active.'
                                     }
                                 </p>
                             </div>

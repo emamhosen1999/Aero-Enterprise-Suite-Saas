@@ -354,7 +354,7 @@ const UserProfile = ({ title, allEmployees, report_to, departments, designations
                             <ExclamationTriangleIcon className="w-16 h-16 text-warning-500 mx-auto mb-4" />
                             <h3 className="text-xl font-semibold mb-2">Access Denied</h3>
                             <p className="text-default-500">
-                                You don't have permission to view this profile.
+                                You do not have permission to view this profile.
                             </p>
                         </CardBody>
                     </Card>

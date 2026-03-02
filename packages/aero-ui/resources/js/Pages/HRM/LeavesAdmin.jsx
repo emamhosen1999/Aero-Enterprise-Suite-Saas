@@ -419,7 +419,7 @@ const LeavesAdmin = ({ title, allUsers }) => {
                                 Access Denied
                             </h6>
                             <p className="text-sm text-default-500">
-                                You don't have permission to view leave management.
+                                You do not have permission to access leave management.
                             </p>
                         </CardBody>
                     </Card>

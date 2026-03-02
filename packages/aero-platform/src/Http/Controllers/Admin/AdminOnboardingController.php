@@ -438,11 +438,15 @@ class AdminOnboardingController extends Controller
             Log::error('Failed to retry provisioning', [
                 'tenant_id' => $tenant->id,
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
 
+            // Temporarily expose the actual error for debugging
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to retry provisioning.',
+                'debug_error' => $e->getMessage(),
+                'debug_class' => get_class($e),
             ], 500);
         }
     }

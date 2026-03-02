@@ -114,7 +114,7 @@ const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlot
                                 className="mb-4"
                                 radius={getThemeRadius()}
                             >
-                                Back to Events
+                                Return to Events
                             </Button>
                             <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">{event.title}</h1>
                             <div className="flex flex-wrap gap-4 text-white/90">

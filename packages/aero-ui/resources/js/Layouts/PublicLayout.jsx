@@ -154,7 +154,7 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
               size="sm"
               className="hidden md:inline-flex bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium px-4 h-9 text-sm"
             >
-              Start Trial
+              Begin Free Trial
             </Button>
           </div>
         </div>

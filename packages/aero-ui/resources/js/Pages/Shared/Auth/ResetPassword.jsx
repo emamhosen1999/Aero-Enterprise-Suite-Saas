@@ -498,7 +498,7 @@ export default function ResetPassword({ token, email }) {
                                         className="inline-flex items-center gap-2 text-sm font-medium transition-colors duration-200"
                                         style={{ color: 'var(--theme-primary, #006FEE)' }}
                                     >
-                                        Remember your password? Sign In
+                                        Return to Sign In
                                     </Link>
                                 </motion.div>
                             </form>

@@ -279,7 +279,7 @@ export default function TwoFactorSettings({ enabled = false, remainingCodes = 0 
 
                                 <div className="bg-default-100 p-4 rounded-lg">
                                     <p className="text-sm text-default-500 mb-2">
-                                        Can't scan? Enter this code manually:
+                                        Unable to scan? Enter this code manually:
                                     </p>
                                     <div className="flex items-center gap-2">
                                         <code className="text-sm font-mono bg-default-200 px-3 py-1 rounded">
@@ -428,7 +428,7 @@ export default function TwoFactorSettings({ enabled = false, remainingCodes = 0 
                     <ModalBody className="py-6">
                         <p className="text-default-600 mb-4">
                             You have {remainingCodes} recovery codes remaining. Generate new codes
-                            if you're running low.
+                            if the remaining count is low.
                         </p>
 
                         {recoveryCodes.length > 0 && (

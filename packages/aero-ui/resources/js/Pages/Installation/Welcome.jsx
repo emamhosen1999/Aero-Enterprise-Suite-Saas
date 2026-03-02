@@ -108,7 +108,7 @@ export default function Welcome() {
         {
             icon: RocketLaunchIcon,
             title: 'Easy Setup',
-            description: 'Guided installation in just a few minutes'
+            description: 'Step-by-step guided installation process'
         }
     ];
 

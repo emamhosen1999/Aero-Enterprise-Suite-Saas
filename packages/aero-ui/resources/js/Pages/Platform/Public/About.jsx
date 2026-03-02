@@ -70,17 +70,17 @@ const About = () => {
           <div>
             <Chip color="secondary" variant="flat" className="uppercase tracking-[0.2em] md:tracking-[0.35em] text-[10px] md:text-xs">About</Chip>
             <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold leading-tight mt-3 md:mt-5 mb-3 md:mb-6">
-              We built Aero after running operations teams that had to juggle too many systems.
+              Aero was engineered to solve the operational complexity modern enterprises face at scale.
             </h1>
             <p className={`text-sm md:text-lg ${palette.mutedText}`}>
-              The platform exists because our own HR, project, compliance, and finance leads were stuck reconciling spreadsheets and multiple tools. Aero keeps that work in one place across HRM, CRM, Finance, Projects, Inventory, POS, Supply Chain, Quality, DMS, and Compliance—the same modules listed in products.php—so decisions stay grounded in fresh data.
+              Legacy HR, project, compliance, and finance systems force teams into costly reconciliation workflows across disconnected tools. Aero consolidates HRM, CRM, Finance, Projects, Inventory, POS, Supply Chain, Quality, DMS, and Compliance into a single authoritative system of record—so decisions are grounded in real-time data.
             </p>
             <div className="flex flex-wrap gap-2 md:gap-4 mt-4 md:mt-8">
               <Button as={Link} href={route('platform.register.index')} size="sm" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-4 md:px-8 text-xs md:text-base">
-                Start free trial
+                Begin Your Free Trial
               </Button>
               <Button as={Link} href={route('demo')} size="sm" variant="bordered" className="border-current px-4 md:px-8 text-xs md:text-base">
-                See live demo
+                View Live Demonstration
               </Button>
             </div>
             <div className="grid grid-cols-2 gap-2 md:gap-4 mt-6 md:mt-10">
@@ -102,10 +102,10 @@ const About = () => {
           >
             <Card className={palette.gradientCard}>
               <CardBody className="space-y-4 md:space-y-6 p-4 md:p-6">
-                <p className={`text-[10px] md:text-sm uppercase tracking-[0.3em] md:tracking-[0.4em] ${palette.mutedText}`}>Field Notes</p>
-                <h3 className="text-lg md:text-2xl font-semibold">From siloed spreadsheets to a unified operations view.</h3>
+                <p className={`text-[10px] md:text-sm uppercase tracking-[0.3em] md:tracking-[0.4em] ${palette.mutedText}`}>Strategic Foundation</p>
+                <h3 className="text-lg md:text-2xl font-semibold">From fragmented point solutions to a unified operations command layer.</h3>
                 <p className={`text-sm md:text-base ${palette.mutedText}`}>
-                  We shadowed HR leaders, project coordinators, compliance managers, and CFOs across Asia, the Middle East, and North America. Every team wanted the same thing: one system that could adapt as fast as their operations. Aero is the answer.
+                  Our product team conducted structured discovery engagements with HR directors, PMO leads, compliance managers, and CFOs across Asia-Pacific, the Middle East, and North America. Every organisation shared the same requirement: a single adaptive platform capable of scaling with their operations. Aero is the result.
                 </p>
               </CardBody>
             </Card>
@@ -118,8 +118,8 @@ const About = () => {
       <section className="px-4 md:px-6 pb-10 md:pb-20">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-6 md:mb-14">
-            <Chip variant="flat" color="success" className="uppercase tracking-[0.2em] md:tracking-[0.3em] text-[10px] md:text-xs">Values</Chip>
-            <h2 className="text-xl md:text-4xl font-semibold mt-2 md:mt-4">Principles guiding every launch.</h2>
+            <Chip variant="flat" color="success" className="uppercase tracking-[0.2em] md:tracking-[0.3em] text-[10px] md:text-xs">Core Values</Chip>
+            <h2 className="text-xl md:text-4xl font-semibold mt-2 md:mt-4">Foundational principles guiding platform development and client delivery.</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-2 md:gap-6">
             {missionValues.map((value) => (
@@ -138,7 +138,7 @@ const About = () => {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-6 md:mb-12">
             <Chip color="primary" variant="flat" className="text-[10px] md:text-xs">Timeline</Chip>
-            <h2 className="text-xl md:text-4xl font-semibold mt-2 md:mt-4">Milestones that shaped Aero.</h2>
+            <h2 className="text-xl md:text-4xl font-semibold mt-2 md:mt-4">Key development milestones in the Aero platform journey.</h2>
           </div>
           <div className={`space-y-3 md:space-y-6 border-l ${palette.divider} pl-4 md:pl-8 relative`}>
             {timelineMilestones.map((milestone, index) => (
@@ -164,9 +164,9 @@ const About = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-6 mb-4 md:mb-10">
             <div>
               <Chip color="secondary" variant="flat" className="mb-1 md:mb-3 text-[10px] md:text-xs">Leadership</Chip>
-              <h2 className="text-xl md:text-4xl font-semibold">People shaping the platform.</h2>
+              <h2 className="text-xl md:text-4xl font-semibold">Leadership team driving product strategy and client outcomes.</h2>
             </div>
-            <SafeLink route="careers" className={`${palette.mutedText} hover:text-current text-xs md:text-base`}>Meet the wider team â†’</SafeLink>
+            <SafeLink route="careers" className={`${palette.mutedText} hover:text-current text-xs md:text-base`}>Meet the wider team →</SafeLink>
           </div>
           <div className="grid md:grid-cols-2 gap-2 md:gap-6">
             {leadershipTeam.map((leader) => (
@@ -189,7 +189,7 @@ const About = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-6 md:mb-14">
             <Chip color="success" variant="flat" className="text-[10px] md:text-xs">Impact</Chip>
-            <h2 className="text-xl md:text-4xl font-semibold mt-2 md:mt-4">Global footprint, measurable outcomes.</h2>
+            <h2 className="text-xl md:text-4xl font-semibold mt-2 md:mt-4">Global deployment footprint with measurable customer outcomes.</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-6">
             {globalImpactStats.map((stat) => (
@@ -207,8 +207,8 @@ const About = () => {
 
       <section className="px-4 md:px-6 pb-10 md:pb-20">
         <div className="max-w-5xl mx-auto text-center">
-          <Chip color="primary" variant="flat" className="text-[10px] md:text-xs">Allies</Chip>
-          <h2 className="text-lg md:text-3xl font-semibold mt-2 md:mt-4 mb-4 md:mb-8">Building with technology partners you trust.</h2>
+          <Chip color="primary" variant="flat" className="text-[10px] md:text-xs">Technology Partners</Chip>
+          <h2 className="text-lg md:text-3xl font-semibold mt-2 md:mt-4 mb-4 md:mb-8">Integrated with enterprise technology partners you already trust.</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
             {partnerLogos.map((logo) => (
               <div key={logo} className={`${palette.partner} text-xs md:text-base`}>
@@ -222,17 +222,17 @@ const About = () => {
       <section className="px-4 md:px-6 pb-10 md:pb-20">
         <Card className={`max-w-5xl mx-auto text-center ${palette.cultureCard}`}>
           <CardBody className="space-y-5">
-            <Chip variant="flat" color="warning">Culture</Chip>
-            <h3 className="text-4xl font-semibold">We believe transformation should feel human.</h3>
+            <Chip variant="flat" color="warning">Our Culture</Chip>
+            <h3 className="text-4xl font-semibold">We believe enterprise transformation should amplify human capability.</h3>
             <p className={`${palette.mutedText} max-w-3xl mx-auto`}>
-              Enterprise software should respect frontline teams, executives, and partners alike. Thatâ€™s why Aero combines automation with empathy, data transparency, and design systems that make complex operations feel intuitive.
+              Enterprise software must respect the frontline teams, executives, and partners who depend on it daily. That is why Aero pairs intelligent automation with operational transparency and design systems that make complex processes feel intuitive.
             </p>
             <div className="flex flex-wrap justify-center gap-2 md:gap-4">
               <Button as={Link} href={route('demo')} size="sm" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-6 md:px-10">
-                Book a demo
+                Schedule a Demonstration
               </Button>
               <Button as={Link} href={route('contact')} size="sm" variant="bordered" className={`px-6 md:px-10 ${palette.badgeBorder}`}>
-                Talk to sales
+                Contact Sales
               </Button>
             </div>
           </CardBody>

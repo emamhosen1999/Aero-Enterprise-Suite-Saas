@@ -384,15 +384,18 @@ class Tenant extends BaseTenant implements TenantWithDatabase
      */
     public function markProvisioningFailed(?string $reason = null): bool
     {
-        if ($reason) {
-            $data = $this->data ?? new \ArrayObject;
-            $data['provisioning_error'] = $reason;
-            $data['provisioning_failed_at'] = now()->toIso8601String();
-            $this->data = $data;
-        }
-        $this->status = self::STATUS_FAILED;
+        // Use update() with explicit data array to avoid ArrayObject mutation-detection issues.
+        // Mutating data in-place and then re-assigning can silently fail to dirty the attribute.
+        $updateData = ['status' => self::STATUS_FAILED];
 
-        return $this->save();
+        if ($reason) {
+            $currentData = $this->data ? $this->data->getArrayCopy() : [];
+            $currentData['provisioning_error'] = $reason;
+            $currentData['provisioning_failed_at'] = now()->toIso8601String();
+            $updateData['data'] = $currentData;
+        }
+
+        return $this->update($updateData);
     }
 
     /**

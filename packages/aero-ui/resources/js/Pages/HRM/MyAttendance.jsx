@@ -410,7 +410,7 @@ const MyAttendance = ({ title, currentEmployee, attendanceData = [], leaveTypes:
                                     <p className="text-lg font-semibold">{getCurrentDate()}</p>
                                     <p className="text-3xl font-bold text-primary">{getCurrentTime()}</p>
                                 </div>
-                                <p>Are you ready to start your work day?</p>
+                                <p>Confirm to begin your work day.</p>
                             </div>
                         </ModalBody>
                         <ModalFooter>

@@ -112,8 +112,8 @@ const UsageMeter = ({ label, current, limit, unit, icon: Icon, color = 'primary'
                             </p>
                             <p className="text-warning-700 dark:text-warning-500">
                                 {isOverLimit 
-                                    ? `You've exceeded your ${label.toLowerCase()} limit. Please upgrade your plan.`
-                                    : `You're using ${percentage.toFixed(1)}% of your ${label.toLowerCase()}. Consider upgrading soon.`
+                                    ? `Your ${label.toLowerCase()} limit has been exceeded. Please upgrade your plan to continue.`
+                                    : `${percentage.toFixed(1)}% of your ${label.toLowerCase()} allocation has been used. Consider upgrading your plan.`
                                 }
                             </p>
                         </div>

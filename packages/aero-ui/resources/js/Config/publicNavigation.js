@@ -3,7 +3,7 @@
 
 export const publicNavLinks = [
   { label: 'Home', routeName: 'landing', type: 'route' },
-  { label: 'Products', routeName: 'features', type: 'route' },
+  { label: 'Platform', routeName: 'features', type: 'route' },
   { label: 'Pricing', routeName: 'pricing', type: 'route' },
   { label: 'About', routeName: 'about', type: 'route' },
   { label: 'Resources', routeName: 'resources', type: 'route' },
@@ -14,9 +14,9 @@ export const publicNavLinks = [
 
 export const footerColumns = [
   {
-    heading: 'Product',
+    heading: 'Platform',
     links: [
-      { label: 'Products', routeName: 'features' },
+      { label: 'Platform', routeName: 'features' },
       { label: 'Pricing', routeName: 'pricing' },
       { label: 'Demo', routeName: 'demo' },
     ],

@@ -244,7 +244,7 @@ export default function VerifyEmail({ status }) {
                                     className="text-sm leading-relaxed"
                                     style={{ color: 'var(--theme-foreground, #11181C)', opacity: 0.7 }}
                                 >
-                                    Thanks for signing up! Before getting started, please verify your email address by clicking the link we just sent you.
+                                    Your account has been created. To complete registration, please verify your email address by clicking the link that was sent to you.
                                 </p>
                             </motion.div>
 
@@ -325,7 +325,7 @@ export default function VerifyEmail({ status }) {
                                     >
                                         <div className="p-4">
                                             <p className="text-xs font-medium mb-2" style={{ color: 'var(--theme-warning, #F5A524)' }}>
-                                                Can't find the email?
+                                                Cannot locate the verification email?
                                             </p>
                                             <ul className="text-xs space-y-1" style={{ color: 'var(--theme-foreground, #11181C)', opacity: 0.7 }}>
                                                 <li>• Check your spam or junk folder</li>
@@ -346,7 +346,7 @@ export default function VerifyEmail({ status }) {
                                         style={{ color: 'var(--theme-foreground, #11181C)', opacity: 0.7 }}
                                     >
                                         <ArrowLeftIcon className="w-4 h-4" />
-                                        Log Out & Use Different Account
+                                        Sign Out and Use a Different Account
                                     </Link>
                                 </motion.div>
                             </form>

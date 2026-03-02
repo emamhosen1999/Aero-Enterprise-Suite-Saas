@@ -145,12 +145,12 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
 
   return (
     <RegisterLayout>
-      <Head title={`Workspace details - ${siteName || 'aeos365'}`} />
+      <Head title={`Workspace Details — Step 2 - ${siteName || 'aeos365'}`} />
       <section className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-6 sm:space-y-8">
         <div className="space-y-3 sm:space-y-4 text-center">
           <p className={`text-[10px] sm:text-sm uppercase tracking-[0.3em] ${palette.badge}`}>Step 2</p>
-          <h1 className={`text-2xl sm:text-4xl font-semibold ${palette.heading} px-2`}>Tell us about {accountType === 'individual' ? 'you' : 'your company'}.</h1>
-          <p className={`${palette.copy} text-sm sm:text-base px-2`}>We will use this to pre-configure branding, subdomain, and trial communications.</p>
+          <h1 className={`text-2xl sm:text-4xl font-semibold ${palette.heading} px-2`}>{accountType === 'individual' ? 'Your Professional Profile' : 'Your Organisation Details'}</h1>
+          <p className={`${palette.copy} text-sm sm:text-base px-2`}>This information is used to pre-configure your workspace branding, subdomain, and trial communications.</p>
         </div>
 
         <ProgressSteps steps={steps} currentStep={currentStep} />
@@ -239,10 +239,10 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
                 route="platform.register.index" 
                 className={`text-xs sm:text-sm transition-colors text-center sm:text-left ${palette.link}`}
               >
-                ← Back to account type
+                ← Back to Account Type
               </SafeLink>
               <Button color="primary" className="bg-gradient-to-r from-blue-500 to-purple-600 w-full sm:w-auto" type="submit" isLoading={isSubmitting}>
-                Continue to modules
+                Continue to Module Selection
               </Button>
             </div>
           </form>

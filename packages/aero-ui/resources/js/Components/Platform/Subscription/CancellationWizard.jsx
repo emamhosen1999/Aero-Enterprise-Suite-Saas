@@ -173,7 +173,7 @@ export default function CancellationWizard({ isOpen, onClose, currentPlan, onCon
                         </div>
                         <Textarea
                             label="Additional Comments (optional)"
-                            placeholder="Tell us more about your experience..."
+                            placeholder="Please provide additional details about your experience."
                             value={additionalComments}
                             onValueChange={setAdditionalComments}
                             minRows={3}
@@ -186,8 +186,8 @@ export default function CancellationWizard({ isOpen, onClose, currentPlan, onCon
             case 2:
                 return (
                     <div className="space-y-4">
-                        <h3 className="font-semibold text-lg">Before you go...</h3>
-                        <p className="text-sm text-default-500">We'd like to offer you some alternatives</p>
+                        <h3 className="font-semibold text-lg">Before You Proceed</h3>
+                        <p className="text-sm text-default-500">The following alternatives are available.</p>
                         <div className="space-y-3">
                             {retentionOffers.map((offer) => {
                                 const Icon = offer.icon;
@@ -245,7 +245,7 @@ export default function CancellationWizard({ isOpen, onClose, currentPlan, onCon
                                     <p className="font-semibold mb-2">What happens when you cancel:</p>
                                     <ul className="space-y-2 text-sm text-default-600">
                                         <li>• Your subscription will be cancelled immediately</li>
-                                        <li>• You'll have access until the end of your billing period</li>
+                                        <li>• Access will remain active until the end of the current billing period</li>
                                         <li>• Your data will be retained for 30 days</li>
                                         <li>• After 30 days, all data will be permanently deleted</li>
                                         <li>• No refunds will be provided for unused time</li>

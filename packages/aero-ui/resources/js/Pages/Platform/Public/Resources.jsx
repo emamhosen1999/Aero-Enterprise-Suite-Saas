@@ -75,10 +75,10 @@ const Resources = () => {
         <div className="relative max-w-5xl mx-auto px-4 md:px-6 pt-20 md:pt-28 pb-6 md:pb-12 text-center">
           <Chip color="success" variant="flat" className="uppercase tracking-[0.35em] text-[10px] md:text-xs">Resources</Chip>
           <h1 className="text-2xl md:text-5xl font-bold mt-3 md:mt-4 mb-4 md:mb-6">
-            Case studies, playbooks, and release notes maintained by the product team.
+            Enterprise case studies, implementation playbooks, and release documentation curated by the product team.
           </h1>
           <p className={`${palette.mutedText} mb-5 md:mb-8 text-sm md:text-base`}>
-            Everything here comes from real deployments and customer reviews, so you avoid generic blog filler.
+            All resources originate from production deployments and client advisory reviews, ensuring direct relevance to real enterprise operational scenarios.
           </p>
           <div className="flex flex-col sm:flex-row items-center gap-3 md:gap-4">
             <Input
@@ -137,9 +137,9 @@ const Resources = () => {
 
       <section className={`px-4 md:px-6 pb-10 md:pb-20 ${palette.tint}`}>
         <div className="max-w-5xl mx-auto text-center mb-6 md:mb-10">
-          <Chip color="primary" variant="flat" className="text-[10px] md:text-xs">Documentation</Chip>
-          <h2 className="text-xl md:text-3xl font-semibold mt-3 md:mt-4">Build with confidence.</h2>
-          <p className={`${palette.mutedText} mt-2 md:mt-3 text-sm md:text-base`}>Quick access to integration guides, API references, and security resources.</p>
+          <Chip color="primary" variant="flat" className="text-[10px] md:text-xs">Developer Documentation</Chip>
+          <h2 className="text-xl md:text-3xl font-semibold mt-3 md:mt-4">Build integrations with confidence.</h2>
+          <p className={`${palette.mutedText} mt-2 md:mt-3 text-sm md:text-base`}>Rapid access to integration guides, API references, security frameworks, and compliance resources.</p>
         </div>
         <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-3 md:gap-4">
           {docQuickLinks.map((link) => (
@@ -162,10 +162,10 @@ const Resources = () => {
       <section className="px-4 md:px-6 pb-12 md:pb-24">
         <Card className={`max-w-4xl mx-auto text-center ${palette.highlight}`}>
           <CardBody className="space-y-3 md:space-y-4">
-            <Chip color="success" variant="flat" className="text-[10px] md:text-xs">Newsletter</Chip>
-            <h3 className="text-xl md:text-3xl font-semibold">Monthly field reports in your inbox.</h3>
+            <Chip color="success" variant="flat" className="text-[10px] md:text-xs">Industry Digest</Chip>
+            <h3 className="text-xl md:text-3xl font-semibold">Monthly enterprise intelligence reports delivered to your inbox.</h3>
             <p className={`text-sm md:text-base ${palette.mutedText}`}>
-              Product launches, enterprise playbooks, and customer deep dives delivered once a month. No spam.
+              Product release summaries, enterprise implementation playbooks, and client success analyses delivered once per month. No unsolicited communications.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
               <Input

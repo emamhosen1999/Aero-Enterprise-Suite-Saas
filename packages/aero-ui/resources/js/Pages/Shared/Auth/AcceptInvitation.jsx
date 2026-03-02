@@ -120,9 +120,9 @@ export default function AcceptInvitation({ invitation, token, errors: serverErro
                             />
                         </div>
                         <div className="text-center">
-                            <h1 className="text-2xl font-bold">Welcome!</h1>
+                            <h1 className="text-2xl font-bold">Invitation Received</h1>
                             <p className="text-default-500 mt-1">
-                                You've been invited to join the team
+                                You have been invited to join the workspace
                             </p>
                         </div>
                     </CardHeader>

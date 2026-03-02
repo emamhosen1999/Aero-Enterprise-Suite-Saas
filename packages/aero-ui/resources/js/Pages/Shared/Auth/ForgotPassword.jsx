@@ -225,7 +225,7 @@ export default function ForgotPassword({ status }) {
                                         WebkitBackgroundClip: 'text',
                                     }}
                                 >
-                                    Forgot Password?
+                                    Password Recovery
                                 </h1>
                                 <p 
                                     className="text-sm"
@@ -358,7 +358,7 @@ export default function ForgotPassword({ status }) {
                                                 />
                                                 <div className="text-xs space-y-1" style={{ color: 'var(--theme-foreground, #11181C)', opacity: 0.8 }}>
                                                     <p>• Reset links expire after 1 hour</p>
-                                                    <p>• Check spam folder if you don't see the email</p>
+                                                    <p>• Check your spam or junk folder if the email is not visible</p>
                                                 </div>
                                             </div>
                                         </div>

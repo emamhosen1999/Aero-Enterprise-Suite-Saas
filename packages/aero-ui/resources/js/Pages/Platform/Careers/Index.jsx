@@ -33,15 +33,15 @@ export default function CareersIndex({ jobs, filters }) {
 
     return (
         <PublicLayout>
-            <Head title="Careers - Join Our Team" />
+            <Head title="Careers - Build Your Career at Aero" />
 
             {/* Hero Section */}
             <div className="bg-gradient-to-r from-primary-500 to-secondary-500 text-white py-16">
                 <div className="container mx-auto px-4">
                     <div className="max-w-4xl mx-auto text-center">
-                        <h1 className="text-5xl font-bold mb-4">Join Our Team</h1>
+                        <h1 className="text-5xl font-bold mb-4">Build Your Career at Aero</h1>
                         <p className="text-xl opacity-90 mb-8">
-                            Discover exciting career opportunities and be part of something great
+                            Explore open positions and contribute to building enterprise-grade software used across global organisations
                         </p>
                         <div className="flex gap-4 justify-center">
                             <Chip size="lg" variant="flat" className="bg-white/20 text-white">
@@ -101,7 +101,7 @@ export default function CareersIndex({ jobs, filters }) {
                             <BriefcaseIcon className="w-16 h-16 mx-auto text-default-300 mb-4" />
                             <h3 className="text-xl font-semibold mb-2">No Jobs Found</h3>
                             <p className="text-default-500">
-                                Try adjusting your search criteria or check back later for new opportunities.
+                                No positions currently match your search criteria. Please refine your filters or check back for new openings.
                             </p>
                         </CardBody>
                     </Card>
@@ -202,27 +202,24 @@ export default function CareersIndex({ jobs, filters }) {
             {/* Call to Action */}
             <div className="bg-default-100 py-12 mt-12">
                 <div className="container mx-auto px-4 text-center">
-                    <h2 className="text-3xl font-bold mb-4">Why Join Us?</h2>
+                    <h2 className="text-3xl font-bold mb-4">Why Choose a Career at Aero?</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8 max-w-5xl mx-auto">
                         <div>
-                            <div className="text-4xl mb-2">🚀</div>
-                            <h3 className="text-xl font-semibold mb-2">Growth Opportunities</h3>
+                            <h3 className="text-xl font-semibold mb-2">Professional Development</h3>
                             <p className="text-default-600">
-                                Continuous learning and career advancement paths
+                                Structured learning pathways, mentorship programmes, and clear career advancement tracks
                             </p>
                         </div>
                         <div>
-                            <div className="text-4xl mb-2">🤝</div>
-                            <h3 className="text-xl font-semibold mb-2">Great Team Culture</h3>
+                            <h3 className="text-xl font-semibold mb-2">Collaborative Culture</h3>
                             <p className="text-default-600">
-                                Collaborative environment with supportive colleagues
+                                A high-performance, inclusive environment where cross-functional collaboration drives results
                             </p>
                         </div>
                         <div>
-                            <div className="text-4xl mb-2">⚖️</div>
-                            <h3 className="text-xl font-semibold mb-2">Work-Life Balance</h3>
+                            <h3 className="text-xl font-semibold mb-2">Flexible Working</h3>
                             <p className="text-default-600">
-                                Flexible schedules and remote work options
+                                Hybrid and remote-first options with schedules designed around focus and sustainable productivity
                             </p>
                         </div>
                     </div>

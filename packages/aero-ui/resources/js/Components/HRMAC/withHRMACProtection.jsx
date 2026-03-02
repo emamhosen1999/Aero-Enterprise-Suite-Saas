@@ -79,7 +79,7 @@ const DefaultAccessDenied = ({ accessPath, message }) => {
                 
                 <CardBody className="text-center px-8 pb-8">
                     <p className="text-default-500 mb-6">
-                        {message || "You don't have permission to access this page. Please contact your administrator if you believe this is an error."}
+                        {message || "Access to this page is not permitted for your account. Contact your administrator if you require access."}
                     </p>
                     
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">

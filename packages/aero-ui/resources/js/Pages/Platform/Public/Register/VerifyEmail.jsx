@@ -221,10 +221,10 @@ export default function VerifyEmail({ steps = [], currentStep, savedData = {}, e
           <p className={`text-[10px] sm:text-sm uppercase tracking-[0.3em] ${palette.badge}`}>Step 4</p>
           <h1 className={`text-2xl sm:text-4xl font-semibold ${palette.heading} px-2`}>Verify Company Email</h1>
           <p className={`${palette.copy} text-sm sm:text-base px-2`}>
-            We've sent a 6-digit verification code to your company email <strong className={palette.heading}>{email}</strong>
+            A 6-digit verification code has been sent to your company email <strong className={palette.heading}>{email}</strong>
           </p>
           <p className={`${palette.copy} text-xs sm:text-sm px-2 italic`}>
-            Note: You'll create your admin account after completing registration
+            Note: Your administrator account will be configured following registration completion
           </p>
         </div>
 
@@ -305,13 +305,13 @@ export default function VerifyEmail({ steps = [], currentStep, savedData = {}, e
 
             <div className="text-center space-y-3">
               <p className={`text-xs ${palette.copy}`}>
-                Didn't receive the code? Check your spam folder or{' '}
+                Did not receive the code? Check your spam folder or{' '}
                 <button onClick={handleSendCode} disabled={countdown > 0 || isSending} className={palette.link}>
-                  resend it
+                  resend the code
                 </button>
               </p>
               <p className={`text-xs ${palette.copy} bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800`}>
-                💡 <strong>Next Step:</strong> After verification, you'll create your admin account on your workspace subdomain
+                <strong>Next Step:</strong> Following verification, your administrator account will be created on your workspace subdomain
               </p>
               <div className="pt-2 border-t border-divider">
                 <CancelRegistrationButton variant="light" size="sm" />

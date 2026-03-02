@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, usePage, Head } from '@inertiajs/react';
 import {
   Button,
@@ -99,36 +99,36 @@ const iconMap = {
 
 const problemStatements = [
   {
-    title: 'Uneven visibility',
-    detail: 'HR, compliance, and field ops update different trackers, so executives wait on recap decks instead of seeing live metrics.',
+    title: 'Fragmented Operational Visibility',
+    detail: 'HR, compliance, and field operations maintain isolated data stores, forcing executives to depend on manually compiled status reports rather than live operational metrics.',
   },
   {
-    title: 'Audit prep consumes weeks',
-    detail: 'Evidence gathering for ISO, OSHA, or internal audits still happens over email which stalls day-to-day work.',
+    title: 'Extended Audit Preparation Cycles',
+    detail: 'Evidence collection for ISO, OSHA, or internal audits is managed over email threads, introducing significant delays and diverting resources from core business activities.',
   },
   {
-    title: 'Too many brittle tools',
-    detail: 'Overlapping systems create duplicate entry, expiring licenses, and automations that never quite match.',
+    title: 'Proliferation of Brittle Point Solutions',
+    detail: 'Overlapping legacy systems generate duplicate data entry, misaligned license renewals, and automation logic that fails to propagate across the enterprise.',
   },
   {
-    title: 'Slow handoffs',
-    detail: 'Finance, project, and workforce data needs manual reconciliation before decisions reach steering meetings.',
+    title: 'Unstructured Cross-Functional Handoffs',
+    detail: 'Finance, project, and workforce data requires manual reconciliation cycles before consolidated intelligence reaches executive steering committees.',
   },
 ];
 
 const integrations = ['Slack', 'Teams', 'SAP', 'QuickBooks', 'Salesforce', 'Oracle', 'Jira', 'HubSpot'];
 
 const heroSlideHighlights = {
-  hrm: ['Attendance and leave automation', 'Payroll-ready timesheets', 'Skills and training ops'],
-  crm: ['Multi-channel pipeline automation', 'Service desk with SLAs', 'Campaigns tied to revenue'],
-  finance: ['Ledger to statements in one flow', 'Multi-entity budgeting', 'Audit-ready trails always on'],
-  project: ['Gantt, boards, and sprints in sync', 'Resource utilization heatmaps', 'Change orders with budgets'],
-  ims: ['Warehouse movements with scans', 'Reorder signals and buffers', 'Cycle counts with variance AI'],
-  scm: ['RFQ to PO with vendor scoring', 'Inbound QC with holds', 'Freight and landed cost clarity'],
-  pos: ['Omnichannel pricing and promos', 'Day-end cash control', 'Returns and exchanges with guardrails'],
-  quality: ['NC/CAPA with effectiveness checks', 'Control plans and labs', 'Calibration and audit cadence'],
-  dms: ['Versioned repositories', 'Approvals and publishing', 'Retention and access controls'],
-  compliance: ['Risk registers with heatmaps', 'Incident to CAPA workflows', 'Policy attestations in one place'],
+  hrm: ['Attendance & Leave Policy Automation', 'Payroll-Ready Timesheet Management', 'Skills Matrix & Training Operations'],
+  crm: ['Multi-Channel Pipeline Orchestration', 'Service Desk with Configurable SLAs', 'Revenue-Attributed Campaign Analytics'],
+  finance: ['Ledger-to-Financial-Statements in One Workflow', 'Multi-Entity Budgeting & Variance Controls', 'Perpetual Audit-Ready Transaction Trails'],
+  project: ['Gantt, Kanban & Sprint Views Synchronized', 'Resource Utilization Heatmaps', 'Change Order Management with Budget Impact'],
+  ims: ['Warehouse Movements with Barcode Scanning', 'Automated Reorder Signals & Safety Buffers', 'Cycle Count Variance Analysis'],
+  scm: ['RFQ-to-PO with Vendor Performance Scoring', 'Inbound Quality Control with Hold Workflows', 'Freight Tracking & Landed Cost Attribution'],
+  pos: ['Omnichannel Pricing & Promotion Engine', 'Day-End Reconciliation & Cash Drawer Control', 'Returns & Exchange Authorization Workflows'],
+  quality: ['NC/CAPA with Effectiveness Verification', 'Control Plans & Laboratory Test Management', 'Calibration Schedules & Audit Cadence'],
+  dms: ['Version-Controlled Document Repositories', 'Structured Approval & Publishing Workflows', 'Retention Policy Enforcement & Access Controls'],
+  compliance: ['Risk Registers with Dynamic Heatmaps', 'Incident-to-CAPA Workflow Automation', 'Policy Attestation & Compliance Evidence Management'],
 };
 
 const pricingPlans = [
@@ -136,21 +136,21 @@ const pricingPlans = [
     name: 'Launch',
     price: 'Custom',
     period: '',
-    description: 'Pilot two products with guided onboarding, sample data, and a success architect.',
+    description: 'Pilot up to two product suites with guided onboarding, reference data provisioning, and a dedicated implementation architect.',
     highlight: false,
   },
   {
     name: 'Scale',
     price: '$20',
     period: '/product/month',
-    description: 'Core suite, automation playbooks, premium support, and integration connectors.',
+    description: 'Full product suite access, pre-built automation playbooks, premium SLA support, and certified integration connectors.',
     highlight: true,
   },
   {
     name: 'Enterprise',
     price: 'Let’s Talk',
     period: '',
-    description: 'Dedicated CSM, GovCloud or private cloud, custom SLAs, and residency controls.',
+    description: 'Assigned Customer Success Manager, GovCloud or private cloud deployment, bespoke SLA agreements, and data residency controls.',
     highlight: false,
   },
 ];
@@ -260,7 +260,7 @@ export default function Landing() {
           <div className="relative max-w-7xl mx-auto grid items-center gap-10 md:gap-16 lg:grid-cols-2">
             <div className="space-y-4 md:space-y-6">
               <Chip color="success" variant="flat" className="uppercase tracking-[0.2em] md:tracking-[0.3em] text-[9px] md:text-[11px] mb-3 md:mb-6">
-                Enterprise ready
+                Enterprise-Grade Platform
               </Chip>
               <h1 className="text-2xl md:text-4xl lg:text-6xl font-bold leading-tight mb-3 md:mb-6">
                 {heroTitle}
@@ -288,7 +288,7 @@ export default function Landing() {
                 </Button>
               </div>
               <div className={`mt-3 md:mt-6 text-[10px] md:text-sm ${palette.mutedText}`}>
-                No payment required. A rollout architect works with your admins on day one.
+                No payment required. A dedicated implementation architect coordinates with your administrators from day one.
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mt-6 md:mt-12">
                 {heroStats.map((stat) => (
@@ -354,7 +354,7 @@ export default function Landing() {
                         </div>
                         
                         <div className="flex flex-wrap gap-2 pt-2 border-t border-white/10">
-                          <Chip size="sm" color="primary" variant="flat" className="text-[8px] md:text-xs">Realtime KPIs</Chip>
+                          <Chip size="sm" color="primary" variant="flat" className="text-[8px] md:text-xs">Real-Time KPIs</Chip>
                           <Chip size="sm" color="secondary" variant="flat" className="text-[8px] md:text-xs">Role-based</Chip>
                           <Chip size="sm" color="success" variant="flat" className="text-[8px] md:text-xs">Audit-ready</Chip>
                         </div>
@@ -397,11 +397,11 @@ export default function Landing() {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-6 md:mb-14">
               <Chip variant="faded" color="success" className="uppercase tracking-[0.2em] md:tracking-[0.3em] text-[9px] md:text-[11px] mb-2 md:mb-4">
-                Why teams switch
+                Platform Value
               </Chip>
-              <h2 className="text-xl md:text-4xl font-bold">Operations stay in sync when everyone shares the same record.</h2>
+              <h2 className="text-xl md:text-4xl font-bold">Cross-functional alignment starts with a unified record of truth.</h2>
               <p className={`mt-2 md:mt-3 text-xs md:text-lg ${palette.mutedText}`}>
-                Ready-to-run playbooks and shared dashboards remove the late-night spreadsheet scramble.
+                Pre-configured automation playbooks and consolidated dashboards eliminate ad-hoc reconciliation and accelerate decision velocity.
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
@@ -422,10 +422,10 @@ export default function Landing() {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-4 md:mb-12">
               <Chip variant="faded" color="warning" className="uppercase tracking-[0.2em] md:tracking-[0.3em] text-[9px] md:text-[11px] mb-2 md:mb-4">
-                Reality check
+                Operational Challenges
               </Chip>
-              <h2 className="text-xl md:text-4xl font-bold">The blockers we keep hearing.</h2>
-              <p className={`mt-1 md:mt-3 text-xs md:text-base ${palette.mutedText}`}>We built Aero to remove the friction that slows down enterprise execution.</p>
+              <h2 className="text-xl md:text-4xl font-bold">Systemic friction points that limit enterprise execution.</h2>
+              <p className={`mt-1 md:mt-3 text-xs md:text-base ${palette.mutedText}`}>Aero is engineered to eliminate the structural inefficiencies that constrain operational performance at scale.</p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-2 gap-2 md:gap-6">
               {problemStatements.map((problem) => (
@@ -467,7 +467,7 @@ export default function Landing() {
             </div>
             <div className="text-center mt-6 md:mt-10">
               <Button as={Link} href={route('features')} variant="bordered" className="border-current text-xs md:text-base px-4 md:px-8 py-2 md:py-6">
-                Explore all product products
+                Explore All Product Suites
               </Button>
             </div>
           </div>
@@ -477,9 +477,9 @@ export default function Landing() {
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-6 md:mb-14">
               <Chip color="primary" variant="flat" className="mb-2 md:mb-4 text-[10px] md:text-xs">
-                Rollout framework
+                Implementation Methodology
               </Chip>
-              <h2 className="text-xl md:text-4xl font-bold">From discovery to scale with one guided runway.</h2>
+              <h2 className="text-xl md:text-4xl font-bold">A structured deployment path from discovery to enterprise scale.</h2>
             </div>
             <div className="space-y-2 md:space-y-6">
               {rolloutPhases.map((phase, index) => (
@@ -508,9 +508,9 @@ export default function Landing() {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-4 md:mb-12">
               <Chip color="secondary" variant="faded" className="mb-2 md:mb-4 text-[10px] md:text-xs">
-                Sense → Sync loop
+                Intelligent Signal Architecture
               </Chip>
-              <h2 className="text-xl md:text-4xl font-bold">How the Aero signal loop keeps everyone aligned.</h2>
+              <h2 className="text-xl md:text-4xl font-bold">How the Aero intelligence layer maintains operational alignment.</h2>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
               {workflowTimeline.map((stage, index) => (
@@ -534,9 +534,9 @@ export default function Landing() {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-4 md:mb-12">
               <Chip color="primary" variant="flat" className="mb-2 md:mb-4 text-[10px] md:text-xs">
-                Vertical starter packs
+                Industry Solution Templates
               </Chip>
-              <h2 className="text-xl md:text-4xl font-bold">Industry templates that ship with relevant automations.</h2>
+              <h2 className="text-xl md:text-4xl font-bold">Preconfigured industry templates with domain-specific automation libraries.</h2>
             </div>
             <div className="grid md:grid-cols-2 gap-2 md:gap-6">
               {industryStarters.map((starter) => (
@@ -566,12 +566,12 @@ export default function Landing() {
             <div className="flex flex-col gap-3 md:gap-6 md:flex-row md:items-center md:justify-between mb-4 md:mb-12">
               <div>
                 <Chip variant="flat" color="secondary" className="mb-2 md:mb-4 text-[10px] md:text-xs">
-                  Customer stories
+                  Client Success Stories
                 </Chip>
-                <h2 className="text-xl md:text-4xl font-bold">Trusted by builders, hospitals, and public agencies.</h2>
+                <h2 className="text-xl md:text-4xl font-bold">Deployed across construction, healthcare, and public sector enterprises.</h2>
               </div>
               <Button as={Link} href={route('resources')} variant="bordered" className="border-current text-xs md:text-base px-3 md:px-6 py-2 md:py-4">
-                Browse case studies
+                View Case Studies
               </Button>
             </div>
             <div className="grid md:grid-cols-3 gap-2 md:gap-6">
@@ -598,9 +598,9 @@ export default function Landing() {
             <Chip color="success" variant="bordered" className="mb-2 md:mb-4 text-[10px] md:text-xs">
               Integrations
             </Chip>
-            <h2 className="text-xl md:text-3xl lg:text-4xl font-bold">Connect the tools your teams already live in.</h2>
+            <h2 className="text-xl md:text-3xl lg:text-4xl font-bold">Native integration with your enterprise technology ecosystem.</h2>
             <p className={`mt-2 md:mt-4 mb-4 md:mb-10 text-xs md:text-base ${palette.mutedText}`}>
-              Seamless data sync keeps Aero aligned with your finance, sales, and collaboration tools.
+              Bidirectional data synchronisation ensures Aero maintains consistency with your financial, sales, and collaboration platforms.
             </p>
             <div className="grid grid-cols-4 md:grid-cols-4 gap-2 md:gap-4">
               {integrations.map((logo) => (
@@ -616,11 +616,11 @@ export default function Landing() {
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-6 md:mb-14">
               <Chip variant="shadow" color="primary" className="mb-2 md:mb-4 text-[10px] md:text-xs">
-                Pricing that scales with you
+                Scalable Pricing Architecture
               </Chip>
-              <h2 className="text-xl md:text-4xl font-bold">Transparent, modular, enterprise-ready.</h2>
+              <h2 className="text-xl md:text-4xl font-bold">Transparent, modular, and enterprise-ready.</h2>
               <p className={`mt-1 md:mt-3 text-xs md:text-base ${palette.mutedText}`}>
-                Only pay for the products and environments you activate. Cancel or expand anytime.
+                Pay only for the product suites and environments you activate. Scale capacity up or down at any time.
               </p>
             </div>
             <div className="grid md:grid-cols-3 gap-2 md:gap-6">
@@ -654,18 +654,18 @@ export default function Landing() {
           <Card className={`max-w-5xl mx-auto text-center ${palette.highlightCard}`}>
             <CardBody className="space-y-3 md:space-y-8 py-6 md:py-14 px-4 md:px-8">
               <Chip variant="flat" color="success" className="text-[10px] md:text-xs">
-                Next step
+                Begin Your Journey
               </Chip>
-              <h2 className="text-xl md:text-4xl font-bold">See Aero in action.</h2>
+              <h2 className="text-xl md:text-4xl font-bold">Experience the Platform.</h2>
               <p className={`text-xs md:text-lg ${palette.mutedText}`}>
-                Book a personalized demo or start your free trial in 60 seconds. We handle data import, connect your tools, and set up automations so your teams focus on impact.
+                Request a tailored demonstration or initiate your free trial. Our implementation team manages data migration, integration configuration, and automation setup — enabling your teams to focus on measurable business outcomes.
               </p>
               <div className="flex flex-wrap gap-2 md:gap-4 justify-center">
                 <Button as={Link} href={route('platform.register.index')} size="sm" className="bg-white text-slate-900 font-semibold px-4 md:px-10 py-2 md:py-6 text-xs md:text-base">
                   Start free trial
                 </Button>
                 <Button as={Link} href={route('contact')} size="sm" variant="bordered" className="border-current px-4 md:px-10 py-2 md:py-6 text-xs md:text-base">
-                  Talk to sales
+                  Contact Sales
                 </Button>
               </div>
               <div className="grid gap-2 md:gap-4 grid-cols-3 text-left">

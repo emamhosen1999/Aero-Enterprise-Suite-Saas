@@ -1,8 +1,8 @@
 export const heroStats = [
-  { value: '10', label: 'Business Solutions' },
-  { value: '140+', label: 'Integrated Features' },
-  { value: '99.96%', label: 'Rolling 24‑month uptime' },
-  { value: '38 days', label: 'Median go-live' },
+  { value: '10', label: 'Integrated Business Suites' },
+  { value: '140+', label: 'Functional Submodules' },
+  { value: '99.96%', label: 'Rolling 24-Month Uptime SLA' },
+  { value: '38 days', label: 'Median Production Go-Live' },
 ];
 
 export const platformModules = [
@@ -10,7 +10,7 @@ export const platformModules = [
     key: 'hrm',
     name: 'HRM',
     shortName: 'Human Resources',
-    description: 'Employees, attendance, leave, payroll, recruitment, performance, training, and HR analytics.',
+    description: 'End-to-end workforce lifecycle management: employees, attendance, leave, payroll processing, recruitment pipelines, performance cycles, training programmes, and HR analytics.',
     color: 'from-blue-500 to-cyan-500',
     icon: 'people',
   },
@@ -18,7 +18,7 @@ export const platformModules = [
     key: 'crm',
     name: 'CRM',
     shortName: 'Customer Relations',
-    description: 'Leads, contacts, deals, activities, campaigns, support desk, knowledge base, chat, and analytics.',
+    description: 'Unified revenue and service management: lead pipelines, contacts, deal forecasting, activity tracking, multi-channel campaigns, SLA-governed support desk, knowledge base, and CRM analytics.',
     color: 'from-indigo-500 to-violet-500',
     icon: 'users',
   },
@@ -26,7 +26,7 @@ export const platformModules = [
     key: 'finance',
     name: 'Finance',
     shortName: 'Accounting & Finance',
-    description: 'COA, GL, AP/AR, banking, budgeting, fixed assets, tax, statements, and audits.',
+    description: 'Full-spectrum financial management: chart of accounts, general ledger, AP/AR, bank reconciliation, multi-entity budgeting, fixed assets, tax filing, financial statements, and audit trails.',
     color: 'from-emerald-600 to-teal-500',
     icon: 'bank',
   },
@@ -34,7 +34,7 @@ export const platformModules = [
     key: 'project',
     name: 'Projects',
     shortName: 'Project Management',
-    description: 'Projects, tasks, sprints, resources, documents, risks, budgets, and reporting.',
+    description: 'Integrated project delivery: Gantt timelines, task boards, sprint management, resource allocation, risk registers, project financials, document control, and executive reporting.',
     color: 'from-purple-500 to-pink-500',
     icon: 'project',
   },
@@ -42,7 +42,7 @@ export const platformModules = [
     key: 'ims',
     name: 'Inventory',
     shortName: 'Inventory & Warehouse',
-    description: 'Items, warehouses, stock moves, barcodes, reorder planning, and cycle counts.',
+    description: 'Precision inventory control: multi-warehouse management, stock movement tracking, barcode operations, automated reorder planning, serial and batch traceability, and cycle counts.',
     color: 'from-amber-500 to-orange-500',
     icon: 'cube',
   },
@@ -50,7 +50,7 @@ export const platformModules = [
     key: 'scm',
     name: 'Supply Chain',
     shortName: 'Procurement & SCM',
-    description: 'Suppliers, RFQ, purchase planning, freight, inbound QC, and vendor scorecards.',
+    description: 'End-to-end procurement orchestration: vendor onboarding, RFQ and award workflows, purchase order management, inbound quality inspection, freight tracking, and vendor scorecards.',
     color: 'from-sky-500 to-cyan-500',
     icon: 'truck',
   },
@@ -58,7 +58,7 @@ export const platformModules = [
     key: 'pos',
     name: 'POS',
     shortName: 'Point of Sale',
-    description: 'Terminals, price lists, promotions, taxes, receipts, cash drawers, and day-end.',
+    description: 'Omnichannel retail operations: terminal configuration, dynamic price lists, promotional engine, tax profiles, receipt management, cash drawer reconciliation, and day-end settlement.',
     color: 'from-pink-500 to-rose-500',
     icon: 'shopping-cart',
   },
@@ -66,7 +66,7 @@ export const platformModules = [
     key: 'quality',
     name: 'Quality',
     shortName: 'Quality Management',
-    description: 'NC/CAPA, inspections, control plans, lab tests, audits, and calibration.',
+    description: 'Structured quality assurance: non-conformance and CAPA management, incoming and in-process inspections, control plans, laboratory test management, calibration workflows, and audit scheduling.',
     color: 'from-green-600 to-emerald-500',
     icon: 'shield-check',
   },
@@ -74,7 +74,7 @@ export const platformModules = [
     key: 'dms',
     name: 'DMS',
     shortName: 'Document Management',
-    description: 'Repository, versioning, approvals, publishing, retention, and sign-offs.',
+    description: 'Controlled document lifecycle: version-managed repository, structured approval and publishing workflows, e-signature integration, retention policy enforcement, and access governance.',
     color: 'from-slate-600 to-gray-700',
     icon: 'document',
   },
@@ -82,13 +82,13 @@ export const platformModules = [
     key: 'compliance',
     name: 'Compliance',
     shortName: 'Compliance & EHS',
-    description: 'Policies, risk register, audits, incidents, corrective actions, and training evidence.',
+    description: 'Enterprise governance and EHS management: policy libraries, enterprise risk registers, internal and external audit management, incident investigation, CAPA workflows, and training evidence records.',
     color: 'from-red-500 to-amber-500',
     icon: 'badge',
   },
 ];
 
-// Detailed module features for Features page (aligned with products.php)
+// Detailed module features for Features page
 export const moduleFeatures = {
   hrm: {
     name: 'HRM',
@@ -403,134 +403,134 @@ export const moduleFeatures = {
 export const rolloutPhases = [
   {
     title: 'Discover & Configure',
-    description: 'We map your processes, pick the right modules, and agree on success metrics before building.',
+    description: 'We conduct structured process-mapping workshops to identify target workflows, define success KPIs, and establish the data migration and security baseline before any environment build commences.',
     artifacts: ['Process deep dives', 'Data migration plan', 'Security checklist'],
   },
   {
     title: 'Pilot & Automate',
-    description: 'A lighthouse group runs on Aero with integrations, approvals, and reporting wired up.',
+    description: 'A designated pilot cohort operates on a fully configured Aero environment with live integrations, approval workflows, and reporting pipelines validated against real business data.',
     artifacts: ['Pilot runbook', 'Integration connectors', 'Automation library'],
   },
   {
-    title: 'Scale & Optimize',
-    description: 'Roll out to new regions and functions with shared playbooks and monthly reviews.',
-    artifacts: ['Exec scorecards', 'Training sessions', 'Quarterly tune-ups'],
+    title: 'Scale & Optimise',
+    description: 'Phased rollout to additional business units and geographies using validated playbooks, with structured monthly performance reviews and continuous optimisation cycles.',
+    artifacts: ['Executive scorecards', 'Training programmes', 'Quarterly optimisation reviews'],
   },
 ];
 
 export const industryStarters = [
   {
     industry: 'Construction & EPC',
-    description: 'Field diaries, contractor compliance, and asset maintenance built for busy project teams.',
+    description: 'Field diary management, subcontractor compliance tracking, and asset maintenance workflows engineered for high-complexity project operations.',
     badges: ['QS connectors', 'IoT telemetry', 'HSE playbooks'],
   },
   {
     industry: 'Healthcare Networks',
-    description: 'Credentialing, roster automation, and audit prep for multi-site hospitals.',
+    description: 'Credential lifecycle management, roster optimisation, and regulatory audit preparation for multi-site hospital and clinical network operations.',
     badges: ['HIPAA-ready', 'Lab feeds', 'Clinical analytics'],
   },
   {
     industry: 'Manufacturing & SCM',
-    description: 'Supplier scorecards, digital inventory, and PFMEA workflows synced to MES.',
+    description: 'Supplier performance scorecards, digital inventory control, and PFMEA-aligned quality workflows synchronised with MES and shop-floor systems.',
     badges: ['SAP connectors', 'Recall kits', 'Plant KPIs'],
   },
   {
     industry: 'Public Sector & Smart Cities',
-    description: 'Citizen requests, grant programs, and cross-agency coordination in one workspace.',
+    description: 'Citizen request management, grant programme administration, and cross-agency operational coordination within a unified, residency-compliant workspace.',
     badges: ['Data residency', 'Zero trust ready', 'GovCloud'],
   },
 ];
 
 export const productHighlights = [
   {
-    title: 'Products.php parity',
-    description: 'Public pages mirror the ten modules and 140+ submodules defined in the catalog—no vague marketing gloss.',
+    title: 'Complete Module Coverage',
+    description: 'All ten product suites and 140+ submodules are represented with accurate, depth-verified feature mapping — engineered for technical buyers and procurement teams.',
     stat: '10 suites aligned',
   },
   {
-    title: 'Ready tenants',
-    description: 'Every module ships with seeded data, approval chains, and dashboards so prospects see working flows immediately.',
-    stat: 'Preloaded demo',
+    title: 'Pre-Configured Tenant Environments',
+    description: 'Each module provisions with reference datasets, pre-built approval hierarchies, and live analytics dashboards, enabling immediate end-to-end workflow validation.',
+    stat: 'Preloaded environment',
   },
   {
-    title: 'Audit-grade controls',
-    description: 'Policies, risk registers, CAPA, and financial audit trails are first-class, matching the compliance module in the product file.',
+    title: 'Audit-Grade Compliance Controls',
+    description: 'Policy libraries, risk registers, CAPA workflows, and financial audit trails are first-class capabilities — not add-ons — fully aligned with regulatory and internal audit requirements.',
     stat: 'Compliance built-in',
   },
 ];
 
 export const workflowTimeline = [
   {
-    step: 'Signals',
-    caption: 'IoT events, checklists, and ERP updates flow into Aero Pulse.',
+    step: 'Ingest',
+    caption: 'IoT telemetry, structured checklists, and ERP transaction events stream into the Aero Pulse event bus in real time.',
   },
   {
-    step: 'Sense',
-    caption: 'AI flags schedule, budget, or compliance risks and suggests next steps.',
+    step: 'Detect',
+    caption: 'AI-driven anomaly detection surfaces schedule deviations, budget variances, and compliance gaps with prescriptive remediation guidance.',
   },
   {
-    step: 'Synchronize',
-    caption: 'Automations update HR, project, and finance records in the background.',
+    step: 'Orchestrate',
+    caption: 'Automated workflows propagate updates across HR, project, and financial records, eliminating manual cross-system reconciliation.',
   },
   {
-    step: 'Show',
-    caption: 'Leaders review live boards, drill into issues, and approve fixes from any device.',
+    step: 'Govern',
+    caption: 'Executive stakeholders review live operational dashboards, drill into root-cause metrics, and authorise corrective actions from any device.',
   },
 ];
 
 export const testimonialSlides = [
   {
-    quote: 'HQ, field sites, and partners now work from the same numbers. Reporting dropped from 10 days to an afternoon.',
+    quote: 'Headquarters, field sites, and partner organisations now operate from a single source of truth. Consolidated reporting cycles reduced from ten business days to a single afternoon.',
     author: 'Anika Rahman',
-    role: 'COO, Velocity Build Co.',
+    role: 'Chief Operating Officer, Velocity Build Co.',
   },
   {
-    quote: 'Clinical, HR, and compliance teams finally share one playbook instead of passing spreadsheets around.',
+    quote: 'Clinical operations, HR, and compliance teams now share a unified workflow platform, eliminating the manual handoffs and version-control issues that previously impeded cross-functional execution.',
     author: 'Dr. Omar Chowdhury',
-    role: 'Group Director, Nimbus Hospitals',
+    role: 'Group Director of Operations, Nimbus Hospitals',
   },
   {
-    quote: 'Modular pricing let us roll out region by region without downtime or surprise costs.',
+    quote: 'The modular pricing model enabled a controlled regional rollout without service interruption or unanticipated infrastructure costs.',
     author: 'Liam Carter',
-    role: 'VP Operations, Atlas Logistics',
+    role: 'VP of Operations, Atlas Logistics',
   },
 ];
 
 export const missionValues = [
   {
-    title: 'Radical Transparency',
-    description: 'Everyone sees the same live dashboard, so accountability feels normal—not forced.',
+    title: 'Operational Transparency',
+    description: 'Every stakeholder accesses the same live operational dashboard, making accountability a structural property of the platform rather than a cultural aspiration.',
   },
   {
-    title: 'Automation with Safeguards',
-    description: 'Automation handles the busywork while approvals and audit trails keep people in charge.',
+    title: 'Governed Automation',
+    description: 'Automation handles high-volume, rules-based processing while structured approval gates and immutable audit trails maintain full organisational accountability.',
   },
   {
-    title: 'Global-first Reliability',
-    description: 'Multi-region tenancy, residency controls, and 99.95% uptime are table stakes for us.',
+    title: 'Global-First Reliability',
+    description: 'Multi-region tenancy, data residency controls, and 99.95% SLA-backed uptime are foundational platform requirements, not optional enterprise add-ons.',
   },
 ];
 
 export const timelineMilestones = [
-  { year: '2019', headline: 'Blueprint drafted', detail: 'Prototype launched with three construction firms that needed HR plus project oversight in one place.' },
-  { year: '2021', headline: 'Multi-organization support', detail: 'Enhanced platform to serve customers across eight countries seamlessly.' },
-  { year: '2023', headline: 'AI signal loop', detail: 'Introduced Aero Pulse to flag schedule, compliance, and cost risks early.' },
-  { year: '2024', headline: 'Interface redesign', detail: 'Rebuilt the user experience with modern design for faster, cleaner pages.' },
-  { year: '2025', headline: 'Global mission control', detail: 'Twenty-two enterprise rollouts later, we added GovCloud-ready deployments.' },
+  { year: '2019', headline: 'Platform Architecture Established', detail: 'Initial deployment conducted with three construction enterprises requiring integrated HR and project management capabilities within a single operational environment.' },
+  { year: '2021', headline: 'Multi-Organisation Tenancy', detail: 'Platform extended to support enterprise organisations across eight countries with full data isolation and regional compliance controls.' },
+  { year: '2023', headline: 'AI-Driven Signal Intelligence', detail: 'Aero Pulse intelligent event processing introduced to proactively identify schedule deviations, compliance violations, and cost overrun risks.' },
+  { year: '2024', headline: 'Enterprise UX Modernisation', detail: 'Complete front-end architecture rebuild delivering improved performance, accessibility compliance, and operational efficiency across all modules.' },
+  { year: '2025', headline: 'Global Enterprise Deployment Programme', detail: 'Expanded to twenty-two enterprise rollouts with GovCloud-ready deployment configurations and advanced multi-region data residency controls.' },
 ];
 
 export const leadershipTeam = [
-  { name: 'Maya Iqbal', title: 'Chief Executive Officer', focus: 'Scaled distributed ops programs across APAC before building Aero.', avatar: 'MI' },
-  { name: 'Ethan Cho', title: 'Chief Product Officer', focus: 'Led data platform teams at Atlassian and HashiCorp.', avatar: 'EC' },
-  { name: 'Sara Velasquez', title: 'VP Engineering', focus: 'Former cloud infrastructure lead focused on multi-region reliability.', avatar: 'SV' },
-  { name: 'Rafi Tan', title: 'Head of Customer Impact', focus: 'Runs adoption squads and exec workshops for every rollout.', avatar: 'RT' },
+  { name: 'Maya Iqbal', title: 'Chief Executive Officer', focus: 'Scaled distributed operations programmes across APAC enterprises prior to founding Aero, with deep expertise in high-growth B2B SaaS.', avatar: 'MI' },
+  { name: 'Ethan Cho', title: 'Chief Product Officer', focus: 'Previously led data platform and developer tooling programmes at Atlassian and HashiCorp, driving platform-level product strategy.', avatar: 'EC' },
+  { name: 'Sara Velasquez', title: 'VP Engineering', focus: 'Cloud infrastructure architect specialising in multi-region reliability engineering, platform scalability, and enterprise-grade security compliance.', avatar: 'SV' },
+  { name: 'Rafi Tan', title: 'Head of Customer Success', focus: 'Directs enterprise onboarding programmes, executive business reviews, and structured adoption frameworks across all client deployments.', avatar: 'RT' },
 ];
 
 export const globalImpactStats = [
-  { label: 'Sites orchestrated', value: '180+', detail: 'Construction, hospital, and public sector campuses' },
-  { label: 'Process automations', value: '1,400+', detail: 'HR, compliance, and field workflows live today' },
-  { label: 'Languages supported', value: '12', detail: 'Localization plus RTL support built in' },
-  { label: 'Avg. go-live', value: '6 weeks', detail: 'From kickoff to the first automated workflow' },
+  { label: 'Operational sites orchestrated', value: '180+', detail: 'Construction, healthcare, and public sector campuses under active management' },
+  { label: 'Automated process workflows', value: '1,400+', detail: 'HR, compliance, and field operations workflows live in production' },
+  { label: 'Supported languages', value: '12', detail: 'Full localisation including RTL language support' },
+  { label: 'Average production go-live', value: '6 weeks', detail: 'From programme commencement to first automated production workflow in live operation' },
 ];
 
 export const partnerLogos = ['AWS', 'Microsoft', 'Google Cloud', 'Atlassian', 'Snowflake', 'Netsuite'];
@@ -539,43 +539,43 @@ export const resourceFilters = ['All', 'Case Study', 'Playbook', 'Product Update
 
 export const resourceLibrary = [
   {
-    title: 'Atlas Logistics scaled compliance across 42 sites',
-    summary: 'Atlas retired seven legacy tools and automated ISO audits in ten weeks.',
+    title: 'Atlas Logistics: Compliance Consolidation Across 42 Sites',
+    summary: 'Atlas decommissioned seven legacy compliance tools and automated ISO audit workflows across all sites within a ten-week implementation programme.',
     type: 'Case Study',
     readingTime: '6 min read',
     tag: 'Operations',
   },
   {
-    title: 'Executive dashboard blueprint',
-    summary: 'Workbook for building a practical command center for HR, Projects, and Finance.',
+    title: 'Executive Operations Dashboard Blueprint',
+    summary: 'Structured implementation workbook for building an enterprise command dashboard spanning HR, Project, and Finance operational metrics.',
     type: 'Playbook',
     readingTime: '11 min read',
     tag: 'Strategy',
   },
   {
-    title: 'Release 2025.4 highlights',
-    summary: 'AI incident assistant, field checklists, and new data residency controls.',
+    title: 'Release 2025.4: Platform Capability Summary',
+    summary: 'AI-assisted incident management, field operation checklists, and expanded data residency controls introduced in this release cycle.',
     type: 'Product Update',
     readingTime: '4 min read',
     tag: 'Product',
   },
   {
-    title: 'Healthcare credentialing masterclass',
-    summary: 'Webinar replay with Nimbus Hospitals on automating credential renewals.',
+    title: 'Healthcare Credentialing Automation: Technical Deep Dive',
+    summary: 'Recorded session with Nimbus Hospitals detailing credential lifecycle automation, renewal workflows, and compliance verification integration.',
     type: 'Webinar',
     readingTime: '45 min session',
     tag: 'Healthcare',
   },
   {
-    title: 'Smart city grant tracking guide',
-    summary: 'Templates for cross-agency workflows, reporting, and audit readiness.',
+    title: 'Smart City Grant Programme Operations Guide',
+    summary: 'Implementation templates for cross-agency operational workflows, programme performance reporting, and audit readiness documentation.',
     type: 'Guide',
     readingTime: '9 min read',
     tag: 'Public Sector',
   },
   {
-    title: 'Manufacturing playbooks pack',
-    summary: 'PFMEA workflows, supplier scorecards, and recall playbooks ready to deploy.',
+    title: 'Manufacturing Operations Playbook Collection',
+    summary: 'Production-ready PFMEA workflow templates, supplier performance scorecards, and structured product recall playbooks for immediate deployment.',
     type: 'Playbook',
     readingTime: '12 min read',
     tag: 'Manufacturing',
@@ -586,44 +586,44 @@ export const docQuickLinks = [
   {
     label: 'Implementation guides',
     href: '/docs/implementation',
-    description: 'Blueprints for PFMEA workflows, supplier scorecards, and recall playbooks.',
+    description: 'Deployment blueprints covering PFMEA workflows, vendor scorecard configuration, and regulatory recall playbooks.',
   },
   {
     label: 'API reference',
     href: '/docs/api',
-    description: 'Endpoints, webhook events, and code examples kept current each release.',
+    description: 'Comprehensive endpoint documentation, webhook event schemas, and versioned code samples maintained with every release.',
   },
   {
-    label: 'Security center',
+    label: 'Security centre',
     href: '/docs/security',
-    description: 'Certifications, data residency, and encryption deep dives.',
+    description: 'Certification registry, data residency configuration guides, and encryption architecture deep dives.',
   },
   {
     label: 'Release notes',
     href: '/docs/releases',
-    description: 'Monthly drops covering features, fixes, and rollout guidance.',
+    description: 'Monthly release documentation covering new capabilities, resolved defects, and structured upgrade guidance.',
   },
 ];
 
 export const supportChannels = [
   {
-    label: '24/7 Chat & Email',
-    description: 'Priority routing with context, SLAs, and clear escalation paths.',
-    response: '< 15 minutes avg',
+    label: '24/7 Chat & Email Support',
+    description: 'Priority-routed incident queues with full context handoff, contractual SLA adherence, and structured escalation pathways.',
+    response: '< 15 minutes avg.',
   },
   {
-    label: 'Phone & WhatsApp',
-    description: 'Dedicated lines for incident response and rollout guidance.',
-    response: '< 30 minutes avg',
+    label: 'Phone & WhatsApp Support',
+    description: 'Dedicated telephony and messaging lines for production incident response and deployment-critical guidance.',
+    response: '< 30 minutes avg.',
   },
   {
     label: 'Slack Connect',
-    description: 'Embed Aero experts in your channels for fast collaboration.',
+    description: 'Embed Aero platform engineers and solution architects directly within your operational Slack workspace for real-time collaboration.',
     response: 'Real-time',
   },
   {
     label: 'Customer Academy',
-    description: 'Courses, certifications, and live labs for every role.',
+    description: 'Role-specific training programmes, certification pathways, and live lab environments for administrators, end-users, and integration teams.',
     response: 'Self-paced',
   },
 ];
@@ -638,22 +638,22 @@ export const slaMatrix = [
 export const demoSteps = [
   {
     step: 'Discover',
-    description: 'Share your operations landscape and must-win workflows during a 30-minute mapping session.',
+    description: 'Share your operational landscape and priority workflows in a structured 30-minute requirements mapping session with our solutions team.',
   },
   {
     step: 'Configure',
-    description: 'We spin up an environment with your modules, data samples, and automation blueprints.',
+    description: 'We provision a dedicated environment with your selected modules, representative data sets, and pre-configured automation blueprints.',
   },
   {
-    step: 'Launch',
-    description: 'See the end-to-end signal loop across HR, projects, compliance, and SCM in action.',
+    step: 'Validate',
+    description: 'Observe the complete signal-to-governance workflow across HR, Projects, Compliance, and SCM — validated against your specific business scenarios.',
   },
 ];
 
 export const demoStats = [
-  { label: 'Avg. time to value', value: '6 weeks' },
-  { label: 'Departments orchestrated', value: '5+' },
-  { label: 'Integrations wired', value: '20+' },
+  { label: 'Average time-to-value', value: '6 weeks' },
+  { label: 'Business functions orchestrated', value: '5+' },
+  { label: 'Pre-certified integrations', value: '20+' },
 ];
 
 export const legalPrinciples = [

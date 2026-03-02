@@ -688,7 +688,7 @@ export default function Login({
                                         WebkitBackgroundClip: 'text',
                                     }}
                                 >
-                                    Welcome Back
+                                    Administrator Sign In
                                 </h1>
                                
                             </motion.div>
@@ -1065,7 +1065,7 @@ export default function Login({
                                             className="text-sm font-medium transition-colors duration-200 hover:underline"
                                             style={{ color: 'var(--theme-primary, #006FEE)' }}
                                         >
-                                            Forgot password?
+                                            Forgot Your Password?
                                         </Link>
                                     )}
                                 </motion.div>
@@ -1128,7 +1128,7 @@ export default function Login({
                                         className="text-xs text-center opacity-60"
                                         style={{ color: 'var(--theme-foreground, #11181C)' }}
                                     >
-                                        © 2025 Emam Hosen. All rights reserved.
+                                        © 2025 {siteName}. All rights reserved.
                                     </p>
                                 </motion.div>
                             </form>

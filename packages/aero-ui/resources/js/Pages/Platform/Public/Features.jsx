@@ -146,17 +146,17 @@ export default function Features() {
                 FEATURES
               </Chip>
               <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold leading-tight mb-3 md:mb-6">
-                Features mapped directly from products.php.
+                Enterprise features spanning every functional domain.
               </h1>
               <p className={`text-sm md:text-lg ${palette.mutedText} mb-4 md:mb-8 max-w-3xl mx-auto`}>
-                HRM, CRM, Finance, Projects, Inventory, POS, Supply Chain, Quality, DMS, and Compliance use the same data fabric, permissions, and automation engine described in the product catalog.
+                HRM, CRM, Finance, Projects, Inventory, POS, Supply Chain, Quality, DMS, and Compliance operate on a shared data fabric, unified permissions model, and common automation engine — eliminating cross-module data silos.
               </p>
               <div className="flex flex-wrap justify-center gap-2 md:gap-4">
                 <Button as={Link} href={route('demo')} size="sm" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-4 md:px-10 text-xs md:text-sm">
-                  Walk through the platform
+                  Request a Platform Walkthrough
                 </Button>
                 <Button as={Link} href={route('platform.register.index')} size="sm" variant="bordered" className="border-current px-4 md:px-10 text-xs md:text-sm">
-                  Start a trial
+                  Start a Free Trial
                 </Button>
               </div>
             </div>
@@ -204,7 +204,7 @@ export default function Features() {
               </div>
               <div>
                 <h2 className="text-lg md:text-2xl lg:text-3xl font-bold">{currentModule.fullName}</h2>
-                <p className={`text-xs md:text-sm ${palette.mutedText}`}>Explore features included</p>
+                <p className={`text-xs md:text-sm ${palette.mutedText}`}>Explore included capabilities</p>
               </div>
             </div>
 
@@ -279,10 +279,10 @@ export default function Features() {
         <section className="px-3 md:px-6 py-6 md:py-12">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-4 md:mb-8">
-              <Chip color="primary" variant="flat" className="text-[10px] md:text-xs mb-2">Complete Suite</Chip>
-              <h2 className="text-xl md:text-3xl font-semibold">All modules at a glance</h2>
+              <Chip color="primary" variant="flat" className="text-[10px] md:text-xs mb-2">Full Module Suite</Chip>
+              <h2 className="text-xl md:text-3xl font-semibold">Complete module portfolio at a glance</h2>
               <p className={`mt-1 md:mt-2 text-xs md:text-base ${palette.mutedText}`}>
-                Click any product above to explore its detailed features
+                Select any module above to review its detailed feature set and submodule breakdowns
               </p>
             </div>
 
@@ -333,10 +333,10 @@ export default function Features() {
         <section className={`px-3 md:px-6 py-6 md:py-12 ${palette.tint}`}>
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-4 md:mb-8">
-              <Chip color="success" variant="flat" className="text-[10px] md:text-xs mb-2">Workflow engine</Chip>
-              <h2 className="text-xl md:text-3xl font-semibold">One loop keeps everyone aligned</h2>
+              <Chip color="success" variant="flat" className="text-[10px] md:text-xs mb-2">Automation Engine</Chip>
+              <h2 className="text-xl md:text-3xl font-semibold">A unified intelligence layer keeps operations aligned</h2>
               <p className={`mt-1 md:mt-2 text-xs md:text-base ${palette.mutedText}`}>
-                Signals feed AI insights, automations sync systems, dashboards show changes
+                Operational signals feed AI-driven insights, automation rules synchronise systems, and real-time dashboards surface change events across all modules
               </p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
@@ -357,8 +357,8 @@ export default function Features() {
         <section className="px-3 md:px-6 py-6 md:py-12">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-4 md:mb-8">
-              <Chip color="warning" variant="flat" className="text-[10px] md:text-xs mb-2">Vertical packs</Chip>
-              <h2 className="text-xl md:text-3xl font-semibold">Industry templates ready to deploy</h2>
+              <Chip color="warning" variant="flat" className="text-[10px] md:text-xs mb-2">Industry Solution Packs</Chip>
+              <h2 className="text-xl md:text-3xl font-semibold">Preconfigured industry templates ready for immediate deployment</h2>
             </div>
             <div className="grid md:grid-cols-2 gap-2 md:gap-4">
               {industryStarters.map((starter) => (
@@ -387,17 +387,17 @@ export default function Features() {
         <section className="px-3 md:px-6 pb-8 md:pb-24">
           <Card className={`max-w-5xl mx-auto text-center ${palette.highlightCard}`}>
             <CardBody className="space-y-3 md:space-y-5 p-4 md:p-8">
-              <Chip color="primary" variant="flat" className="text-[10px] md:text-xs">Next steps</Chip>
-              <h3 className="text-xl md:text-4xl font-semibold">Pick modules today, add more tomorrow.</h3>
+              <Chip color="primary" variant="flat" className="text-[10px] md:text-xs">Next Steps</Chip>
+              <h3 className="text-xl md:text-4xl font-semibold">Select modules for immediate deployment and scale to full suite without re-implementation.</h3>
               <p className={`text-xs md:text-base ${palette.mutedText}`}>
-                Grab a guided tour or launch a no-card-required trial right away.
+                Request a guided platform walkthrough or initiate a no-payment-required trial to evaluate capabilities in your own environment.
               </p>
               <div className="flex flex-wrap justify-center gap-2 md:gap-4">
                 <Button as={Link} href={route('demo')} size="sm" className={`${isDarkMode ? 'bg-white text-slate-900' : 'bg-slate-900 text-white'} font-semibold px-4 md:px-10 text-xs md:text-sm`}>
-                  Book a live demo
+                  Schedule a Live Demonstration
                 </Button>
                 <Button as={Link} href={route('platform.register.index')} size="sm" variant="bordered" className="border-current px-4 md:px-10 text-xs md:text-sm">
-                  Start free trial
+                  Start Free Trial
                 </Button>
               </div>
             </CardBody>

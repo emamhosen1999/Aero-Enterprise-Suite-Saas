@@ -56,8 +56,7 @@ export default function SessionTimeoutAlert() {
                             Your registration session has expired due to inactivity.
                         </p>
                         <p className="text-sm text-default-500">
-                            Don't worry! If you've already entered your details, we may be able to 
-                            resume your registration. Click below to restart.
+                            If registration details were previously entered, the system may be able to recover your progress. Select the option below to restart.
                         </p>
                     </div>
                 </ModalBody>

@@ -74,7 +74,7 @@ export default function PendingReviewsWidget({
                         <StarIcon className="w-10 h-10 sm:w-12 sm:h-12 text-default-300 mb-2" />
                         <p className="text-sm sm:text-base text-default-500">No pending reviews</p>
                         <p className="text-xs text-default-400 mt-1">
-                            You're all caught up!
+                            All pending reviews have been completed.
                         </p>
                     </div>
                 ) : (

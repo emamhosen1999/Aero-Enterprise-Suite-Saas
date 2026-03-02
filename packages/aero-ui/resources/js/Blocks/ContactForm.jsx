@@ -24,7 +24,7 @@ import { showToast } from '@/utils/toastUtils';
  */
 const ContactForm = ({
     title = 'Get in Touch',
-    subtitle = "We'd love to hear from you. Fill out the form below and we'll get back to you as soon as possible.",
+    subtitle = "Submit the form below and a member of our team will respond promptly.",
     layout = 'simple',
     fields = [
         { name: 'name', label: 'Full Name', type: 'text', required: true, placeholder: 'John Doe', colSpan: 1 },
@@ -32,12 +32,12 @@ const ContactForm = ({
         { name: 'phone', label: 'Phone Number', type: 'tel', required: false, placeholder: '+1 (555) 123-4567', colSpan: 1 },
         { name: 'company', label: 'Company', type: 'text', required: false, placeholder: 'Acme Inc.', colSpan: 1 },
         { name: 'subject', label: 'Subject', type: 'select', required: true, options: ['General Inquiry', 'Sales', 'Support', 'Partnership'], colSpan: 2 },
-        { name: 'message', label: 'Message', type: 'textarea', required: true, placeholder: 'Tell us how we can help...', rows: 4, colSpan: 2 },
+        { name: 'message', label: 'Message', type: 'textarea', required: true, placeholder: 'Please describe your enquiry.', rows: 4, colSpan: 2 },
         { name: 'consent', label: 'I agree to the privacy policy and terms of service', type: 'checkbox', required: true, colSpan: 2 }
     ],
     submitText = 'Send Message',
     submitEndpoint = '/api/contact',
-    successMessage = 'Thank you for your message! We\'ll be in touch soon.',
+    successMessage = 'Your message has been received. A member of our team will be in touch shortly.',
     showContactInfo = true,
     contactInfo = {
         email: 'hello@example.com',
@@ -237,7 +237,7 @@ const ContactForm = ({
                             <CheckCircleIcon className="w-10 h-10 text-success" />
                         </div>
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                            Message Sent!
+                            Message Received
                         </h2>
                         <p className="text-gray-600 dark:text-gray-400 mb-8">
                             {successMessage}

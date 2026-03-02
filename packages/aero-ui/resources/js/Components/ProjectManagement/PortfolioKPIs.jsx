@@ -178,7 +178,7 @@ const PortfolioKPIs = ({
             value: portfolioMetrics.atRiskProjects,
             icon: <ExclamationTriangleIcon className="w-6 h-6" />,
             color: 'danger',
-            change: portfolioMetrics.atRiskProjects > 0 ? 'Needs attention' : 'All good',
+            change: portfolioMetrics.atRiskProjects > 0 ? 'Needs attention' : 'No issues',
             changeType: portfolioMetrics.atRiskProjects > 0 ? 'negative' : 'positive',
             description: 'Projects requiring intervention',
             subtitle: '⚠️ Monitor',

@@ -156,9 +156,9 @@ const RBACLockedContent = ({ module, moduleName }) => {
                     
                     {/* Description */}
                     <p className="text-default-500 mb-6">
-                        You don't have permission to access the{' '}
-                        <strong>{moduleName || module?.toUpperCase()}</strong> module.
-                        Please contact your administrator to request access.
+                        Access to the{' '}
+                        <strong>{moduleName || module?.toUpperCase()}</strong> module is not permitted for your account.
+                        Contact your administrator to request access.
                     </p>
                     
                     {/* Action Buttons */}

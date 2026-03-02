@@ -145,8 +145,7 @@ export default function UsageMeter({
                             >
                                 <ExclamationTriangleIcon className="w-4 h-4 text-danger flex-shrink-0 mt-0.5" />
                                 <p className="text-xs text-danger-800 dark:text-danger-400">
-                                    <strong>Limit Exceeded:</strong> You've exceeded your {label.toLowerCase()} limit. 
-                                    Please upgrade your plan.
+                                    <strong>Limit Exceeded:</strong> Your {label.toLowerCase()} limit has been exceeded. Please upgrade your plan.
                                 </p>
                             </motion.div>
                         )}
@@ -159,8 +158,7 @@ export default function UsageMeter({
                             >
                                 <ExclamationTriangleIcon className="w-4 h-4 text-warning flex-shrink-0 mt-0.5" />
                                 <p className="text-xs text-warning-800 dark:text-warning-400">
-                                    <strong>Approaching Limit:</strong> You're using {percentage.toFixed(0)}% of your {label.toLowerCase()}. 
-                                    Consider upgrading soon.
+                                    <strong>Approaching Limit:</strong> {percentage.toFixed(0)}% of your {label.toLowerCase()} allocation is in use. Consider upgrading your plan.
                                 </p>
                             </motion.div>
                         )}
@@ -173,7 +171,7 @@ export default function UsageMeter({
                             >
                                 <CheckCircleIcon className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
                                 <p className="text-xs text-success-800 dark:text-success-400">
-                                    You're using {percentage.toFixed(0)}% of your {label.toLowerCase()}. You have plenty of room.
+                                    {percentage.toFixed(0)}% of your {label.toLowerCase()} allocation is in use. Capacity is within acceptable range.
                                 </p>
                             </motion.div>
                         )}

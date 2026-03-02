@@ -5,7 +5,7 @@ import { ArrowRightIcon } from '@heroicons/react/24/outline';
 const HeroStandard = ({ content = {}, settings = {} }) => {
   const {
     title = 'Welcome to Our Platform',
-    subtitle = 'Build amazing things with our powerful tools',
+    subtitle = 'A comprehensive platform for modern enterprise operations.',
     description = '',
     image = '',
     button_text = 'Get Started',

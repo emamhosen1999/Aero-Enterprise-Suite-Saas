@@ -46,11 +46,11 @@ export default function AdminDetails({ steps = [], currentStep, savedData = {}, 
 
   return (
     <RegisterLayout>
-      <Head title={`Admin details - ${siteName || 'aeos365'}`} />
+      <Head title={`Administrator Details — Step 3 - ${siteName || 'aeos365'}`} />
       <section className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-6 sm:space-y-8">
         <div className="space-y-3 sm:space-y-4 text-center">
           <p className={`text-[10px] sm:text-sm uppercase tracking-[0.3em] ${palette.badge}`}>Step 3</p>
-          <h1 className={`text-2xl sm:text-4xl font-semibold ${palette.heading} px-2`}>Set up your admin account.</h1>
+          <h1 className={`text-2xl sm:text-4xl font-semibold ${palette.heading} px-2`}>Configure Your Administrator Account</h1>
           <p className={`${palette.copy} text-sm sm:text-base px-2`}>This will be your super administrator login for {companyName}.</p>
         </div>
 
@@ -148,7 +148,7 @@ export default function AdminDetails({ steps = [], currentStep, savedData = {}, 
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 pt-2">
               <SafeLink route="platform.register.details" className={`text-xs sm:text-sm transition-colors text-center sm:text-left ${palette.link}`}>
-                ← Back to company details
+                ← Back to Company Details
               </SafeLink>
               <Button 
                 type="submit" 
@@ -156,7 +156,7 @@ export default function AdminDetails({ steps = [], currentStep, savedData = {}, 
                 className="bg-gradient-to-r from-blue-500 to-purple-600 w-full sm:w-auto" 
                 isLoading={processing}
               >
-                Continue to plan selection
+                Continue to Plan Selection
               </Button>
             </div>
           </form>

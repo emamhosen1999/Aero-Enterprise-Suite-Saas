@@ -3,8 +3,8 @@ import { Button } from '@heroui/react';
 
 const CTASection = ({ content = {}, settings = {} }) => {
   const {
-    title = 'Ready to get started?',
-    description = 'Join thousands of users using our platform',
+    title = 'Begin Your Implementation',
+    description = 'Trusted by organisations across industries.',
     button_text = 'Get Started',
     button_url = '#',
     button_style = 'primary',
