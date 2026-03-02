@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Aero\Platform\Jobs\ProvisionTenant;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -320,8 +321,18 @@ class AdminOnboardingController extends Controller
                 'status' => Tenant::STATUS_PROVISIONING,
             ]);
 
+            // Ensure the tenant has a domain before provisioning (may be missing if
+            // registration was aborted before activateTrial() was called).
+            if ($tenant->domains()->count() === 0 && ! empty($tenant->subdomain)) {
+                $baseDomain = config('platform.central_domain', 'localhost');
+                $tenant->domains()->create([
+                    'domain' => $tenant->subdomain.'.'.$baseDomain,
+                    'is_primary' => true,
+                ]);
+            }
+
             // Dispatch provisioning job
-            // dispatch(new ProvisionTenantJob($tenant));
+            ProvisionTenant::dispatch($tenant->fresh());
 
             // Clear stats cache
             $this->clearStatsCache();
@@ -412,7 +423,7 @@ class AdminOnboardingController extends Controller
             ]);
 
             // Dispatch provisioning job
-            // dispatch(new ProvisionTenantJob($tenant));
+            ProvisionTenant::dispatch($tenant);
 
             Log::info('Provisioning retry initiated', [
                 'tenant_id' => $tenant->id,

@@ -503,21 +503,31 @@ class RegistrationController extends Controller
         } catch (\Illuminate\Database\QueryException $e) {
             Log::error('Tenant creation/update failed', [
                 'error' => $e->getMessage(),
+                'sql' => $e->getSql() ?? null,
                 'subdomain' => $subdomain,
                 'email' => $email,
             ]);
 
+            $errorMessage = config('app.debug')
+                ? 'DB error: '.$e->getMessage()
+                : 'Failed to create workspace. Please try again.';
+
             return back()->withErrors([
-                'error' => 'Failed to create workspace. Please try again.',
+                'error' => $errorMessage,
             ])->withInput();
         } catch (\Throwable $e) {
             Log::error('Unexpected error during tenant provisioning', [
                 'error' => $e->getMessage(),
+                'class' => get_class($e),
                 'subdomain' => $subdomain,
             ]);
 
+            $errorMessage = config('app.debug')
+                ? get_class($e).': '.$e->getMessage()
+                : 'An unexpected error occurred. Please try again or contact support.';
+
             return back()->withErrors([
-                'error' => 'An unexpected error occurred. Please try again or contact support.',
+                'error' => $errorMessage,
             ])->withInput();
         }
 
