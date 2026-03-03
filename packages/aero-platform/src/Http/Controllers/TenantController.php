@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Http\Controllers;
 
+use Aero\Platform\Jobs\ProvisionTenant;
 use Aero\Platform\Models\Tenant;
-use Aero\Platform\Services\Monitoring\Tenant\TenantProvisioner;
 use Aero\Platform\Services\Tenant\TenantPurgeService;
 use Aero\Platform\Services\Tenant\TenantRetentionService;
 use Illuminate\Http\JsonResponse;
@@ -23,7 +23,6 @@ use Illuminate\Validation\Rule;
 class TenantController extends Controller
 {
     public function __construct(
-        protected TenantProvisioner $provisioner,
         protected TenantRetentionService $retentionService,
         protected TenantPurgeService $purgeService
     ) {}
@@ -193,7 +192,7 @@ class TenantController extends Controller
             DB::commit();
 
             // Dispatch provisioning job
-            $this->provisioner->dispatch($tenant);
+            ProvisionTenant::dispatch($tenant->fresh());
 
             return response()->json([
                 'data' => $tenant,
@@ -513,7 +512,7 @@ class TenantController extends Controller
         ]);
 
         // Dispatch provisioning job
-        $this->provisioner->dispatch($tenant);
+        ProvisionTenant::dispatch($tenant->fresh());
 
         return response()->json([
             'data' => $tenant->fresh(),
