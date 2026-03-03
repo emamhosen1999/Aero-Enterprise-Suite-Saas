@@ -163,6 +163,17 @@ Route::get('/', function () {
 })->middleware(['auth:web']);
 
 // ============================================================================
+// PLATFORM IMPERSONATION TOKEN ROUTES (No Auth - token IS the authentication)
+// ============================================================================
+// Only registered in SaaS mode when the platform ImpersonationController exists.
+// Flow: admin generates token → tenant receives /impersonate/{token} URL → logs in.
+if (class_exists('Aero\\Platform\\Http\\Controllers\\Auth\\ImpersonationController')) {
+    Route::get('impersonate/{token}', ['Aero\\Platform\\Http\\Controllers\\Auth\\ImpersonationController', 'handle'])
+        ->name('impersonate.handle')
+        ->withoutMiddleware(['auth:web', 'auth']);
+}
+
+// ============================================================================
 // ADMIN SETUP ROUTES (No Auth - for newly provisioned tenants)
 // ============================================================================
 Route::get('admin-setup', [AdminSetupController::class, 'show'])->name('admin.setup.show');

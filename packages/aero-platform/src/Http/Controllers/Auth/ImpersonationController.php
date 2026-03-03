@@ -4,7 +4,9 @@ namespace Aero\Platform\Http\Controllers\Auth;
 
 use Aero\Core\Models\User;
 use Aero\Platform\Http\Controllers\Controller;
+use Aero\Platform\Models\Tenant;
 use Aero\Platform\Models\TenantImpersonationToken;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,6 +26,71 @@ use Illuminate\Support\Facades\Log;
  */
 class ImpersonationController extends Controller
 {
+    /**
+     * Initiate impersonation from the admin panel.
+     *
+     * Called via POST /admin/tenants/{tenant}/impersonate by a landlord user.
+     * Finds the tenant's first super admin user, generates a short-lived
+     * single-use token, and returns the tenant-side redirect URL as JSON.
+     * The frontend (Show.jsx) then navigates to that URL via window.location.
+     */
+    public function impersonate(Request $request, string $tenant): JsonResponse
+    {
+        $tenantModel = Tenant::findOrFail($tenant);
+
+        if (! in_array($tenantModel->status, ['active', 'pending'])) {
+            return response()->json([
+                'message' => 'Cannot impersonate a tenant that is not active or pending.',
+            ], 422);
+        }
+
+        // Initialize tenancy to access the tenant's database
+        tenancy()->initialize($tenantModel);
+
+        try {
+            // Find super admin first, fall back to the oldest user
+            $user = User::whereHas('roles', fn ($q) => $q->where('name', 'Super Administrator'))
+                ->orderBy('id')
+                ->first()
+                ?? User::orderBy('id')->first();
+        } finally {
+            tenancy()->end();
+        }
+
+        if (! $user) {
+            return response()->json([
+                'message' => 'No users found in this tenant workspace. Ask the tenant to set up their account first.',
+            ], 422);
+        }
+
+        $token = TenantImpersonationToken::createForUser(
+            $tenantModel->id,
+            (string) $user->id,
+            '/dashboard',
+            'web'
+        );
+
+        $domain = $tenantModel->primaryDomain()?->domain
+            ?? $tenantModel->domains()->first()?->domain;
+
+        if (! $domain) {
+            return response()->json(['message' => 'No domain configured for this tenant.'], 422);
+        }
+
+        $scheme = str_starts_with(config('app.url', ''), 'https') ? 'https' : 'http';
+        $redirectUrl = $scheme.'://'.$domain.'/impersonate/'.$token->token;
+
+        Log::info('Platform admin initiated tenant impersonation', [
+            'tenant_id' => $tenantModel->id,
+            'target_user_id' => $user->id,
+            'target_user_email' => $user->email,
+            'admin_user_id' => auth('landlord')->id(),
+            'ip' => $request->ip(),
+        ]);
+
+        return response()->json(['redirect_url' => $redirectUrl]);
+    }
+
     /**
      * Handle an impersonation token and log the user in.
      */
