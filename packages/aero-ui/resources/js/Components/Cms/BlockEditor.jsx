@@ -1,191 +1,220 @@
-import React, { useRef } from 'react';
-import { useDrag, useDrop } from 'react-dnd';
-import { Card, CardBody, CardHeader, Button } from '@heroui/react';
-import {
-  EllipsisVerticalIcon,
-  ArrowUpIcon,
-  ArrowDownIcon,
-  DocumentDuplicateIcon,
-  TrashIcon,
-} from '@heroicons/react/24/outline';
+import React, { useState, useEffect } from 'react';
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem, Tab, Tabs, Textarea, Switch } from "@heroui/react";
 
-const DraggableBlock = ({ block, isSelected, onSelect, onMove, onDuplicate, onDelete }) => {
-  const ref = useRef(null);
-  
-  const [{ isDragging }, drag] = useDrag({
-    type: 'block',
-    item: { id: block.id },
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
-  });
+const BlockEditor = ({ isOpen, onOpenChange, block = null, blockType = null, onSave, saving = false }) => {
+    const [formData, setFormData] = useState({});
+    const [activeTab, setActiveTab] = useState('content');
 
-  const [{ isOver }, drop] = useDrop({
-    accept: 'block',
-    hover: (item) => {
-      if (item.id !== block.id) {
-        // Handle reordering
-      }
-    },
-    collect: (monitor) => ({
-      isOver: monitor.isOver(),
-    }),
-  });
+    useEffect(() => {
+        if (block?.data) {
+            setFormData(block.data);
+        } else {
+            setFormData({});
+        }
+    }, [block, isOpen]);
 
-  drag(drop(ref));
+    const getThemeRadius = () => {
+        if (typeof window === 'undefined') return 'lg';
+        const rootStyles = getComputedStyle(document.documentElement);
+        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+        const radiusValue = parseInt(borderRadius);
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 16) return 'lg';
+        return 'full';
+    };
 
-  return (
-    <div
-      ref={ref}
-      className={`mb-3 transition-all ${isDragging ? 'opacity-50' : ''}`}
-    >
-      <Card
-        isPressable
-        onPress={() => onSelect(block.id)}
-        className={`border-2 transition-all ${
-          isSelected 
-            ? 'border-primary bg-primary/5 dark:bg-primary/10' 
-            : 'border-slate-200 dark:border-white/10 hover:border-primary/30'
-        } ${isOver ? 'ring-2 ring-primary' : ''}`}
-      >
-        <CardHeader className="flex flex-col items-start px-4 py-3">
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-2 flex-1">
-              <div className="cursor-move px-2 py-1 rounded bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 text-xs">
-                ⋮⋮
-              </div>
-              <span className="text-sm font-semibold text-slate-900 dark:text-white">
-                {block.block_type.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase())}
-              </span>
-            </div>
-            
-            {/* Quick Actions */}
-            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Button
-                isIconOnly
-                size="sm"
-                variant="light"
-                className="text-slate-500 hover:text-slate-900 dark:hover:text-white"
-                onPress={() => onMove(block.id, 'up')}
-              >
-                <ArrowUpIcon className="w-4 h-4" />
-              </Button>
-              <Button
-                isIconOnly
-                size="sm"
-                variant="light"
-                className="text-slate-500 hover:text-slate-900 dark:hover:text-white"
-                onPress={() => onMove(block.id, 'down')}
-              >
-                <ArrowDownIcon className="w-4 h-4" />
-              </Button>
-              <Button
-                isIconOnly
-                size="sm"
-                variant="light"
-                className="text-slate-500 hover:text-slate-900 dark:hover:text-white"
-                onPress={() => onDuplicate(block.id)}
-              >
-                <DocumentDuplicateIcon className="w-4 h-4" />
-              </Button>
-              <Button
-                isIconOnly
-                size="sm"
-                variant="light"
-                className="text-danger hover:text-danger/80"
-                onPress={() => onDelete(block.id)}
-              >
-                <TrashIcon className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
+    const renderFormField = (field) => {
+        const value = formData[field.name] || '';
+        const commonProps = {
+            label: field.label,
+            placeholder: field.placeholder,
+            isRequired: field.required,
+            size: "sm",
+            radius: getThemeRadius(),
+        };
 
-          {/* Block Preview */}
-          {block.content?.title && (
-            <p className="text-xs text-slate-500 mt-2 truncate">
-              {block.content.title}
-            </p>
-          )}
-        </CardHeader>
+        switch (field.type) {
+            case 'text':
+            case 'email':
+            case 'number':
+                return (
+                    <Input
+                        key={field.name}
+                        {...commonProps}
+                        type={field.type}
+                        value={value}
+                        onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
+                    />
+                );
+            case 'textarea':
+                return (
+                    <Textarea
+                        key={field.name}
+                        {...commonProps}
+                        value={value}
+                        onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
+                        minRows={3}
+                    />
+                );
+            case 'select':
+                return (
+                    <Select
+                        key={field.name}
+                        {...commonProps}
+                        selectedKeys={value ? [value] : []}
+                        onSelectionChange={(keys) => {
+                            const selected = Array.from(keys)[0];
+                            setFormData({ ...formData, [field.name]: selected });
+                        }}
+                    >
+                        {(field.options || []).map(option => (
+                            <SelectItem key={option.value || option}>{option.label || option}</SelectItem>
+                        ))}
+                    </Select>
+                );
+            case 'boolean':
+                return (
+                    <Switch
+                        key={field.name}
+                        checked={!!value}
+                        onChange={(e) => setFormData({ ...formData, [field.name]: e.target.checked })}
+                    >
+                        {field.label}
+                    </Switch>
+                );
+            case 'color':
+                return (
+                    <Input
+                        key={field.name}
+                        {...commonProps}
+                        type="color"
+                        value={value || '#000000'}
+                        onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
+                    />
+                );
+            default:
+                return (
+                    <Input
+                        key={field.name}
+                        {...commonProps}
+                        value={value}
+                        onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
+                    />
+                );
+        }
+    };
 
-        {/* Block Preview Content */}
-        <CardBody className="px-4 py-2">
-          <BlockPreview block={block} />
-        </CardBody>
-      </Card>
-    </div>
-  );
+    // Parse schema from blockType if available
+    const schema = blockType?.schema ? JSON.parse(blockType.schema) : {};
+    const contentFields = schema.fields?.filter(f => !f.section || f.section === 'content') || getDefaultFieldsForType(blockType?.name || '');
+    const settingsFields = schema.fields?.filter(f => f.section === 'settings') || [];
+
+    return (
+        <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="2xl" scrollBehavior="inside">
+            <ModalContent>
+                <ModalHeader className="flex flex-col gap-1">
+                    <h2 className="text-lg font-semibold">
+                        {block?.id ? 'Edit Block' : 'Add Block'} - {blockType?.label}
+                    </h2>
+                    <p className="text-xs text-default-500">{blockType?.description}</p>
+                </ModalHeader>
+                <ModalBody className="gap-4">
+                    <Tabs
+                        aria-label="Block editor tabs"
+                        selectedKey={activeTab}
+                        onSelectionChange={setActiveTab}
+                    >
+                        <Tab key="content" title="Content" className="space-y-4">
+                            {contentFields.length > 0 ? (
+                                contentFields.map(renderFormField)
+                            ) : (
+                                <p className="text-sm text-default-500">No content fields for this block type</p>
+                            )}
+                        </Tab>
+                        {settingsFields.length > 0 && (
+                            <Tab key="settings" title="Settings" className="space-y-4">
+                                {settingsFields.map(renderFormField)}
+                            </Tab>
+                        )}
+                        <Tab key="advanced" title="Advanced" className="space-y-4">
+                            <Input
+                                label="Custom CSS Classes"
+                                placeholder="e.g. mt-4 bg-blue-50"
+                                value={formData.customClasses || ''}
+                                onChange={(e) => setFormData({ ...formData, customClasses: e.target.value })}
+                                size="sm"
+                                radius={getThemeRadius()}
+                            />
+                            <Select
+                                label="Visibility"
+                                placeholder="Always visible"
+                                selectedKeys={formData.visibility ? [formData.visibility] : []}
+                                onSelectionChange={(keys) => setFormData({ ...formData, visibility: Array.from(keys)[0] })}
+                                size="sm"
+                                radius={getThemeRadius()}
+                            >
+                                <SelectItem key="always">Always Visible</SelectItem>
+                                <SelectItem key="desktop">Desktop Only</SelectItem>
+                                <SelectItem key="mobile">Mobile Only</SelectItem>
+                                <SelectItem key="logged-in">Logged In Only</SelectItem>
+                            </Select>
+                        </Tab>
+                    </Tabs>
+                </ModalBody>
+                <ModalFooter>
+                    <Button variant="flat" onPress={() => onOpenChange(false)}>Cancel</Button>
+                    <Button
+                        color="primary"
+                        isLoading={saving}
+                        onPress={() => onSave(formData)}
+                    >
+                        {block?.id ? 'Update Block' : 'Add Block'}
+                    </Button>
+                </ModalFooter>
+            </ModalContent>
+        </Modal>
+    );
 };
 
-const BlockPreview = ({ block }) => {
-  const previewMap = {
-    hero_standard: () => (
-      <div className="text-xs text-slate-500">
-        <p className="font-medium">{block.content?.title || 'Untitled'}</p>
-        <p className="truncate">{block.content?.subtitle || 'No subtitle'}</p>
-      </div>
-    ),
-    feature_grid: () => (
-      <div className="text-xs text-slate-500">
-        <p className="font-medium">{block.content?.title || 'Features'}</p>
-        <p>{block.content?.items?.length || 0} features</p>
-      </div>
-    ),
-    pricing_cards: () => (
-      <div className="text-xs text-slate-500">
-        <p className="font-medium">{block.content?.title || 'Pricing'}</p>
-        <p>{block.content?.plans?.length || 0} plans</p>
-      </div>
-    ),
-    testimonials: () => (
-      <div className="text-xs text-slate-500">
-        <p className="font-medium">{block.content?.title || 'Testimonials'}</p>
-        <p>{block.content?.testimonials?.length || 0} testimonials</p>
-      </div>
-    ),
-    text_block: () => (
-      <div className="text-xs text-slate-500">
-        <p className="line-clamp-2">{block.content?.text || 'Empty text block'}</p>
-      </div>
-    ),
-    cta_section: () => (
-      <div className="text-xs text-slate-500">
-        <p className="font-medium">{block.content?.title || 'Call to Action'}</p>
-        <p>{block.content?.button_text || 'No button text'}</p>
-      </div>
-    ),
-  };
+// Default fields based on block type if schema not provided
+function getDefaultFieldsForType(blockType) {
+    const defaultSchemas = {
+        Hero: [
+            { name: 'title', label: 'Title', type: 'text', required: true },
+            { name: 'subtitle', label: 'Subtitle', type: 'textarea', required: false },
+            { name: 'backgroundImage', label: 'Background Image URL', type: 'text', required: false },
+            { name: 'ctaText', label: 'CTA Button Text', type: 'text', required: false },
+            { name: 'ctaUrl', label: 'CTA URL', type: 'text', required: false },
+        ],
+        'Rich Text': [
+            { name: 'content', label: 'Content', type: 'textarea', required: true },
+        ],
+        CTA: [
+            { name: 'title', label: 'Title', type: 'text', required: true },
+            { name: 'description', label: 'Description', type: 'textarea', required: false },
+            { name: 'buttonText', label: 'Button Text', type: 'text', required: true },
+            { name: 'buttonUrl', label: 'Button URL', type: 'text', required: true },
+        ],
+        'Image Gallery': [
+            { name: 'title', label: 'Gallery Title', type: 'text', required: false },
+            { name: 'columns', label: 'Columns', type: 'select', options: [1, 2, 3, 4], required: false },
+        ],
+        Testimonials: [
+            { name: 'title', label: 'Section Title', type: 'text', required: false },
+            { name: 'testimonials', label: 'Number of Testimonials', type: 'number', required: false },
+        ],
+        FAQ: [
+            { name: 'title', label: 'FAQ Title', type: 'text', required: false },
+            { name: 'faqs', label: 'Number of FAQs', type: 'number', required: false },
+        ],
+    };
 
-  const preview = previewMap[block.block_type];
-  return preview ? preview() : (
-    <div className="text-xs text-slate-400">Block preview unavailable</div>
-  );
-};
-
-const BlockEditor = ({
-  blocks,
-  selectedBlockId,
-  onSelectBlock,
-  onUpdateBlock,
-  onDeleteBlock,
-  onMoveBlock,
-  onDuplicateBlock,
-}) => {
-  return (
-    <div className="space-y-3">
-      {blocks.map((block) => (
-        <DraggableBlock
-          key={block.id}
-          block={block}
-          isSelected={selectedBlockId === block.id}
-          onSelect={onSelectBlock}
-          onMove={onMoveBlock}
-          onDuplicate={onDuplicateBlock}
-          onDelete={onDeleteBlock}
-        />
-      ))}
-    </div>
-  );
-};
+    return defaultSchemas[blockType] || [
+        { name: 'title', label: 'Title', type: 'text', required: false },
+        { name: 'description', label: 'Description', type: 'textarea', required: false },
+    ];
+}
 
 export default BlockEditor;

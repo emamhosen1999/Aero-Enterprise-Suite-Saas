@@ -110,15 +110,16 @@ class PageController extends Controller
             $query->orderBy('order_index');
         }]);
 
-        return Inertia::render('Platform/Admin/Cms/Pages/Edit', [
+        return Inertia::render('Admin/CmsPageBuilder', [
             'title' => "Edit: {$page->title}",
             'page' => $page,
             'blocks' => $page->blocks->map(fn ($block) => [
                 'id' => $block->id,
-                'block_type' => $block->block_type,
-                'content' => $block->content,
+                'type' => $block->block_type,
+                'data' => $block->content,
                 'settings' => $block->settings,
                 'order_index' => $block->order_index,
+                'is_visible' => $block->is_visible ?? true,
             ]),
             'blockTypes' => array_values($this->blockRegistry->toArray()),
             'blockCategories' => config('cms-blocks.categories', []),

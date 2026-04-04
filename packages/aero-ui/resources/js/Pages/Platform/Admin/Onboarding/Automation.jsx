@@ -43,15 +43,17 @@ import axios from 'axios';
 
 const Automation = ({ 
     stats: initialStats, 
-    automationRules, 
+    automationRules,
+    rules,
     executionLogs,
+    executionLog,
     emailTemplates,
     auth 
 }) => {
     const [isMobile, setIsMobile] = useState(false);
     const [stats, setStats] = useState(initialStats || {});
-    const [rules, setRules] = useState(automationRules || []);
-    const [logs, setLogs] = useState(executionLogs || []);
+    const [rulesData, setRulesData] = useState(automationRules || rules || []);
+    const [logs, setLogs] = useState(executionLogs || executionLog || []);
     const [templates, setTemplates] = useState(emailTemplates || []);
     const [ruleModal, setRuleModal] = useState({ open: false, rule: null });
     const [loading, setLoading] = useState({});
@@ -77,6 +79,9 @@ const Automation = ({
         return 'xl';
     };
 
+    const canManageAutomation = auth?.permissions?.includes('platform-onboarding.onboarding_automation.manage')
+        || auth?.permissions?.includes('*');
+
     const statsData = useMemo(() => [
         {
             title: "Active Rules",
@@ -86,8 +91,8 @@ const Automation = ({
             iconBg: "bg-green-500/20",
         },
         {
-            title: "Emails Sent",
-            value: stats?.emailsSent || 0,
+            title: "Total Rules",
+            value: stats?.totalRules || 0,
             icon: <EnvelopeIcon className="w-6 h-6" />,
             color: "text-blue-400",
             iconBg: "bg-blue-500/20",
@@ -100,8 +105,8 @@ const Automation = ({
             iconBg: "bg-purple-500/20",
         },
         {
-            title: "Last 24 Hours",
-            value: stats?.last24Hours || 0,
+            title: "Executions Today",
+            value: stats?.executionsToday || 0,
             icon: <ClockIcon className="w-6 h-6" />,
             color: "text-orange-400",
             iconBg: "bg-orange-500/20",
@@ -115,11 +120,11 @@ const Automation = ({
             try {
                 const response = await axios.post(route('admin.onboarding.automation.toggle'), {
                     rule_id: ruleId,
-                    enabled: !currentState,
+                    is_active: !currentState,
                 });
                 if (response.status === 200) {
-                    setRules(prev => prev.map(r => 
-                        r.id === ruleId ? { ...r, enabled: !currentState } : r
+                    setRulesData(prev => prev.map(r => 
+                        r.id === ruleId ? { ...r, is_active: !currentState } : r
                     ));
                     resolve([response.data.message || 'Automation rule updated']);
                 }
@@ -143,7 +148,7 @@ const Automation = ({
             name: 'Welcome Email',
             description: 'Send welcome email immediately after registration',
             trigger: 'on_registration',
-            enabled: true,
+            is_active: true,
         },
         {
             id: 'trial_reminder_3',
@@ -151,7 +156,7 @@ const Automation = ({
             description: 'Send reminder email 3 days before trial expires',
             trigger: 'trial_expiring',
             delay: '3 days before',
-            enabled: true,
+            is_active: true,
         },
         {
             id: 'trial_reminder_1',
@@ -159,25 +164,28 @@ const Automation = ({
             description: 'Send urgent reminder 1 day before trial expires',
             trigger: 'trial_expiring',
             delay: '1 day before',
-            enabled: true,
+            is_active: true,
         },
         {
             id: 'trial_expired',
             name: 'Trial Expired Notice',
             description: 'Send notification when trial has expired',
             trigger: 'trial_expired',
-            enabled: true,
+            is_active: true,
         },
         {
             id: 'onboarding_complete',
             name: 'Onboarding Complete',
             description: 'Send congratulations email when onboarding is complete',
             trigger: 'onboarding_complete',
-            enabled: false,
+            is_active: false,
         },
     ];
 
-    const displayRules = rules.length > 0 ? rules : defaultRules;
+    const displayRules = (rulesData.length > 0 ? rulesData : defaultRules).map((rule) => ({
+        ...rule,
+        enabled: rule.enabled ?? rule.is_active ?? false,
+    }));
 
     const ruleColumns = [
         { uid: 'name', name: 'Rule Name' },
@@ -213,7 +221,7 @@ const Automation = ({
                     <Switch
                         size="sm"
                         isSelected={rule.enabled}
-                        isDisabled={loading[rule.id]}
+                        isDisabled={loading[rule.id] || !canManageAutomation}
                         onValueChange={() => toggleRule(rule.id, rule.enabled)}
                     />
                 );
@@ -224,6 +232,7 @@ const Automation = ({
                             size="sm"
                             variant="flat"
                             isIconOnly
+                            isDisabled={!canManageAutomation}
                             onPress={() => setRuleModal({ open: true, rule })}
                         >
                             <PencilIcon className="w-4 h-4" />
@@ -325,6 +334,7 @@ const Automation = ({
                                                 variant="shadow"
                                                 startContent={<PlusIcon className="w-4 h-4" />}
                                                 size={isMobile ? 'sm' : 'md'}
+                                                isDisabled={!canManageAutomation}
                                                 onPress={() => setRuleModal({ open: true, rule: null })}
                                             >
                                                 Add Rule

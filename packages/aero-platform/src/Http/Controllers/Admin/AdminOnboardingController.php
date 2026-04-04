@@ -269,6 +269,7 @@ class AdminOnboardingController extends Controller
     {
         $automationRules = $this->getAutomationRules();
         $executionLog = $this->getAutomationExecutionLog();
+        $emailTemplates = $this->getEmailTemplates();
 
         $stats = [
             'totalRules' => count($automationRules),
@@ -278,8 +279,11 @@ class AdminOnboardingController extends Controller
         ];
 
         return Inertia::render('Platform/Admin/Onboarding/Automation', [
+            'automationRules' => $automationRules,
             'rules' => $automationRules,
+            'executionLogs' => $executionLog,
             'executionLog' => $executionLog,
+            'emailTemplates' => $emailTemplates,
             'stats' => $stats,
         ]);
     }
@@ -558,12 +562,21 @@ class AdminOnboardingController extends Controller
      */
     public function updateSettings(Request $request): JsonResponse
     {
-        $request->validate([
-            'settings' => 'required|array',
-        ]);
+        $settings = $request->input('settings', $request->all());
+
+        if (! is_array($settings)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid settings payload.',
+            ], 422);
+        }
+
+        if (array_key_exists('require_admin_approval', $settings) && ! array_key_exists('require_manual_approval', $settings)) {
+            $settings['require_manual_approval'] = $settings['require_admin_approval'];
+        }
 
         try {
-            foreach ($request->settings as $key => $value) {
+            foreach ($settings as $key => $value) {
                 PlatformSetting::updateOrCreate(
                     ['key' => "onboarding.{$key}"],
                     ['value' => is_array($value) ? json_encode($value) : $value]
@@ -787,12 +800,17 @@ class AdminOnboardingController extends Controller
 
             $tenant->update([
                 'trial_ends_at' => null,
+                'status' => $tenant->subscriptions()
+                    ->where('status', Subscription::STATUS_ACTIVE)
+                    ->exists() ? $tenant->status : Tenant::STATUS_CANCELLED,
                 'data' => array_merge($tenant->data?->toArray() ?? [], [
                     'trial_cancelled_at' => Carbon::now()->toISOString(),
                     'trial_cancelled_by' => Auth::guard('landlord')->id(),
                     'trial_cancellation_reason' => $request->reason ?? 'Cancelled by admin',
                 ]),
             ]);
+
+            $this->clearStatsCache();
 
             Log::info('Trial cancelled', [
                 'tenant_id' => $tenant->id,
@@ -837,6 +855,7 @@ class AdminOnboardingController extends Controller
                     ->where('status', Tenant::STATUS_ACTIVE)
                     ->where('trial_ends_at', '>', $now)
                     ->count(),
+                'cancelledTenants' => Tenant::where('status', Tenant::STATUS_CANCELLED)->count(),
                 'conversionRate' => $this->calculateConversionRate(),
                 'provisioningQueue' => Tenant::whereIn('status', [Tenant::STATUS_PROVISIONING, Tenant::STATUS_FAILED])->count(),
                 'funnelStarted' => Tenant::whereMonth('created_at', $now->month)->count(),

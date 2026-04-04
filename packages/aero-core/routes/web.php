@@ -163,6 +163,13 @@ Route::get('/', function () {
 })->middleware(['auth:web']);
 
 // ============================================================================
+// HOME ROUTE - Alias for root route, redirects to dashboard
+// ============================================================================
+Route::get('/home', function () {
+    return redirect()->route('core.dashboard');
+})->middleware(['auth:web'])->name('core.home');
+
+// ============================================================================
 // PLATFORM IMPERSONATION TOKEN ROUTES (No Auth - token IS the authentication)
 // ============================================================================
 // Only registered in SaaS mode when the platform ImpersonationController exists.

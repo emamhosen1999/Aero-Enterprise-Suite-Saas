@@ -280,7 +280,7 @@ export default function Landing() {
                 >
                   Start Free Trial
                 </Button>
-                <Button as={Link} href={route('demo')} size="sm" variant="bordered" className="px-3 md:px-9 py-2 md:py-7 rounded-lg md:rounded-2xl border-current text-xs md:text-base">
+                <Button as={Link} href={route('platform.register.index')} size="sm" variant="bordered" className="px-3 md:px-9 py-2 md:py-7 rounded-lg md:rounded-2xl border-current text-xs md:text-base">
                   Watch demo
                 </Button>
                 <Button as="a" href="#products" size="sm" variant="light" className="px-3 md:px-9 py-2 md:py-7 text-xs md:text-base">
@@ -466,7 +466,7 @@ export default function Landing() {
               ))}
             </div>
             <div className="text-center mt-6 md:mt-10">
-              <Button as={Link} href={route('features')} variant="bordered" className="border-current text-xs md:text-base px-4 md:px-8 py-2 md:py-6">
+              <Button as={Link} href={route('platform.features')} variant="bordered" className="border-current text-xs md:text-base px-4 md:px-8 py-2 md:py-6">
                 Explore All Product Suites
               </Button>
             </div>
@@ -570,7 +570,7 @@ export default function Landing() {
                 </Chip>
                 <h2 className="text-xl md:text-4xl font-bold">Deployed across construction, healthcare, and public sector enterprises.</h2>
               </div>
-              <Button as={Link} href={route('resources')} variant="bordered" className="border-current text-xs md:text-base px-3 md:px-6 py-2 md:py-4">
+              <Button as={Link} href={route('platform.resources')} variant="bordered" className="border-current text-xs md:text-base px-3 md:px-6 py-2 md:py-4">
                 View Case Studies
               </Button>
             </div>
@@ -664,7 +664,7 @@ export default function Landing() {
                 <Button as={Link} href={route('platform.register.index')} size="sm" className="bg-white text-slate-900 font-semibold px-4 md:px-10 py-2 md:py-6 text-xs md:text-base">
                   Start free trial
                 </Button>
-                <Button as={Link} href={route('contact')} size="sm" variant="bordered" className="border-current px-4 md:px-10 py-2 md:py-6 text-xs md:text-base">
+                <Button as={Link} href={route('platform.support')} size="sm" variant="bordered" className="border-current px-4 md:px-10 py-2 md:py-6 text-xs md:text-base">
                   Contact Sales
                 </Button>
               </div>

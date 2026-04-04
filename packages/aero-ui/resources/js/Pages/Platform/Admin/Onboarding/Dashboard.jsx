@@ -1,9 +1,11 @@
 import React, { useMemo } from 'react';
 import { Head } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import { RocketLaunchIcon } from "@heroicons/react/24/outline";
+import { RocketLaunchIcon, UserGroupIcon, ClockIcon, ChartBarIcon, ServerStackIcon } from "@heroicons/react/24/outline";
+import { Card, CardBody, CardHeader, Chip } from "@heroui/react";
 import App from "@/Layouts/App.jsx";
 import DynamicWidgetRenderer from '@/Components/DynamicWidgets/DynamicWidgetRenderer';
+import StatsCards from "@/Components/StatsCards.jsx";
 
 /**
  * Platform Onboarding Dashboard - Dynamic Widget Architecture
@@ -14,7 +16,14 @@ import DynamicWidgetRenderer from '@/Components/DynamicWidgets/DynamicWidgetRend
  * 
  * Widget positions: welcome, stats_row, main_left, main_right, sidebar, full_width
  */
-const Dashboard = ({ title = 'Platform Onboarding Dashboard', dynamicWidgets = [] }) => {
+const Dashboard = ({
+    title = 'Platform Onboarding Dashboard',
+    dynamicWidgets = [],
+    stats = {},
+    registrations = [],
+    trials = [],
+    provisioningQueue = [],
+}) => {
     // Group widgets by position for layout
     const widgetsByPosition = useMemo(() => {
         const positions = {
@@ -44,6 +53,41 @@ const Dashboard = ({ title = 'Platform Onboarding Dashboard', dynamicWidgets = [
     }, [dynamicWidgets]);
 
     const hasAnyWidgets = dynamicWidgets.length > 0;
+    const hasLegacyData = Object.keys(stats || {}).length > 0
+        || (registrations?.length ?? 0) > 0
+        || (trials?.length ?? 0) > 0
+        || (provisioningQueue?.length ?? 0) > 0;
+
+    const fallbackStats = useMemo(() => [
+        {
+            title: "Pending Registrations",
+            value: stats?.pendingRegistrations || 0,
+            icon: <UserGroupIcon className="w-6 h-6" />,
+            color: "text-warning",
+            iconBg: "bg-warning/20",
+        },
+        {
+            title: "Active Trials",
+            value: stats?.activeTrials || 0,
+            icon: <ClockIcon className="w-6 h-6" />,
+            color: "text-primary",
+            iconBg: "bg-primary/20",
+        },
+        {
+            title: "Conversion Rate",
+            value: `${stats?.conversionRate || 0}%`,
+            icon: <ChartBarIcon className="w-6 h-6" />,
+            color: "text-success",
+            iconBg: "bg-success/20",
+        },
+        {
+            title: "Provisioning Queue",
+            value: stats?.provisioningQueue || 0,
+            icon: <ServerStackIcon className="w-6 h-6" />,
+            color: "text-secondary",
+            iconBg: "bg-secondary/20",
+        },
+    ], [stats]);
 
     return (
         <>
@@ -111,8 +155,72 @@ const Dashboard = ({ title = 'Platform Onboarding Dashboard', dynamicWidgets = [
                     </motion.div>
                 )}
 
+                {/* Legacy Fallback (Controller-provided props) */}
+                {!hasAnyWidgets && hasLegacyData && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="space-y-6"
+                    >
+                        <Card className="transition-all duration-200">
+                            <CardHeader className="border-b border-divider">
+                                <div>
+                                    <h3 className="text-lg font-semibold">Onboarding Overview</h3>
+                                    <p className="text-sm text-default-500">Fallback view while dynamic onboarding widgets are being wired.</p>
+                                </div>
+                            </CardHeader>
+                            <CardBody className="space-y-6">
+                                <StatsCards stats={fallbackStats} />
+
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                                    <div className="space-y-3">
+                                        <p className="text-sm font-semibold">Recent Registrations</p>
+                                        {(registrations || []).slice(0, 5).map((item) => (
+                                            <div key={item.id} className="p-3 rounded-lg border border-divider">
+                                                <p className="font-medium text-sm">{item.companyName || item.name}</p>
+                                                <p className="text-xs text-default-500">{item.email}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <p className="text-sm font-semibold">Trials</p>
+                                        {(trials || []).slice(0, 5).map((item) => (
+                                            <div key={item.id} className="p-3 rounded-lg border border-divider flex items-center justify-between">
+                                                <div>
+                                                    <p className="font-medium text-sm">{item.companyName || item.name}</p>
+                                                    <p className="text-xs text-default-500">{item.plan || item.plan?.name || 'No Plan'}</p>
+                                                </div>
+                                                <Chip size="sm" variant="flat" color={item.daysRemaining <= 3 ? 'danger' : item.daysRemaining <= 7 ? 'warning' : 'success'}>
+                                                    {item.daysRemaining ?? '--'}d
+                                                </Chip>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <p className="text-sm font-semibold">Provisioning Queue</p>
+                                        {(provisioningQueue || []).slice(0, 5).map((item) => (
+                                            <div key={item.id} className="p-3 rounded-lg border border-divider flex items-center justify-between">
+                                                <div>
+                                                    <p className="font-medium text-sm">{item.tenantName || item.name}</p>
+                                                    <p className="text-xs text-default-500">{item.database || item.subdomain}</p>
+                                                </div>
+                                                <Chip size="sm" variant="flat" color={item.status === 'failed' ? 'danger' : 'primary'}>
+                                                    {item.status || 'queued'}
+                                                </Chip>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </CardBody>
+                        </Card>
+                    </motion.div>
+                )}
+
                 {/* Empty State */}
-                {!hasAnyWidgets && (
+                {!hasAnyWidgets && !hasLegacyData && (
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}

@@ -27,7 +27,7 @@ use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
  *
  * @property string $id UUID primary key
  * @property \ArrayObject $data Flexible metadata storage (owner_name, address, etc.)
- * @property string $status Tenant status: pending, active, suspended, archived
+ * @property string $status Tenant status: pending, provisioning, active, failed, cancelled, suspended, archived
  * @property bool $maintenance_mode Whether tenant is in maintenance mode
  * @property \Carbon\Carbon|null $trial_ends_at Trial period end date
  * @property string|null $plan_id Foreign key to plans table
@@ -49,6 +49,8 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     public const STATUS_ACTIVE = 'active';
 
     public const STATUS_FAILED = 'failed';
+
+    public const STATUS_CANCELLED = 'cancelled';
 
     public const STATUS_SUSPENDED = 'suspended';
 
@@ -274,6 +276,14 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         return $query->where('status', self::STATUS_FAILED);
     }
 
+    /**
+     * Scope to filter cancelled tenants.
+     */
+    public function scopeCancelled($query)
+    {
+        return $query->where('status', self::STATUS_CANCELLED);
+    }
+
     // =========================================================================
     // HELPER METHODS
     // =========================================================================
@@ -300,6 +310,14 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     public function hasFailed(): bool
     {
         return $this->status === self::STATUS_FAILED;
+    }
+
+    /**
+     * Check if the tenant has been cancelled.
+     */
+    public function isCancelled(): bool
+    {
+        return $this->status === self::STATUS_CANCELLED;
     }
 
     /**

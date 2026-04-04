@@ -31,27 +31,33 @@ class CmsPageBlock extends Model
 
     protected $fillable = [
         'page_id',
-        'block_type',
-        'block_id',
+        'parent_block_id',
+        'type',
+        'data',
         'order_index',
-        'content',
-        'settings',
-        'visibility',
-        'is_active',
+        'is_visible',
+        'conditions',
+        'variant',
+        'dependencies',
+        'metadata',
+        'created_by',
+        'updated_by',
     ];
 
     protected $casts = [
-        'content' => 'array',
-        'settings' => 'array',
-        'visibility' => 'array',
-        'is_active' => 'boolean',
+        'data' => 'array',
+        'conditions' => 'array',
+        'dependencies' => 'array',
+        'metadata' => 'array',
+        'is_visible' => 'boolean',
     ];
 
     protected $attributes = [
-        'content' => '{}',
-        'settings' => '{}',
-        'visibility' => '{}',
-        'is_active' => true,
+        'data' => '{}',
+        'conditions' => '{}',
+        'dependencies' => '{}',
+        'metadata' => '{}',
+        'is_visible' => true,
     ];
 
     /**
@@ -201,5 +207,67 @@ class CmsPageBlock extends Model
 
         $this->order_index = $newPosition;
         $this->save();
+    }
+
+    /**
+     * Get all versions of this block.
+     */
+    public function versions()
+    {
+        return $this->hasMany(CmsBlockVersion::class, 'cms_page_block_id');
+    }
+
+    /**
+     * Get current publishing record.
+     */
+    public function currentPublish()
+    {
+        return $this->hasOne(CmsBlockPublish::class, 'cms_page_block_id')
+            ->latest('created_at');
+    }
+
+    /**
+     * Get all publishing records.
+     */
+    public function publishes()
+    {
+        return $this->hasMany(CmsBlockPublish::class, 'cms_page_block_id');
+    }
+
+    /**
+     * Get revision history.
+     */
+    public function revisions()
+    {
+        return $this->hasMany(CmsBlockRevision::class, 'cms_page_block_id')
+            ->orderByDesc('created_at');
+    }
+
+    /**
+     * Get the latest published version.
+     */
+    public function getLatestPublishedVersion(): ?CmsBlockVersion
+    {
+        return $this->versions()
+            ->orderByDesc('version_number')
+            ->first();
+    }
+
+    /**
+     * Check if block is published and visible.
+     */
+    public function isPublished(): bool
+    {
+        $publish = $this->currentPublish()->first();
+        return $publish && $publish->isActive();
+    }
+
+    /**
+     * Get publishing status.
+     */
+    public function getPublishingStatus(): string
+    {
+        $publish = $this->currentPublish()->first();
+        return $publish?->status ?? 'unpublished';
     }
 }

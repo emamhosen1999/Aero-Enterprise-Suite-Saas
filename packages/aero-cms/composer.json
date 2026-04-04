@@ -44,7 +44,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Aero\\Cms\\CmsServiceProvider"
+                "Aero\\Cms\\Providers\\CmsServiceProvider"
             ],
             "aliases": {
                 "AeroCms": "Aero\\Cms\\Facades\\Cms"

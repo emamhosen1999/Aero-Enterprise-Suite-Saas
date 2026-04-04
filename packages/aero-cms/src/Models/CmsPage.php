@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Aero\Cms\Models;
 
 use Aero\Cms\Database\Factories\CmsPageFactory;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -38,6 +40,7 @@ class CmsPage extends Model
         'meta_title',
         'meta_description',
         'meta_keywords',
+        'canonical_url',
         'og_image',
         'status',
         'published_at',
@@ -47,10 +50,16 @@ class CmsPage extends Model
         'created_by',
         'updated_by',
         'parent_id',
+        'category_id',
+        'template_id',
         'order',
         'show_in_nav',
         'nav_label',
         'is_homepage',
+        'view_count',
+        'seo_index',
+        'language',
+        'translation_key',
     ];
 
     protected $casts = [
@@ -59,6 +68,8 @@ class CmsPage extends Model
         'scheduled_at' => 'datetime',
         'show_in_nav' => 'boolean',
         'is_homepage' => 'boolean',
+        'seo_index' => 'boolean',
+        'view_count' => 'integer',
     ];
 
     protected $attributes = [
@@ -139,6 +150,30 @@ class CmsPage extends Model
     {
         return $this->hasMany(self::class, 'parent_id')
             ->orderBy('order');
+    }
+
+    /**
+     * Get the category.
+     */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(CmsCategory::class, 'category_id');
+    }
+
+    /**
+     * Get the template.
+     */
+    public function template(): BelongsTo
+    {
+        return $this->belongsTo(CmsTemplate::class, 'template_id');
+    }
+
+    /**
+     * Get menu items for this page.
+     */
+    public function menuItems()
+    {
+        return $this->hasMany(CmsMenuItem::class, 'page_id');
     }
 
     /**
@@ -242,5 +277,105 @@ class CmsPage extends Model
         }
 
         return $this->slug;
+    }
+
+    /**
+     * Scope for publicly visible pages (published and scheduled).
+     */
+    public function scopePublic($query)
+    {
+        return $query->where('status', 'published')
+            ->where(function ($q) {
+                $q->whereNull('scheduled_at')
+                    ->orWhere('scheduled_at', '<=', now());
+            });
+    }
+
+    /**
+     * Scope for indexable pages (SEO).
+     */
+    public function scopeIndexable($query)
+    {
+        return $query->public()->where('allow_indexing', true);
+    }
+
+    /**
+     * Scope for pages in a specific category.
+     */
+    public function scopeInCategory($query, $categoryId)
+    {
+        return $query->where('category_id', $categoryId);
+    }
+
+    /**
+     * Increment view count.
+     */
+    public function recordView(): void
+    {
+        $this->increment('view_count');
+    }
+
+    /**
+     * Check if page is currently published and visible.
+     */
+    public function isPubliclyVisible(): bool
+    {
+        return $this->status === 'published'
+            && (!$this->scheduled_at || $this->scheduled_at <= now());
+    }
+
+    /**
+     * Check if page should be indexed by search engines.
+     */
+    public function isIndexable(): bool
+    {
+        return $this->isPubliclyVisible() && $this->allow_indexing;
+    }
+
+    /**
+     * Filter pages by language/locale.
+     */
+    public function scopeLanguage(Builder $query, ?string $language = null): Builder
+    {
+        $language = $language ?? app()->getLocale();
+        return $query->where('language', $language);
+    }
+
+    /**
+     * Get alternative language versions of the same page (by translation_key).
+     */
+    public function scopeTranslation(Builder $query, ?string $translationKey = null): Builder
+    {
+        $translationKey = $translationKey ?? $this->translation_key;
+        return $query->where('translation_key', $translationKey);
+    }
+
+    /**
+     * Get pages for a specific locale with fallback to default.
+     */
+    public function scopeForLocale(Builder $query, ?string $locale = null): Builder
+    {
+        $locale = $locale ?? app()->getLocale();
+        return $query->where('language', $locale);
+    }
+
+    /**
+     * Get translations for this page across all languages.
+     */
+    public function translations(): Collection
+    {
+        return static::where('translation_key', $this->translation_key)
+            ->where('id', '!=', $this->id)
+            ->get();
+    }
+
+    /**
+     * Get translation for specific language.
+     */
+    public function getTranslation(string $language): ?self
+    {
+        return static::where('translation_key', $this->translation_key)
+            ->where('language', $language)
+            ->first();
     }
 }

@@ -2,47 +2,42 @@
 // Used by PublicLayout header, Footer, and mobile menu
 
 export const publicNavLinks = [
-  { label: 'Home', routeName: 'landing', type: 'route' },
-  { label: 'Platform', routeName: 'features', type: 'route' },
-  { label: 'Pricing', routeName: 'pricing', type: 'route' },
-  { label: 'About', routeName: 'about', type: 'route' },
-  { label: 'Resources', routeName: 'resources', type: 'route' },
-  { label: 'Support', routeName: 'support', type: 'route' },
-  { label: 'Demo', routeName: 'demo', type: 'route' },
-  { label: 'Contact', routeName: 'contact', type: 'route' },
+  { label: 'Home', routeName: 'platform.home', type: 'route' },
+  { label: 'Platform', routeName: 'platform.features', type: 'route' },
+  { label: 'Pricing', routeName: 'platform.pricing', type: 'route' },
+  { label: 'About', routeName: 'platform.about', type: 'route' },
+  { label: 'Resources', routeName: 'platform.resources', type: 'route' },
+  { label: 'Support', routeName: 'platform.support', type: 'route' },
 ];
 
 export const footerColumns = [
   {
     heading: 'Platform',
     links: [
-      { label: 'Platform', routeName: 'features' },
-      { label: 'Pricing', routeName: 'pricing' },
-      { label: 'Demo', routeName: 'demo' },
+      { label: 'Platform', routeName: 'platform.features' },
+      { label: 'Pricing', routeName: 'platform.pricing' },
+      { label: 'Resources', routeName: 'platform.resources' },
     ],
   },
   {
     heading: 'Company',
     links: [
-      { label: 'About', routeName: 'about' },
-      { label: 'Careers', routeName: 'careers' },
-      { label: 'Blog', routeName: 'blog' },
+      { label: 'About', routeName: 'platform.about' },
+      { label: 'Support', routeName: 'platform.support' },
     ],
   },
   {
     heading: 'Resources',
     links: [
-      { label: 'Documentation', routeName: 'docs' },
-      { label: 'Support', routeName: 'support' },
-      { label: 'Contact', routeName: 'contact' },
+      { label: 'Support', routeName: 'platform.support' },
     ],
   },
   {
     heading: 'Legal',
     links: [
-      { label: 'Privacy Policy', routeName: 'legal.privacy' },
-      { label: 'Terms of Service', routeName: 'legal.terms' },
-      { label: 'Cookie Policy', routeName: 'legal.cookies' },
+      { label: 'Privacy Policy', routeName: 'platform.legal.privacy' },
+      { label: 'Terms of Service', routeName: 'platform.legal.terms' },
+      { label: 'Cookie Policy', routeName: 'platform.legal.cookies' },
     ],
   },
 ];

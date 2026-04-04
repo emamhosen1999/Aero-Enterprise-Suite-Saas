@@ -317,6 +317,15 @@ class LandlordUser extends Authenticatable
     }
 
     /**
+     * Twill checks credentials with ['published' => 1].
+     * Map our `active` column to the `published` attribute it expects.
+     */
+    public function getPublishedAttribute(): bool
+    {
+        return $this->active === true;
+    }
+
+    /**
      * Record a login event.
      */
     public function recordLogin(?string $ip = null): void

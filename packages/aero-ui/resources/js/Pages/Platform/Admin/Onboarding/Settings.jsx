@@ -32,7 +32,7 @@ const Settings = ({ settings: initialSettings, plans, auth }) => {
         default_trial_days: initialSettings?.default_trial_days || 14,
         require_email_verification: initialSettings?.require_email_verification ?? true,
         require_phone_verification: initialSettings?.require_phone_verification ?? false,
-        require_admin_approval: initialSettings?.require_admin_approval ?? false,
+        require_manual_approval: initialSettings?.require_manual_approval ?? initialSettings?.require_admin_approval ?? false,
         auto_provision_on_approval: initialSettings?.auto_provision_on_approval ?? true,
         default_plan_id: initialSettings?.default_plan_id || '',
         welcome_email_enabled: initialSettings?.welcome_email_enabled ?? true,
@@ -64,6 +64,9 @@ const Settings = ({ settings: initialSettings, plans, auth }) => {
         return 'xl';
     };
 
+    const canUpdateSettings = auth?.permissions?.includes('platform-onboarding.onboarding_settings.update')
+        || auth?.permissions?.includes('*');
+
     const handleChange = (key, value) => {
         setSettings(prev => ({ ...prev, [key]: value }));
     };
@@ -73,7 +76,7 @@ const Settings = ({ settings: initialSettings, plans, auth }) => {
         
         const promise = new Promise(async (resolve, reject) => {
             try {
-                const response = await axios.post(route('admin.onboarding.settings.update'), settings);
+                const response = await axios.post(route('admin.onboarding.settings.update'), { settings });
                 if (response.status === 200) {
                     resolve([response.data.message || 'Settings saved successfully']);
                 }
@@ -146,6 +149,7 @@ const Settings = ({ settings: initialSettings, plans, auth }) => {
                                                 size={isMobile ? 'sm' : 'md'}
                                                 onPress={handleSave}
                                                 isLoading={saving}
+                                                isDisabled={!canUpdateSettings}
                                             >
                                                 Save Settings
                                             </Button>
@@ -228,8 +232,8 @@ const Settings = ({ settings: initialSettings, plans, auth }) => {
                                                     <p className="text-xs text-default-400">Require admin approval for new registrations</p>
                                                 </div>
                                                 <Switch
-                                                    isSelected={settings.require_admin_approval}
-                                                    onValueChange={(value) => handleChange('require_admin_approval', value)}
+                                                    isSelected={settings.require_manual_approval}
+                                                    onValueChange={(value) => handleChange('require_manual_approval', value)}
                                                 />
                                             </div>
                                         </CardBody>

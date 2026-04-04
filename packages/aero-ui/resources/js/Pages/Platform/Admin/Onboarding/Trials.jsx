@@ -224,6 +224,30 @@ const Trials = ({ trials: initialTrials, stats: initialStats, plans, filters: in
         });
     };
 
+    const handleCancelTrial = async (trial) => {
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post(route('admin.onboarding.trials.cancel', { tenant: trial.id }), {
+                    reason: 'Cancelled from onboarding trial management',
+                });
+                if (response.data.success) {
+                    resolve([response.data.message]);
+                    fetchTrials(pagination.currentPage);
+                } else {
+                    reject([response.data.message]);
+                }
+            } catch (error) {
+                reject([error.response?.data?.message || 'Failed to cancel trial']);
+            }
+        });
+
+        showToast.promise(promise, {
+            loading: 'Cancelling trial...',
+            success: (data) => data.join(', '),
+            error: (data) => Array.isArray(data) ? data.join(', ') : data,
+        });
+    };
+
     const getDaysRemaining = (trialEndsAt) => {
         const now = new Date();
         const end = new Date(trialEndsAt);
@@ -310,6 +334,17 @@ const Trials = ({ trials: initialTrials, stats: initialStats, plans, filters: in
                                         }}
                                     >
                                         Convert to Paid
+                                    </DropdownItem>
+                                )}
+                                {hasPermission('platform-onboarding.trials.cancel') && (
+                                    <DropdownItem
+                                        key="cancel"
+                                        startContent={<XCircleIcon className="w-4 h-4" />}
+                                        className="text-danger"
+                                        color="danger"
+                                        onPress={() => handleCancelTrial(trial)}
+                                    >
+                                        Cancel Trial
                                     </DropdownItem>
                                 )}
                             </DropdownMenu>

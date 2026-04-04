@@ -35,5 +35,6 @@ use Illuminate\Support\Facades\Route;
 // IMPORTANT: Route::fallback() only triggers when NO other route matches.
 // This is the correct Laravel pattern for "catch-all" functionality.
 // The slug is extracted from the request path in the controller.
-Route::fallback([PublicPageController::class, 'show'])
-    ->name('cms.page');
+// NOTE: TEMPORARILY DISABLED - Using static pages instead
+// Route::fallback([PublicPageController::class, 'show'])
+//     ->name('cms.page');
