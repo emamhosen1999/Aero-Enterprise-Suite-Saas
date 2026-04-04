@@ -29,8 +29,7 @@
         "laravel/fortify": "^1.24",
         "laravel/sanctum": "^4.0",
         "laravel/cashier": "^15.0",
-        "spatie/laravel-medialibrary": "^11.0",
-        "area17/twill": "^3.5"
+        "spatie/laravel-medialibrary": "^11.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^11.0",
