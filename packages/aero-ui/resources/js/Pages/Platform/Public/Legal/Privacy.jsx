@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Head } from '@inertiajs/react';
 import { Chip, Card, CardBody } from '@heroui/react';
 import { privacySections } from '@/constants/marketing';
 import PublicLayout from '@/Layouts/PublicLayout';
@@ -21,6 +22,7 @@ const Privacy = () => {
 
   return (
     <PublicLayout>
+      <Head title="Privacy Policy" />
       <div className={palette.baseText}>
     <section className="max-w-4xl mx-auto px-6 pt-28 pb-12 text-center">
       <Chip color="primary" variant="flat" className="uppercase tracking-[0.35em] text-xs">Privacy</Chip>

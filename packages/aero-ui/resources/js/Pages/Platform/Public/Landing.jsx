@@ -100,35 +100,35 @@ const iconMap = {
 const problemStatements = [
   {
     title: 'Fragmented Operational Visibility',
-    detail: 'HR, compliance, and field operations maintain isolated data stores, forcing executives to depend on manually compiled status reports rather than live operational metrics.',
+    detail: 'Teams work in separate tools, so leaders wait too long for a clear and trusted view of business performance.',
   },
   {
-    title: 'Extended Audit Preparation Cycles',
-    detail: 'Evidence collection for ISO, OSHA, or internal audits is managed over email threads, introducing significant delays and diverting resources from core business activities.',
+    title: 'Slow Review And Approval Cycles',
+    detail: 'Preparing for internal and external reviews takes too long and pulls managers away from growth priorities.',
   },
   {
-    title: 'Proliferation of Brittle Point Solutions',
-    detail: 'Overlapping legacy systems generate duplicate data entry, misaligned license renewals, and automation logic that fails to propagate across the enterprise.',
+    title: 'Too Many Disconnected Tools',
+    detail: 'Too many systems create duplicate work, inconsistent numbers, and higher operating costs across departments.',
   },
   {
-    title: 'Unstructured Cross-Functional Handoffs',
-    detail: 'Finance, project, and workforce data requires manual reconciliation cycles before consolidated intelligence reaches executive steering committees.',
+    title: 'Inefficient Team Handoffs',
+    detail: 'Handoffs between people, finance, and operations teams slow decisions and delay execution.',
   },
 ];
 
 const integrations = ['Slack', 'Teams', 'SAP', 'QuickBooks', 'Salesforce', 'Oracle', 'Jira', 'HubSpot'];
 
 const heroSlideHighlights = {
-  hrm: ['Attendance & Leave Policy Automation', 'Payroll-Ready Timesheet Management', 'Skills Matrix & Training Operations'],
-  crm: ['Multi-Channel Pipeline Orchestration', 'Service Desk with Configurable SLAs', 'Revenue-Attributed Campaign Analytics'],
-  finance: ['Ledger-to-Financial-Statements in One Workflow', 'Multi-Entity Budgeting & Variance Controls', 'Perpetual Audit-Ready Transaction Trails'],
-  project: ['Gantt, Kanban & Sprint Views Synchronized', 'Resource Utilization Heatmaps', 'Change Order Management with Budget Impact'],
-  ims: ['Warehouse Movements with Barcode Scanning', 'Automated Reorder Signals & Safety Buffers', 'Cycle Count Variance Analysis'],
-  scm: ['RFQ-to-PO with Vendor Performance Scoring', 'Inbound Quality Control with Hold Workflows', 'Freight Tracking & Landed Cost Attribution'],
-  pos: ['Omnichannel Pricing & Promotion Engine', 'Day-End Reconciliation & Cash Drawer Control', 'Returns & Exchange Authorization Workflows'],
-  quality: ['NC/CAPA with Effectiveness Verification', 'Control Plans & Laboratory Test Management', 'Calibration Schedules & Audit Cadence'],
-  dms: ['Version-Controlled Document Repositories', 'Structured Approval & Publishing Workflows', 'Retention Policy Enforcement & Access Controls'],
-  compliance: ['Risk Registers with Dynamic Heatmaps', 'Incident-to-CAPA Workflow Automation', 'Policy Attestation & Compliance Evidence Management'],
+  hrm: ['Faster hiring and onboarding', 'Clear leave and attendance decisions', 'Stronger people development'],
+  crm: ['More predictable sales pipeline', 'Better customer follow-up', 'Higher campaign returns'],
+  finance: ['Quicker month-end closing', 'Better budget discipline', 'Confident leadership reporting'],
+  project: ['On-time delivery and ownership', 'Clear team capacity planning', 'Better budget control'],
+  ims: ['Fewer stockouts and overstocks', 'Better warehouse accuracy', 'Lower carrying costs'],
+  scm: ['Smarter supplier decisions', 'Faster purchasing cycles', 'Better margin control'],
+  pos: ['Higher store conversion rates', 'Better daily cash control', 'Cleaner returns handling'],
+  quality: ['Fewer repeat quality issues', 'Clear corrective ownership', 'Stronger customer trust'],
+  dms: ['Faster policy approvals', 'Clear document ownership', 'Lower compliance risk'],
+  compliance: ['Clear risk ownership', 'Faster incident follow-up', 'Greater leadership confidence'],
 };
 
 const pricingPlans = [
@@ -136,22 +136,45 @@ const pricingPlans = [
     name: 'Launch',
     price: 'Custom',
     period: '',
-    description: 'Pilot up to two product suites with guided onboarding, reference data provisioning, and a dedicated implementation architect.',
+    description: 'Start quickly with guided setup for your priority teams and clear early wins.',
     highlight: false,
   },
   {
     name: 'Scale',
     price: '$20',
     period: '/product/month',
-    description: 'Full product suite access, pre-built automation playbooks, premium SLA support, and certified integration connectors.',
+    description: 'Run your whole business with stronger planning, better insights, and premium support.',
     highlight: true,
   },
   {
     name: 'Enterprise',
     price: 'Let’s Talk',
     period: '',
-    description: 'Assigned Customer Success Manager, GovCloud or private cloud deployment, bespoke SLA agreements, and data residency controls.',
+    description: 'For larger organizations that need dedicated success leadership and tailored commercial terms.',
     highlight: false,
+  },
+];
+
+const deploymentModels = [
+  {
+    id: 'cloud',
+    label: 'Managed Service',
+    audience: 'Best for growing companies that want speed',
+    summary: 'Go live quickly with expert guidance, simple setup, and continuous business support.',
+    bullets: ['Fast launch', 'Lower operational burden', 'Easy scaling as you grow'],
+    cta: 'Start Managed Trial',
+    href: 'platform.register.index',
+    variant: 'primary',
+  },
+  {
+    id: 'standalone',
+    label: 'Private Company Setup',
+    audience: 'Best for large organizations with internal policy needs',
+    summary: 'Run Aero in a private setup while keeping the same business process and leadership view.',
+    bullets: ['Private setup option', 'Business policy alignment', 'Long-term flexibility'],
+    cta: 'Explore Private Setup',
+    href: 'platform.standalone',
+    variant: 'secondary',
   },
 ];
 
@@ -164,8 +187,8 @@ export default function Landing() {
   const { metadata = {}, branding = {}, site = {} } = platformSettings || {};
   
   // Use platform settings with fallbacks
-  const heroTitle = metadata.hero_title || "One unified platform for every core business function.";
-  const heroSubtitle = metadata.hero_subtitle || "Streamline workforce, customer, financial, and operational management with integrated solutions designed for speed, clarity, and enterprise-grade control.";
+  const heroTitle = metadata.hero_title || 'One business platform for faster growth and better decisions.';
+  const heroSubtitle = metadata.hero_subtitle || 'Bring people, sales, finance, and operations together in one place so leaders can act faster and teams can perform at their best.';
   const siteName = site.name || "Aero";
   const primaryColor = branding.primary_color || '#3b82f6';
   const accentColor = branding.accent_color || '#8b5cf6';
@@ -235,7 +258,7 @@ export default function Landing() {
     <PublicLayout mainClassName="pt-0">
       <Head>
         <title>{metadata.meta_title || 'Home'}</title>
-        <meta name="description" content={metadata.meta_description || "Enterprise business platform with integrated solutions for workforce, customer, financial, and operational management."} />
+        <meta name="description" content={metadata.meta_description || "Business management platform that helps teams increase performance, improve visibility, and grow with confidence."} />
         {metadata.meta_keywords && <meta name="keywords" content={metadata.meta_keywords} />}
         {branding.favicon && <link rel="icon" type="image/x-icon" href={branding.favicon} />}
       </Head>
@@ -260,7 +283,7 @@ export default function Landing() {
           <div className="relative max-w-7xl mx-auto grid items-center gap-10 md:gap-16 lg:grid-cols-2">
             <div className="space-y-4 md:space-y-6">
               <Chip color="success" variant="flat" className="uppercase tracking-[0.2em] md:tracking-[0.3em] text-[9px] md:text-[11px] mb-3 md:mb-6">
-                Enterprise-Grade Platform
+                Business Growth Platform
               </Chip>
               <h1 className="text-2xl md:text-4xl lg:text-6xl font-bold leading-tight mb-3 md:mb-6">
                 {heroTitle}
@@ -274,21 +297,45 @@ export default function Landing() {
                   href={route('platform.register.index')} 
                   size="sm" 
                   className="text-white font-semibold px-4 md:px-10 py-2 md:py-7 rounded-lg md:rounded-2xl text-xs md:text-base"
+                  data-cta-name="start_free_trial"
+                  data-cta-location="landing_hero"
+                  data-cta-destination="platform.register.index"
+                  data-experiment-key="landing_hero_primary"
                   style={{
                     background: `linear-gradient(to right, ${primaryColor}, ${accentColor})`
                   }}
                 >
                   Start Free Trial
                 </Button>
-                <Button as={Link} href={route('platform.register.index')} size="sm" variant="bordered" className="px-3 md:px-9 py-2 md:py-7 rounded-lg md:rounded-2xl border-current text-xs md:text-base">
-                  Watch demo
+                <Button
+                  as={Link}
+                  href={route('platform.demo')}
+                  size="sm"
+                  variant="bordered"
+                  className="px-3 md:px-9 py-2 md:py-7 rounded-lg md:rounded-2xl border-current text-xs md:text-base"
+                  data-cta-name="book_demo"
+                  data-cta-location="landing_hero"
+                  data-cta-destination="platform.demo"
+                  data-experiment-key="landing_hero_secondary"
+                >
+                  Book demo
                 </Button>
-                <Button as="a" href="#products" size="sm" variant="light" className="px-3 md:px-9 py-2 md:py-7 text-xs md:text-base">
-                  Products
+                <Button
+                  as={Link}
+                  href={route('platform.standalone')}
+                  size="sm"
+                  variant="light"
+                  className="px-3 md:px-9 py-2 md:py-7 text-xs md:text-base"
+                  data-cta-name="explore_standalone"
+                  data-cta-location="landing_hero"
+                  data-cta-destination="platform.standalone"
+                  data-experiment-key="landing_deployment_path"
+                >
+                  Private Setup
                 </Button>
               </div>
               <div className={`mt-3 md:mt-6 text-[10px] md:text-sm ${palette.mutedText}`}>
-                No payment required. A dedicated implementation architect coordinates with your administrators from day one.
+                Choose a managed start for speed or a private setup for internal policy needs. Either way, your teams work from one shared business view.
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mt-6 md:mt-12">
                 {heroStats.map((stat) => (
@@ -342,7 +389,7 @@ export default function Landing() {
 
                         <p className={`text-xs md:text-base ${palette.mutedText}`}>{activeSlideData.description}</p>
                         
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                           {activeSlideData.highlights.slice(0, 3).map((item) => (
                             <div
                               key={item}
@@ -354,9 +401,9 @@ export default function Landing() {
                         </div>
                         
                         <div className="flex flex-wrap gap-2 pt-2 border-t border-white/10">
-                          <Chip size="sm" color="primary" variant="flat" className="text-[8px] md:text-xs">Real-Time KPIs</Chip>
-                          <Chip size="sm" color="secondary" variant="flat" className="text-[8px] md:text-xs">Role-based</Chip>
-                          <Chip size="sm" color="success" variant="flat" className="text-[8px] md:text-xs">Audit-ready</Chip>
+                          <Chip size="sm" color="primary" variant="flat" className="text-[8px] md:text-xs">Live Business Signals</Chip>
+                          <Chip size="sm" color="secondary" variant="flat" className="text-[8px] md:text-xs">Team Accountability</Chip>
+                          <Chip size="sm" color="success" variant="flat" className="text-[8px] md:text-xs">Leadership-Ready Reporting</Chip>
                         </div>
                       </CardBody>
                     </Card>
@@ -369,7 +416,7 @@ export default function Landing() {
                   </motion.div>
                 )}
               </AnimatePresence>
-              <div className="flex items-center gap-1.5 md:gap-3 mt-5 md:mt-8 flex-wrap">
+              <div className="flex items-center gap-1.5 md:gap-3 mt-5 md:mt-8 flex-wrap overflow-x-auto pb-2">
                 {heroSlides.map((slide, index) => {
                   const isActive = index === activeSlide;
                   return (
@@ -393,15 +440,68 @@ export default function Landing() {
           </div>
         </section>
 
+        <section id="deployment-models" className={`py-8 md:py-16 px-4 md:px-6 ${palette.tint}`}>
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-6 md:mb-10">
+              <Chip variant="faded" color="primary" className="uppercase tracking-[0.2em] md:tracking-[0.3em] text-[9px] md:text-[11px] mb-2 md:mb-4">
+                Service Options
+              </Chip>
+              <h2 className="text-xl md:text-4xl font-bold">Choose the service model that fits your business.</h2>
+              <p className={`mt-2 md:mt-3 text-sm md:text-base ${palette.mutedText}`}>
+                Both options deliver the same business outcomes, so your teams can keep one way of working as you grow.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
+              {deploymentModels.map((model) => (
+                <Card key={model.id} className={model.variant === 'primary' ? palette.highlightCard : palette.card}>
+                  <CardBody className="p-4 md:p-6 space-y-3 md:space-y-4">
+                    <div>
+                      <p className={`text-xs md:text-sm ${palette.mutedText}`}>{model.audience}</p>
+                      <h3 className="text-xl md:text-2xl font-semibold mt-1">{model.label}</h3>
+                    </div>
+                    <p className={`text-sm md:text-base ${palette.mutedText}`}>{model.summary}</p>
+                    <div className="space-y-2">
+                      {model.bullets.map((bullet) => (
+                        <div key={bullet} className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400" aria-hidden />
+                          <span className="text-sm md:text-base">{bullet}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div>
+                      <Button
+                        as={Link}
+                        href={route(model.href)}
+                        size="sm"
+                        variant={model.variant === 'primary' ? 'solid' : 'bordered'}
+                        className={model.variant === 'primary' ? 'text-white font-semibold' : 'font-semibold border-current'}
+                        data-cta-name={model.id === 'cloud' ? 'deployment_cloud_trial' : 'deployment_standalone_explore'}
+                        data-cta-location="landing_deployment_models"
+                        data-cta-destination={model.href}
+                        data-experiment-key="landing_deployment_cards"
+                        style={model.variant === 'primary' ? {
+                          background: `linear-gradient(to right, ${primaryColor}, ${accentColor})`,
+                        } : undefined}
+                      >
+                        {model.cta}
+                      </Button>
+                    </div>
+                  </CardBody>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <section className="py-8 md:py-20 px-4 md:px-6">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-6 md:mb-14">
               <Chip variant="faded" color="success" className="uppercase tracking-[0.2em] md:tracking-[0.3em] text-[9px] md:text-[11px] mb-2 md:mb-4">
                 Platform Value
               </Chip>
-              <h2 className="text-xl md:text-4xl font-bold">Cross-functional alignment starts with a unified record of truth.</h2>
+              <h2 className="text-xl md:text-4xl font-bold">Give every team one clear view of the business.</h2>
               <p className={`mt-2 md:mt-3 text-xs md:text-lg ${palette.mutedText}`}>
-                Pre-configured automation playbooks and consolidated dashboards eliminate ad-hoc reconciliation and accelerate decision velocity.
+                Built-in best practices and shared reporting reduce rework and help leaders make faster decisions.
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
@@ -424,10 +524,10 @@ export default function Landing() {
               <Chip variant="faded" color="warning" className="uppercase tracking-[0.2em] md:tracking-[0.3em] text-[9px] md:text-[11px] mb-2 md:mb-4">
                 Operational Challenges
               </Chip>
-              <h2 className="text-xl md:text-4xl font-bold">Systemic friction points that limit enterprise execution.</h2>
-              <p className={`mt-1 md:mt-3 text-xs md:text-base ${palette.mutedText}`}>Aero is engineered to eliminate the structural inefficiencies that constrain operational performance at scale.</p>
+              <h2 className="text-xl md:text-4xl font-bold">Common blockers that slow growth.</h2>
+              <p className={`mt-1 md:mt-3 text-xs md:text-base ${palette.mutedText}`}>Aero removes delays and confusion so teams can execute with confidence.</p>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-2 gap-2 md:gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-6">
               {problemStatements.map((problem) => (
                 <Card key={problem.title} className={`${palette.card} h-full`}>
                   <CardBody className="p-2 md:p-6">
@@ -444,14 +544,14 @@ export default function Landing() {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-6 md:mb-16">
               <Chip color="secondary" variant="flat" className="mb-2 md:mb-4 text-[10px] md:text-xs">
-                Integrated Products
+                Integrated Business Areas
               </Chip>
-              <h2 className="text-xl md:text-4xl font-bold">Complete enterprise coverage, ready to deploy.</h2>
+              <h2 className="text-xl md:text-4xl font-bold">Business capabilities that work together.</h2>
               <p className={`mt-1 md:mt-3 text-xs md:text-lg ${palette.mutedText}`}>
-                Each product includes specialized capabilities. Activate what you need, expand as you grow.
+                Start with what matters most today, then expand as your priorities grow.
               </p>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-6">
               {platformModules.map((module) => (
                 <Card key={module.name} className={`${palette.card} h-full group hover:scale-[1.02] transition-transform`}>
                   <CardBody className="p-2 md:p-6">
@@ -466,8 +566,16 @@ export default function Landing() {
               ))}
             </div>
             <div className="text-center mt-6 md:mt-10">
-              <Button as={Link} href={route('platform.features')} variant="bordered" className="border-current text-xs md:text-base px-4 md:px-8 py-2 md:py-6">
-                Explore All Product Suites
+              <Button
+                as={Link}
+                href={route('platform.features')}
+                variant="bordered"
+                className="border-current text-xs md:text-base px-4 md:px-8 py-2 md:py-6"
+                data-cta-name="explore_product_suites"
+                data-cta-location="landing_products"
+                data-cta-destination="platform.features"
+              >
+                Explore All Business Areas
               </Button>
             </div>
           </div>
@@ -477,9 +585,9 @@ export default function Landing() {
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-6 md:mb-14">
               <Chip color="primary" variant="flat" className="mb-2 md:mb-4 text-[10px] md:text-xs">
-                Implementation Methodology
+                Rollout Approach
               </Chip>
-              <h2 className="text-xl md:text-4xl font-bold">A structured deployment path from discovery to enterprise scale.</h2>
+              <h2 className="text-xl md:text-4xl font-bold">A practical path from first launch to company-wide adoption.</h2>
             </div>
             <div className="space-y-2 md:space-y-6">
               {rolloutPhases.map((phase, index) => (
@@ -508,11 +616,11 @@ export default function Landing() {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-4 md:mb-12">
               <Chip color="secondary" variant="faded" className="mb-2 md:mb-4 text-[10px] md:text-xs">
-                Intelligent Signal Architecture
+                Performance Rhythm
               </Chip>
-              <h2 className="text-xl md:text-4xl font-bold">How the Aero intelligence layer maintains operational alignment.</h2>
+              <h2 className="text-xl md:text-4xl font-bold">How Aero keeps teams aligned and focused on results.</h2>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
               {workflowTimeline.map((stage, index) => (
                 <Card key={stage.step} className={`${palette.card} h-full`}>
                   <CardBody className="space-y-1 md:space-y-3 p-2 md:p-4">
@@ -534,9 +642,9 @@ export default function Landing() {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-4 md:mb-12">
               <Chip color="primary" variant="flat" className="mb-2 md:mb-4 text-[10px] md:text-xs">
-                Industry Solution Templates
+                Industry Playbooks
               </Chip>
-              <h2 className="text-xl md:text-4xl font-bold">Preconfigured industry templates with domain-specific automation libraries.</h2>
+              <h2 className="text-xl md:text-4xl font-bold">Business-ready playbooks shaped by real customer results.</h2>
             </div>
             <div className="grid md:grid-cols-2 gap-2 md:gap-6">
               {industryStarters.map((starter) => (
@@ -568,9 +676,17 @@ export default function Landing() {
                 <Chip variant="flat" color="secondary" className="mb-2 md:mb-4 text-[10px] md:text-xs">
                   Client Success Stories
                 </Chip>
-                <h2 className="text-xl md:text-4xl font-bold">Deployed across construction, healthcare, and public sector enterprises.</h2>
+                <h2 className="text-xl md:text-4xl font-bold">Trusted by teams across construction, healthcare, and public services.</h2>
               </div>
-              <Button as={Link} href={route('platform.resources')} variant="bordered" className="border-current text-xs md:text-base px-3 md:px-6 py-2 md:py-4">
+              <Button
+                as={Link}
+                href={route('platform.resources')}
+                variant="bordered"
+                className="border-current text-xs md:text-base px-3 md:px-6 py-2 md:py-4"
+                data-cta-name="view_case_studies"
+                data-cta-location="landing_testimonials"
+                data-cta-destination="platform.resources"
+              >
                 View Case Studies
               </Button>
             </div>
@@ -596,13 +712,13 @@ export default function Landing() {
         <section className="py-8 md:py-20 px-4 md:px-6">
           <div className="max-w-6xl mx-auto text-center">
             <Chip color="success" variant="bordered" className="mb-2 md:mb-4 text-[10px] md:text-xs">
-              Integrations
+              Connected Business Tools
             </Chip>
-            <h2 className="text-xl md:text-3xl lg:text-4xl font-bold">Native integration with your enterprise technology ecosystem.</h2>
+            <h2 className="text-xl md:text-3xl lg:text-4xl font-bold">Works with the business tools your teams already use.</h2>
             <p className={`mt-2 md:mt-4 mb-4 md:mb-10 text-xs md:text-base ${palette.mutedText}`}>
-              Bidirectional data synchronisation ensures Aero maintains consistency with your financial, sales, and collaboration platforms.
+              Keep leaders and teams aligned across finance, customer, and collaboration tools.
             </p>
-            <div className="grid grid-cols-4 md:grid-cols-4 gap-2 md:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-4">
               {integrations.map((logo) => (
                 <div key={logo} className={`rounded-lg md:rounded-2xl px-2 md:px-6 py-2 md:py-4 text-[10px] md:text-sm font-semibold tracking-wide ${palette.badge}`}>
                   {logo}
@@ -616,11 +732,11 @@ export default function Landing() {
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-6 md:mb-14">
               <Chip variant="shadow" color="primary" className="mb-2 md:mb-4 text-[10px] md:text-xs">
-                Scalable Pricing Architecture
+                Flexible Pricing
               </Chip>
-              <h2 className="text-xl md:text-4xl font-bold">Transparent, modular, and enterprise-ready.</h2>
+              <h2 className="text-xl md:text-4xl font-bold">Clear pricing that grows with your business.</h2>
               <p className={`mt-1 md:mt-3 text-xs md:text-base ${palette.mutedText}`}>
-                Pay only for the product suites and environments you activate. Scale capacity up or down at any time.
+                Pay for what you use now, then expand as new teams come online.
               </p>
             </div>
             <div className="grid md:grid-cols-3 gap-2 md:gap-6">
@@ -640,7 +756,16 @@ export default function Landing() {
                       <span className={`ml-1 md:ml-2 text-xs md:text-base ${palette.mutedText}`}>{plan.period}</span>
                     </div>
                     <p className={`${palette.mutedText} flex-1 text-xs md:text-base`}>{plan.description}</p>
-                    <Button as={Link} href={route('platform.register.index')} className={`py-2 md:py-6 font-semibold text-xs md:text-base ${plan.highlight ? 'bg-white text-slate-900' : 'bg-white/10 text-current'}`} size="sm">
+                    <Button
+                      as={Link}
+                      href={route('platform.register.index')}
+                      className={`py-2 md:py-6 font-semibold text-xs md:text-base ${plan.highlight ? 'bg-white text-slate-900' : 'bg-white/10 text-current'}`}
+                      size="sm"
+                      data-cta-name="pricing_start_now"
+                      data-cta-location="landing_pricing_cards"
+                      data-cta-destination="platform.register.index"
+                      data-experiment-key="landing_pricing_cards"
+                    >
                       Start now
                     </Button>
                   </CardBody>
@@ -654,21 +779,39 @@ export default function Landing() {
           <Card className={`max-w-5xl mx-auto text-center ${palette.highlightCard}`}>
             <CardBody className="space-y-3 md:space-y-8 py-6 md:py-14 px-4 md:px-8">
               <Chip variant="flat" color="success" className="text-[10px] md:text-xs">
-                Begin Your Journey
+                Start Growing
               </Chip>
-              <h2 className="text-xl md:text-4xl font-bold">Experience the Platform.</h2>
+              <h2 className="text-xl md:text-4xl font-bold">See what your business can achieve with Aero.</h2>
               <p className={`text-xs md:text-lg ${palette.mutedText}`}>
-                Request a tailored demonstration or initiate your free trial. Our implementation team manages data migration, integration configuration, and automation setup — enabling your teams to focus on measurable business outcomes.
+                Book a guided tour or start a free trial. Our team helps you launch quickly and stay focused on measurable business outcomes.
               </p>
               <div className="flex flex-wrap gap-2 md:gap-4 justify-center">
-                <Button as={Link} href={route('platform.register.index')} size="sm" className="bg-white text-slate-900 font-semibold px-4 md:px-10 py-2 md:py-6 text-xs md:text-base">
+                <Button
+                  as={Link}
+                  href={route('platform.register.index')}
+                  size="sm"
+                  className="bg-white text-slate-900 font-semibold px-4 md:px-10 py-2 md:py-6 text-xs md:text-base"
+                  data-cta-name="start_free_trial"
+                  data-cta-location="landing_final_cta"
+                  data-cta-destination="platform.register.index"
+                  data-experiment-key="landing_final_cta"
+                >
                   Start free trial
                 </Button>
-                <Button as={Link} href={route('platform.support')} size="sm" variant="bordered" className="border-current px-4 md:px-10 py-2 md:py-6 text-xs md:text-base">
-                  Contact Sales
+                <Button
+                  as={Link}
+                  href={route('platform.support')}
+                  size="sm"
+                  variant="bordered"
+                  className="border-current px-4 md:px-10 py-2 md:py-6 text-xs md:text-base"
+                  data-cta-name="contact_sales"
+                  data-cta-location="landing_final_cta"
+                  data-cta-destination="platform.support"
+                >
+                  Talk to Our Team
                 </Button>
               </div>
-              <div className="grid gap-2 md:gap-4 grid-cols-3 text-left">
+              <div className="grid gap-2 md:gap-4 grid-cols-1 sm:grid-cols-3 text-left">
                 {demoStats.map((stat) => (
                   <div key={stat.label} className={`rounded-lg md:rounded-2xl px-2 md:px-4 py-1.5 md:py-3 text-[9px] md:text-sm ${palette.badge}`}>
                     <p className="text-[8px] md:text-xs uppercase tracking-wide opacity-80">{stat.label}</p>

@@ -256,7 +256,7 @@ export default function Provisioning({
                     >
                       Complete Administrator Setup
                     </Button>
-                    <Button as={Link} href={route('landing')} variant="bordered" className="w-full sm:w-auto">
+                    <Button as={Link} href={route('platform.home')} variant="bordered" className="w-full sm:w-auto">
                       Return to Home
                     </Button>
                   </div>

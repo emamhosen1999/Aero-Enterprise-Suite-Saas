@@ -51,12 +51,12 @@ const Demo = () => {
           <div>
             <Chip variant="flat" color="primary" className="uppercase tracking-[0.35em] text-[10px] md:text-xs">Demo</Chip>
             <h1 className="text-2xl md:text-5xl font-bold mt-3 md:mt-5 mb-4 md:mb-6">
-              Access the pre-configured enterprise demo environment instantly.
+              Explore a guided business demo built around real day-to-day operations.
             </h1>
             <p className={`text-sm md:text-base ${palette.mutedText}`}>
-              The environment is pre-provisioned with all modules, submodules, seeded operational data, approval workflows, executive dashboards, and automation rules—enabling a full capability evaluation without scheduling delays.
+              Experience a complete sample business with realistic records, team approvals, and leadership reporting so you can evaluate value quickly.
             </p>
-            <div className="grid grid-cols-3 gap-2 md:gap-4 mt-6 md:mt-10">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-4 mt-6 md:mt-10">
               {demoStats.map((stat) => (
                 <Card key={stat.label} className={`${palette.card} text-center`}>
                   <CardBody>
@@ -80,13 +80,16 @@ const Demo = () => {
               <Button as={Link} href={route('platform.register.index')} size="sm" variant="bordered" className={`px-6 md:px-10 ${palette.buttonBorder}`}>
                 Start free trial
               </Button>
+              <Button as={Link} href={route('platform.standalone')} size="sm" variant="light" className="px-6 md:px-10">
+                Standalone evaluation
+              </Button>
             </div>
           </div>
         <Card className={palette.card}>
           <CardBody className="space-y-3 md:space-y-4">
-            <Chip color="success" variant="flat" size="sm" className="text-[10px] md:text-xs">Pre-Provisioned Tenant Environment</Chip>
+            <Chip color="success" variant="flat" size="sm" className="text-[10px] md:text-xs">Ready-to-Use Demo Environment</Chip>
             <p className={`text-sm md:text-base ${palette.mutedText}`}>
-              The demonstration environment runs a fully provisioned tenant with HRM, CRM, Finance, Projects, Inventory, POS, SCM, Quality, DMS, and Compliance modules activated. Reference datasets, multi-level approval chains, and analytics pipelines are preloaded to support comprehensive evaluation without onboarding delays.
+              The demo includes all key business areas with realistic information and practical workflows so your team can review outcomes without setup delays.
             </p>
             <div className="grid grid-cols-1 gap-2 md:gap-3">
               <Card className={`${palette.gradientCard} text-left`}>
@@ -94,8 +97,8 @@ const Demo = () => {
                   <p className="text-xs md:text-sm font-semibold">How to access the demo</p>
                   <ul className={`text-[11px] md:text-sm ${palette.mutedText} space-y-1 list-disc list-inside`}>
                     <li>Click "Open live demo" to launch https://demo.aeos365.com.</li>
-                    <li>Use the provided demo personas on the login screen to explore different user roles.</li>
-                    <li>Navigate across modules to validate the complete feature hierarchy.</li>
+                    <li>Use the ready demo accounts to view how different teams work.</li>
+                    <li>Move across business areas to review priorities, approvals, and results.</li>
                   </ul>
                 </CardBody>
               </Card>
@@ -103,7 +106,7 @@ const Demo = () => {
                 <CardBody className="space-y-1">
                   <p className="text-xs md:text-sm font-semibold">What is included</p>
                   <p className={`text-[11px] md:text-sm ${palette.mutedText}`}>
-                    Reference employees, suppliers, projects, inventory records, point-of-sale transactions, audit registers, and compliance documentation with pre-configured dashboards, automation rules, and executive reporting fully operational.
+                    People records, customer activity, projects, stock movements, sales transactions, and leadership reporting with practical examples throughout.
                   </p>
                 </CardBody>
               </Card>
@@ -119,7 +122,7 @@ const Demo = () => {
               >
                 Access Demo
               </Button>
-              <Button as={Link} href={route('pricing')} size="sm" variant="bordered" className={`px-6 md:px-10 ${palette.buttonBorder}`}>
+              <Button as={Link} href={route('platform.pricing')} size="sm" variant="bordered" className={`px-6 md:px-10 ${palette.buttonBorder}`}>
                 View Pricing
               </Button>
             </div>
@@ -132,7 +135,7 @@ const Demo = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-6 md:mb-12">
             <Chip color="secondary" variant="flat" className="text-[10px] md:text-xs">What to Expect</Chip>
-            <h2 className="text-2xl md:text-4xl font-semibold mt-3 md:mt-4">Your guided demonstration in three structured steps.</h2>
+            <h2 className="text-2xl md:text-4xl font-semibold mt-3 md:mt-4">Your guided demo in three clear steps.</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-4 md:gap-6">
             {demoSteps.map((item, index) => (
@@ -151,7 +154,7 @@ const Demo = () => {
       <section className={`px-4 md:px-6 pb-8 md:pb-16 ${palette.tint}`}>
         <div className="max-w-5xl mx-auto text-center mb-6 md:mb-10">
           <Chip color="success" variant="flat" className="text-[10px] md:text-xs">Customer Validation</Chip>
-          <h2 className="text-xl md:text-3xl font-semibold mt-3">Organisations that have successfully adopted the platform.</h2>
+          <h2 className="text-xl md:text-3xl font-semibold mt-3">How customers describe the business impact.</h2>
         </div>
         <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-4 md:gap-6">
           {testimonialSlides.map((testimonial) => (
@@ -172,9 +175,9 @@ const Demo = () => {
         <Card className={`max-w-5xl mx-auto text-center ${palette.gradientCard}`}>
           <CardBody className="space-y-3 md:space-y-5">
             <Chip color="warning" variant="flat" className="text-[10px] md:text-xs">Next Step</Chip>
-            <h3 className="text-2xl md:text-4xl font-semibold">Receive a tailored implementation roadmap within 48 hours.</h3>
+            <h3 className="text-2xl md:text-4xl font-semibold">Get a tailored rollout plan from our team within 48 hours.</h3>
             <p className={`text-sm md:text-base ${palette.mutedText}`}>
-              Our implementation architects will analyse your operational workflows, recommend module configurations, and deliver a detailed implementation timeline to accelerate your go-live date.
+              Our advisors will review your priorities, recommend the right rollout path, and share a practical launch plan for your business.
             </p>
             <div className="flex flex-wrap justify-center gap-2 md:gap-4">
               <Button
@@ -189,6 +192,9 @@ const Demo = () => {
               </Button>
               <Button as={Link} href={route('platform.register.index')} size="sm" variant="bordered" className={`px-6 md:px-8 ${palette.buttonBorder}`}>
                 Start free trial
+              </Button>
+              <Button as={Link} href={route('platform.standalone')} size="sm" variant="light" className="px-6 md:px-8">
+                Private setup review
               </Button>
             </div>
           </CardBody>

@@ -5,6 +5,7 @@ export const publicNavLinks = [
   { label: 'Home', routeName: 'platform.home', type: 'route' },
   { label: 'Platform', routeName: 'platform.features', type: 'route' },
   { label: 'Pricing', routeName: 'platform.pricing', type: 'route' },
+  { label: 'Standalone', routeName: 'platform.standalone', type: 'route' },
   { label: 'About', routeName: 'platform.about', type: 'route' },
   { label: 'Resources', routeName: 'platform.resources', type: 'route' },
   { label: 'Support', routeName: 'platform.support', type: 'route' },
@@ -16,6 +17,7 @@ export const footerColumns = [
     links: [
       { label: 'Platform', routeName: 'platform.features' },
       { label: 'Pricing', routeName: 'platform.pricing' },
+      { label: 'Standalone', routeName: 'platform.standalone' },
       { label: 'Resources', routeName: 'platform.resources' },
     ],
   },
@@ -29,6 +31,7 @@ export const footerColumns = [
   {
     heading: 'Resources',
     links: [
+      { label: 'Documentation', routeName: 'platform.docs' },
       { label: 'Support', routeName: 'platform.support' },
     ],
   },

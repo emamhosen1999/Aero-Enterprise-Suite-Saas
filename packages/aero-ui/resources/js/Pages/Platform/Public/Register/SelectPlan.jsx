@@ -69,9 +69,7 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
   const hasSelection = useMemo(() => {
     const hasPlan = Boolean(data.plan_id);
     const hasModules = Array.isArray(data.modules) && data.modules.length > 0;
-    const result = hasPlan || hasModules;
-    console.log('hasSelection check:', { hasPlan, hasModules, result, plan_id: data.plan_id, modules: data.modules });
-    return result;
+    return hasPlan || hasModules;
   }, [data.plan_id, data.modules]);
 
   const handleSubmit = (event) => {
@@ -204,7 +202,15 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
                 <p className={`text-xs sm:text-sm ${palette.muted}`}>Billing cadence</p>
                 <div className={`flex items-center gap-2 text-xs sm:text-sm ${palette.copy}`}>
                   <span className={!isAnnual ? `font-semibold ${palette.heading}` : palette.muted}>Monthly</span>
-                  <Switch isSelected={isAnnual} onChange={() => setData('billing_cycle', isAnnual ? 'monthly' : 'yearly')} color="secondary" aria-label="Toggle billing cycle" size="sm" />
+                  <Switch
+                    id="registration-billing-cycle-toggle"
+                    name="billing_cycle"
+                    isSelected={isAnnual}
+                    onChange={() => setData('billing_cycle', isAnnual ? 'monthly' : 'yearly')}
+                    color="secondary"
+                    aria-label="Toggle billing cycle"
+                    size="sm"
+                  />
                   <span className={isAnnual ? `font-semibold ${palette.heading}` : palette.muted}>Yearly <small className="text-emerald-500">(2 mo free)</small></span>
                 </div>
               </div>
@@ -376,8 +382,11 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
               {errors.modules && <p className="text-sm text-red-400">{errors.modules}</p>}
 
               <Textarea
+                id="registration-implementation-notes"
+                name="notes"
                 label="Implementation notes (optional)"
                 placeholder="Describe any integration requirements, compliance needs, or migration timelines."
+                disableAutosize
                 minRows={3}
                 value={data.notes}
                 onChange={(event) => setData('notes', event.target.value)}

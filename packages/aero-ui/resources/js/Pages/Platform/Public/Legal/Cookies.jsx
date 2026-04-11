@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Head } from '@inertiajs/react';
 import { Card, CardBody, Chip } from '@heroui/react';
 import { cookieCategories } from '@/constants/marketing';
 import PublicLayout from '@/Layouts/PublicLayout';
@@ -18,6 +19,7 @@ const Cookies = () => {
 
   return (
     <PublicLayout>
+      <Head title="Cookie Policy" />
       <div className={palette.baseText}>
     <section className="max-w-4xl mx-auto px-6 pt-28 pb-12 text-center">
       <Chip color="warning" variant="flat" className="uppercase tracking-[0.35em] text-xs">Cookies</Chip>

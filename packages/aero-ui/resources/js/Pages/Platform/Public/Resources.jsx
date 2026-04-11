@@ -75,10 +75,10 @@ const Resources = () => {
         <div className="relative max-w-5xl mx-auto px-4 md:px-6 pt-20 md:pt-28 pb-6 md:pb-12 text-center">
           <Chip color="success" variant="flat" className="uppercase tracking-[0.35em] text-[10px] md:text-xs">Resources</Chip>
           <h1 className="text-2xl md:text-5xl font-bold mt-3 md:mt-4 mb-4 md:mb-6">
-            Enterprise case studies, implementation playbooks, and release documentation curated by the product team.
+            Customer stories, rollout guides, and practical growth playbooks.
           </h1>
           <p className={`${palette.mutedText} mb-5 md:mb-8 text-sm md:text-base`}>
-            All resources originate from production deployments and client advisory reviews, ensuring direct relevance to real enterprise operational scenarios.
+            Every resource is based on real customer experience and practical business execution.
           </p>
           <div className="flex flex-col sm:flex-row items-center gap-3 md:gap-4">
             <Input
@@ -91,6 +91,9 @@ const Resources = () => {
             />
             <Button className={`w-full sm:w-auto text-sm md:text-base ${palette.buttonPrimary}`}>
               Subscribe to newsletter
+            </Button>
+            <Button as={Link} href={route('platform.standalone')} variant="bordered" className="w-full sm:w-auto border-current text-sm md:text-base">
+              Standalone Resources
             </Button>
           </div>
         </div>
@@ -137,9 +140,9 @@ const Resources = () => {
 
       <section className={`px-4 md:px-6 pb-10 md:pb-20 ${palette.tint}`}>
         <div className="max-w-5xl mx-auto text-center mb-6 md:mb-10">
-          <Chip color="primary" variant="flat" className="text-[10px] md:text-xs">Developer Documentation</Chip>
-          <h2 className="text-xl md:text-3xl font-semibold mt-3 md:mt-4">Build integrations with confidence.</h2>
-          <p className={`${palette.mutedText} mt-2 md:mt-3 text-sm md:text-base`}>Rapid access to integration guides, API references, security frameworks, and compliance resources.</p>
+          <Chip color="primary" variant="flat" className="text-[10px] md:text-xs">Business Guides</Chip>
+          <h2 className="text-xl md:text-3xl font-semibold mt-3 md:mt-4">Find practical guidance for faster business rollout.</h2>
+          <p className={`${palette.mutedText} mt-2 md:mt-3 text-sm md:text-base`}>Easy access to setup guidance, team enablement materials, and policy-ready best practices.</p>
         </div>
         <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-3 md:gap-4">
           {docQuickLinks.map((link) => (
@@ -165,7 +168,7 @@ const Resources = () => {
             <Chip color="success" variant="flat" className="text-[10px] md:text-xs">Industry Digest</Chip>
             <h3 className="text-xl md:text-3xl font-semibold">Monthly enterprise intelligence reports delivered to your inbox.</h3>
             <p className={`text-sm md:text-base ${palette.mutedText}`}>
-              Product release summaries, enterprise implementation playbooks, and client success analyses delivered once per month. No unsolicited communications.
+              Monthly updates with customer wins, rollout lessons, and practical ideas to improve business performance.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
               <Input
@@ -176,6 +179,14 @@ const Resources = () => {
               />
               <Button className={palette.buttonPrimary}>
                 Subscribe
+              </Button>
+            </div>
+            <div className="flex flex-wrap justify-center gap-2 md:gap-4">
+              <Button as={Link} href={route('platform.register.index')} variant="bordered" className="border-current">
+                Cloud Trial Path
+              </Button>
+              <Button as={Link} href={route('platform.standalone')} variant="bordered" className="border-current">
+                Standalone Path
               </Button>
             </div>
           </CardBody>

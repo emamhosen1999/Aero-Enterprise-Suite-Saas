@@ -62,7 +62,7 @@ Route::get('/aero-core/health', function () {
 })->name('core.health')->withoutMiddleware(['auth']);
 
 // PWA Manifest (Public - No Auth Required)
-Route::get('/manifest.json', function () {
+$manifestResponse = function () {
     $appName = config('app.name', 'aeos365');
     $icon = asset('favicon.ico');
 
@@ -81,7 +81,15 @@ Route::get('/manifest.json', function () {
             ],
         ],
     ], 200, ['Content-Type' => 'application/manifest+json']);
-})->name('core.manifest')->withoutMiddleware(['auth']);
+};
+
+Route::get('/manifest.json', $manifestResponse)
+    ->name('core.manifest')
+    ->withoutMiddleware(['auth']);
+
+Route::get('/api/manifest.webmanifest', $manifestResponse)
+    ->name('core.manifest.api')
+    ->withoutMiddleware(['auth']);
 
 // ERROR LOGGING API - Receives frontend errors and forwards to platform (No Auth Required)
 Route::post('/api/error-log', function (Request $request) {

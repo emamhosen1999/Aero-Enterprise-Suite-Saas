@@ -61,6 +61,12 @@ Route::middleware('platform.domain')->group(function () {
             'title' => 'Features',
         ]);
     })->name('platform.features');
+
+    Route::get('/standalone', function () {
+        return \Inertia\Inertia::render('Platform/Public/Standalone', [
+            'title' => 'Standalone / On-Premise',
+        ]);
+    })->name('platform.standalone');
     
     Route::get('/about', function () {
         return \Inertia\Inertia::render('Platform/Public/About', [
@@ -86,8 +92,8 @@ Route::middleware('platform.domain')->group(function () {
         ]);
     })->name('platform.status');
 
-    // Redirect /login to /register (no login on platform domain - login is on tenant/admin domains)
-    Route::redirect('login', '/register', 302);
+    // Redirect /login to /signup (no login on platform domain - login is on tenant/admin domains)
+    Route::redirect('login', '/signup', 302);
 
     // =========================================================================
     // MULTI-STEP TENANT REGISTRATION FLOW
@@ -95,7 +101,7 @@ Route::middleware('platform.domain')->group(function () {
     // Flow: Account → Details → Verify Email → Verify Phone → Plan → Payment/Trial → Provisioning
     // Admin user setup happens on tenant domain AFTER provisioning completes
 
-    Route::prefix('register')->name('platform.register.')->group(function () {
+    Route::prefix('signup')->name('platform.register.')->group(function () {
         // Step pages (in order)
         Route::get('/', [RegistrationPageController::class, 'accountType'])->name('index');
         Route::get('/details', [RegistrationPageController::class, 'details'])->name('details');
@@ -189,6 +195,12 @@ Route::middleware('platform.domain')->group(function () {
             'title' => 'Contact Us',
         ]);
     })->name('platform.contact');
+
+    Route::get('/demo', function () {
+        return \Inertia\Inertia::render('Platform/Public/Demo', [
+            'title' => 'Demo',
+        ]);
+    })->name('platform.demo');
 
     Route::get('/blog', function () {
         return \Inertia\Inertia::render('Platform/Public/Blog', [

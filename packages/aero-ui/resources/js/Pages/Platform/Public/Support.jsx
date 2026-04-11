@@ -66,17 +66,20 @@ const Support = () => {
         <div className="relative max-w-5xl mx-auto px-4 md:px-6 pt-20 md:pt-28 pb-8 md:pb-16">
           <Chip color="primary" variant="flat" className="uppercase tracking-[0.3em] text-[10px] md:text-xs">Support</Chip>
           <h1 className="text-2xl md:text-5xl font-bold mt-3 md:mt-4 mb-4 md:mb-6">
-            Enterprise support delivered by the engineers who build the platform.
+            Business support from the team that helps customers succeed every day.
           </h1>
           <p className={`${palette.mutedText} max-w-3xl mx-auto text-sm md:text-base`}>
-            24/7 coverage is maintained through dedicated Slack channels, direct phone escalation paths, and published SLA commitments—ensuring every incident has a named owner and a defined resolution timeline.
+            Round-the-clock assistance with clear ownership and fast follow-up, so your teams can keep moving without disruption.
           </p>
           <div className="flex flex-wrap justify-center gap-2 md:gap-4 mt-5 md:mt-8">
-            <Button as={Link} href={route('contact')} className={palette.buttonPrimary}>
+            <Button as={Link} href={route('platform.contact')} className={palette.buttonPrimary}>
               Reach Support Team
             </Button>
-            <Button as={Link} href={route('resources')} variant="bordered" className={`px-8 ${palette.buttonBorder}`}>
-              Access Documentation
+            <Button as={Link} href={route('platform.resources')} variant="bordered" className={`px-8 ${palette.buttonBorder}`}>
+              Access Support Resources
+            </Button>
+            <Button as={Link} href={route('platform.standalone')} variant="bordered" className={`px-8 ${palette.buttonBorder}`}>
+              Standalone Support Path
             </Button>
           </div>
         </div>
@@ -102,12 +105,12 @@ const Support = () => {
       <section className={`px-4 md:px-6 pb-8 md:pb-16 ${palette.tint}`}>
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-6 md:mb-10">
-            <Chip color="secondary" variant="flat" className="text-[10px] md:text-xs">Service Level Agreements</Chip>
-            <h2 className="text-xl md:text-3xl font-semibold mt-3">Service level commitments aligned to your plan tier.</h2>
-            <p className={`${palette.mutedText} mt-2 text-sm md:text-base`}>Defined response and resolution time targets across Launch, Scale, and Enterprise tiers.</p>
+            <Chip color="secondary" variant="flat" className="text-[10px] md:text-xs">Support Commitments</Chip>
+            <h2 className="text-xl md:text-3xl font-semibold mt-3">Support commitments aligned to your plan.</h2>
+            <p className={`${palette.mutedText} mt-2 text-sm md:text-base`}>Clear response and resolution expectations across Launch, Scale, and Enterprise plans.</p>
           </div>
           <div className="overflow-x-auto">
-            <Table aria-label="SLA comparison" className="min-w-[700px]">
+            <Table aria-label="Support commitments comparison" className="min-w-[700px]">
               <TableHeader>
                 <TableColumn>Severity</TableColumn>
                 <TableColumn>Launch</TableColumn>
@@ -134,10 +137,18 @@ const Support = () => {
           <Card className={palette.card}>
             <CardBody className="space-y-3 md:space-y-4">
               <Chip color="primary" variant="flat" size="sm" className="text-[10px] md:text-xs">Submit a ticket</Chip>
-              <Input label="Name" variant="bordered" classNames={fieldClasses} />
-              <Input label="Work email" type="email" variant="bordered" classNames={fieldClasses} />
-              <Input label="Company" variant="bordered" classNames={fieldClasses} />
-              <Textarea label="How can we help?" minRows={4} variant="bordered" classNames={fieldClasses} />
+              <Input id="support-ticket-name" name="name" autoComplete="name" label="Name" variant="bordered" classNames={fieldClasses} />
+              <Input id="support-ticket-email" name="email" autoComplete="email" label="Work email" type="email" variant="bordered" classNames={fieldClasses} />
+              <Input id="support-ticket-company" name="company" autoComplete="organization" label="Company" variant="bordered" classNames={fieldClasses} />
+              <Textarea
+                id="support-ticket-message"
+                name="message"
+                label="How can we help?"
+                minRows={4}
+                disableAutosize
+                variant="bordered"
+                classNames={fieldClasses}
+              />
               <Button className={palette.buttonPrimary}>Send ticket</Button>
             </CardBody>
           </Card>
@@ -146,7 +157,7 @@ const Support = () => {
               <Chip color="success" variant="flat" className="text-[10px] md:text-xs">Learning &amp; Certification</Chip>
               <h3 className="text-xl md:text-3xl font-semibold">Role-based training for every department.</h3>
               <p className={`text-sm md:text-base ${palette.mutedText}`}>
-                Self-paced certification programmes for HR, PMO, Compliance, and IT administrators, supplemented by bi-weekly live coaching sessions and structured certification pathways.
+                Guided learning tracks for HR, operations, finance, and leadership teams, supported by regular live coaching sessions.
               </p>
               <Button variant="bordered" className={palette.buttonBorder}>Explore Programmes</Button>
             </CardBody>
@@ -158,16 +169,19 @@ const Support = () => {
         <Card className={`max-w-5xl mx-auto text-center ${palette.card}`}>
           <CardBody className="space-y-3 md:space-y-4">
             <Chip color="warning" variant="flat" className="text-[10px] md:text-xs">Trust Centre</Chip>
-            <h3 className="text-xl md:text-3xl font-semibold">Platform status, security posture, and incident audit history.</h3>
+            <h3 className="text-xl md:text-3xl font-semibold">Service updates, trust information, and support history.</h3>
             <p className={`text-sm md:text-base ${palette.mutedText}`}>
-              Review real-time uptime metrics, scheduled maintenance windows, and compliance documentation in the Trust Centre.
+              Review live service updates, planned maintenance windows, and trust resources in one place.
             </p>
             <div className="flex flex-wrap justify-center gap-2 md:gap-4">
-              <Button as={Link} href={route('status')} className={palette.buttonPrimary}>
+              <Button as={Link} href={route('platform.status')} className={palette.buttonPrimary}>
                 View status
               </Button>
-              <Button as={Link} href={route('docs')} variant="bordered" className={palette.buttonBorder}>
-                Security documentation
+              <Button as={Link} href={route('platform.docs')} variant="bordered" className={palette.buttonBorder}>
+                Trust resources
+              </Button>
+              <Button as={Link} href={route('platform.standalone')} variant="bordered" className={palette.buttonBorder}>
+                Private setup support
               </Button>
             </div>
           </CardBody>

@@ -143,20 +143,23 @@ export default function Features() {
           <div className="relative max-w-6xl mx-auto">
             <div className="text-center">
               <Chip color="secondary" variant="flat" className="uppercase tracking-[0.2em] md:tracking-[0.35em] text-[10px] md:text-xs mb-3 md:mb-4">
-                FEATURES
+                BUSINESS CAPABILITIES
               </Chip>
               <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold leading-tight mb-3 md:mb-6">
-                Enterprise features spanning every functional domain.
+                Business capabilities for every team in one place.
               </h1>
               <p className={`text-sm md:text-lg ${palette.mutedText} mb-4 md:mb-8 max-w-3xl mx-auto`}>
-                HRM, CRM, Finance, Projects, Inventory, POS, Supply Chain, Quality, DMS, and Compliance operate on a shared data fabric, unified permissions model, and common automation engine — eliminating cross-module data silos.
+                People, sales, finance, projects, inventory, retail, quality, documents, and risk management come together in one shared operating platform.
               </p>
               <div className="flex flex-wrap justify-center gap-2 md:gap-4">
-                <Button as={Link} href={route('demo')} size="sm" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-4 md:px-10 text-xs md:text-sm">
-                  Request a Platform Walkthrough
+                <Button as={Link} href={route('platform.demo')} size="sm" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-4 md:px-10 text-xs md:text-sm">
+                  Book a Business Walkthrough
                 </Button>
                 <Button as={Link} href={route('platform.register.index')} size="sm" variant="bordered" className="border-current px-4 md:px-10 text-xs md:text-sm">
-                  Start a Free Trial
+                  Start Free Trial
+                </Button>
+                <Button as={Link} href={route('platform.standalone')} size="sm" variant="light" className="px-4 md:px-10 text-xs md:text-sm">
+                  Private Setup Options
                 </Button>
               </div>
             </div>
@@ -166,7 +169,7 @@ export default function Features() {
         {/* Module Overview Grid - Ultra compact on mobile */}
         <section className="px-3 md:px-6 pb-6 md:pb-12">
           <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 md:gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-2 md:gap-3">
               {platformModules.map((module) => {
                 const moduleKey = module.key;
                 const isActive = activeModule === moduleKey;
@@ -204,7 +207,7 @@ export default function Features() {
               </div>
               <div>
                 <h2 className="text-lg md:text-2xl lg:text-3xl font-bold">{currentModule.fullName}</h2>
-                <p className={`text-xs md:text-sm ${palette.mutedText}`}>Explore included capabilities</p>
+                <p className={`text-xs md:text-sm ${palette.mutedText}`}>Explore business outcomes</p>
               </div>
             </div>
 
@@ -279,10 +282,10 @@ export default function Features() {
         <section className="px-3 md:px-6 py-6 md:py-12">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-4 md:mb-8">
-              <Chip color="primary" variant="flat" className="text-[10px] md:text-xs mb-2">Full Module Suite</Chip>
-              <h2 className="text-xl md:text-3xl font-semibold">Complete module portfolio at a glance</h2>
+              <Chip color="primary" variant="flat" className="text-[10px] md:text-xs mb-2">Full Business Coverage</Chip>
+              <h2 className="text-xl md:text-3xl font-semibold">See every business area at a glance</h2>
               <p className={`mt-1 md:mt-2 text-xs md:text-base ${palette.mutedText}`}>
-                Select any module above to review its detailed feature set and submodule breakdowns
+                Select any area above to review how it supports daily performance and growth
               </p>
             </div>
 
@@ -333,13 +336,13 @@ export default function Features() {
         <section className={`px-3 md:px-6 py-6 md:py-12 ${palette.tint}`}>
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-4 md:mb-8">
-              <Chip color="success" variant="flat" className="text-[10px] md:text-xs mb-2">Automation Engine</Chip>
-              <h2 className="text-xl md:text-3xl font-semibold">A unified intelligence layer keeps operations aligned</h2>
+              <Chip color="success" variant="flat" className="text-[10px] md:text-xs mb-2">Business Momentum</Chip>
+              <h2 className="text-xl md:text-3xl font-semibold">A shared operating rhythm keeps teams moving together</h2>
               <p className={`mt-1 md:mt-2 text-xs md:text-base ${palette.mutedText}`}>
-                Operational signals feed AI-driven insights, automation rules synchronise systems, and real-time dashboards surface change events across all modules
+                From daily activity to leadership review, every step stays connected so teams can act faster
               </p>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
               {workflowTimeline.map((stage, index) => (
                 <Card key={stage.step} className={palette.card}>
                   <CardBody className="p-2 md:p-4 space-y-1 md:space-y-3">
@@ -357,8 +360,8 @@ export default function Features() {
         <section className="px-3 md:px-6 py-6 md:py-12">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-4 md:mb-8">
-              <Chip color="warning" variant="flat" className="text-[10px] md:text-xs mb-2">Industry Solution Packs</Chip>
-              <h2 className="text-xl md:text-3xl font-semibold">Preconfigured industry templates ready for immediate deployment</h2>
+              <Chip color="warning" variant="flat" className="text-[10px] md:text-xs mb-2">Industry Playbooks</Chip>
+              <h2 className="text-xl md:text-3xl font-semibold">Ready-made playbooks shaped by real customer practice</h2>
             </div>
             <div className="grid md:grid-cols-2 gap-2 md:gap-4">
               {industryStarters.map((starter) => (
@@ -388,16 +391,19 @@ export default function Features() {
           <Card className={`max-w-5xl mx-auto text-center ${palette.highlightCard}`}>
             <CardBody className="space-y-3 md:space-y-5 p-4 md:p-8">
               <Chip color="primary" variant="flat" className="text-[10px] md:text-xs">Next Steps</Chip>
-              <h3 className="text-xl md:text-4xl font-semibold">Select modules for immediate deployment and scale to full suite without re-implementation.</h3>
+              <h3 className="text-xl md:text-4xl font-semibold">Choose the business areas you need now and expand when you are ready.</h3>
               <p className={`text-xs md:text-base ${palette.mutedText}`}>
-                Request a guided platform walkthrough or initiate a no-payment-required trial to evaluate capabilities in your own environment.
+                Book a guided walkthrough or start a free trial to evaluate business value with your team.
               </p>
               <div className="flex flex-wrap justify-center gap-2 md:gap-4">
-                <Button as={Link} href={route('demo')} size="sm" className={`${isDarkMode ? 'bg-white text-slate-900' : 'bg-slate-900 text-white'} font-semibold px-4 md:px-10 text-xs md:text-sm`}>
-                  Schedule a Live Demonstration
+                <Button as={Link} href={route('platform.demo')} size="sm" className={`${isDarkMode ? 'bg-white text-slate-900' : 'bg-slate-900 text-white'} font-semibold px-4 md:px-10 text-xs md:text-sm`}>
+                  Schedule a Business Walkthrough
                 </Button>
                 <Button as={Link} href={route('platform.register.index')} size="sm" variant="bordered" className="border-current px-4 md:px-10 text-xs md:text-sm">
                   Start Free Trial
+                </Button>
+                <Button as={Link} href={route('platform.standalone')} size="sm" variant="light" className="px-4 md:px-10 text-xs md:text-sm">
+                  Private Setup Path
                 </Button>
               </div>
             </CardBody>

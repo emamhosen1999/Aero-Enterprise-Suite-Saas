@@ -58,6 +58,15 @@ Route::prefix('platform/v1')->name('api.platform.v1.')->group(function () {
     Route::get('/plans', [\Aero\Platform\Http\Controllers\PlanController::class, 'publicIndex'])
         ->name('plans.public');
 
+    // Social auth provider discovery (registration/login UI)
+    Route::get('/social/providers', [\Aero\Platform\Http\Controllers\Public\SocialAuthController::class, 'providers'])
+        ->name('social.providers');
+
+    // Public marketing CTA event ingestion
+    Route::post('/marketing-events', [\Aero\Platform\Http\Controllers\Public\MarketingEventController::class, 'store'])
+        ->middleware('throttle:120,1')
+        ->name('marketing-events.store');
+
     // Check subdomain availability (registration flow)
     Route::post('/check-subdomain', [\Aero\Platform\Http\Controllers\TenantController::class, 'checkSubdomain'])
         ->middleware('throttle:30,1')

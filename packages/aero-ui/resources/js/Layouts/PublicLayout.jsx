@@ -8,6 +8,7 @@ import { useBranding } from '@/Hooks/useBranding';
 import Footer from '@/Layouts/Footer';
 import { publicNavLinks } from '@/Config/publicNavigation';
 import MaintenanceModeBanner from '@/Components/Platform/MaintenanceModeBanner.jsx';
+import { trackPublicCtaFromDataset } from '@/utils/publicAnalytics';
 
 export default function PublicLayout({ children, extraNavLinks = [], mainClassName = 'pt-24', title }) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -31,6 +32,27 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const handleClickCapture = (event) => {
+      const target = event.target;
+
+      if (!(target instanceof Element)) {
+        return;
+      }
+
+      const ctaElement = target.closest('[data-cta-name]');
+      if (!(ctaElement instanceof HTMLElement)) {
+        return;
+      }
+
+      trackPublicCtaFromDataset(ctaElement.dataset);
+    };
+
+    document.addEventListener('click', handleClickCapture, true);
+
+    return () => document.removeEventListener('click', handleClickCapture, true);
   }, []);
 
   const combinedLinks = [...publicNavLinks, ...extraNavLinks];
@@ -89,7 +111,7 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
           </button>
 
           {/* Logo - centered on mobile, left on desktop */}
-          <SafeLink route="landing" className="flex items-center gap-2 md:gap-3 absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0">
+          <SafeLink route="platform.home" className="flex items-center gap-2 md:gap-3 absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0">
             {logo ? (
               <img src={logo} alt={siteName} className="h-8 md:h-10 w-auto" />
             ) : (
@@ -103,14 +125,14 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
           </SafeLink>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-1 flex-1 justify-center">
+          <div className="hidden md:flex items-center gap-1 flex-1 justify-center overflow-x-auto px-2">
             {publicNavLinks.map((link) => {
               const isActive = route().current(link.routeName);
               return link.type === 'anchor' ? (
                 <a 
                   key={link.label} 
                   href={link.href} 
-                  className={`${isActive ? (isDarkMode ? 'text-white bg-white/10' : 'text-slate-900 bg-slate-100') : palette.navLink} ${palette.navLinkHover} px-3 py-2 text-sm font-medium transition-colors rounded-md`}
+                  className={`${isActive ? (isDarkMode ? 'text-white bg-white/10' : 'text-slate-900 bg-slate-100') : palette.navLink} ${palette.navLinkHover} px-3 py-2 text-xs lg:text-sm font-medium transition-colors rounded-md whitespace-nowrap`}
                 >
                   {link.label}
                 </a>
@@ -118,7 +140,7 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
                 <Link 
                   key={link.label} 
                   href={route(link.routeName)} 
-                  className={`${isActive ? (isDarkMode ? 'text-white bg-white/10' : 'text-slate-900 bg-slate-100') : palette.navLink} ${palette.navLinkHover} px-3 py-2 text-sm font-medium transition-colors rounded-md`}
+                  className={`${isActive ? (isDarkMode ? 'text-white bg-white/10' : 'text-slate-900 bg-slate-100') : palette.navLink} ${palette.navLinkHover} px-3 py-2 text-xs lg:text-sm font-medium transition-colors rounded-md whitespace-nowrap`}
                 >
                   {link.label}
                 </Link>
@@ -132,7 +154,7 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
             <button
               type="button"
               onClick={toggleMode}
-              className={` md:flex items-center justify-center w-9 h-9 rounded-md transition-colors ${isDarkMode ? 'text-white hover:bg-white/10' : 'text-slate-700 hover:bg-slate-100'}`}
+              className={`inline-flex items-center justify-center w-9 h-9 rounded-md transition-colors ${isDarkMode ? 'text-white hover:bg-white/10' : 'text-slate-700 hover:bg-slate-100'}`}
               aria-label="Toggle color mode"
             >
               {isDarkMode ? (
@@ -152,7 +174,11 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
               as={Link} 
               href={route('platform.register.index')} 
               size="sm"
-              className="hidden md:inline-flex bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium px-4 h-9 text-sm"
+              className="hidden lg:inline-flex bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium px-4 h-9 text-sm"
+              data-cta-name="begin_free_trial"
+              data-cta-location="public_nav"
+              data-cta-destination="platform.register.index"
+              data-experiment-key="nav_trial_cta"
             >
               Begin Free Trial
             </Button>

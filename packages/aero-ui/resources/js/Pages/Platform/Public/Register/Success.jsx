@@ -47,7 +47,7 @@ export default function Success({ steps = [], currentStep, result = {}, baseDoma
                     Access Workspace
                   </Button>
                 )}
-                <Button as={Link} href={route('landing')} variant="bordered" className="w-full sm:w-auto">
+                <Button as={Link} href={route('platform.home')} variant="bordered" className="w-full sm:w-auto">
                   Return to Home
                 </Button>
               </div>

@@ -267,21 +267,21 @@ const Footer = () => {
                             <div className="md:col-span-1">
                                 <div className="flex justify-center md:justify-end gap-4">
                                     <Link
-                                        href={route('legal.privacy')}
+                                        href={route('platform.legal.privacy')}
                                         
                                         className="text-sm hover:text-primary transition-colors duration-200"
                                     >
                                         Privacy Policy
                                     </Link>
                                     <Link
-                                        href={route('legal.terms')}
+                                        href={route('platform.legal.terms')}
                                         
                                         className="text-sm hover:text-primary transition-colors duration-200"
                                     >
                                         Terms of Service
                                     </Link>
                                     <Link
-                                        href={route('support')}
+                                        href={route('platform.support')}
                                         
                                         className="text-sm hover:text-primary transition-colors duration-200"
                                     >

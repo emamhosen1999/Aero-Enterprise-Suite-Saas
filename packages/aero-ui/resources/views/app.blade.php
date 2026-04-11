@@ -43,7 +43,6 @@
     <meta name="twitter:image" content="{{ asset('assets/images/twitter-card.png') }}">
 
     <!-- PWA Configuration -->
-    <link rel="manifest" href="{{ asset('/manifest.json') }}">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">

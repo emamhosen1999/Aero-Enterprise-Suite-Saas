@@ -26,55 +26,72 @@ const tierData = [
   {
     name: 'Launch',
     price: 12,
-    description: 'Ideal for pilot deployments validating platform ROI within a structured evaluation period.',
-    includes: ['2 modules included', 'Guided onboarding', 'Community support'],
+    description: 'Ideal for teams proving value quickly with a focused first rollout.',
+    includes: ['Up to 2 business areas', 'Guided launch support', 'Community help'],
   },
   {
     name: 'Scale',
     price: 20,
     highlighted: true,
-    description: 'Most adopted. Complete automation layer with advanced analytics and AI-driven operational insights.',
-    includes: ['Unlimited modules', 'Automation builder', 'Premium support', 'AI copilots'],
+    description: 'Most chosen plan for growing companies that need one shared way of working.',
+    includes: ['All business areas', 'Built-in best practices', 'Priority support', 'Leadership insights'],
   },
   {
     name: 'Enterprise',
     price: 0,
     custom: true,
-    description: 'Designed for global multi-region deployments with dedicated delivery pods and private cloud infrastructure.',
-    includes: ['Dedicated CSM', 'Private cloud / GovCloud', 'Custom compliance packs'],
+    description: 'Best for larger organizations that need dedicated support and tailored agreements.',
+    includes: ['Dedicated success lead', 'Private setup option', 'Custom business policies'],
   },
 ];
 
 const addons = [
-  { name: 'AI Incident Copilot', price: '$4 / user', description: 'AI-assisted guidance for audit management, incident response, and root cause analysis workflows.' },
-  { name: 'Edge Attendance Terminals', price: '$39 / device', description: 'Enterprise biometric attendance hardware with centralised device management and full audit trail logging.' },
-  { name: 'Dedicated Compliance Pods', price: 'Custom', description: 'Managed compliance readiness operations covering ISO, HIPAA, and SOC 2 certification frameworks.' },
+  { name: 'Executive Insight Companion', price: '$4 / user', description: 'Guided recommendations that help leaders make faster and better decisions.' },
+  { name: 'Attendance Devices', price: '$39 / device', description: 'Simple attendance capture for frontline teams with clear daily visibility.' },
+  { name: 'Dedicated Business Advisory', price: 'Custom', description: 'Hands-on advisory support for change management and rollout planning.' },
 ];
 
 const featureComparison = [
-  { feature: 'Modules included', launch: '2', scale: 'Unlimited', enterprise: 'Unlimited + custom' },
-  { feature: 'Automation builder', launch: 'Playbooks', scale: 'Visual builder', enterprise: 'Advanced + Custom' },
-  { feature: 'AI assistants', launch: 'Insights digest', scale: 'Risk + forecast', enterprise: 'Predictive + custom models' },
-  { feature: 'Support response', launch: '< 12 hrs', scale: '< 4 hrs', enterprise: 'Dedicated pod' },
-  { feature: 'Hosting', launch: 'Shared cloud', scale: 'Dedicated region', enterprise: 'Private cloud / Gov / On-prem' },
+  { feature: 'Business areas included', launch: '2', scale: 'All', enterprise: 'All + tailored' },
+  { feature: 'Process support', launch: 'Guided start', scale: 'Built-in playbooks', enterprise: 'Tailored approach' },
+  { feature: 'Leadership insights', launch: 'Core', scale: 'Advanced', enterprise: 'Advanced + custom' },
+  { feature: 'Support response', launch: '< 12 hrs', scale: '< 4 hrs', enterprise: 'Dedicated support line' },
+  { feature: 'Service model', launch: 'Managed', scale: 'Managed', enterprise: 'Managed or private setup' },
 ];
 
 const faqs = [
   {
-    title: 'How does per-product billing work?',
-    content: 'Each active product suite is licensed on a per-user, per-month basis. Suites can be deactivated at any time without penalty. Annual subscription plans include two months of complimentary access.',
+    title: 'How does pricing work?',
+    content: 'Pricing is based on active users and selected business areas. You can expand your package as your needs grow. Annual plans include two months at no extra cost.',
   },
   {
-    title: 'Can we run multiple environments (production, sandbox, multi-region)?',
-    content: 'Yes. Sandbox environments are provided at no additional charge. Additional production regions are billed at 50% of the base per-product licence rate.',
+    title: 'Can we run pilot and live operations at the same time?',
+    content: 'Yes. You can start with a pilot group while the rest of your business prepares for launch. We support phased rollouts by team or location.',
   },
   {
-    title: 'What is the minimum contract commitment?',
-    content: 'Monthly plans carry no minimum commitment period. Enterprise agreements are typically structured on 12 to 36-month terms with contracted rate guarantees.',
+    title: 'What is the minimum commitment?',
+    content: 'Monthly plans are flexible with no long-term commitment. Enterprise agreements are typically set as annual multi-year contracts.',
   },
   {
-    title: 'How are implementation and professional services billed?',
-    content: 'Launch and Scale tiers include structured onboarding programmes. Larger enterprise deployments may optionally include fixed-fee implementation pods or ongoing managed service arrangements.',
+    title: 'How is rollout support priced?',
+    content: 'Launch and Scale include structured onboarding support. Larger rollouts can add fixed-fee advisory services based on scope and timeline.',
+  },
+];
+
+const deploymentOptions = [
+  {
+    name: 'Managed Service',
+    summary: 'A fast way to launch with expert guidance and continuous support.',
+    points: ['Quick start', 'Lower operating effort', 'Easy business scaling'],
+    cta: 'Start Cloud Trial',
+    href: 'platform.register.index',
+  },
+  {
+    name: 'Private Company Setup',
+    summary: 'A private option for organizations with internal policy requirements.',
+    points: ['Private setup option', 'Policy alignment', 'Flexible long-term growth'],
+    cta: 'View Standalone Options',
+    href: 'platform.standalone',
   },
 ];
 
@@ -125,16 +142,54 @@ export default function Pricing() {
         <div className="relative">
           <Chip variant="flat" color="success" className="uppercase tracking-[0.3em] text-[10px] md:text-xs">Pricing</Chip>
           <h1 className="text-2xl md:text-5xl font-bold mt-3 md:mt-4 mb-4 md:mb-6">
-            Consumption-based pricing aligned to your active product suite.
+            Clear pricing for growing businesses, with flexible options as you scale.
           </h1>
           <p className={`max-w-3xl mx-auto mb-6 md:mb-10 text-sm md:text-lg ${palette.mutedText}`}>
-            Select monthly or annual billing, activate product suites as business units come online, and deactivate unused modules without contract renegotiation.
+            Compare packages quickly, then choose the service model that fits your business goals.
           </p>
           <div className="flex items-center justify-center gap-2 md:gap-3">
             <span className={`text-xs md:text-sm ${annual ? 'font-semibold' : palette.mutedText}`}>Annual (2 months free)</span>
             <Switch isSelected={!annual} onValueChange={() => setAnnual(!annual)} color="secondary" aria-label="Toggle billing cadence" />
             <span className={`text-xs md:text-sm ${!annual ? 'font-semibold' : palette.mutedText}`}>Monthly</span>
           </div>
+        </div>
+      </section>
+
+      <section id="deployment-models" className="px-4 md:px-6 pb-8 md:pb-14">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-4 md:gap-6">
+          {deploymentOptions.map((model) => (
+            <Card key={model.name} className={palette.card}>
+              <CardBody className="space-y-3 md:space-y-4">
+                <div>
+                  <p className={`text-xs md:text-sm ${palette.mutedText}`}>Service model</p>
+                  <h2 className="text-xl md:text-2xl font-semibold">{model.name}</h2>
+                </div>
+                <p className={`text-sm md:text-base ${palette.mutedText}`}>{model.summary}</p>
+                <div className="space-y-2">
+                  {model.points.map((point) => (
+                    <div key={point} className="flex items-center gap-2 text-sm md:text-base">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400" aria-hidden />
+                      <span>{point}</span>
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  <Button
+                    as={Link}
+                    href={route(model.href)}
+                    variant="bordered"
+                    className="border-current font-semibold"
+                    data-cta-name={model.name === 'Cloud SaaS' ? 'pricing_cloud_trial' : 'pricing_standalone_options'}
+                    data-cta-location="pricing_deployment_tracks"
+                    data-cta-destination={model.href}
+                    data-experiment-key="pricing_deployment_tracks"
+                  >
+                    {model.cta}
+                  </Button>
+                </div>
+              </CardBody>
+            </Card>
+          ))}
         </div>
       </section>
 
@@ -171,8 +226,19 @@ export default function Pricing() {
                     </li>
                   ))}
                 </ul>
-                <Button as={Link} href={tier.custom ? route('contact') : route('platform.register.index')} fullWidth className="mt-2" variant={tier.highlighted ? 'solid' : 'bordered'} color="secondary">
-                  {tier.custom ? 'Talk to Sales' : 'Start Trial'}
+                <Button
+                  as={Link}
+                  href={tier.custom ? route('platform.contact') : route('platform.register.index')}
+                  fullWidth
+                  className="mt-2"
+                  variant={tier.highlighted ? 'solid' : 'bordered'}
+                  color="secondary"
+                  data-cta-name={tier.custom ? 'pricing_tier_talk_to_sales' : 'pricing_tier_start_cloud_trial'}
+                  data-cta-location={`pricing_tier_${tier.name.toLowerCase()}`}
+                  data-cta-destination={tier.custom ? 'platform.contact' : 'platform.register.index'}
+                  data-experiment-key="pricing_tier_cards"
+                >
+                  {tier.custom ? 'Talk to Sales' : 'Start Cloud Trial'}
                 </Button>
               </CardBody>
             </Card>
@@ -231,7 +297,7 @@ export default function Pricing() {
           <div className="text-center mb-6 md:mb-12">
             <Chip color="secondary" variant="flat" className="mb-2 md:mb-3 text-[10px] md:text-xs">Support Infrastructure</Chip>
             <h2 className="text-xl md:text-3xl font-semibold">Enterprise support channels with committed response times.</h2>
-            <p className={`mt-2 text-sm md:text-base ${palette.mutedText}`}>Every plan includes a defined escalation path. Enterprise tier adds dedicated pods and Slack Connect integration.</p>
+            <p className={`mt-2 text-sm md:text-base ${palette.mutedText}`}>Every plan includes clear support paths. Enterprise adds dedicated advisory coverage for priority teams.</p>
           </div>
           <div className="grid gap-3 md:gap-6 md:grid-cols-2">
             {supportChannels.map((channel) => (
@@ -250,11 +316,11 @@ export default function Pricing() {
       <section className={`px-4 md:px-6 pb-8 md:pb-16 ${palette.tint}`}>
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-6 md:mb-10">
-            <Chip color="primary" variant="flat" className="mb-2 md:mb-3 text-[10px] md:text-xs">Service Level Commitments</Chip>
-            <h2 className="text-xl md:text-3xl font-semibold">Contractual response commitments by plan tier.</h2>
+            <Chip color="primary" variant="flat" className="mb-2 md:mb-3 text-[10px] md:text-xs">Response Commitments</Chip>
+            <h2 className="text-xl md:text-3xl font-semibold">Defined response targets by plan tier.</h2>
           </div>
           <div className="overflow-x-auto">
-            <Table aria-label="SLA matrix" className="min-w-[700px]">
+            <Table aria-label="Response commitment matrix" className="min-w-[700px]">
               <TableHeader>
                 <TableColumn>Severity</TableColumn>
                 <TableColumn>Launch</TableColumn>
@@ -281,7 +347,7 @@ export default function Pricing() {
           <Chip color="primary" variant="flat" className="text-[10px] md:text-xs">Frequently Asked Questions</Chip>
           <h2 className="text-xl md:text-3xl font-semibold mt-3 md:mt-4 mb-3 md:mb-4">Common questions about pricing and commercial terms</h2>
           <p className={`text-sm md:text-base ${palette.mutedText}`}>
-            Pricing is designed to be transparent and predictable. Contact our commercial team for tailored module configurations, data residency requirements, or procurement documentation.
+            Pricing is designed to be transparent and predictable. Contact our team for a tailored package and procurement support.
           </p>
         </div>
         <div className="max-w-4xl mx-auto">
@@ -304,9 +370,9 @@ export default function Pricing() {
         <Card className={`max-w-5xl mx-auto text-center ${palette.highlightCard}`}>
           <CardBody className="space-y-4 md:space-y-6">
             <Chip variant="flat" color="success" className="text-[10px] md:text-xs">Next Steps</Chip>
-            <h3 className="text-2xl md:text-4xl font-semibold">Customise your product bundle and accelerate time to value.</h3>
+            <h3 className="text-2xl md:text-4xl font-semibold">Choose the right package and start seeing value quickly.</h3>
             <p className={`text-sm md:text-base ${palette.mutedText}`}>
-              Our commercial team will architect a tailored package spanning your required modules with aligned SLAs and certified integrations.
+              Our commercial team will help you select the right business areas, support level, and rollout pace.
             </p>
             <div className="grid gap-2 md:gap-4 md:grid-cols-3 text-left">
               {demoSteps.map((step) => (
@@ -319,14 +385,41 @@ export default function Pricing() {
             <div className="flex flex-wrap justify-center gap-2 md:gap-4">
               <Button
                 as={Link}
-                href={route('demo')}
+                href={route('platform.demo')}
                 size="sm"
                 className={isDarkMode ? 'bg-white text-slate-900 font-semibold px-6 md:px-10' : 'bg-slate-900 text-white font-semibold px-6 md:px-10'}
+                data-cta-name="book_demo"
+                data-cta-location="pricing_final_cta"
+                data-cta-destination="platform.demo"
+                data-experiment-key="pricing_final_cta"
               >
-                Book a Demo
+                Book a Growth Demo
               </Button>
-              <Button as={Link} href={route('contact')} size="sm" variant="bordered" className="border-current px-6 md:px-10">
-                Talk to Sales
+              <Button
+                as={Link}
+                href={route('platform.contact')}
+                size="sm"
+                variant="bordered"
+                className="border-current px-6 md:px-10"
+                data-cta-name="talk_to_sales"
+                data-cta-location="pricing_final_cta"
+                data-cta-destination="platform.contact"
+                data-experiment-key="pricing_final_cta"
+              >
+                Talk to an Advisor
+              </Button>
+              <Button
+                as={Link}
+                href={route('platform.standalone')}
+                size="sm"
+                variant="bordered"
+                className="border-current px-6 md:px-10"
+                data-cta-name="standalone_options"
+                data-cta-location="pricing_final_cta"
+                data-cta-destination="platform.standalone"
+                data-experiment-key="pricing_final_cta"
+              >
+                Private Setup Options
               </Button>
             </div>
           </CardBody>

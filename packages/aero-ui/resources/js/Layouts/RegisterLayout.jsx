@@ -91,7 +91,7 @@ export default function RegisterLayout({ children, mainClassName = 'py-8 sm:py-1
       {/* Desktop Header */}
       <header className={`hidden md:block relative z-10 border-b ${palette.border} ${palette.headerBg} backdrop-blur-xl`}>
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <SafeLink route="landing" className="flex items-center gap-3">
+          <SafeLink route="platform.home" className="flex items-center gap-3">
             {squareLogo ? (
               <img src={squareLogo} alt={siteName || 'Logo'} className="h-12 w-12 object-contain rounded-lg" />
             ) : (
@@ -107,10 +107,10 @@ export default function RegisterLayout({ children, mainClassName = 'py-8 sm:py-1
           </SafeLink>
           <div className="flex items-center gap-4">
             <LanguageSelector variant="flat" size="sm" />
-            <SafeLink route="support" className={`text-sm transition-colors hover:underline ${palette.muted}`}>
+            <SafeLink route="platform.support" className={`text-sm transition-colors hover:underline ${palette.muted}`}>
               Need help?
             </SafeLink>
-            <SafeLink route="landing" className="text-sm font-semibold text-blue-500 hover:text-blue-600">
+            <SafeLink route="platform.home" className="text-sm font-semibold text-blue-500 hover:text-blue-600">
               Back to site
             </SafeLink>
           </div>
@@ -120,7 +120,7 @@ export default function RegisterLayout({ children, mainClassName = 'py-8 sm:py-1
       {/* Mobile Header */}
       <header className={`md:hidden relative z-10 border-b ${palette.border} ${palette.headerBg} backdrop-blur-xl`}>
         <div className="px-4 py-3 flex items-center justify-between">
-          <SafeLink route="landing" className="p-2 -ml-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          <SafeLink route="platform.home" className="p-2 -ml-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
             <ArrowLeftIcon className="w-5 h-5" />
           </SafeLink>
           
@@ -141,7 +141,7 @@ export default function RegisterLayout({ children, mainClassName = 'py-8 sm:py-1
           
           <div className="flex items-center gap-2">
             <LanguageSelector variant="light" size="sm" showLabel={false} />
-            <SafeLink route="support" className={`text-xs font-medium ${palette.muted} hover:text-blue-500 transition-colors`}>
+            <SafeLink route="platform.support" className={`text-xs font-medium ${palette.muted} hover:text-blue-500 transition-colors`}>
               Help
             </SafeLink>
           </div>

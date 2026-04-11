@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Link, Head } from '@inertiajs/react';
-import { Button, Card, CardBody, Chip, Input, Select, SelectItem, Textarea } from '@heroui/react';
+import { Button, Card, CardBody, Chip, Input, Textarea } from '@heroui/react';
 import PublicLayout from '@/Layouts/PublicLayout';
 import { useTheme } from '@/Context/ThemeContext.jsx';
 import { supportChannels } from '@/constants/marketing';
@@ -22,12 +22,12 @@ const infoCards = [
   {
     heading: 'Support',
     detail: 'support@aeos365.com',
-    extra: '24/7 with dedicated pods',
+    extra: '24/7 dedicated customer support',
   },
   {
     heading: 'Phone',
     detail: '+1 (415) 555-1604',
-    extra: 'Regional numbers listed in the Trust Center',
+    extra: 'Regional contact numbers available in the help center',
   },
 ];
 
@@ -74,16 +74,19 @@ export default function Contact() {
           </div>
           <div className="relative max-w-5xl mx-auto text-center space-y-4 md:space-y-6">
             <Chip color="secondary" variant="flat" className="uppercase tracking-[0.35em] text-[10px] md:text-xs">Contact</Chip>
-            <h1 className="text-2xl md:text-5xl font-bold">Connect with the team that builds, deploys, and supports the platform.</h1>
+            <h1 className="text-2xl md:text-5xl font-bold">Connect with the team that helps your business launch and grow with confidence.</h1>
             <p className={`text-sm md:text-lg ${palette.mutedText}`}>
-              Our commercial, technical, and partner teams are available around the clock to address sales enquiries, procurement requirements, integration partnerships, and escalation requests.
+              Our sales, customer success, and partner teams are available around the clock for purchasing, onboarding, partnerships, and urgent support requests.
             </p>
             <div className="flex flex-wrap justify-center gap-2 md:gap-4">
-              <Button as={Link} href={route('demo')} size="sm" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-6 md:px-10">
+              <Button as={Link} href={route('platform.demo')} size="sm" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-6 md:px-10">
                 Schedule a Product Tour
               </Button>
-              <Button as={Link} href={route('support')} size="sm" variant="bordered" className="border-current px-6 md:px-10">
+              <Button as={Link} href={route('platform.support')} size="sm" variant="bordered" className="border-current px-6 md:px-10">
                 Visit Support Centre
+              </Button>
+              <Button as={Link} href={route('platform.standalone')} size="sm" variant="light" className="px-6 md:px-10">
+                Private setup consultation
               </Button>
             </div>
           </div>
@@ -109,20 +112,39 @@ export default function Contact() {
               <CardBody className="space-y-4 md:space-y-5">
                 <Chip color="primary" variant="flat" size="sm" className="text-[10px] md:text-xs">Submit an Enquiry</Chip>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Input label="Full name" variant="bordered" classNames={fieldClasses} />
-                  <Input label="Work email" type="email" variant="bordered" classNames={fieldClasses} />
+                  <Input id="contact-full-name" name="full_name" autoComplete="name" label="Full name" variant="bordered" classNames={fieldClasses} />
+                  <Input id="contact-work-email" name="email" autoComplete="email" label="Work email" type="email" variant="bordered" classNames={fieldClasses} />
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Input label="Company" variant="bordered" classNames={fieldClasses} />
-                  <Select label="Topic" variant="bordered" classNames={fieldClasses}>
-                    {contactReasons.map((reason) => (
-                      <SelectItem key={reason.value} value={reason.value}>
-                        {reason.label}
-                      </SelectItem>
-                    ))}
-                  </Select>
+                  <Input id="contact-company" name="company" autoComplete="organization" label="Company" variant="bordered" classNames={fieldClasses} />
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="contact-topic" className={`text-sm ${palette.inputLabel}`}>
+                      Topic
+                    </label>
+                    <select
+                      id="contact-topic"
+                      name="topic"
+                      defaultValue=""
+                      className={`w-full rounded-xl px-3 py-2 text-sm outline-none ${isDarkMode ? 'bg-white/5 border border-white/10 text-white' : 'bg-white border border-slate-200 text-slate-900'}`}
+                    >
+                      <option value="" disabled>Select a topic</option>
+                      {contactReasons.map((reason) => (
+                        <option key={reason.value} value={reason.value}>
+                          {reason.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-                <Textarea label="How can we help?" minRows={4} variant="bordered" classNames={fieldClasses} />
+                <Textarea
+                  id="contact-message"
+                  name="message"
+                  label="How can we help?"
+                  minRows={4}
+                  disableAutosize
+                  variant="bordered"
+                  classNames={fieldClasses}
+                />
                 <Button className={`${palette.buttonPrimary} px-5 md:px-6`}>Send request</Button>
                 <p className={`text-[10px] md:text-xs ${palette.mutedText}`}>
                   By submitting, you agree to our Privacy Policy and allow us to contact you about this request.
@@ -145,10 +167,10 @@ export default function Contact() {
                   ))}
                 </div>
                 <div className="flex flex-wrap gap-3">
-                  <Button as={Link} href={route('resources')} variant="bordered" className="border-current">
-                    Documentation
+                  <Button as={Link} href={route('platform.resources')} variant="bordered" className="border-current">
+                    Resource library
                   </Button>
-                  <Button as={Link} href={route('legal')} variant="light" className="text-current">
+                  <Button as={Link} href={route('platform.legal.privacy')} variant="light" className="text-current">
                     Trust center
                   </Button>
                 </div>
@@ -166,7 +188,7 @@ export default function Contact() {
                   Distributed headquarters in Singapore, Bengaluru, and Toronto with regional delivery pods in Dubai, London, and Austin.
                 </p>
                 <p className={`text-xs md:text-sm ${palette.mutedText}`}>
-                  Field teams operate aligned to customer time zones. Follow-the-sun incident response is maintained at all hours.
+                  Field teams operate in customer time zones, with urgent-response coverage available at all hours.
                 </p>
               </CardBody>
             </Card>
@@ -174,9 +196,9 @@ export default function Contact() {
               <CardBody className="space-y-2 md:space-y-3">
                 <Chip color="secondary" variant="flat" size="sm" className="text-[10px] md:text-xs">Need Immediate Assistance?</Chip>
                 <p className={`text-sm md:text-base ${palette.mutedText}`}>
-                  Visit the Support Centre for live assistance, Slack Connect access, and real-time platform status before submitting a formal support ticket.
+                  Visit the support center for live assistance and service updates before submitting a formal request.
                 </p>
-                <Button as={Link} href={route('support')} className={`${palette.buttonPrimary} w-full`}>
+                <Button as={Link} href={route('platform.support')} className={`${palette.buttonPrimary} w-full`}>
                   Open support center
                 </Button>
               </CardBody>

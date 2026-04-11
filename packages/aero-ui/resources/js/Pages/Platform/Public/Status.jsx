@@ -28,22 +28,22 @@ const Status = () => {
   }), [isDarkMode]);
 
   const services = [
-    { name: 'Web Application', status: 'operational', uptime: '99.99%' },
-    { name: 'API Services', status: 'operational', uptime: '99.98%' },
-    { name: 'Authentication', status: 'operational', uptime: '100%' },
-    { name: 'Database Cluster', status: 'operational', uptime: '99.99%' },
-    { name: 'File Storage', status: 'operational', uptime: '99.97%' },
-    { name: 'Email Services', status: 'operational', uptime: '99.95%' },
-    { name: 'Background Jobs', status: 'operational', uptime: '99.99%' },
-    { name: 'Webhook Delivery', status: 'operational', uptime: '99.96%' },
+    { name: 'Employee Workspace', status: 'operational', uptime: '99.99%' },
+    { name: 'Connected Services', status: 'operational', uptime: '99.98%' },
+    { name: 'Sign-in & Access', status: 'operational', uptime: '100%' },
+    { name: 'Business Records', status: 'operational', uptime: '99.99%' },
+    { name: 'Document Access', status: 'operational', uptime: '99.97%' },
+    { name: 'Email Delivery', status: 'operational', uptime: '99.95%' },
+    { name: 'Scheduled Workflows', status: 'operational', uptime: '99.99%' },
+    { name: 'Partner Connections', status: 'operational', uptime: '99.96%' },
   ];
 
   const recentIncidents = [
     {
-      date: 'No recent incidents',
-      title: 'All systems operational',
+      date: 'No recent service notices',
+      title: 'All services running normally',
       status: 'resolved',
-      description: 'No incidents reported in the last 90 days.',
+      description: 'No major service notices shared in the last 90 days.',
     },
   ];
 
@@ -80,7 +80,7 @@ const Status = () => {
 
   return (
     <PublicLayout mainClassName="pt-0">
-      <Head title="System Status" />
+      <Head title="Service Status" />
       <div className={palette.baseText}>
         {/* Hero Section */}
         <section className="relative overflow-hidden text-center">
@@ -97,13 +97,13 @@ const Status = () => {
           </div>
           <div className="relative max-w-5xl mx-auto px-4 md:px-6 pt-20 md:pt-28 pb-8 md:pb-16">
             <Chip color={allOperational ? 'success' : 'warning'} variant="flat" className="uppercase tracking-[0.3em] text-[10px] md:text-xs">
-              {allOperational ? 'All Systems Operational' : 'System Status'}
+              {allOperational ? 'Service Normal' : 'Service Update'}
             </Chip>
             <h1 className="text-2xl md:text-5xl font-bold mt-3 md:mt-4 mb-4 md:mb-6">
-              Trust Center & System Status
+              Service Update Center
             </h1>
             <p className={`${palette.mutedText} max-w-3xl mx-auto text-sm md:text-base`}>
-              Real-time visibility into platform health, scheduled maintenance windows, and full incident history. Aero maintains a public status posture as a foundational commitment to operational transparency.
+              Stay informed about service availability, planned updates, and customer notices with clear and timely communication.
             </p>
           </div>
         </section>
@@ -121,7 +121,7 @@ const Status = () => {
                   )}
                   <div>
                     <h2 className="text-xl md:text-2xl font-semibold">
-                      {allOperational ? 'All Systems Operational' : 'Some Systems Affected'}
+                      {allOperational ? 'All services are running as expected' : 'Some services currently need attention'}
                     </h2>
                     <p className={`${palette.mutedText} text-sm`}>
                       Last updated: {new Date().toLocaleString()}
@@ -137,9 +137,9 @@ const Status = () => {
         <section className={`px-4 md:px-6 py-8 md:py-12 ${palette.tint}`}>
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-6 md:mb-8">
-              <h2 className="text-xl md:text-3xl font-semibold">Service Health</h2>
+              <h2 className="text-xl md:text-3xl font-semibold">Service Overview</h2>
               <p className={`${palette.mutedText} mt-2 text-sm md:text-base`}>
-                Current status of all platform services
+                Current availability across customer-facing services
               </p>
             </div>
             <Card className={palette.card}>
@@ -180,7 +180,7 @@ const Status = () => {
                 {scheduledMaintenance.length === 0 ? (
                   <div className="flex flex-col items-center gap-3">
                     <ClockIcon className={`w-12 h-12 ${palette.mutedText}`} />
-                    <p className={palette.mutedText}>No scheduled maintenance at this time.</p>
+                      <p className={palette.mutedText}>No planned maintenance at this time.</p>
                   </div>
                 ) : (
                   scheduledMaintenance.map((item, index) => (
@@ -200,9 +200,9 @@ const Status = () => {
         <section className={`px-4 md:px-6 py-8 md:py-12 ${palette.tint}`}>
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-6 md:mb-8">
-              <h2 className="text-xl md:text-3xl font-semibold">Incident History</h2>
+              <h2 className="text-xl md:text-3xl font-semibold">Service Notice History</h2>
               <p className={`${palette.mutedText} mt-2 text-sm md:text-base`}>
-                Past 90 days of incident reports
+                Notices shared in the last 90 days
               </p>
             </div>
             <Card className={palette.card}>
@@ -238,19 +238,19 @@ const Status = () => {
               <Card className={palette.card}>
                 <CardBody className="text-center p-4">
                   <p className="text-2xl md:text-3xl font-bold">0</p>
-                  <p className={`text-xs md:text-sm ${palette.mutedText} mt-1`}>Incidents (90d)</p>
+                  <p className={`text-xs md:text-sm ${palette.mutedText} mt-1`}>Service Notices (90d)</p>
                 </CardBody>
               </Card>
               <Card className={palette.card}>
                 <CardBody className="text-center p-4">
                   <p className="text-2xl md:text-3xl font-bold">&lt;50ms</p>
-                  <p className={`text-xs md:text-sm ${palette.mutedText} mt-1`}>Avg Response</p>
+                  <p className={`text-xs md:text-sm ${palette.mutedText} mt-1`}>Average Service Speed</p>
                 </CardBody>
               </Card>
               <Card className={palette.card}>
                 <CardBody className="text-center p-4">
                   <p className="text-2xl md:text-3xl font-bold">24/7</p>
-                  <p className={`text-xs md:text-sm ${palette.mutedText} mt-1`}>Monitoring</p>
+                  <p className={`text-xs md:text-sm ${palette.mutedText} mt-1`}>Active Service Oversight</p>
                 </CardBody>
               </Card>
             </div>
@@ -262,16 +262,19 @@ const Status = () => {
           <div className="max-w-4xl mx-auto">
             <Card className={palette.card}>
               <CardBody className="p-6 text-center">
-                <h3 className="text-xl md:text-2xl font-semibold">Subscribe to Platform Status Notifications</h3>
+                <h3 className="text-xl md:text-2xl font-semibold">Subscribe to Service Updates</h3>
                 <p className={`${palette.mutedText} mt-2 mb-4`}>
-                  Receive automated alerts for service incidents, degraded performance events, and scheduled maintenance windows via email or Slack.
+                  Receive timely updates on service notices and planned maintenance windows by email.
                 </p>
                 <div className="flex flex-wrap justify-center gap-3">
-                  <Button as={Link} href={route('support')} className={palette.buttonPrimary}>
+                  <Button as={Link} href={route('platform.support')} className={palette.buttonPrimary}>
                     Contact Support
                   </Button>
-                  <Button as={Link} href={route('docs')} variant="bordered" className={palette.buttonBorder}>
-                    View Documentation
+                  <Button as={Link} href={route('platform.docs')} variant="bordered" className={palette.buttonBorder}>
+                    View Trust Resources
+                  </Button>
+                  <Button as={Link} href={route('platform.standalone')} variant="bordered" className={palette.buttonBorder}>
+                    Private setup support
                   </Button>
                 </div>
               </CardBody>

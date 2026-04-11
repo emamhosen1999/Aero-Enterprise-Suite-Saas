@@ -18,7 +18,8 @@ const AuthGuard = ({ children, auth, url }) => {
     // List of routes that don't require authentication
     const publicRoutes = [
         '/login',
-        '/register', 
+        '/register',
+        '/signup',
         '/forgot-password',
         '/reset-password',
         '/verify-email'
