@@ -232,6 +232,14 @@ class CoreModuleProvider extends AbstractModuleProvider
                 \Aero\Core\Console\Commands\SyncModuleMigrations::class,
                 \Aero\Core\Console\Commands\SeedCommand::class,
                 \Aero\Core\Console\Commands\InstallCommand::class,
+                // Phase 1: Installation metadata & tagging
+                \Aero\Core\Console\Commands\TagMigrationsCommand::class,
+                \Aero\Core\Console\Commands\VerifyInstallationCommand::class,
+                // Phase 2: Module verification & registry
+                \Aero\Core\Console\Commands\VerifyModulesCommand::class,
+                \Aero\Core\Console\Commands\SyncModuleRegistryCommand::class,
+                // Phase 3: Installation orchestrator
+                \Aero\Core\Console\Commands\InstallationCommand::class,
             ]);
         }
     }

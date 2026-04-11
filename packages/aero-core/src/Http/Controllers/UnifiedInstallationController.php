@@ -844,86 +844,81 @@ class UnifiedInstallationController extends Controller
 
     /**
      * Run the actual installation (called via progress polling)
+     *
+     * Now uses the centralized InstallationOrchestrator for consistent step execution
      */
     protected function runInstallation()
     {
         $mode = $this->getMode();
-        $config = $this->getPersistedConfig();
-
-        // Ensure APP_KEY is loaded and encrypter is bound before running any steps
-        $appKey = env('APP_KEY');
-        if (! $appKey) {
-            // If somehow missing, generate and persist a new key immediately
-            $appKey = 'base64:'.base64_encode(random_bytes(32));
-            // Make it available in the current process and future requests
-            putenv("APP_KEY={$appKey}");
-            $_ENV['APP_KEY'] = $appKey;
-            $_SERVER['APP_KEY'] = $appKey;
-            Config::set('app.key', $appKey);
-        }
-
-        // Rebind encrypter with a normalized key
-        if ($appKey) {
-            $normalizedKey = $appKey;
-            if (str_starts_with($appKey, 'base64:')) {
-                $normalizedKey = base64_decode(substr($appKey, 7));
-            }
-
-            Config::set('app.key', $appKey);
-            app()->forgetInstance('encrypter');
-            app()->singleton('encrypter', function ($app) use ($normalizedKey) {
-                return new \Illuminate\Encryption\Encrypter($normalizedKey, $app['config']['app.cipher']);
-            });
-        }
-
-        $steps = $mode === 'saas'
-            ? ['config', 'database', 'migrations', 'admin', 'modules', 'settings', 'cache', 'finalize']
-            : ['config', 'database', 'migrations', 'seeders', 'roles', 'admin', 'settings', 'modules', 'cache', 'finalize'];
-
-        $totalSteps = count($steps);
-        $currentStepIndex = 0;
+        putenv("INSTALLATION_MODE={$mode}");
 
         try {
-            foreach ($steps as $step) {
-                $this->updateProgress(
-                    ($currentStepIndex / $totalSteps) * 100,
-                    $step,
-                    'running'
-                );
+            // Get or create orchestrator in session
+            $orchestratorKey = 'installation_orchestrator_' . session()->getId();
+            $orchestrator = Cache::remember($orchestratorKey, 
+                now()->addMinutes(30),
+                function () use ($mode) {
+                    $orch = new \Aero\Core\Installation\InstallationOrchestrator($mode);
+                    
+                    // Register all steps
+                    $orch->registerSteps([
+                        new \Aero\Core\Installation\Steps\ConfigurationStep(),
+                        new \Aero\Core\Installation\Steps\DatabaseConnectionStep(),
+                        new \Aero\Core\Installation\Steps\MigrationStep(),
+                        new \Aero\Core\Installation\Steps\ModuleDiscoveryStep(),
+                        new \Aero\Core\Installation\Steps\AdminUserStep(),
+                        new \Aero\Core\Installation\Steps\SeedingStep(),
+                        new \Aero\Core\Installation\Steps\SettingsStep(),
+                        new \Aero\Core\Installation\Steps\CacheStep(),
+                        new \Aero\Core\Installation\Steps\LicenseStep(),
+                        new \Aero\Core\Installation\Steps\FinalizeStep(),
+                    ]);
+                    
+                    return $orch;
+                }
+            );
 
-                $this->executeStep($step, $config, $mode);
+            // Execute next step
+            $progress = $orchestrator->executeNextStep();
+            
+            // Update progress file for polling
+            $this->updateProgress(
+                $progress['percentage'] ?? 0,
+                $progress['currentStep'] ?? 'unknown',
+                $progress['status'] ?? 'running',
+                $progress['error'] ?? null
+            );
 
-                $currentStepIndex++;
+            // If completed or failed, forget orchestrator
+            if (in_array($progress['status'], ['completed', 'failed'])) {
+                Cache::forget($orchestratorKey);
+                
+                if ($progress['status'] === 'completed') {
+                    $this->createLockFile();
+                }
             }
 
-            // Mark as complete
-            $this->updateProgress(100, 'complete', 'completed');
-            $this->createLockFile();
-
+            // Return progress for UI
             return response()->json([
-                'percentage' => 100,
-                'currentStep' => 'complete',
-                'status' => 'completed',
+                'percentage' => $progress['percentage'] ?? 0,
+                'currentStep' => $progress['currentStep'] ?? 'unknown',
+                'status' => $progress['status'] ?? 'running',
+                'error' => $progress['error'] ?? null,
+                'message' => $progress['message'] ?? null,
+                'completedSteps' => $progress['completedSteps'] ?? 0,
+                'totalSteps' => $progress['totalSteps'] ?? 10,
                 'steps' => $this->getProgressSteps($mode),
             ]);
 
         } catch (\Throwable $e) {
-            Log::error('Installation failed', [
-                'step' => $steps[$currentStepIndex] ?? 'unknown',
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+            Log::error('Installation failed via orchestrator: ' . $e->getMessage(), [
+                'exception' => $e,
             ]);
 
-            $this->updateProgress(
-                ($currentStepIndex / $totalSteps) * 100,
-                $steps[$currentStepIndex] ?? 'unknown',
-                'failed',
-                $e->getMessage()
-            );
-
+            // Return error response
             return response()->json([
-                'percentage' => ($currentStepIndex / $totalSteps) * 100,
-                'currentStep' => $steps[$currentStepIndex] ?? 'unknown',
+                'percentage' => 0,
+                'currentStep' => 'error',
                 'status' => 'failed',
                 'error' => $e->getMessage(),
                 'steps' => $this->getProgressSteps($mode),
@@ -1538,8 +1533,9 @@ class UnifiedInstallationController extends Controller
             // Clear persisted config
             $this->clearPersistedConfig();
 
-            // Clear cache
+            // Clear cache (including orchestrator)
             Cache::forget('installation_in_progress');
+            Cache::forget('installation_orchestrator_' . session()->getId());
             $this->clearConfigCache();
 
             Log::info('Installation cleanup completed');
@@ -1571,9 +1567,12 @@ class UnifiedInstallationController extends Controller
             File::delete($progressFile);
         }
 
+        // Clear cached orchestrator to start fresh
+        Cache::forget('installation_orchestrator_' . session()->getId());
+
         return response()->json([
             'success' => true,
-            'message' => 'Installation will be retried',
+            'message' => 'Retry started',
         ]);
     }
 
