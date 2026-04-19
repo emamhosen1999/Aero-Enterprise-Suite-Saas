@@ -15,18 +15,18 @@ use Illuminate\Support\Facades\Route;
 | - Prefix: /quality
 | - Name prefix: quality.
 |
-| HRMAC Integration: All routes use 'module:quality,{submodule}' middleware
+| HRMAC Integration: All routes use 'hrmac:quality.{submodule}' middleware
 | Sub-modules defined in config/module.php: inspections, material-lab, ncr-management
 */
 
 // Dashboard - module level access only (auth required)
-Route::middleware(['auth', 'module:quality'])->group(function () {
+Route::middleware(['auth', 'hrmac:quality'])->group(function () {
     Route::get('/dashboard', [QualityController::class, 'dashboard'])->name('dashboard');
     Route::get('/', [QualityController::class, 'index'])->name('index');
 });
 
 // Inspections - maps to 'inspections' sub-module
-Route::middleware(['auth', 'module:quality,inspections'])->group(function () {
+Route::middleware(['auth', 'hrmac:quality.inspections'])->group(function () {
     // Named routes for sidebar menu items (must be defined before resource routes)
     Route::get('inspections/wir', [InspectionController::class, 'index'])->name('inspections.wir');
     Route::get('inspections/checklists', [InspectionController::class, 'checklists'])->name('inspections.checklists');
@@ -36,14 +36,14 @@ Route::middleware(['auth', 'module:quality,inspections'])->group(function () {
 });
 
 // Material Testing Lab - maps to 'material-lab' sub-module
-Route::middleware(['auth', 'module:quality,material-lab'])->group(function () {
+Route::middleware(['auth', 'hrmac:quality.material-lab'])->group(function () {
     Route::get('lab/concrete', [LabController::class, 'concrete'])->name('lab.concrete');
     Route::get('lab/soil', [LabController::class, 'soil'])->name('lab.soil');
     Route::get('lab/materials', [LabController::class, 'materials'])->name('lab.materials');
 });
 
 // Non-Conformance Reports - maps to 'ncr-management' sub-module
-Route::middleware(['auth', 'module:quality,ncr-management'])->group(function () {
+Route::middleware(['auth', 'hrmac:quality.ncr-management'])->group(function () {
     Route::get('ncr', [NCRController::class, 'index'])->name('ncr.index'); // NCR Register list page
     Route::get('ncr/analysis', [NCRController::class, 'analysis'])->name('ncr.analysis'); // Root Cause Analysis page
     Route::resource('ncrs', NCRController::class);

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import { Head, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { Button, Card, CardBody, CardHeader, Input, Select, SelectItem, Chip, Tooltip } from "@heroui/react";
@@ -25,6 +26,7 @@ import { showToast } from '@/utils/toastUtils.jsx';
 
 const SmartContractsManagement = ({ title }) => {
     const { auth } = usePage().props;
+    const { hasAccess: hrmacHasAccess } = useHRMAC();
     
     // 1. Theme radius helper (REQUIRED)
     const getThemeRadius = () => {
@@ -127,10 +129,10 @@ const SmartContractsManagement = ({ title }) => {
     ], [stats]);
 
     // 5. Permission checks (REQUIRED)
-    const canCreate = auth.permissions?.includes('blockchain.contracts.create') || false;
-    const canEdit = auth.permissions?.includes('blockchain.contracts.update') || false;
-    const canDelete = auth.permissions?.includes('blockchain.contracts.delete') || false;
-    const canInteract = auth.permissions?.includes('blockchain.contracts.interact') || false;
+    const canCreate = hrmacHasAccess('blockchain.contracts.create');
+    const canEdit = hrmacHasAccess('blockchain.contracts.update');
+    const canDelete = hrmacHasAccess('blockchain.contracts.delete');
+    const canInteract = hrmacHasAccess('blockchain.contracts.interact');
 
     // 6. Data fetching with axios
     const fetchContracts = useCallback(async () => {

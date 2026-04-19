@@ -3,12 +3,12 @@
 namespace Aero\HRM\Policies;
 
 use Aero\Core\Models\User;
-use Aero\Core\Policies\Concerns\ChecksModuleAccess;
+use Aero\HRMAC\Concerns\ChecksHRMAC;
 use Aero\HRM\Models\OffboardingStep;
 
 class OffboardingStepPolicy
 {
-    use ChecksModuleAccess;
+    use ChecksHRMAC;
 
     public function viewAny(User $user): bool
     {

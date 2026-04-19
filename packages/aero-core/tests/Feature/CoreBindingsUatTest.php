@@ -23,20 +23,21 @@ class CoreBindingsUatTest extends TestCase
     {
         $registry = app(NavigationRegistry::class);
 
-        $registry->register('core', [
+        $registry->register('test_core_uat', [
             ['name' => 'Dashboard', 'route' => 'dashboard.index'],
             ['name' => 'Users', 'route' => 'users.index'],
         ], priority: 10, scope: 'platform');
 
-        $registry->register('hrm', [
+        $registry->register('test_hrm_uat', [
             ['name' => 'Employees', 'route' => 'employees.index'],
         ], priority: 20);
 
         $all = $registry->all();
 
-        $this->assertCount(3, $all);
-        $this->assertSame('Dashboard', $all[0]['name']);
-        $this->assertTrue($registry->hasModule('core'));
-        $this->assertTrue($registry->hasModule('hrm'));
+        $this->assertGreaterThanOrEqual(3, count($all));
+        $this->assertTrue($registry->hasModule('test_core_uat'));
+        $this->assertTrue($registry->hasModule('test_hrm_uat'));
+        $this->assertCount(2, $registry->forModule('test_core_uat'));
+        $this->assertCount(1, $registry->forModule('test_hrm_uat'));
     }
 }

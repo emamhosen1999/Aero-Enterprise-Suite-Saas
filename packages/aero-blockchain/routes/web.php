@@ -14,12 +14,12 @@ use Illuminate\Support\Facades\Route;
 | Blockchain Web Routes
 |--------------------------------------------------------------------------
 |
-| Here are the web routes for the Blockchain module. These routes are loaded
-| by the Blockchain service provider and assigned the "web" middleware group.
+| Web routes for the Blockchain module. Protected by HRMAC middleware
+| using dot-notation paths matching config/module.php hierarchy.
 |
 */
 
-Route::middleware(['web', 'auth'])->prefix('blockchain')->name('blockchain.')->group(function () {
+Route::middleware(['web', 'auth', 'hrmac:blockchain'])->prefix('blockchain')->name('blockchain.')->group(function () {
 
     // Dashboard
     Route::get('/', function () {

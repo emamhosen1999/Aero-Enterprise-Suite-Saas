@@ -2,8 +2,17 @@
 
 namespace Aero\Platform\Jobs;
 
+use Aero\Core\Models\ModuleComponent;
+use Aero\Core\Models\ModuleComponentAction;
+use Aero\HRMAC\Models\Action;
+use Aero\HRMAC\Models\Component;
+use Aero\HRMAC\Models\Module;
+use Aero\HRMAC\Models\Role;
+use Aero\HRMAC\Models\SubModule;
 use Aero\Platform\Events\TenantProvisioningStepCompleted;
+use Aero\Platform\Models\PlatformSetting;
 use Aero\Platform\Models\Tenant;
+use Aero\Platform\TenantDatabaseManagers\CpanelDatabaseManager;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -284,8 +293,8 @@ class ProvisionTenant implements ShouldQueue
     protected function resolveHostingMode(): string
     {
         try {
-            return \Aero\Platform\Models\PlatformSetting::current()->getHostingMode();
-        } catch (\Throwable $e) {
+            return PlatformSetting::current()->getHostingMode();
+        } catch (Throwable $e) {
             // DB unavailable during provisioning — fall back to env
             $this->logStep('   ⚠️  Could not read hosting mode from DB, using .env fallback: '.$e->getMessage(), [], 'warning');
 
@@ -303,19 +312,19 @@ class ProvisionTenant implements ShouldQueue
     protected function injectCpanelConfigFromDb(): void
     {
         try {
-            $settings = \Aero\Platform\Models\PlatformSetting::current()->getHostingSettingsDecrypted();
-        } catch (\Throwable $e) {
+            $settings = PlatformSetting::current()->getHostingSettingsDecrypted();
+        } catch (Throwable $e) {
             $this->logStep('   ⚠️  Could not load cPanel credentials from DB: '.$e->getMessage(), [], 'warning');
 
             return;
         }
 
         $map = [
-            'cpanel_host'      => 'tenancy.cpanel.host',
-            'cpanel_port'      => 'tenancy.cpanel.port',
-            'cpanel_username'  => 'tenancy.cpanel.username',
+            'cpanel_host' => 'tenancy.cpanel.host',
+            'cpanel_port' => 'tenancy.cpanel.port',
+            'cpanel_username' => 'tenancy.cpanel.username',
             'cpanel_api_token' => 'tenancy.cpanel.api_token',
-            'cpanel_db_user'   => 'tenancy.cpanel.db_user',
+            'cpanel_db_user' => 'tenancy.cpanel.db_user',
         ];
 
         foreach ($map as $dbKey => $configKey) {
@@ -335,7 +344,7 @@ class ProvisionTenant implements ShouldQueue
      */
     protected function createDatabaseViaCpanel(): void
     {
-        $cpanelManager = new \Aero\Platform\TenantDatabaseManagers\CpanelDatabaseManager;
+        $cpanelManager = new CpanelDatabaseManager;
 
         // Get the database name that cPanel will create
         $shortDbName = $this->getCpanelShortDatabaseName();
@@ -488,7 +497,7 @@ class ProvisionTenant implements ShouldQueue
                         ]);
 
                         $this->logStep("   → Migrated: {$migrationName}");
-                    } catch (\Throwable $e) {
+                    } catch (Throwable $e) {
                         $this->logStep("   ❌ Failed to migrate {$migrationName}: ".$e->getMessage(), [], 'error');
                         throw $e;
                     }
@@ -821,6 +830,29 @@ class ProvisionTenant implements ShouldQueue
             }
         }
 
+        // Fallback: Also check packages/aero-* directory (development / non-composer installs)
+        if (empty($modules)) {
+            $packagesPath = base_path('packages');
+            if (File::exists($packagesPath)) {
+                foreach (File::directories($packagesPath) as $packagePath) {
+                    if (! str_starts_with(basename($packagePath), 'aero-')) {
+                        continue;
+                    }
+                    $configPath = $packagePath.'/config/module.php';
+                    if (File::exists($configPath)) {
+                        try {
+                            $moduleConfig = require $configPath;
+                            if (is_array($moduleConfig) && isset($moduleConfig['code'], $moduleConfig['name'])) {
+                                $modules[] = $moduleConfig;
+                            }
+                        } catch (Throwable $e) {
+                            Log::warning("Failed to load module config from {$packagePath}: ".$e->getMessage());
+                        }
+                    }
+                }
+            }
+        }
+
         return $modules;
     }
 
@@ -831,18 +863,18 @@ class ProvisionTenant implements ShouldQueue
     protected function syncModuleToDatabase(array $moduleDef): void
     {
         // Use HRMAC models if available, else fall back to Core models
-        $moduleClass = class_exists(\Aero\HRMAC\Models\Module::class)
-            ? \Aero\HRMAC\Models\Module::class
+        $moduleClass = class_exists(Module::class)
+            ? Module::class
             : \Aero\Core\Models\Module::class;
-        $subModuleClass = class_exists(\Aero\HRMAC\Models\SubModule::class)
-            ? \Aero\HRMAC\Models\SubModule::class
+        $subModuleClass = class_exists(SubModule::class)
+            ? SubModule::class
             : \Aero\Core\Models\SubModule::class;
-        $componentClass = class_exists(\Aero\HRMAC\Models\Component::class)
-            ? \Aero\HRMAC\Models\Component::class
-            : \Aero\Core\Models\ModuleComponent::class;
-        $actionClass = class_exists(\Aero\HRMAC\Models\Action::class)
-            ? \Aero\HRMAC\Models\Action::class
-            : \Aero\Core\Models\ModuleComponentAction::class;
+        $componentClass = class_exists(Component::class)
+            ? Component::class
+            : ModuleComponent::class;
+        $actionClass = class_exists(Action::class)
+            ? Action::class
+            : ModuleComponentAction::class;
 
         // Sync module (top level)
         $module = $moduleClass::updateOrCreate(
@@ -1048,7 +1080,7 @@ class ProvisionTenant implements ShouldQueue
             ];
 
             foreach ($defaultRoles as $roleData) {
-                \Aero\HRMAC\Models\Role::firstOrCreate(
+                Role::firstOrCreate(
                     ['name' => $roleData['name'], 'guard_name' => $roleData['guard_name']],
                     [
                         'description' => $roleData['description'],
@@ -1058,7 +1090,7 @@ class ProvisionTenant implements ShouldQueue
             }
 
             // Grant full module access to Super Administrator role
-            $superAdminRole = \Aero\HRMAC\Models\Role::where('name', 'Super Administrator')->first();
+            $superAdminRole = Role::where('name', 'Super Administrator')->first();
             if ($superAdminRole) {
                 $subModuleIds = DB::table('sub_modules')->pluck('id');
                 foreach ($subModuleIds as $subModuleId) {
@@ -1071,6 +1103,57 @@ class ProvisionTenant implements ShouldQueue
                 }
                 $this->logStep('   → Granted full module access to Super Administrator', [
                     'submodules_count' => $subModuleIds->count(),
+                ]);
+            }
+
+            // Grant full module access to Administrator role (same scope as Super Admin)
+            $adminRole = Role::where('name', 'Administrator')->first();
+            if ($adminRole) {
+                $subModuleIds = DB::table('sub_modules')->pluck('id');
+                foreach ($subModuleIds as $subModuleId) {
+                    DB::table('role_module_access')->insertOrIgnore([
+                        'role_id' => $adminRole->id,
+                        'sub_module_id' => $subModuleId,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+                $this->logStep('   → Granted full module access to Administrator', [
+                    'submodules_count' => $subModuleIds->count(),
+                ]);
+            }
+
+            // Grant self-service sub-module access to Employee role
+            $employeeRole = Role::where('name', 'Employee')->first();
+            if ($employeeRole) {
+                $selfServiceSubModuleIds = DB::table('sub_modules')
+                    ->where('code', 'self_service')
+                    ->pluck('id');
+                foreach ($selfServiceSubModuleIds as $subModuleId) {
+                    DB::table('role_module_access')->insertOrIgnore([
+                        'role_id' => $employeeRole->id,
+                        'sub_module_id' => $subModuleId,
+                        'access_scope' => 'own',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+                // Also grant Employee access to core dashboard sub-module
+                $dashboardSubModuleIds = DB::table('sub_modules')
+                    ->where('code', 'dashboard')
+                    ->pluck('id');
+                foreach ($dashboardSubModuleIds as $subModuleId) {
+                    DB::table('role_module_access')->insertOrIgnore([
+                        'role_id' => $employeeRole->id,
+                        'sub_module_id' => $subModuleId,
+                        'access_scope' => 'own',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+                $this->logStep('   → Granted self-service + dashboard access to Employee', [
+                    'self_service_count' => $selfServiceSubModuleIds->count(),
+                    'dashboard_count' => $dashboardSubModuleIds->count(),
                 ]);
             }
 
@@ -1201,7 +1284,10 @@ class ProvisionTenant implements ShouldQueue
             ]);
 
             // Check if notification class exists (may not be present in all installations)
-            $notificationClass = '\\App\\Notifications\\WelcomeToTenant';
+            // Try package namespace first, then fall back to host app namespace
+            $notificationClass = class_exists('\\Aero\\Platform\\Notifications\\WelcomeToTenant')
+                ? '\\Aero\\Platform\\Notifications\\WelcomeToTenant'
+                : '\\App\\Notifications\\WelcomeToTenant';
             if (! class_exists($notificationClass)) {
                 $this->logStep('   → WelcomeToTenant notification not found, skipping email', [], 'warning');
 
@@ -1246,7 +1332,7 @@ class ProvisionTenant implements ShouldQueue
 
                 $this->logStep('   → Rolling back cPanel database', ['mode' => 'shared'], 'warning');
 
-                $manager = new \Aero\Platform\TenantDatabaseManagers\CpanelDatabaseManager;
+                $manager = new CpanelDatabaseManager;
                 $manager->deleteDatabase($this->tenant);
 
                 $this->logStep('   → cPanel database deleted successfully', [], 'warning');
@@ -1264,6 +1350,13 @@ class ProvisionTenant implements ShouldQueue
             }
 
             $this->logStep("   → Dropping database: {$databaseName}", ['database' => $databaseName], 'warning');
+
+            // Validate database name to prevent SQL injection
+            if (! preg_match('/^[a-zA-Z0-9_]+$/', $databaseName)) {
+                $this->logStep("   → Rejected unsafe database name: {$databaseName}", [], 'error');
+
+                return;
+            }
 
             \DB::statement("DROP DATABASE IF EXISTS `{$databaseName}`");
 
@@ -1357,8 +1450,18 @@ class ProvisionTenant implements ShouldQueue
         try {
             // Use tenant contact email
             if ($this->tenant->email) {
-                // Use the notification's sendEmail method with MailService
-                $notification = new \App\Notifications\TenantProvisioningFailed(
+                // Try package namespace first, then fall back to host app namespace
+                $notificationClass = class_exists('\\Aero\\Platform\\Notifications\\TenantProvisioningFailed')
+                    ? '\\Aero\\Platform\\Notifications\\TenantProvisioningFailed'
+                    : '\\App\\Notifications\\TenantProvisioningFailed';
+
+                if (! class_exists($notificationClass)) {
+                    $this->logStep('   → TenantProvisioningFailed notification class not found, skipping', [], 'warning');
+
+                    return;
+                }
+
+                $notification = new $notificationClass(
                     $this->tenant,
                     $exception?->getMessage() ?? 'Unknown error'
                 );

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 | to gracefully return 404 on central domains instead of crashing.
 */
 
-Route::prefix('ims')->name('ims.')->middleware(['web', InitializeTenancyIfNotCentral::class, 'tenant', 'auth'])->group(function () {
+Route::prefix('ims')->name('ims.')->middleware(['web', InitializeTenancyIfNotCentral::class, 'tenant', 'auth', 'hrmac:ims'])->group(function () {
     // Main IMS Dashboard
     Route::get('/', [IMSController::class, 'index'])->name('index');
 

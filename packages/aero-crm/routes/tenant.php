@@ -13,21 +13,24 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 |
 | These routes are loaded for tenant users within the CRM module.
+| All routes are protected by HRMAC middleware using dot-notation paths
+| matching config/module.php hierarchy.
+|
 | NOTE: InitializeTenancyIfNotCentral MUST come before 'tenant' middleware
 | to gracefully return 404 on central domains instead of crashing.
 |
 */
 
-Route::prefix('crm')->name('crm.')->middleware(['web', InitializeTenancyIfNotCentral::class, 'tenant', 'auth'])->group(function () {
+Route::prefix('crm')->name('crm.')->middleware(['web', InitializeTenancyIfNotCentral::class, 'tenant', 'auth', 'hrmac:crm'])->group(function () {
     // Customer routes
-    Route::resource('customers', CustomerController::class);
+    Route::middleware('hrmac:crm.customers')->resource('customers', CustomerController::class);
 
     // Deal routes
-    Route::resource('deals', DealController::class);
+    Route::middleware('hrmac:crm.deals')->resource('deals', DealController::class);
 
     // Opportunity routes
-    Route::resource('opportunities', OpportunityController::class);
+    Route::middleware('hrmac:crm.opportunities')->resource('opportunities', OpportunityController::class);
 
     // Pipeline routes
-    Route::resource('pipelines', PipelineController::class);
+    Route::middleware('hrmac:crm.pipelines')->resource('pipelines', PipelineController::class);
 });

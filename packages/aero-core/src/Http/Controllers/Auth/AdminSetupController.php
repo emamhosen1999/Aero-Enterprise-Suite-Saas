@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\Routing\Exception\RouteNotFoundException;
 
 /**
  * AdminSetupController
@@ -43,6 +44,11 @@ class AdminSetupController extends Controller
     {
         $tenant = tenant();
 
+        // Only allow admin setup for active tenants that don't have admin yet
+        if (! $tenant || $tenant->status !== 'active') {
+            abort(404);
+        }
+
         // If tenant already has admin user, redirect to login
         if ($this->tenantHasAdminUser()) {
             return $this->redirectToLogin('Admin account already exists. Please login.', 'info');
@@ -53,8 +59,6 @@ class AdminSetupController extends Controller
             'tenant' => [
                 'id' => $tenant->id,
                 'name' => $tenant->name,
-                'email' => $tenant->email,
-                'phone' => $tenant->phone,
             ],
         ]);
     }
@@ -68,6 +72,11 @@ class AdminSetupController extends Controller
     public function store(Request $request): JsonResponse|RedirectResponse
     {
         $tenant = tenant();
+
+        // Only allow admin setup for active tenants
+        if (! $tenant || $tenant->status !== 'active') {
+            abort(404);
+        }
 
         // Prevent creating duplicate admin users
         if ($this->tenantHasAdminUser()) {
@@ -234,7 +243,7 @@ class AdminSetupController extends Controller
     {
         try {
             return redirect()->route('login')->with($flashKey, $message);
-        } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException) {
+        } catch (RouteNotFoundException) {
             return redirect('/login')->with($flashKey, $message);
         }
     }

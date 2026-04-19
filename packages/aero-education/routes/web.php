@@ -9,7 +9,7 @@ use Aero\Education\Http\Controllers\StudentController;
 use Aero\Education\Http\Controllers\TranscriptController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['web', 'auth'])->prefix('education')->name('education.')->group(function () {
+Route::middleware(['web', 'auth', 'hrmac:education'])->prefix('education')->name('education.')->group(function () {
 
     // Student Management Routes
     Route::prefix('students')->name('students.')->group(function () {

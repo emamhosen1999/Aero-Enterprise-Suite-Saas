@@ -3,7 +3,7 @@
 namespace Aero\Rfi\Policies;
 
 use Aero\Core\Models\User;
-use Aero\Core\Policies\Concerns\ChecksModuleAccess;
+use Aero\HRMAC\Concerns\ChecksHRMAC;
 use Aero\Rfi\Models\Rfi;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
@@ -16,7 +16,7 @@ use Illuminate\Auth\Access\HandlesAuthorization;
  */
 class RfiPolicy
 {
-    use ChecksModuleAccess, HandlesAuthorization;
+    use ChecksHRMAC, HandlesAuthorization;
 
     /**
      * Determine whether the user can view any RFIs.

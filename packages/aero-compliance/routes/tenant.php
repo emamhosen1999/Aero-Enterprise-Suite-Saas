@@ -17,17 +17,17 @@ use Illuminate\Support\Facades\Route;
 | - Prefix: /compliance
 | - Name prefix: compliance.
 |
-| HRMAC Integration: All routes use 'module:compliance,{submodule}' middleware
+| HRMAC Integration: All routes use 'hrmac:compliance.{submodule}' middleware
 | Sub-modules defined in config/module.php: hse-management, workforce-certs, regulatory-tracker
 */
 
 // Compliance Dashboard - module level access only
-Route::middleware(['auth', 'module:compliance'])->group(function () {
+Route::middleware(['auth', 'hrmac:compliance'])->group(function () {
     Route::get('/', [ComplianceController::class, 'index'])->name('dashboard');
 });
 
 // Regulatory Requirements - maps to 'regulatory-tracker' sub-module
-Route::middleware(['auth', 'module:compliance,regulatory-tracker'])->group(function () {
+Route::middleware(['auth', 'hrmac:compliance.regulatory-tracker'])->group(function () {
     Route::resource('requirements', RegulatoryRequirementController::class);
     Route::post('requirements/{id}/assess', [RegulatoryRequirementController::class, 'assess'])->name('requirements.assess');
 
@@ -36,18 +36,18 @@ Route::middleware(['auth', 'module:compliance,regulatory-tracker'])->group(funct
 });
 
 // Audits - maps to 'hse-management' sub-module
-Route::middleware(['auth', 'module:compliance,hse-management'])->group(function () {
+Route::middleware(['auth', 'hrmac:compliance.hse-management'])->group(function () {
     Route::resource('audits', AuditController::class);
     Route::post('audits/{id}/schedule', [AuditController::class, 'schedule'])->name('audits.schedule');
 });
 
 // Compliance Policies - maps to 'regulatory-tracker' sub-module
-Route::middleware(['auth', 'module:compliance,regulatory-tracker'])->group(function () {
+Route::middleware(['auth', 'hrmac:compliance.regulatory-tracker'])->group(function () {
     Route::resource('policies', CompliancePolicyController::class);
     Route::post('policies/{id}/publish', [CompliancePolicyController::class, 'publish'])->name('policies.publish');
 });
 
 // Documents - maps to 'regulatory-tracker' sub-module
-Route::middleware(['auth', 'module:compliance,regulatory-tracker'])->group(function () {
+Route::middleware(['auth', 'hrmac:compliance.regulatory-tracker'])->group(function () {
     Route::resource('documents', DocumentController::class);
 });

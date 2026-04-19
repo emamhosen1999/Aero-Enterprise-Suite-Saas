@@ -63,7 +63,7 @@ import { useHRMAC } from '@/Hooks/useHRMAC';
 const BoqItemsIndex = ({ title }) => {
     const { auth } = usePage().props;
     const themeRadius = useThemeRadius();
-    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+    const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
 
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
@@ -121,8 +121,8 @@ const BoqItemsIndex = ({ title }) => {
     const canCreateBoq = canCreate('project.boq-items') || isSuperAdmin();
     const canEditBoq = canUpdate('project.boq-items') || isSuperAdmin();
     const canDeleteBoq = canDelete('project.boq-items') || isSuperAdmin();
-    const canImport = auth.permissions?.includes('project.boq-items.import') || auth.permissions?.includes('project.*') || isSuperAdmin();
-    const canExport = auth.permissions?.includes('project.boq-items.export') || auth.permissions?.includes('project.*') || isSuperAdmin();
+    const canImportBoq = hasAccess('project.boq-items.boq-list.import') || isSuperAdmin();
+    const canExportBoq = hasAccess('project.boq-items.boq-list.export') || isSuperAdmin();
 
     // Fetch data
     const fetchItems = useCallback(async () => {
@@ -636,7 +636,7 @@ const BoqItemsIndex = ({ title }) => {
                                             </div>
 
                                             <div className="flex gap-2 flex-wrap">
-                                                {canExport && (
+                                                {canExportBoq && (
                                                     <Button variant="bordered" size={isMobile ? "sm" : "md"}
                                                         startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
                                                         onPress={handleExport}>

@@ -25,6 +25,7 @@ import WorkLocationForm from "@/Forms/HRM/WorkLocationForm.jsx";
 import DeleteWorkLocationForm from "@/Forms/HRM/DeleteWorkLocationForm.jsx";
 import axios from "axios";
 import { showToast } from "@/utils/toastUtils";
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const WorkLocations = React.memo(({ auth, title, jurisdictions, users }) => {
     const isMobile = useMediaQuery('(max-width: 640px)');
@@ -126,8 +127,9 @@ const WorkLocations = React.memo(({ auth, title, jurisdictions, users }) => {
     }, [data, users]);
 
     // Action buttons configuration
+    const { canCreate } = useHRMAC();
     const actionButtons = [
-        ...(auth.roles.includes('Administrator') || auth.permissions.includes('jurisdiction.create') ? [{
+        ...(canCreate('hrm.work-locations.location-list') ? [{
             label: "Add Location",
             icon: <PlusIcon className="w-4 h-4" />,
             onPress: () => openModal('addWorkLocation'),

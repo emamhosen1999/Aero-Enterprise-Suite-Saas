@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import { Head, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { Button, Card, CardBody, CardHeader, Select, SelectItem, Tabs, Tab } from "@heroui/react";
@@ -23,6 +24,7 @@ import { showToast } from '@/utils/toastUtils.jsx';
 
 const BlockchainAnalytics = ({ title }) => {
     const { auth } = usePage().props;
+    const { hasAccess: hrmacHasAccess } = useHRMAC();
     
     // 1. Theme radius helper (REQUIRED)
     const getThemeRadius = () => {
@@ -131,8 +133,8 @@ const BlockchainAnalytics = ({ title }) => {
     ], [stats]);
 
     // 5. Permission checks (REQUIRED)
-    const canViewAnalytics = auth.permissions?.includes('blockchain.analytics.view') || false;
-    const canExport = auth.permissions?.includes('blockchain.analytics.export') || false;
+    const canViewAnalytics = hrmacHasAccess('blockchain.analytics.view');
+    const canExport = hrmacHasAccess('blockchain.analytics.export');
 
     // 6. Data fetching with axios
     const fetchAnalyticsData = useCallback(async () => {

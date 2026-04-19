@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import { Head, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { Button, Card, CardBody, CardHeader, Input, Select, SelectItem, Chip, Tooltip, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/react";
@@ -23,6 +24,7 @@ import { showToast } from '@/utils/toastUtils.jsx';
 
 const WalletsManagement = ({ title }) => {
     const { auth } = usePage().props;
+    const { hasAccess: hrmacHasAccess } = useHRMAC();
     
     // 1. Theme radius helper (REQUIRED)
     const getThemeRadius = () => {
@@ -109,9 +111,9 @@ const WalletsManagement = ({ title }) => {
     ], [stats]);
 
     // 5. Permission checks (REQUIRED)
-    const canCreate = auth.permissions?.includes('blockchain.wallets.create') || false;
-    const canEdit = auth.permissions?.includes('blockchain.wallets.update') || false;
-    const canDelete = auth.permissions?.includes('blockchain.wallets.delete') || false;
+    const canCreate = hrmacHasAccess('blockchain.wallets.create');
+    const canEdit = hrmacHasAccess('blockchain.wallets.update');
+    const canDelete = hrmacHasAccess('blockchain.wallets.delete');
 
     // 6. Data fetching with axios
     const fetchWallets = useCallback(async () => {

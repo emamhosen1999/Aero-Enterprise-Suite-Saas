@@ -1,6 +1,8 @@
 <?php
 
+use Aero\Core\Http\Controllers\Admin\AuditLogController;
 use Aero\Core\Http\Controllers\Admin\CoreUserController;
+use Aero\Core\Http\Controllers\Admin\ExtensionsController;
 use Aero\Core\Http\Controllers\Admin\ModuleController;
 use Aero\Core\Http\Controllers\Admin\RoleController;
 use Aero\Core\Http\Controllers\Auth\AdminSetupController;
@@ -10,13 +12,21 @@ use Aero\Core\Http\Controllers\Auth\EmailVerificationController;
 use Aero\Core\Http\Controllers\Auth\InvitationController;
 use Aero\Core\Http\Controllers\Auth\NewPasswordController;
 use Aero\Core\Http\Controllers\Auth\PasswordResetLinkController;
+use Aero\Core\Http\Controllers\Auth\TwoFactorController;
 use Aero\Core\Http\Controllers\DashboardController;
+use Aero\Core\Http\Controllers\Notification\NotificationController;
 use Aero\Core\Http\Controllers\Profile\NotificationPreferenceController;
 use Aero\Core\Http\Controllers\Profile\UserProfileImageController;
 use Aero\Core\Http\Controllers\Settings\NotificationSettingController;
 use Aero\Core\Http\Controllers\Settings\SystemSettingController;
+use Aero\Core\Http\Controllers\Upload\FileManagerController;
+use Aero\Core\Models\User;
 use Aero\Core\Services\PlatformErrorReporter;
+use Aero\HRMAC\Contracts\RoleModuleAccessInterface;
+use Aero\Platform\Http\Controllers\TenantOnboardingController;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Route;
 
 // Note: TenantOnboardingController is referenced dynamically if platform package is installed
@@ -103,7 +113,7 @@ Route::post('/api/error-log', function (Request $request) {
     ]);
 })->name('core.api.error-log')
     ->middleware('throttle:30,1')
-    ->withoutMiddleware(['auth', \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+    ->withoutMiddleware(['auth', VerifyCsrfToken::class]);
 
 // VERSION CHECK API - Public endpoint for frontend version checking (No Auth Required)
 Route::post('/api/version/check', function (Request $request) {
@@ -118,7 +128,7 @@ Route::post('/api/version/check', function (Request $request) {
     ]);
 })->name('core.api.version.check')
     ->middleware('throttle:30,1')
-    ->withoutMiddleware(['auth', \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+    ->withoutMiddleware(['auth', VerifyCsrfToken::class]);
 
 // ============================================================================
 // ROOT ROUTE - Smart redirect to first accessible page
@@ -126,7 +136,7 @@ Route::post('/api/version/check', function (Request $request) {
 Route::get('/', function () {
     // Check if HRMAC package is available for smart landing
     if (class_exists('Aero\HRMAC\Contracts\RoleModuleAccessInterface')) {
-        $service = app(\Aero\HRMAC\Contracts\RoleModuleAccessInterface::class);
+        $service = app(RoleModuleAccessInterface::class);
         $user = auth()->user();
 
         if ($user) {
@@ -145,10 +155,10 @@ Route::get('/', function () {
             if ($firstRoute) {
                 // Check if it's a named route
                 try {
-                    if (\Illuminate\Support\Facades\Route::has($firstRoute)) {
+                    if (Route::has($firstRoute)) {
                         return redirect()->route($firstRoute);
                     }
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     // Not a named route
                 }
 
@@ -190,9 +200,14 @@ if (class_exists('Aero\\Platform\\Http\\Controllers\\Auth\\ImpersonationControll
 
 // ============================================================================
 // ADMIN SETUP ROUTES (No Auth - for newly provisioned tenants)
+// Rate-limited to prevent brute-force admin creation on tenant domains
 // ============================================================================
-Route::get('admin-setup', [AdminSetupController::class, 'show'])->name('admin.setup.show');
-Route::post('admin-setup', [AdminSetupController::class, 'store'])->name('admin.setup.store');
+Route::middleware(['throttle:5,10'])->group(function () {
+    Route::get('admin-setup', [AdminSetupController::class, 'show'])->name('admin.setup.show');
+    Route::post('admin-setup', [AdminSetupController::class, 'store'])
+        ->name('admin.setup.store')
+        ->middleware('throttle:3,15');
+});
 
 // ============================================================================
 // TENANT ONBOARDING ROUTES (Auth required - after admin setup)
@@ -200,14 +215,14 @@ Route::post('admin-setup', [AdminSetupController::class, 'store'])->name('admin.
 // Only register these routes if the platform package is installed (SaaS mode)
 if (class_exists('Aero\Platform\Http\Controllers\TenantOnboardingController')) {
     Route::middleware(['auth:web'])->prefix('onboarding')->name('onboarding.')->group(function () {
-        Route::get('/', [\Aero\Platform\Http\Controllers\TenantOnboardingController::class, 'index'])->name('index');
-        Route::post('/company', [\Aero\Platform\Http\Controllers\TenantOnboardingController::class, 'saveCompany'])->name('company.save');
-        Route::post('/branding', [\Aero\Platform\Http\Controllers\TenantOnboardingController::class, 'saveBranding'])->name('branding.save');
-        Route::post('/team', [\Aero\Platform\Http\Controllers\TenantOnboardingController::class, 'saveTeam'])->name('team.save');
-        Route::post('/modules', [\Aero\Platform\Http\Controllers\TenantOnboardingController::class, 'saveModules'])->name('modules.save');
-        Route::post('/complete', [\Aero\Platform\Http\Controllers\TenantOnboardingController::class, 'complete'])->name('complete');
-        Route::post('/skip', [\Aero\Platform\Http\Controllers\TenantOnboardingController::class, 'skip'])->name('skip');
-        Route::post('/update-step', [\Aero\Platform\Http\Controllers\TenantOnboardingController::class, 'updateStep'])->name('update-step');
+        Route::get('/', [TenantOnboardingController::class, 'index'])->name('index');
+        Route::post('/company', [TenantOnboardingController::class, 'saveCompany'])->name('company.save');
+        Route::post('/branding', [TenantOnboardingController::class, 'saveBranding'])->name('branding.save');
+        Route::post('/team', [TenantOnboardingController::class, 'saveTeam'])->name('team.save');
+        Route::post('/modules', [TenantOnboardingController::class, 'saveModules'])->name('modules.save');
+        Route::post('/complete', [TenantOnboardingController::class, 'complete'])->name('complete');
+        Route::post('/skip', [TenantOnboardingController::class, 'skip'])->name('skip');
+        Route::post('/update-step', [TenantOnboardingController::class, 'updateStep'])->name('update-step');
     });
 }
 
@@ -271,7 +286,7 @@ Route::middleware('auth:web')->group(function () {
     })->name('core.session-check');
 
     // Locale Switching
-    Route::post('/locale', function (\Illuminate\Http\Request $request) {
+    Route::post('/locale', function (Request $request) {
         $locale = $request->input('locale', 'en');
         $supportedLocales = ['en', 'bn', 'ar', 'es', 'fr', 'de', 'hi', 'zh-CN', 'zh-TW'];
 
@@ -411,34 +426,34 @@ Route::middleware('auth:web')->group(function () {
     // AUDIT LOGS
     // ========================================================================
     Route::prefix('audit-logs')->name('core.audit-logs.')->group(function () {
-        Route::get('/', [\Aero\Core\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('index');
-        Route::get('/activity', [\Aero\Core\Http\Controllers\Admin\AuditLogController::class, 'activityLogs'])->name('activity');
-        Route::get('/security', [\Aero\Core\Http\Controllers\Admin\AuditLogController::class, 'securityLogs'])->name('security');
-        Route::get('/stats', [\Aero\Core\Http\Controllers\Admin\AuditLogController::class, 'stats'])->name('stats');
-        Route::post('/activity/export', [\Aero\Core\Http\Controllers\Admin\AuditLogController::class, 'exportActivityLogs'])->name('activity.export');
-        Route::post('/security/export', [\Aero\Core\Http\Controllers\Admin\AuditLogController::class, 'exportSecurityLogs'])->name('security.export');
+        Route::get('/', [AuditLogController::class, 'index'])->name('index');
+        Route::get('/activity', [AuditLogController::class, 'activityLogs'])->name('activity');
+        Route::get('/security', [AuditLogController::class, 'securityLogs'])->name('security');
+        Route::get('/stats', [AuditLogController::class, 'stats'])->name('stats');
+        Route::post('/activity/export', [AuditLogController::class, 'exportActivityLogs'])->name('activity.export');
+        Route::post('/security/export', [AuditLogController::class, 'exportSecurityLogs'])->name('security.export');
     });
 
     // ========================================================================
     // NOTIFICATIONS MANAGEMENT
     // ========================================================================
     Route::prefix('notifications')->name('core.notifications.')->group(function () {
-        Route::get('/', [\Aero\Core\Http\Controllers\Notification\NotificationController::class, 'index'])->name('index');
-        Route::get('/list', [\Aero\Core\Http\Controllers\Notification\NotificationController::class, 'list'])->name('list');
-        Route::post('/{id}/read', [\Aero\Core\Http\Controllers\Notification\NotificationController::class, 'markAsRead'])->name('read');
-        Route::post('/read-all', [\Aero\Core\Http\Controllers\Notification\NotificationController::class, 'markAllAsRead'])->name('read-all');
-        Route::delete('/{id}', [\Aero\Core\Http\Controllers\Notification\NotificationController::class, 'destroy'])->name('destroy');
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::get('/list', [NotificationController::class, 'list'])->name('list');
+        Route::post('/{id}/read', [NotificationController::class, 'markAsRead'])->name('read');
+        Route::post('/read-all', [NotificationController::class, 'markAllAsRead'])->name('read-all');
+        Route::delete('/{id}', [NotificationController::class, 'destroy'])->name('destroy');
     });
 
     // ========================================================================
     // FILE MANAGER
     // ========================================================================
     Route::prefix('files')->name('core.files.')->group(function () {
-        Route::get('/', [\Aero\Core\Http\Controllers\Upload\FileManagerController::class, 'index'])->name('index');
-        Route::get('/browse', [\Aero\Core\Http\Controllers\Upload\FileManagerController::class, 'browse'])->name('browse');
-        Route::post('/upload', [\Aero\Core\Http\Controllers\Upload\FileManagerController::class, 'upload'])->name('upload');
-        Route::delete('/{id}', [\Aero\Core\Http\Controllers\Upload\FileManagerController::class, 'destroy'])->name('destroy');
-        Route::get('/stats', [\Aero\Core\Http\Controllers\Upload\FileManagerController::class, 'stats'])->name('stats');
+        Route::get('/', [FileManagerController::class, 'index'])->name('index');
+        Route::get('/browse', [FileManagerController::class, 'browse'])->name('browse');
+        Route::post('/upload', [FileManagerController::class, 'upload'])->name('upload');
+        Route::delete('/{id}', [FileManagerController::class, 'destroy'])->name('destroy');
+        Route::get('/stats', [FileManagerController::class, 'stats'])->name('stats');
     });
 
     // ========================================================================
@@ -499,13 +514,13 @@ Route::middleware('auth:web')->group(function () {
     // TWO-FACTOR AUTHENTICATION ROUTES
     // ========================================================================
     Route::prefix('auth/two-factor')->name('auth.two-factor.')->group(function () {
-        Route::get('/', [\Aero\Core\Http\Controllers\Auth\TwoFactorController::class, 'index'])->name('index');
-        Route::post('/setup', [\Aero\Core\Http\Controllers\Auth\TwoFactorController::class, 'setup'])->name('setup');
-        Route::post('/confirm', [\Aero\Core\Http\Controllers\Auth\TwoFactorController::class, 'confirm'])->name('confirm');
-        Route::post('/disable', [\Aero\Core\Http\Controllers\Auth\TwoFactorController::class, 'disable'])->name('disable');
-        Route::post('/regenerate-codes', [\Aero\Core\Http\Controllers\Auth\TwoFactorController::class, 'regenerateRecoveryCodes'])->name('regenerate-codes');
-        Route::get('/challenge', [\Aero\Core\Http\Controllers\Auth\TwoFactorController::class, 'challenge'])->name('challenge');
-        Route::post('/verify', [\Aero\Core\Http\Controllers\Auth\TwoFactorController::class, 'verify'])
+        Route::get('/', [TwoFactorController::class, 'index'])->name('index');
+        Route::post('/setup', [TwoFactorController::class, 'setup'])->name('setup');
+        Route::post('/confirm', [TwoFactorController::class, 'confirm'])->name('confirm');
+        Route::post('/disable', [TwoFactorController::class, 'disable'])->name('disable');
+        Route::post('/regenerate-codes', [TwoFactorController::class, 'regenerateRecoveryCodes'])->name('regenerate-codes');
+        Route::get('/challenge', [TwoFactorController::class, 'challenge'])->name('challenge');
+        Route::post('/verify', [TwoFactorController::class, 'verify'])
             ->middleware('throttle:5,1') // 5 attempts per minute
             ->name('verify');
     });
@@ -525,7 +540,7 @@ Route::middleware('auth:web')->group(function () {
                 'title' => 'Security Settings',
                 'twoFactorEnabled' => ! empty($user->two_factor_secret) && ! empty($user->two_factor_enabled_at),
                 'remainingCodes' => ! empty($user->two_factor_recovery_codes)
-                    ? count(json_decode(\Illuminate\Support\Facades\Crypt::decryptString($user->two_factor_recovery_codes) ?: '[]', true))
+                    ? count(json_decode(Crypt::decryptString($user->two_factor_recovery_codes) ?: '[]', true))
                     : 0,
             ]);
         })->name('security');
@@ -561,7 +576,7 @@ Route::middleware('auth:web')->group(function () {
                 return response()->json([]);
             }
 
-            return response()->json(\Aero\Core\Models\User::whereHas('roles', function ($query) {
+            return response()->json(User::whereHas('roles', function ($query) {
                 $query->whereIn('name', [
                     'Super Administrator',
                     'Administrator',
@@ -592,11 +607,11 @@ Route::middleware('auth:web')->group(function () {
     // EXTENSIONS MARKETPLACE
     // ========================================================================
     Route::prefix('extensions')->name('core.extensions.')->group(function () {
-        Route::get('/', [\Aero\Core\Http\Controllers\Admin\ExtensionsController::class, 'index'])->name('index');
-        Route::post('/{moduleCode}/toggle', [\Aero\Core\Http\Controllers\Admin\ExtensionsController::class, 'toggle'])->name('toggle');
-        Route::post('/upload', [\Aero\Core\Http\Controllers\Admin\ExtensionsController::class, 'upload'])->name('upload');
-        Route::get('/check-updates', [\Aero\Core\Http\Controllers\Admin\ExtensionsController::class, 'checkUpdates'])->name('checkUpdates');
-        Route::get('/{moduleCode}/settings', [\Aero\Core\Http\Controllers\Admin\ExtensionsController::class, 'settings'])->name('settings');
+        Route::get('/', [ExtensionsController::class, 'index'])->name('index');
+        Route::post('/{moduleCode}/toggle', [ExtensionsController::class, 'toggle'])->name('toggle');
+        Route::post('/upload', [ExtensionsController::class, 'upload'])->name('upload');
+        Route::get('/check-updates', [ExtensionsController::class, 'checkUpdates'])->name('checkUpdates');
+        Route::get('/{moduleCode}/settings', [ExtensionsController::class, 'settings'])->name('settings');
     });
 
     // FCM Token Update

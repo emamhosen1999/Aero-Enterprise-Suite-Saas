@@ -2,7 +2,6 @@
 
 namespace Aero\Core\Http\Middleware;
 
-use App\Http\Controllers\Tenant\TenantOnboardingController;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -36,7 +35,7 @@ class EnsureTenantIsSetup
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -98,7 +97,7 @@ class EnsureTenantIsSetup
                 return false;
             }
 
-            // Check for users with 'super_admin' or 'admin' role
+            // Check for users with Super Administrator or Administrator role
             // Using model_has_roles table from Spatie Permission (if it exists)
             if (DB::getSchemaBuilder()->hasTable('model_has_roles')) {
                 $adminExists = DB::table('users')
@@ -107,7 +106,7 @@ class EnsureTenantIsSetup
                             ->where('model_has_roles.model_type', '=', 'Aero\\Core\\Models\\User');
                     })
                     ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
-                    ->whereIn('roles.name', ['super_admin', 'admin'])
+                    ->whereIn('roles.name', ['Super Administrator', 'Administrator'])
                     ->exists();
 
                 if ($adminExists) {
@@ -131,8 +130,14 @@ class EnsureTenantIsSetup
      */
     protected function isOnboardingCompleted(mixed $tenant): bool
     {
-        // Use the TenantOnboardingController's static method
-        return TenantOnboardingController::isOnboardingCompleted();
+        // Use the TenantOnboardingController's static method if available (SaaS mode)
+        $controllerClass = 'Aero\\Platform\\Http\\Controllers\\TenantOnboardingController';
+        if (class_exists($controllerClass) && method_exists($controllerClass, 'isOnboardingCompleted')) {
+            return $controllerClass::isOnboardingCompleted();
+        }
+
+        // Standalone mode: no onboarding required
+        return true;
     }
 
     /**

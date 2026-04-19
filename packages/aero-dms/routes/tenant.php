@@ -12,17 +12,17 @@ use Illuminate\Support\Facades\Route;
 | - Prefix: /dms
 | - Name prefix: dms.
 |
-| HRMAC Integration: All routes use 'module:dms,{submodule}' middleware
+| HRMAC Integration: All routes use 'hrmac:dms.{submodule}' middleware
 | Sub-modules defined in config/module.php: documents, versions, approvals, sharing, settings
 */
 
 // Dashboard - module level access only
-Route::middleware(['auth', 'module:dms'])->group(function () {
+Route::middleware(['auth', 'hrmac:dms'])->group(function () {
     Route::get('/dashboard', [DMSController::class, 'index'])->name('dashboard');
 });
 
 // Documents - maps to 'documents' sub-module
-Route::middleware(['auth', 'module:dms,documents'])->group(function () {
+Route::middleware(['auth', 'hrmac:dms.documents'])->group(function () {
     Route::get('/documents', [DMSController::class, 'documents'])->name('documents');
     Route::get('/documents/create', [DMSController::class, 'create'])->name('documents.create');
     Route::post('/documents', [DMSController::class, 'store'])->name('documents.store');
@@ -33,19 +33,19 @@ Route::middleware(['auth', 'module:dms,documents'])->group(function () {
 });
 
 // Document Sharing - maps to 'sharing' sub-module
-Route::middleware(['auth', 'module:dms,sharing'])->group(function () {
+Route::middleware(['auth', 'hrmac:dms.sharing'])->group(function () {
     Route::post('/documents/{id}/share', [DMSController::class, 'share'])->name('documents.share');
 });
 
 // Document Versions - maps to 'versions' sub-module
-Route::middleware(['auth', 'module:dms,versions'])->group(function () {
+Route::middleware(['auth', 'hrmac:dms.versions'])->group(function () {
     Route::get('/documents/{id}/versions', [DMSController::class, 'versions'])->name('documents.versions');
     Route::post('/documents/{id}/versions', [DMSController::class, 'createVersion'])->name('documents.versions.create');
     Route::get('/documents/{id}/versions/{versionId}/download', [DMSController::class, 'downloadVersion'])->name('documents.versions.download');
 });
 
 // Folders & Categories - maps to 'documents' sub-module
-Route::middleware(['auth', 'module:dms,documents'])->group(function () {
+Route::middleware(['auth', 'hrmac:dms.documents'])->group(function () {
     Route::get('/folders', [DMSController::class, 'folders'])->name('folders');
     Route::post('/folders', [DMSController::class, 'storeFolder'])->name('folders.store');
     Route::put('/folders/{id}', [DMSController::class, 'updateFolder'])->name('folders.update');
@@ -59,7 +59,7 @@ Route::middleware(['auth', 'module:dms,documents'])->group(function () {
 });
 
 // Approvals - maps to 'approvals' sub-module
-Route::middleware(['auth', 'module:dms,approvals'])->group(function () {
+Route::middleware(['auth', 'hrmac:dms.approvals'])->group(function () {
     Route::get('/approvals', [DMSController::class, 'approvals'])->name('approvals');
     Route::post('/documents/{id}/request-approval', [DMSController::class, 'requestApproval'])->name('documents.request-approval');
     Route::post('/approvals/{id}/approve', [DMSController::class, 'approveDocument'])->name('approvals.approve');
@@ -67,17 +67,17 @@ Route::middleware(['auth', 'module:dms,approvals'])->group(function () {
 });
 
 // Shared Documents - maps to 'sharing' sub-module
-Route::middleware(['auth', 'module:dms,sharing'])->group(function () {
+Route::middleware(['auth', 'hrmac:dms.sharing'])->group(function () {
     Route::get('/shared-documents', [DMSController::class, 'shared'])->name('shared-documents');
 });
 
 // Analytics - maps to 'documents' sub-module
-Route::middleware(['auth', 'module:dms,documents'])->group(function () {
+Route::middleware(['auth', 'hrmac:dms.documents'])->group(function () {
     Route::get('/analytics', [DMSController::class, 'analytics'])->name('analytics');
 });
 
 // Access Control - maps to 'settings' sub-module
-Route::middleware(['auth', 'module:dms,settings'])->group(function () {
+Route::middleware(['auth', 'hrmac:dms.settings'])->group(function () {
     Route::get('/access-control', [DMSController::class, 'accessControl'])->name('access-control');
     Route::post('/access-control', [DMSController::class, 'updateAccessControl'])->name('access-control.store');
     Route::delete('/access-control/{id}', [DMSController::class, 'deleteAccessRule'])->name('access-control.destroy');

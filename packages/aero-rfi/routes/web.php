@@ -41,22 +41,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/my-inspections', [RfiWebController::class, 'myInspections'])->name('my-inspections');
 
     // Dashboard - module level access only (no sub-module required for dashboard)
-    Route::middleware(['module:rfi'])
+    Route::middleware(['hrmac:rfi'])
         ->get('/', [RfiDashboardController::class, 'index'])
         ->name('dashboard');
 
     // Site Diary - maps to daily-reporting sub-module
-    Route::middleware(['module:rfi,daily-reporting'])
+    Route::middleware(['hrmac:rfi.daily-reporting'])
         ->get('/site-diary', [RfiDashboardController::class, 'index'])
         ->name('site-diary');
 
     // Hindrance Register (Daily Delays) - maps to daily-reporting sub-module
-    Route::middleware(['module:rfi,daily-reporting'])
+    Route::middleware(['hrmac:rfi.daily-reporting'])
         ->get('/daily/delays', [RfiDashboardController::class, 'index'])
         ->name('daily.delays');
 
     // RFIs - maps to inspection-management sub-module
-    Route::prefix('rfis')->name('rfis.')->middleware(['module:rfi,inspection-management'])->group(function () {
+    Route::prefix('rfis')->name('rfis.')->middleware(['hrmac:rfi.inspection-management'])->group(function () {
         Route::get('/', [RfiWebController::class, 'index'])->name('index');
         Route::get('/create', [RfiWebController::class, 'create'])->name('create');
         Route::post('/', [RfiWebController::class, 'store'])->name('store');
@@ -114,7 +114,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // RFI Summary - maps to inspection-management sub-module
-    Route::prefix('rfis-summary')->name('rfis-summary.')->middleware(['module:rfi,inspection-management'])->group(function () {
+    Route::prefix('rfis-summary')->name('rfis-summary.')->middleware(['hrmac:rfi.inspection-management'])->group(function () {
         Route::get('/', [RfiSummaryController::class, 'index'])->name('index');
         Route::post('/filter', [RfiSummaryController::class, 'filterSummary'])->name('filter');
         Route::get('/export', [RfiSummaryController::class, 'exportDailySummary'])->name('export');
@@ -123,7 +123,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Objections
-    Route::prefix('objections')->name('objections.')->middleware(['module:rfi,objections'])->group(function () {
+    Route::prefix('objections')->name('objections.')->middleware(['hrmac:rfi.objections'])->group(function () {
         Route::get('/', [ObjectionController::class, 'index'])->name('index');
         Route::get('/create', [ObjectionController::class, 'create'])->name('create');
         Route::post('/', [ObjectionController::class, 'store'])->name('store');
@@ -157,7 +157,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Work Locations - maps to daily-reporting sub-module
-    Route::prefix('work-locations')->name('work-locations.')->middleware(['module:rfi,daily-reporting'])->group(function () {
+    Route::prefix('work-locations')->name('work-locations.')->middleware(['hrmac:rfi.daily-reporting'])->group(function () {
         Route::get('/', [WorkLocationController::class, 'index'])->name('index');
         Route::get('/create', [WorkLocationController::class, 'create'])->name('create');
         Route::post('/', [WorkLocationController::class, 'store'])->name('store');
@@ -176,7 +176,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ============================================================================
     // CHAINAGE PROGRESS MAP (PATENTABLE - Chainage-Centric Construction Ledger)
     // ============================================================================
-    Route::prefix('chainage-progress')->name('chainage-progress.')->middleware(['module:rfi,linear-progress'])->group(function () {
+    Route::prefix('chainage-progress')->name('chainage-progress.')->middleware(['hrmac:rfi.linear-progress'])->group(function () {
         Route::get('/', [ChainageProgressController::class, 'index'])->name('index');
         Route::get('/api/data', [ChainageProgressController::class, 'getProgressData'])->name('data');
         Route::get('/api/gap-analysis', [ChainageProgressController::class, 'getGapAnalysis'])->name('gap-analysis');
@@ -186,7 +186,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ============================================================================
     // WORK LAYERS (Layer Sequencing & Prerequisites)
     // ============================================================================
-    Route::prefix('work-layers')->name('work-layers.')->middleware(['module:rfi,linear-progress'])->group(function () {
+    Route::prefix('work-layers')->name('work-layers.')->middleware(['hrmac:rfi.linear-progress'])->group(function () {
         Route::get('/', [WorkLayerController::class, 'index'])->name('index');
         Route::get('/api/list', [WorkLayerController::class, 'list'])->name('list');
         Route::post('/', [WorkLayerController::class, 'store'])->name('store');
@@ -201,7 +201,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ============================================================================
 
     // Material Consumption - maps to daily-reporting sub-module
-    Route::prefix('material-consumptions')->name('material-consumptions.')->middleware(['module:rfi,daily-reporting'])->group(function () {
+    Route::prefix('material-consumptions')->name('material-consumptions.')->middleware(['hrmac:rfi.daily-reporting'])->group(function () {
         Route::get('/', [MaterialConsumptionController::class, 'index'])->name('index');
         Route::post('/', [MaterialConsumptionController::class, 'store'])->name('store');
         Route::get('/{materialConsumption}', [MaterialConsumptionController::class, 'show'])->name('show');
@@ -216,7 +216,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Equipment Logs - maps to daily-reporting sub-module
-    Route::prefix('equipment-logs')->name('equipment-logs.')->middleware(['module:rfi,daily-reporting'])->group(function () {
+    Route::prefix('equipment-logs')->name('equipment-logs.')->middleware(['hrmac:rfi.daily-reporting'])->group(function () {
         Route::get('/', [EquipmentLogController::class, 'index'])->name('index');
         Route::post('/', [EquipmentLogController::class, 'store'])->name('store');
         Route::get('/{equipmentLog}', [EquipmentLogController::class, 'show'])->name('show');
@@ -231,7 +231,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Weather Logs - maps to daily-reporting sub-module
-    Route::prefix('weather-logs')->name('weather-logs.')->middleware(['module:rfi,daily-reporting'])->group(function () {
+    Route::prefix('weather-logs')->name('weather-logs.')->middleware(['hrmac:rfi.daily-reporting'])->group(function () {
         Route::get('/', [WeatherLogController::class, 'index'])->name('index');
         Route::post('/', [WeatherLogController::class, 'store'])->name('store');
         Route::get('/{weatherLog}', [WeatherLogController::class, 'show'])->name('show');
@@ -245,7 +245,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Progress Photos - maps to daily-reporting sub-module
-    Route::prefix('progress-photos')->name('progress-photos.')->middleware(['module:rfi,daily-reporting'])->group(function () {
+    Route::prefix('progress-photos')->name('progress-photos.')->middleware(['hrmac:rfi.daily-reporting'])->group(function () {
         Route::get('/', [ProgressPhotoController::class, 'index'])->name('index');
         Route::post('/', [ProgressPhotoController::class, 'store'])->name('store');
         Route::get('/{progressPhoto}', [ProgressPhotoController::class, 'show'])->name('show');
@@ -262,7 +262,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Labor Deployments - maps to daily-reporting sub-module
-    Route::prefix('labor-deployments')->name('labor-deployments.')->middleware(['module:rfi,daily-reporting'])->group(function () {
+    Route::prefix('labor-deployments')->name('labor-deployments.')->middleware(['hrmac:rfi.daily-reporting'])->group(function () {
         Route::get('/', [LaborDeploymentController::class, 'index'])->name('index');
         Route::post('/', [LaborDeploymentController::class, 'store'])->name('store');
         Route::get('/{laborDeployment}', [LaborDeploymentController::class, 'show'])->name('show');
@@ -277,7 +277,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Site Instructions - maps to daily-reporting sub-module
-    Route::prefix('site-instructions')->name('site-instructions.')->middleware(['module:rfi,daily-reporting'])->group(function () {
+    Route::prefix('site-instructions')->name('site-instructions.')->middleware(['hrmac:rfi.daily-reporting'])->group(function () {
         Route::get('/', [SiteInstructionController::class, 'index'])->name('index');
         Route::post('/', [SiteInstructionController::class, 'store'])->name('store');
         Route::get('/{siteInstruction}', [SiteInstructionController::class, 'show'])->name('show');

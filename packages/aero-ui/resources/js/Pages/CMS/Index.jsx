@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import {
     Button,
     Card,
@@ -66,10 +67,11 @@ const CmsIndex = ({ title }) => {
     ], [stats]);
 
     // Permission checks
-    const canCreate = auth.permissions?.includes('cms.pages.editor.create') || false;
-    const canEdit = auth.permissions?.includes('cms.pages.editor.edit') || false;
-    const canDelete = auth.permissions?.includes('cms.pages.editor.delete') || false;
-    const canPublish = auth.permissions?.includes('cms.pages.editor.publish') || false;
+    const { hasAccess: hrmacHasAccess } = useHRMAC();
+    const canCreate = hrmacHasAccess('cms.pages.editor.create');
+    const canEdit = hrmacHasAccess('cms.pages.editor.edit');
+    const canDelete = hrmacHasAccess('cms.pages.editor.delete');
+    const canPublish = hrmacHasAccess('cms.pages.editor.publish');
 
     // Fetch pages
     const fetchPages = useCallback(async () => {

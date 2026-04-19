@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo, useRef, useEffect } from "react"
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import { usePage, router } from "@inertiajs/react";
 import { showToast } from '@/utils/toastUtils';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import { debounce } from "lodash";
 import StatsCards from '@/Components/Common/StatsCards';
 import ProfileAvatar, { getProfileAvatarTokens } from '@/Components/ProfileAvatar';
@@ -154,7 +155,8 @@ const RfisTable = ({
     }, [allData]);
 
     // Permission-based access control using designations
-    const userIsAdmin = auth.roles?.includes('Administrator') || auth.roles?.includes('Super Administrator') || false;
+    const { isSuperAdmin } = useHRMAC();
+    const userIsAdmin = isSuperAdmin();
     const userIsSE = auth.designation === 'Supervision Engineer' || false;
     const userIsQCI = auth.designation === 'Quality Control Inspector' || auth.designation === 'Asst. Quality Control Inspector' || false;
     

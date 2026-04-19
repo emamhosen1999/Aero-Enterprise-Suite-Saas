@@ -49,6 +49,7 @@ import {
     ArrowPathIcon
 } from "@heroicons/react/24/outline";
 import {Head, usePage, router} from "@inertiajs/react";
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import App from "@/Layouts/App.jsx";
 import PageHeader from "@/Components/PageHeader.jsx";
@@ -156,11 +157,10 @@ const UserProfile = ({ title, allUsers, report_to, departments, designations }) 
     });
 
     // Check permissions
-    const canEditProfile = auth.permissions?.includes('profile.own.update') || 
-                          auth.permissions?.includes('profile.update') || 
+    const { hasAccess } = useHRMAC();
+    const canEditProfile = hasAccess('hrm.employees.employee-profile.update') || 
                           auth.user.id === user.id;
-    const canViewProfile = auth.permissions?.includes('profile.own.view') || 
-                          auth.permissions?.includes('profile.view') || 
+    const canViewProfile = hasAccess('hrm.employees.employee-profile.view') || 
                           auth.user.id === user.id;
 
     // Modal handlers
@@ -734,7 +734,7 @@ const UserProfile = ({ title, allUsers, report_to, departments, designations }) 
                         <p className="text-default-500 text-sm mb-4">
                             Contact HR to assign your salary structure and compensation details.
                         </p>
-                        {canEditProfile && auth.permissions?.includes('hr.payroll.view') && (
+                        {canEditProfile && hasAccess('hrm.payroll.payroll-overview.view') && (
                             <Button
                                 color="primary"
                                 variant="bordered"
@@ -863,7 +863,7 @@ const UserProfile = ({ title, allUsers, report_to, departments, designations }) 
                 </div>
 
                 {/* Action Button for HR */}
-                {auth.permissions?.includes('hr.payroll.view') && (
+                {hasAccess('hrm.payroll.payroll-overview.view') && (
                     <div className="flex justify-center pt-4">
                         <Button
                             color="primary"

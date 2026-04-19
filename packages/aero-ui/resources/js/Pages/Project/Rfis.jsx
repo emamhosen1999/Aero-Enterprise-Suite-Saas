@@ -947,7 +947,7 @@ const Rfis = ({ auth, title, allData, jurisdictions, users, reports, reports_wit
                                                         </Select>
 
                                                         {/* In Charge Filter - Only for Admin/Super Admin */}
-                                                        {(auth.roles.includes('Administrator') || auth.roles.includes('Super Administrator')) && (
+                                                        {isSuperAdmin() && (
                                                             <Select
                                                                 label="In Charge"
                                                                 placeholder="Filter by in charge..."
@@ -986,7 +986,7 @@ const Rfis = ({ auth, title, allData, jurisdictions, users, reports, reports_wit
                                                         )}
 
                                                         {/* Jurisdiction Filter - Only for Admin/Super Admin */}
-                                                        {(auth.roles.includes('Administrator') || auth.roles.includes('Super Administrator')) && (
+                                                        {isSuperAdmin() && (
                                                             <Select
                                                                 label="Jurisdiction"
                                                                 placeholder="Filter by jurisdiction..."

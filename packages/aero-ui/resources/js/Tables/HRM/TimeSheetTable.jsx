@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {getProfileAvatarTokens} from '@/Components/ProfileAvatar';
 import {motion} from 'framer-motion';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import {
     Button as HeroButton,
     Card,
@@ -338,12 +339,12 @@ const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, exter
             default:
                 return 'warning';
         }
-    };    // Check permissions using new system
-
-    const canViewAllAttendance = auth.permissions?.includes('attendance.view') || false;
-    const canViewOwnAttendance = auth.permissions?.includes('attendance.own.view') || false;
-    const canManageAttendance = auth.permissions?.includes('attendance.manage') || false;
-    const canExportAttendance = auth.permissions?.includes('attendance.export') || canManageAttendance || false;    // Filter absent users for export functions only - backend now handles search filtering
+    };    // Check permissions using HRMAC
+    const { hasAccess } = useHRMAC();
+    const canViewAllAttendance = hasAccess('hrm.time-attendance.attendance-tracking.view');
+    const canViewOwnAttendance = hasAccess('hrm.employee-self-service.my-attendance.view');
+    const canManageAttendance = hasAccess('hrm.time-attendance.attendance-tracking.update');
+    const canExportAttendance = hasAccess('hrm.time-attendance.attendance-tracking.export') || canManageAttendance;    // Filter absent users for export functions only - backend now handles search filtering
     const filteredAbsentUsers = useMemo(() => {
         // No need to filter here since backend handles the search filtering
         return absentUsers;

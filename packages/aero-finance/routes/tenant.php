@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Route;
 | to gracefully return 404 on central domains instead of crashing.
 */
 
-Route::prefix('finance')->name('finance.')->middleware(['web', InitializeTenancyIfNotCentral::class, 'tenant', 'auth'])->group(function () {
+Route::prefix('finance')->name('finance.')->middleware(['web', InitializeTenancyIfNotCentral::class, 'tenant', 'auth', 'hrmac:finance'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [FinanceDashboardController::class, 'index'])->name('dashboard');
 

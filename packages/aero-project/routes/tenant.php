@@ -29,7 +29,7 @@ use Illuminate\Support\Facades\Route;
 | - Name prefix: project.
 |
 | HRMAC Integration:
-| - 'module:project,{submodule}' - Module-level access control
+| - 'hrmac:project.{submodule}' - Module-level access control
 | - 'project.hrmac:{path}' - Action-level authorization
 | - 'project.member' - Project membership validation
 |
@@ -51,7 +51,7 @@ Route::middleware(['auth'])->group(function () {
 // PROJECT CORE ROUTES
 // Maps to 'projects' sub-module
 // ============================================================================
-Route::prefix('projects')->name('projects.')->middleware(['auth', 'module:project,projects'])->group(function () {
+Route::prefix('projects')->name('projects.')->middleware(['auth', 'hrmac:project.projects'])->group(function () {
     // List & Dashboard
     Route::get('/', [ProjectController::class, 'index'])->name('index')
         ->middleware('project.hrmac:projects.project_list.view');
@@ -98,7 +98,7 @@ Route::prefix('projects')->name('projects.')->middleware(['auth', 'module:projec
 // TASKS ROUTES
 // Maps to 'tasks' sub-module
 // ============================================================================
-Route::prefix('tasks')->name('tasks.')->middleware(['auth', 'module:project,tasks'])->group(function () {
+Route::prefix('tasks')->name('tasks.')->middleware(['auth', 'hrmac:project.tasks'])->group(function () {
     Route::get('/', [TaskController::class, 'index'])->name('index')
         ->middleware('project.hrmac:tasks.task_list.view');
     Route::get('/create', [TaskController::class, 'create'])->name('create')
@@ -121,7 +121,7 @@ Route::prefix('tasks')->name('tasks.')->middleware(['auth', 'module:project,task
 // MILESTONES ROUTES
 // Maps to 'milestones' sub-module
 // ============================================================================
-Route::prefix('milestones')->name('milestones.')->middleware(['auth', 'module:project,milestones'])->group(function () {
+Route::prefix('milestones')->name('milestones.')->middleware(['auth', 'hrmac:project.milestones'])->group(function () {
     Route::get('/', [MilestoneController::class, 'index'])->name('index')
         ->middleware('project.hrmac:milestones.milestone_list.view');
     Route::get('/create', [MilestoneController::class, 'create'])->name('create')
@@ -140,7 +140,7 @@ Route::prefix('milestones')->name('milestones.')->middleware(['auth', 'module:pr
 // TIME TRACKING ROUTES
 // Maps to 'time_tracking' sub-module
 // ============================================================================
-Route::prefix('time-tracking')->name('time-tracking.')->middleware(['auth', 'module:project,time_tracking'])->group(function () {
+Route::prefix('time-tracking')->name('time-tracking.')->middleware(['auth', 'hrmac:project.time_tracking'])->group(function () {
     Route::get('/', [TimeTrackingController::class, 'index'])->name('index')
         ->middleware('project.hrmac:time_tracking.time_entries.view');
     Route::get('/create', [TimeTrackingController::class, 'create'])->name('create')
@@ -159,7 +159,7 @@ Route::prefix('time-tracking')->name('time-tracking.')->middleware(['auth', 'mod
 // RESOURCES ROUTES
 // Maps to 'resources' sub-module
 // ============================================================================
-Route::prefix('resources')->name('resources.')->middleware(['auth', 'module:project,resources'])->group(function () {
+Route::prefix('resources')->name('resources.')->middleware(['auth', 'hrmac:project.resources'])->group(function () {
     Route::get('/', [ResourceController::class, 'index'])->name('index')
         ->middleware('project.hrmac:resources.resource_list.view');
     Route::post('/', [ResourceController::class, 'store'])->name('store')
@@ -174,7 +174,7 @@ Route::prefix('resources')->name('resources.')->middleware(['auth', 'module:proj
 // BUDGET ROUTES
 // Maps to 'budgets' sub-module
 // ============================================================================
-Route::prefix('budgets')->name('budgets.')->middleware(['auth', 'module:project,budgets'])->group(function () {
+Route::prefix('budgets')->name('budgets.')->middleware(['auth', 'hrmac:project.budgets'])->group(function () {
     Route::get('/', [BudgetController::class, 'index'])->name('index')
         ->middleware('project.hrmac:budgets.budget_list.view');
     Route::post('/', [BudgetController::class, 'store'])->name('store')
@@ -189,7 +189,7 @@ Route::prefix('budgets')->name('budgets.')->middleware(['auth', 'module:project,
 // ISSUES ROUTES
 // Maps to 'issues' sub-module
 // ============================================================================
-Route::prefix('issues')->name('issues.')->middleware(['auth', 'module:project,issues'])->group(function () {
+Route::prefix('issues')->name('issues.')->middleware(['auth', 'hrmac:project.issues'])->group(function () {
     Route::get('/', [IssueController::class, 'index'])->name('index')
         ->middleware('project.hrmac:issues.issue_list.view');
     Route::get('/create', [IssueController::class, 'create'])->name('create')
@@ -208,7 +208,7 @@ Route::prefix('issues')->name('issues.')->middleware(['auth', 'module:project,is
 // TEAM MEMBERS ROUTES
 // Maps to 'team' sub-module
 // ============================================================================
-Route::prefix('team')->name('team.')->middleware(['auth', 'module:project,team'])->group(function () {
+Route::prefix('team')->name('team.')->middleware(['auth', 'hrmac:project.team'])->group(function () {
     Route::get('/{project}', [TeamMemberController::class, 'index'])->name('index')
         ->middleware('project.hrmac:team.member_list.view');
     Route::post('/{project}', [TeamMemberController::class, 'store'])->name('store')
@@ -223,7 +223,7 @@ Route::prefix('team')->name('team.')->middleware(['auth', 'module:project,team']
 // GANTT CHART ROUTES
 // Maps to 'smart-scheduling' sub-module
 // ============================================================================
-Route::prefix('gantt')->name('gantt.')->middleware(['auth', 'module:project,smart-scheduling'])->group(function () {
+Route::prefix('gantt')->name('gantt.')->middleware(['auth', 'hrmac:project.smart-scheduling'])->group(function () {
     Route::get('/', [GanttController::class, 'index'])->name('index')
         ->middleware('project.hrmac:smart-scheduling.gantt-cpm.view');
     Route::get('/data', [GanttController::class, 'data'])->name('data')
@@ -234,7 +234,7 @@ Route::prefix('gantt')->name('gantt.')->middleware(['auth', 'module:project,smar
 // BOQ ITEMS (PATENTABLE - Bill of Quantities Master Data)
 // Maps to 'boq-items' sub-module
 // ============================================================================
-Route::prefix('boq-items')->name('boq-items.')->middleware(['auth', 'module:project,boq-items'])->group(function () {
+Route::prefix('boq-items')->name('boq-items.')->middleware(['auth', 'hrmac:project.boq-items'])->group(function () {
     Route::get('/', [BoqItemController::class, 'index'])->name('index')
         ->middleware('project.hrmac:boq-items.measurement-list.view');
     Route::get('/paginate', [BoqItemController::class, 'paginate'])->name('paginate');
@@ -262,7 +262,7 @@ Route::prefix('boq-items')->name('boq-items.')->middleware(['auth', 'module:proj
 // BOQ MEASUREMENTS (PATENTABLE - Auto-Quantity Derivation from Chainage)
 // Maps to 'boq-measurements' sub-module
 // ============================================================================
-Route::prefix('boq-measurements')->name('boq-measurements.')->middleware(['auth', 'module:project,boq-measurements'])->group(function () {
+Route::prefix('boq-measurements')->name('boq-measurements.')->middleware(['auth', 'hrmac:project.boq-measurements'])->group(function () {
     Route::get('/', [BoqMeasurementController::class, 'index'])->name('index')
         ->middleware('project.hrmac:boq-measurements.measurement-list.view');
     Route::get('/paginate', [BoqMeasurementController::class, 'paginate'])->name('paginate');
@@ -282,7 +282,7 @@ Route::prefix('boq-measurements')->name('boq-measurements.')->middleware(['auth'
 // RISKS & ISSUES ROUTES
 // Maps to 'risks' sub-module - Enhanced risk/issue management
 // ============================================================================
-Route::prefix('projects/{project}/risks')->name('risks.')->middleware(['auth', 'module:project,risks', 'project.member'])->group(function () {
+Route::prefix('projects/{project}/risks')->name('risks.')->middleware(['auth', 'hrmac:project.risks', 'project.member'])->group(function () {
     Route::get('/', [ProjectRiskController::class, 'index'])->name('index')
         ->middleware('project.hrmac:risks.risk_list.view');
     Route::get('/create', [ProjectRiskController::class, 'create'])->name('create')
@@ -305,7 +305,7 @@ Route::prefix('projects/{project}/risks')->name('risks.')->middleware(['auth', '
 // SPRINTS ROUTES (Agile Methodology)
 // Maps to 'sprints' sub-module
 // ============================================================================
-Route::prefix('projects/{project}/sprints')->name('sprints.')->middleware(['auth', 'module:project,sprints', 'project.member'])->group(function () {
+Route::prefix('projects/{project}/sprints')->name('sprints.')->middleware(['auth', 'hrmac:project.sprints', 'project.member'])->group(function () {
     Route::get('/', [ProjectSprintController::class, 'index'])->name('index')
         ->middleware('project.hrmac:sprints.sprint_list.view');
     Route::get('/create', [ProjectSprintController::class, 'create'])->name('create')
@@ -337,7 +337,7 @@ Route::prefix('projects/{project}/sprints')->name('sprints.')->middleware(['auth
 // LABELS ROUTES
 // Maps to 'labels' sub-module
 // ============================================================================
-Route::prefix('projects/{project}/labels')->name('labels.')->middleware(['auth', 'module:project,labels', 'project.member'])->group(function () {
+Route::prefix('projects/{project}/labels')->name('labels.')->middleware(['auth', 'hrmac:project.labels', 'project.member'])->group(function () {
     Route::get('/', [ProjectLabelController::class, 'index'])->name('index')
         ->middleware('project.hrmac:labels.label_list.view');
     Route::post('/', [ProjectLabelController::class, 'store'])->name('store')
@@ -356,7 +356,7 @@ Route::prefix('projects/{project}/labels')->name('labels.')->middleware(['auth',
 // ATTACHMENTS ROUTES
 // Maps to 'attachments' sub-module
 // ============================================================================
-Route::prefix('projects/{project}/attachments')->name('attachments.')->middleware(['auth', 'module:project,attachments', 'project.member'])->group(function () {
+Route::prefix('projects/{project}/attachments')->name('attachments.')->middleware(['auth', 'hrmac:project.attachments', 'project.member'])->group(function () {
     Route::get('/', [ProjectAttachmentController::class, 'index'])->name('index')
         ->middleware('project.hrmac:attachments.attachment_list.view');
     Route::post('/', [ProjectAttachmentController::class, 'store'])->name('store')
@@ -379,7 +379,7 @@ Route::prefix('projects/{project}/attachments')->name('attachments.')->middlewar
 // ACTIVITY LOG ROUTES (Read-only)
 // Maps to 'activity' sub-module
 // ============================================================================
-Route::prefix('projects/{project}/activity')->name('activity.')->middleware(['auth', 'module:project,activity', 'project.member'])->group(function () {
+Route::prefix('projects/{project}/activity')->name('activity.')->middleware(['auth', 'hrmac:project.activity', 'project.member'])->group(function () {
     Route::get('/', [ProjectActivityController::class, 'index'])->name('index')
         ->middleware('project.hrmac:activity.activity_list.view');
     Route::get('/entity', [ProjectActivityController::class, 'forEntity'])->name('for-entity')

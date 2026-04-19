@@ -67,12 +67,12 @@ use Illuminate\Support\Facades\Route;
 // ============================================================================
 
 // Leave Summary Route - Accessible without hrm prefix (backward compatibility)
-Route::middleware(['auth', 'verified', 'module:hrm,time-off'])
+Route::middleware(['auth', 'verified', 'hrmac:hrm.time-off'])
     ->get('/leave-summary', [LeaveController::class, 'summary'])
     ->name('leave.summary');
 
 // Profile search for admin usage (cross-module functionality)
-Route::middleware(['auth', 'verified', 'module:hrm,employees'])
+Route::middleware(['auth', 'verified', 'hrmac:hrm.employees'])
     ->get('/profiles/search', [ProfileController::class, 'search'])
     ->name('profiles.search');
 
@@ -82,18 +82,18 @@ Route::middleware(['auth', 'verified', 'module:hrm,employees'])
 // Note: Service provider adds 'hrm.' prefix and '/hrm' path automatically
 Route::middleware(['auth', 'verified'])->group(function () {
     // HR Dashboard (for HR Managers and Admins)
-    Route::middleware(['module:hrm,dashboard'])->group(function () {
+    Route::middleware(['hrmac:hrm.dashboard'])->group(function () {
         Route::get('/dashboard', [HRMDashboardController::class, 'index'])->name('dashboard');
         Route::get('/dashboard/stats', [HRMDashboardController::class, 'stats'])->name('dashboard.stats');
     });
 
     // Employee Dashboard (for regular employees - personal view)
-    Route::middleware(['module:hrm,employee-self-service'])
+    Route::middleware(['hrmac:hrm.employee-self-service'])
         ->get('/employee/dashboard', [EmployeeDashboardController::class, 'index'])
         ->name('employee.dashboard');
 
     // Performance Management
-    Route::middleware(['module:hrm,performance'])->group(function () {
+    Route::middleware(['hrmac:hrm.performance'])->group(function () {
         Route::get('/performance', [PerformanceReviewController::class, 'index'])->name('performance.index');
         Route::get('/performance/stats', [PerformanceReviewController::class, 'stats'])->name('performance.stats');
         Route::get('/performance/create', [PerformanceReviewController::class, 'create'])->name('performance.create');
@@ -152,7 +152,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Training Management
-    Route::middleware(['module:hrm,training'])->group(function () {
+    Route::middleware(['hrmac:hrm.training'])->group(function () {
         Route::get('/training', [TrainingController::class, 'index'])->name('training.index');
         Route::get('/training/create', [TrainingController::class, 'create'])->name('training.create');
         Route::post('/training', [TrainingController::class, 'store'])->name('training.store');
@@ -181,7 +181,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Recruitment Management
-    Route::middleware(['module:hrm,recruitment'])->group(function () {
+    Route::middleware(['hrmac:hrm.recruitment'])->group(function () {
         Route::get('/recruitment', [RecruitmentController::class, 'index'])->name('recruitment.index');
         Route::post('/recruitment', [RecruitmentController::class, 'store'])->name('recruitment.store');
 
@@ -244,7 +244,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Employee Onboarding & Offboarding
-    Route::middleware(['module:hrm,onboarding'])->group(function () {
+    Route::middleware(['hrmac:hrm.onboarding'])->group(function () {
         Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding.index');
         Route::get('/onboarding/create', [OnboardingController::class, 'create'])->name('onboarding.create');
         Route::post('/onboarding', [OnboardingController::class, 'store'])->name('onboarding.store');
@@ -277,7 +277,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Skills & Competency Management
-    Route::middleware(['module:hrm,employees,skills'])->group(function () {
+    Route::middleware(['hrmac:hrm.employees.skills'])->group(function () {
         Route::get('/skills', [SkillsController::class, 'index'])->name('skills.index');
         Route::get('/skills/stats', [SkillsController::class, 'stats'])->name('skills.stats');
         Route::get('/skills/matrix', [SkillsController::class, 'matrix'])->name('skills.matrix');
@@ -295,7 +295,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Time Off Management (Industry Standard)
-    Route::middleware(['module:hrm,time-off'])->group(function () {
+    Route::middleware(['hrmac:hrm.time-off'])->group(function () {
         // Time Off Dashboard
         Route::get('/time-off', [TimeOffManagementController::class, 'index'])->name('timeoff.index');
         Route::get('/time-off/dashboard', [TimeOffManagementController::class, 'index'])->name('timeoff.dashboard');
@@ -320,7 +320,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Legacy Time Off routes (for backward compatibility)
-    Route::middleware(['module:hrm,time-off'])->group(function () {
+    Route::middleware(['hrmac:hrm.time-off'])->group(function () {
         Route::get('/time-off-legacy', [TimeOffController::class, 'index'])->name('timeoff-legacy.index');
         Route::get('/time-off-legacy/calendar', [TimeOffController::class, 'calendar'])->name('timeoff-legacy.calendar');
         Route::get('/time-off-legacy/approvals', [TimeOffController::class, 'approvals'])->name('timeoff-legacy.approvals');
@@ -332,7 +332,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Employee Benefits Administration
-    Route::middleware(['module:hrm,employees,benefits'])->group(function () {
+    Route::middleware(['hrmac:hrm.employees.benefits'])->group(function () {
         Route::get('/benefits', [BenefitsController::class, 'index'])->name('benefits.index');
         Route::get('/benefits/stats', [BenefitsController::class, 'stats'])->name('benefits.stats');
         Route::get('/benefits/enrollments', [BenefitsController::class, 'enrollments'])->name('benefits.enrollments.index');
@@ -353,7 +353,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Enhanced Time-off Management
-    Route::middleware(['module:hrm,time-off'])->group(function () {
+    Route::middleware(['hrmac:hrm.time-off'])->group(function () {
         Route::get('/time-off', [TimeOffController::class, 'index'])->name('timeoff.index');
         Route::get('/time-off/calendar', [TimeOffController::class, 'calendar'])->name('timeoff.calendar');
         Route::get('/time-off/approvals', [TimeOffController::class, 'approvals'])->name('timeoff.approvals');
@@ -365,7 +365,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Workplace Health & Safety
-    Route::middleware(['module:hrm,safety'])->group(function () {
+    Route::middleware(['hrmac:hrm.safety'])->group(function () {
         Route::get('/safety', [WorkplaceSafetyController::class, 'index'])->name('safety.index');
         Route::get('/safety/stats', [WorkplaceSafetyController::class, 'stats'])->name('safety.stats');
         Route::get('/safety/incidents', [WorkplaceSafetyController::class, 'incidents'])->name('safety.incidents.index');
@@ -393,7 +393,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // HR Analytics & Reporting
-    Route::middleware(['module:hrm,hr-reports'])->group(function () {
+    Route::middleware(['hrmac:hrm.hr-reports'])->group(function () {
         // Redirect /hr-analytics to /analytics for navigation consistency
         Route::get('/hr-analytics', fn () => redirect()->route('hrm.analytics.index'))->name('hr-analytics.index');
         Route::get('/analytics', [HrAnalyticsController::class, 'index'])->name('analytics.index');
@@ -407,7 +407,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // HR Document Management
-    Route::middleware(['module:hrm,documents'])->group(function () {
+    Route::middleware(['hrmac:hrm.documents'])->group(function () {
         Route::get('/documents', [HrDocumentController::class, 'index'])->name('documents.index');
         Route::get('/documents/create', [HrDocumentController::class, 'create'])->name('documents.create');
         Route::post('/documents', [HrDocumentController::class, 'store'])->name('documents.store');
@@ -429,7 +429,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Enhanced Employee Self-Service Portal
-    Route::middleware(['module:hrm,employees,self-service'])->group(function () {
+    Route::middleware(['hrmac:hrm.employees.self-service'])->group(function () {
         Route::get('/self-service', [EmployeeSelfServiceController::class, 'index'])->name('selfservice.index');
         Route::get('/self-service/profile', [EmployeeSelfServiceController::class, 'profile'])->name('selfservice.profile');
         Route::put('/self-service/profile', [EmployeeSelfServiceController::class, 'updateProfile'])->name('selfservice.profile.update');
@@ -444,7 +444,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Payroll Management System
-    Route::middleware(['module:hrm,payroll'])->group(function () {
+    Route::middleware(['hrmac:hrm.payroll'])->group(function () {
         Route::get('/payroll', [PayrollController::class, 'index'])->name('payroll.index');
         Route::post('/payroll', [PayrollController::class, 'store'])->name('payroll.store');
         Route::get('/payroll/structures', [PayrollController::class, 'structures'])->name('payroll.structures'); // Salary structures
@@ -485,7 +485,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Employee Management - Core CRUD operations
-    Route::middleware(['module:hrm,employees'])->group(function () {
+    Route::middleware(['hrmac:hrm.employees'])->group(function () {
         Route::get('/employees', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'index'])->name('employees.index');
         Route::get('/employees/paginate', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'paginate'])->name('employees.paginate');
         Route::get('/employees/stats', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'stats'])->name('employees.stats');
@@ -502,7 +502,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Employee Profile Management (Bank Details, Emergency Contacts)
-    Route::middleware(['module:hrm,employees'])->prefix('employees/{user}')->name('employees.')->group(function () {
+    Route::middleware(['hrmac:hrm.employees'])->prefix('employees/{user}')->name('employees.')->group(function () {
         // Profile Overview
         Route::get('/profile', [\Aero\HRM\Http\Controllers\Employee\EmployeeProfileController::class, 'show'])->name('profile.show');
         Route::get('/profile/edit', [\Aero\HRM\Http\Controllers\Employee\EmployeeProfileController::class, 'edit'])->name('profile.edit');
@@ -511,7 +511,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Bank Details
         Route::get('/bank-details', [\Aero\HRM\Http\Controllers\Employee\EmployeeProfileController::class, 'getBankDetails'])->name('bank-details.show');
         Route::post('/bank-details/verify', [\Aero\HRM\Http\Controllers\Employee\EmployeeProfileController::class, 'verifyBankDetails'])
-            ->middleware('module:hrm,employees,verify')
+            ->middleware('hrmac:hrm.employees.verify')
             ->name('bank-details.verify');
 
         // Emergency Contacts
@@ -527,17 +527,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/documents/{document}', [\Aero\HRM\Http\Controllers\Employee\EmployeeDocumentController::class, 'update'])->name('documents.update');
         Route::delete('/documents/{document}', [\Aero\HRM\Http\Controllers\Employee\EmployeeDocumentController::class, 'destroy'])->name('documents.destroy');
         Route::post('/documents/{document}/verify', [\Aero\HRM\Http\Controllers\Employee\EmployeeDocumentController::class, 'verify'])
-            ->middleware('module:hrm,documents,verify')
+            ->middleware('hrmac:hrm.documents.verify')
             ->name('documents.verify');
     });
 
     // Document Expiry Dashboard (HR Admin)
-    Route::middleware(['module:hrm,documents'])->group(function () {
+    Route::middleware(['hrmac:hrm.documents'])->group(function () {
         Route::get('/documents/expiring', [\Aero\HRM\Http\Controllers\Employee\EmployeeDocumentController::class, 'expiring'])->name('documents.expiring');
     });
 
     // Salary Structure Management
-    Route::middleware(['module:hrm,payroll'])->prefix('salary-structure')->name('salary-structure.')->group(function () {
+    Route::middleware(['hrmac:hrm.payroll'])->prefix('salary-structure')->name('salary-structure.')->group(function () {
         Route::get('/', [\Aero\HRM\Http\Controllers\Employee\SalaryStructureController::class, 'index'])->name('index');
         Route::post('/', [\Aero\HRM\Http\Controllers\Employee\SalaryStructureController::class, 'store'])->name('store');
         Route::put('/{id}', [\Aero\HRM\Http\Controllers\Employee\SalaryStructureController::class, 'update'])->name('update');
@@ -553,7 +553,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/managers', [\Aero\HRM\Http\Controllers\Employee\ManagersController::class, 'index'])->name('managers.list');
 
     // Employee self-service routes
-    Route::middleware(['module:hrm,time-off,own-leave'])->group(function () {
+    Route::middleware(['hrmac:hrm.time-off.own-leave'])->group(function () {
         Route::get('/leaves-employee', [LeaveController::class, 'index1'])->name('leaves-employee');
         Route::post('/leave-add', [LeaveController::class, 'create'])->name('leave-add');
         Route::post('/leave-update', [LeaveController::class, 'update'])->name('leave-update');
@@ -564,7 +564,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Attendance self-service routes
-    Route::middleware(['module:hrm,attendance,own-attendance'])->group(function () {
+    Route::middleware(['hrmac:hrm.attendance.own-attendance'])->group(function () {
         Route::get('/attendance-employee', [AttendanceController::class, 'index2'])->name('attendance-employee');
         Route::get('/attendance/attendance-today', [AttendanceController::class, 'getCurrentUserPunch'])->name('attendance.current-user-punch');
         Route::get('/get-current-user-attendance-for-date', [AttendanceController::class, 'getCurrentUserAttendanceForDate'])->name('getCurrentUserAttendanceForDate');
@@ -572,12 +572,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Expenses self-service route
-    Route::middleware(['module:hrm,expenses'])->group(function () {
+    Route::middleware(['hrmac:hrm.expenses'])->group(function () {
         Route::get('/my-expenses', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'myExpenses'])->name('my-expenses');
     });
 
     // Punch routes - require punch permission
-    Route::middleware(['module:hrm,attendance,own-attendance,punch'])->group(function () {
+    Route::middleware(['hrmac:hrm.attendance.own-attendance,punch'])->group(function () {
         Route::post('/punchIn', [AttendanceController::class, 'punchIn'])->name('punchIn');
         Route::post('/punchOut', [AttendanceController::class, 'punchOut'])->name('punchOut');
         Route::post('/attendance/punch', [AttendanceController::class, 'punch'])->name('attendance.punch');
@@ -594,7 +594,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/get-client-ip', [AttendanceController::class, 'getClientIp'])->name('getClientIp');
 
     // Holiday routes (Legacy - redirects to Time Off Management)
-    Route::middleware(['module:hrm,time-off,holidays'])->group(function () {
+    Route::middleware(['hrmac:hrm.time-off.holidays'])->group(function () {
         Route::get('/holidays', [HolidayController::class, 'index'])->name('holidays');
         Route::post('/holidays-add', [HolidayController::class, 'create'])->name('holidays-add');
         Route::delete('/holidays-delete', [HolidayController::class, 'delete'])->name('holidays-delete');
@@ -604,7 +604,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Profile Routes - own profile access
-    Route::middleware(['module:core,my-profile'])->group(function () {
+    Route::middleware(['hrmac:core.my-profile'])->group(function () {
         Route::get('/profile/{user}', [ProfileController::class, 'index'])->name('profile');
         Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
         Route::delete('/profile/delete', [ProfileController::class, 'delete'])->name('profile.delete');
@@ -633,14 +633,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ========================================================================
     // These routes manage the Employee's HR image (badges, org charts, ID cards)
     // This is SEPARATE from the User's profile image which is for identity/auth
-    Route::middleware(['module:hrm,employees'])->prefix('employees')->name('employees.')->group(function () {
+    Route::middleware(['hrmac:hrm.employees'])->prefix('employees')->name('employees.')->group(function () {
         Route::get('/{employee}/image', [EmployeeImageController::class, 'show'])->name('image.show');
         Route::post('/image/upload', [EmployeeImageController::class, 'upload'])->name('image.upload');
         Route::delete('/image/remove', [EmployeeImageController::class, 'remove'])->name('image.remove');
     });
 
     // Leave management routes
-    Route::middleware(['module:hrm,time-off'])->group(function () {
+    Route::middleware(['hrmac:hrm.time-off'])->group(function () {
         Route::get('/leaves', [LeaveController::class, 'index2'])->name('leaves');
         Route::get('/leave-summary', [LeaveController::class, 'leaveSummary'])->name('leave-summary');
         Route::post('/leave-update-status', [LeaveController::class, 'updateStatus'])->name('leave-update-status');
@@ -657,7 +657,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Leave bulk operations (admin only)
-    Route::middleware(['module:hrm,time-off,leave-management,approve'])->group(function () {
+    Route::middleware(['hrmac:hrm.time-off.leave-management,approve'])->group(function () {
         Route::post('/leaves/bulk-approve', [LeaveController::class, 'bulkApprove'])->name('leaves.bulk-approve');
         Route::post('/leaves/bulk-reject', [LeaveController::class, 'bulkReject'])->name('leaves.bulk-reject');
 
@@ -667,7 +667,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Bulk leave creation routes
-    Route::middleware(['module:hrm,time-off,leave-management,create'])->group(function () {
+    Route::middleware(['hrmac:hrm.time-off.leave-management,create'])->group(function () {
         Route::post('/leaves/bulk/validate', [BulkLeaveController::class, 'validateDates'])->name('leaves.bulk.validate');
         Route::post('/leaves/bulk', [BulkLeaveController::class, 'store'])->name('leaves.bulk.store');
         Route::get('/leaves/bulk/leave-types', [BulkLeaveController::class, 'getLeaveTypes'])->name('leaves.bulk.leave-types');
@@ -675,12 +675,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Bulk leave deletion route
-    Route::middleware(['module:hrm,time-off,leave-management,delete'])->group(function () {
+    Route::middleware(['hrmac:hrm.time-off.leave-management,delete'])->group(function () {
         Route::delete('/leaves/bulk', [BulkLeaveController::class, 'bulkDelete'])->name('leaves.bulk.delete');
     });
 
     // Leave settings routes
-    Route::middleware(['module:hrm,time-off,leave-settings'])->group(function () {
+    Route::middleware(['hrmac:hrm.time-off.leave-settings'])->group(function () {
         Route::get('/leave-settings', [LeaveSettingController::class, 'index'])->name('leave-settings');
         Route::get('/leave-types', [LeaveSettingController::class, 'index'])->name('leave-types'); // Alias route
         Route::post('/add-leave-type', [LeaveSettingController::class, 'store'])->name('add-leave-type');
@@ -689,33 +689,33 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // HR Management routes
-    Route::middleware(['module:hrm,employees'])->group(function () {
+    Route::middleware(['hrmac:hrm.employees'])->group(function () {
         Route::get('/employees', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'index'])->name('employees');
         Route::get('/employees/paginate', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'paginate'])->name('employees.paginate');
         Route::get('/employees/stats', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'stats'])->name('employees.stats');
     });
 
     // Department management routes - Departments is under hrm.employees.departments in navigation
-    Route::middleware(['module:hrm,employees,departments'])->get('/departments', [DepartmentController::class, 'index'])->name('departments');
-    Route::middleware(['module:hrm,employees,departments'])->get('/api/departments', [DepartmentController::class, 'getDepartments'])->name('api.departments');
-    Route::middleware(['module:hrm,employees,departments'])->get('/departments/stats', [DepartmentController::class, 'getStats'])->name('departments.stats');
-    Route::middleware(['module:hrm,employees,departments,department-list,create'])->post('/departments', [DepartmentController::class, 'store'])->name('departments.store');
-    Route::middleware(['module:hrm,employees,departments'])->get('/departments/{id}', [DepartmentController::class, 'show'])->name('departments.show');
-    Route::middleware(['module:hrm,employees,departments,department-list,update'])->put('/departments/{id}', [DepartmentController::class, 'update'])->name('departments.update');
-    Route::middleware(['module:hrm,employees,departments,department-list,delete'])->delete('/departments/{id}', [DepartmentController::class, 'destroy'])->name('departments.delete');
-    Route::middleware(['module:hrm,employees,departments,department-list,update'])->put('/users/{id}/department', [DepartmentController::class, 'updateUserDepartment'])->name('users.update-department');
+    Route::middleware(['hrmac:hrm.employees.departments'])->get('/departments', [DepartmentController::class, 'index'])->name('departments');
+    Route::middleware(['hrmac:hrm.employees.departments'])->get('/api/departments', [DepartmentController::class, 'getDepartments'])->name('api.departments');
+    Route::middleware(['hrmac:hrm.employees.departments'])->get('/departments/stats', [DepartmentController::class, 'getStats'])->name('departments.stats');
+    Route::middleware(['hrmac:hrm.employees.departments,department-list,create'])->post('/departments', [DepartmentController::class, 'store'])->name('departments.store');
+    Route::middleware(['hrmac:hrm.employees.departments'])->get('/departments/{id}', [DepartmentController::class, 'show'])->name('departments.show');
+    Route::middleware(['hrmac:hrm.employees.departments,department-list,update'])->put('/departments/{id}', [DepartmentController::class, 'update'])->name('departments.update');
+    Route::middleware(['hrmac:hrm.employees.departments,department-list,delete'])->delete('/departments/{id}', [DepartmentController::class, 'destroy'])->name('departments.delete');
+    Route::middleware(['hrmac:hrm.employees.departments,department-list,update'])->put('/users/{id}/department', [DepartmentController::class, 'updateUserDepartment'])->name('users.update-department');
 
     // Organization Chart route
-    Route::middleware(['module:hrm,employees,departments'])->get('/org-chart', [DepartmentController::class, 'orgChart'])->name('org-chart');
+    Route::middleware(['hrmac:hrm.employees.departments'])->get('/org-chart', [DepartmentController::class, 'orgChart'])->name('org-chart');
 
-    // Route::middleware(['module:hrm,organization'])->get('/jurisdiction', [JurisdictionController::class, 'index'])->name('jurisdiction'); // TODO: Move to compliance package
+    // Route::middleware(['hrmac:hrm.organization'])->get('/jurisdiction', [JurisdictionController::class, 'index'])->name('jurisdiction'); // TODO: Move to compliance package
 
     // Holiday management routes
-    Route::middleware(['module:hrm,time-off,holidays,holiday-list,create'])->post('/holiday-add', [HolidayController::class, 'create'])->name('holiday-add');
-    Route::middleware(['module:hrm,time-off,holidays,holiday-list,delete'])->delete('/holiday-delete', [HolidayController::class, 'delete'])->name('holiday-delete');
+    Route::middleware(['hrmac:hrm.time-off.holidays,holiday-list,create'])->post('/holiday-add', [HolidayController::class, 'create'])->name('holiday-add');
+    Route::middleware(['hrmac:hrm.time-off.holidays,holiday-list,delete'])->delete('/holiday-delete', [HolidayController::class, 'delete'])->name('holiday-delete');
 
     // Attendance management routes
-    Route::middleware(['module:hrm,attendance'])->group(function () {
+    Route::middleware(['hrmac:hrm.attendance'])->group(function () {
         Route::get('/attendance', [AttendanceController::class, 'index1'])->name('attendance'); // Main attendance page alias
         Route::get('/attendances', [AttendanceController::class, 'index1'])->name('attendances');
         Route::get('/attendance/daily', [AttendanceController::class, 'index1'])->name('attendance.daily'); // Daily attendance view (alias)
@@ -740,17 +740,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Attendance management routes (admin actions)
-    Route::middleware(['module:hrm,attendance,attendance-list,manage'])->group(function () {
+    Route::middleware(['hrmac:hrm.attendance.attendance-list,manage'])->group(function () {
         Route::post('/attendance/mark-as-present', [AttendanceController::class, 'markAsPresent'])->name('attendance.mark-as-present');
         Route::post('/attendance/bulk-mark-as-present', [AttendanceController::class, 'bulkMarkAsPresent'])->name('attendance.bulk-mark-as-present');
     });
 
     // Employee attendance stats route
-    Route::middleware(['module:hrm,attendance,own-attendance'])->group(function () {
+    Route::middleware(['hrmac:hrm.attendance.own-attendance'])->group(function () {
         Route::get('/attendance/my-monthly-stats', [AttendanceController::class, 'getMonthlyAttendanceStats'])->name('attendance.myMonthlyStats');
     });
 
-    Route::middleware(['module:hrm,attendance,attendance-settings'])->group(function () {
+    Route::middleware(['hrmac:hrm.attendance.attendance-settings'])->group(function () {
         Route::get('/settings/attendance', [AttendanceSettingController::class, 'index'])->name('attendance-settings.index');
         Route::post('/settings/attendance', [AttendanceSettingController::class, 'updateSettings'])->name('attendance-settings.update');
         Route::post('settings/attendance-type', [AttendanceSettingController::class, 'storeType'])->name('attendance-types.store');
@@ -764,26 +764,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // HR Module Settings - Redirect /settings to default settings page
-    Route::middleware(['auth', 'verified', 'module:hrm,settings'])->get('/settings', fn () => redirect()->route('hrm.settings.hr.onboarding'))->name('settings.index');
+    Route::middleware(['auth', 'verified', 'hrmac:hrm.settings'])->get('/settings', fn () => redirect()->route('hrm.settings.hr.onboarding'))->name('settings.index');
 
     // HR Module Settings
     Route::prefix('settings/hr')->middleware(['auth', 'verified'])->group(function () {
-        Route::middleware(['module:hrm,settings,onboarding-settings'])->get('/onboarding', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.onboarding');
-        Route::middleware(['module:hrm,settings,skills-settings'])->get('/skills', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.skills');
-        Route::middleware(['module:hrm,settings,benefits-settings'])->get('/benefits', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.benefits');
-        Route::middleware(['module:hrm,settings,safety-settings'])->get('/safety', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.safety');
-        Route::middleware(['module:hrm,settings,documents-settings'])->get('/documents', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.documents');
+        Route::middleware(['hrmac:hrm.settings.onboarding-settings'])->get('/onboarding', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.onboarding');
+        Route::middleware(['hrmac:hrm.settings.skills-settings'])->get('/skills', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.skills');
+        Route::middleware(['hrmac:hrm.settings.benefits-settings'])->get('/benefits', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.benefits');
+        Route::middleware(['hrmac:hrm.settings.safety-settings'])->get('/safety', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.safety');
+        Route::middleware(['hrmac:hrm.settings.documents-settings'])->get('/documents', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.documents');
 
         // Update routes
-        Route::middleware(['module:hrm,settings,onboarding-settings,setting-list,update'])->post('/onboarding', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'updateOnboardingSettings'])->name('settings.hr.onboarding.update');
-        Route::middleware(['module:hrm,settings,skills-settings,setting-list,update'])->post('/skills', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'updateSkillsSettings'])->name('settings.hr.skills.update');
-        Route::middleware(['module:hrm,settings,benefits-settings,setting-list,update'])->post('/benefits', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'updateBenefitsSettings'])->name('settings.hr.benefits.update');
-        Route::middleware(['module:hrm,settings,safety-settings,setting-list,update'])->post('/safety', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'updateSafetySettings'])->name('settings.hr.safety.update');
-        Route::middleware(['module:hrm,settings,documents-settings,setting-list,update'])->post('/documents', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'updateDocumentSettings'])->name('settings.hr.documents.update');
+        Route::middleware(['hrmac:hrm.settings.onboarding-settings,setting-list,update'])->post('/onboarding', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'updateOnboardingSettings'])->name('settings.hr.onboarding.update');
+        Route::middleware(['hrmac:hrm.settings.skills-settings,setting-list,update'])->post('/skills', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'updateSkillsSettings'])->name('settings.hr.skills.update');
+        Route::middleware(['hrmac:hrm.settings.benefits-settings,setting-list,update'])->post('/benefits', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'updateBenefitsSettings'])->name('settings.hr.benefits.update');
+        Route::middleware(['hrmac:hrm.settings.safety-settings,setting-list,update'])->post('/safety', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'updateSafetySettings'])->name('settings.hr.safety.update');
+        Route::middleware(['hrmac:hrm.settings.documents-settings,setting-list,update'])->post('/documents', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'updateDocumentSettings'])->name('settings.hr.documents.update');
     });
 
     // Designation Management - Designations is under hrm.employees.designations in navigation
-    Route::middleware(['module:hrm,employees,designations'])->group(function () {
+    Route::middleware(['hrmac:hrm.employees.designations'])->group(function () {
         // Initial page render (Inertia)
         Route::get('/designations', [\Aero\HRM\Http\Controllers\Employee\DesignationController::class, 'index'])->name('designations.index');
         // API data fetch (JSON)
@@ -799,7 +799,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Expense Claims Management
-    Route::middleware(['module:hrm,expenses'])->prefix('expenses')->name('expenses.')->group(function () {
+    Route::middleware(['hrmac:hrm.expenses'])->prefix('expenses')->name('expenses.')->group(function () {
         // Main index page (Inertia)
         Route::get('/', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'index'])->name('index');
         Route::get('/my-claims', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'myExpensesPaginate'])->name('my-claims');
@@ -823,7 +823,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Asset Management
-    Route::middleware(['module:hrm,assets'])->prefix('assets')->name('assets.')->group(function () {
+    Route::middleware(['hrmac:hrm.assets'])->prefix('assets')->name('assets.')->group(function () {
         // Main index page (Inertia)
         Route::get('/', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'index'])->name('index');
         Route::get('/allocations', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'allocations'])->name('allocations');
@@ -843,7 +843,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Disciplinary Management
-    Route::middleware(['module:hrm,disciplinary'])->prefix('disciplinary')->name('disciplinary.')->group(function () {
+    Route::middleware(['hrmac:hrm.disciplinary'])->prefix('disciplinary')->name('disciplinary.')->group(function () {
         // Index redirect - redirects /disciplinary to /disciplinary/cases
         Route::get('/', fn () => redirect()->route('hrm.disciplinary.cases.index'))->name('index');
         // Main index page (Inertia)
@@ -887,7 +887,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // =========================================================================
     // AI Analytics - Next-Generation Predictive HR Intelligence
     // =========================================================================
-    Route::middleware(['module:hrm,ai_analytics'])->prefix('ai-analytics')->name('ai-analytics.')->group(function () {
+    Route::middleware(['hrmac:hrm.ai_analytics'])->prefix('ai-analytics')->name('ai-analytics.')->group(function () {
         // Dashboard
         Route::get('/', [\Aero\HRM\Http\Controllers\AIAnalyticsController::class, 'dashboard'])->name('dashboard');
 
@@ -921,7 +921,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // =========================================================================
     // Succession Planning - Talent Pipeline & Critical Position Management
     // =========================================================================
-    Route::middleware(['module:hrm,succession_planning'])->prefix('succession-planning')->name('succession.')->group(function () {
+    Route::middleware(['hrmac:hrm.succession_planning'])->prefix('succession-planning')->name('succession.')->group(function () {
         Route::get('/', [\Aero\HRM\Http\Controllers\SuccessionPlanningController::class, 'index'])->name('index');
         Route::get('/paginate', [\Aero\HRM\Http\Controllers\SuccessionPlanningController::class, 'paginate'])->name('paginate');
         Route::get('/stats', [\Aero\HRM\Http\Controllers\SuccessionPlanningController::class, 'stats'])->name('stats');
@@ -941,7 +941,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // =========================================================================
     // Overtime Management - Hours Tracking, Approval & Compensation
     // =========================================================================
-    Route::middleware(['module:hrm,overtime'])->prefix('overtime')->name('overtime.')->group(function () {
+    Route::middleware(['hrmac:hrm.overtime'])->prefix('overtime')->name('overtime.')->group(function () {
         Route::get('/', [\Aero\HRM\Http\Controllers\OvertimeController::class, 'index'])->name('index');
         Route::get('/paginate', [\Aero\HRM\Http\Controllers\OvertimeController::class, 'paginate'])->name('paginate');
         Route::get('/stats', [\Aero\HRM\Http\Controllers\OvertimeController::class, 'stats'])->name('stats');
@@ -958,7 +958,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // =========================================================================
     // Grievance Management - Employee Complaints & Resolution
     // =========================================================================
-    Route::middleware(['module:hrm,grievances'])->prefix('grievances')->name('grievances.')->group(function () {
+    Route::middleware(['hrmac:hrm.grievances'])->prefix('grievances')->name('grievances.')->group(function () {
         Route::get('/', [\Aero\HRM\Http\Controllers\GrievanceController::class, 'index'])->name('index');
         Route::get('/paginate', [\Aero\HRM\Http\Controllers\GrievanceController::class, 'paginate'])->name('paginate');
         Route::get('/stats', [\Aero\HRM\Http\Controllers\GrievanceController::class, 'stats'])->name('stats');
@@ -978,7 +978,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // =========================================================================
     // Exit Interviews - Offboarding Feedback & Analytics
     // =========================================================================
-    Route::middleware(['module:hrm,exit_interviews'])->prefix('exit-interviews')->name('exit-interviews.')->group(function () {
+    Route::middleware(['hrmac:hrm.exit_interviews'])->prefix('exit-interviews')->name('exit-interviews.')->group(function () {
         Route::get('/', [\Aero\HRM\Http\Controllers\ExitInterviewController::class, 'index'])->name('index');
         Route::get('/paginate', [\Aero\HRM\Http\Controllers\ExitInterviewController::class, 'paginate'])->name('paginate');
         Route::get('/stats', [\Aero\HRM\Http\Controllers\ExitInterviewController::class, 'stats'])->name('stats');
@@ -993,7 +993,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // =========================================================================
     // Pulse Surveys - Quick Engagement & Sentiment Check-ins
     // =========================================================================
-    Route::middleware(['module:hrm,pulse_surveys'])->prefix('pulse-surveys')->name('pulse-surveys.')->group(function () {
+    Route::middleware(['hrmac:hrm.pulse_surveys'])->prefix('pulse-surveys')->name('pulse-surveys.')->group(function () {
         Route::get('/', [\Aero\HRM\Http\Controllers\PulseSurveyController::class, 'index'])->name('index');
         Route::get('/paginate', [\Aero\HRM\Http\Controllers\PulseSurveyController::class, 'paginate'])->name('paginate');
         Route::get('/stats', [\Aero\HRM\Http\Controllers\PulseSurveyController::class, 'stats'])->name('stats');
@@ -1034,7 +1034,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // =========================================================================
     // Career Path Management - Career Progression & Employee Development
     // =========================================================================
-    Route::middleware(['module:hrm,career_pathing'])->prefix('career-paths')->name('career-paths.')->group(function () {
+    Route::middleware(['hrmac:hrm.career_pathing'])->prefix('career-paths')->name('career-paths.')->group(function () {
         Route::get('/', [\Aero\HRM\Http\Controllers\CareerPathController::class, 'index'])->name('index');
         Route::get('/paginate', [\Aero\HRM\Http\Controllers\CareerPathController::class, 'paginate'])->name('paginate');
         Route::get('/stats', [\Aero\HRM\Http\Controllers\CareerPathController::class, 'stats'])->name('stats');
@@ -1058,7 +1058,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // =========================================================================
     // 360° Feedback - Multi-Rater Performance Feedback
     // =========================================================================
-    Route::middleware(['module:hrm,feedback_360'])->prefix('feedback-360')->name('feedback-360.')->group(function () {
+    Route::middleware(['hrmac:hrm.feedback_360'])->prefix('feedback-360')->name('feedback-360.')->group(function () {
         Route::get('/', [\Aero\HRM\Http\Controllers\Feedback360Controller::class, 'index'])->name('index');
         Route::get('/paginate', [\Aero\HRM\Http\Controllers\Feedback360Controller::class, 'paginate'])->name('paginate');
         Route::get('/stats', [\Aero\HRM\Http\Controllers\Feedback360Controller::class, 'stats'])->name('stats');
@@ -1076,9 +1076,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Compensation Planning - Salary Reviews & Market Benchmarking
     // =========================================================================
     // Redirect /compensation to /compensation-planning for navigation consistency
-    Route::middleware(['module:hrm,compensation_planning'])->get('/compensation', fn () => redirect()->route('hrm.compensation.index'))->name('compensation-redirect');
+    Route::middleware(['hrmac:hrm.compensation_planning'])->get('/compensation', fn () => redirect()->route('hrm.compensation.index'))->name('compensation-redirect');
 
-    Route::middleware(['module:hrm,compensation_planning'])->prefix('compensation-planning')->name('compensation.')->group(function () {
+    Route::middleware(['hrmac:hrm.compensation_planning'])->prefix('compensation-planning')->name('compensation.')->group(function () {
         Route::get('/', [\Aero\HRM\Http\Controllers\CompensationPlanningController::class, 'index'])->name('index');
         Route::get('/paginate', [\Aero\HRM\Http\Controllers\CompensationPlanningController::class, 'paginate'])->name('paginate');
         Route::get('/stats', [\Aero\HRM\Http\Controllers\CompensationPlanningController::class, 'stats'])->name('stats');
@@ -1100,7 +1100,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // =========================================================================
     // Workforce Planning - Headcount Forecasting & Strategic Planning
     // =========================================================================
-    Route::middleware(['module:hrm,workforce_planning'])->prefix('workforce-planning')->name('workforce-planning.')->group(function () {
+    Route::middleware(['hrmac:hrm.workforce_planning'])->prefix('workforce-planning')->name('workforce-planning.')->group(function () {
         Route::get('/', [\Aero\HRM\Http\Controllers\WorkforcePlanningController::class, 'index'])->name('index');
         Route::get('/paginate', [\Aero\HRM\Http\Controllers\WorkforcePlanningController::class, 'paginate'])->name('paginate');
         Route::get('/stats', [\Aero\HRM\Http\Controllers\WorkforcePlanningController::class, 'stats'])->name('stats');

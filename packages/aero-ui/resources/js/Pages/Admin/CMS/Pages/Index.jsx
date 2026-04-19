@@ -7,6 +7,7 @@ import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const CmsPagesList = ({ title, categories = [], templates = [] }) => {
     const { auth } = usePage().props;
@@ -78,9 +79,10 @@ const CmsPagesList = ({ title, categories = [], templates = [] }) => {
         { title: "Drafts", value: stats.draft, icon: <ClockIcon className="w-6 h-6" />, color: "text-warning", iconBg: "bg-warning/20" },
     ], [stats]);
 
-    const canCreate = auth.permissions?.includes('cms.pages.list.create') || auth.permissions?.includes('cms.page.create');
-    const canEdit = auth.permissions?.includes('cms.pages.editor.edit') || auth.permissions?.includes('cms.page.edit');
-    const canDelete = auth.permissions?.includes('cms.pages.list.delete') || auth.permissions?.includes('cms.page.delete');
+    const { hasAccess: hrmacHasAccess } = useHRMAC();
+    const canCreate = hrmacHasAccess('cms.pages.list.create');
+    const canEdit = hrmacHasAccess('cms.pages.editor.edit');
+    const canDelete = hrmacHasAccess('cms.pages.list.delete');
 
     const handleDelete = (page) => {
         setPageToDelete(page);

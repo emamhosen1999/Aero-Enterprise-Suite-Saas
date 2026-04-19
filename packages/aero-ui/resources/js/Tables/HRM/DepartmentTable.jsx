@@ -49,10 +49,8 @@ const DepartmentTable = ({
     canEditDepartment = false,
     canDeleteDepartment = false
 }) => {
-    // Check permissions directly from auth object
-    const { auth } = usePage().props;
-    const hasEditPermission = canEditDepartment || auth.permissions?.includes('departments.update') || false;
-    const hasDeletePermission = canDeleteDepartment || auth.permissions?.includes('departments.delete') || false;
+    const hasEditPermission = canEditDepartment;
+    const hasDeletePermission = canDeleteDepartment;
     
     // Set up columns based on screen size
     const columns = useMemo(() => {

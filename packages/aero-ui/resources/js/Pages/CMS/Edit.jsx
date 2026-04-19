@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -91,9 +92,10 @@ const CmsEdit = ({ title, page: initialPage, blockTypes = [], layouts = [] }) =>
     const [lastSaved, setLastSaved] = useState(null);
 
     // Permissions
-    const canEdit = auth.permissions?.includes('cms.pages.update') || true;
-    const canPublish = auth.permissions?.includes('cms.pages.publish') || true;
-    const canDelete = auth.permissions?.includes('cms.pages.delete') || true;
+    const { hasAccess } = useHRMAC();
+    const canEdit = hasAccess('cms.pages.editor.edit');
+    const canPublish = hasAccess('cms.pages.editor.publish');
+    const canDelete = hasAccess('cms.pages.list.delete');
 
     // Selected block
     const selectedBlock = useMemo(() => {

@@ -6,6 +6,7 @@ namespace Aero\Platform\Http\Controllers;
 
 use Aero\Core\Services\Module\ModuleDiscoveryService;
 use Aero\Core\Support\SafeRedirect;
+use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\Tenant;
 use Aero\Platform\Services\Monitoring\Tenant\TenantRegistrationSession;
 use Illuminate\Http\JsonResponse;
@@ -126,7 +127,7 @@ class RegistrationPageController extends Controller
             ->keyBy('code');
 
         // Fetch plans and enrich with discovered module data
-        $plans = \Aero\Platform\Models\Plan::where('is_active', true)
+        $plans = Plan::where('is_active', true)
             ->orderBy('sort_order')
             ->get()
             ->map(function ($plan) use ($discoveredModules) {
@@ -222,7 +223,7 @@ class RegistrationPageController extends Controller
             ->keyBy('code');
 
         // Fetch plans and enrich with discovered module data
-        $plans = \Aero\Platform\Models\Plan::where('is_active', true)
+        $plans = Plan::where('is_active', true)
             ->get()
             ->map(function ($plan) use ($discoveredModules) {
                 $moduleCodes = $plan->module_codes ?? [];
@@ -312,11 +313,12 @@ class RegistrationPageController extends Controller
         // Determine redirect URL based on admin setup status
         $redirectUrl = null;
         if ($tenant->status === Tenant::STATUS_ACTIVE) {
+            $scheme = request()->secure() ? 'https' : 'http';
             // If admin setup is not complete, redirect to admin-setup page
             // Otherwise redirect to login
             $redirectUrl = $adminSetupCompleted
-                ? sprintf('https://%s/login', $domain)
-                : sprintf('https://%s/admin-setup', $domain);
+                ? sprintf('%s://%s/login', $scheme, $domain)
+                : sprintf('%s://%s/admin-setup', $scheme, $domain);
         }
 
         return response()->json([

@@ -181,6 +181,14 @@ export default function Provisioning({
       }
     } catch (err) {
       console.error('Status fetch error:', err);
+
+      // Handle CSRF token expiry — refresh the page to get a new token
+      if (err.response?.status === 419) {
+        console.warn('CSRF token expired during provisioning poll, reloading page...');
+        window.location.reload();
+        return;
+      }
+
       // Don't set error state for fetch errors - keep polling
       // Only show toast for repeated failures
       if (status === 'failed') {

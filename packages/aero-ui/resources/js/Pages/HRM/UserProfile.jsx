@@ -151,12 +151,9 @@ const UserProfile = ({ title, allEmployees, report_to, departments, designations
     });
 
     // Permissions using HRMAC
-    // TODO: Update with correct HRMAC path once module hierarchy is defined for HRM
-    const canEditProfile = canUpdate("hrm.profile") || isSuperAdmin();
-    const canViewProfile = hasAccess("hrm.profile") || isSuperAdmin();
+    const canEditProfile = canUpdate("hrm.employees.employee-profile") || isSuperAdmin();
+    const canViewProfile = hasAccess("hrm.employees.employee-profile") || isSuperAdmin();
     const canViewPayroll = hasAccess("hrm.payroll") || isSuperAdmin();
-                          auth.permissions?.includes('profile.view') || 
-                          auth.user.id === user.id;
 
     // Modal handlers
     const openModal = useCallback((modalType) => {

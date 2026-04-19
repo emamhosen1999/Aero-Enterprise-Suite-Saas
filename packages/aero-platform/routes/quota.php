@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware(['auth:landlord', 'module:subscriptions'])->prefix('admin/quotas')->name('admin.quotas.')->group(function () {
+Route::middleware(['auth:landlord', 'hrmac:subscriptions'])->prefix('admin/quotas')->name('admin.quotas.')->group(function () {
     // Dashboard & Monitoring
     Route::get('/', [QuotaManagementController::class, 'index'])->name('index');
     Route::get('/statistics', [QuotaManagementController::class, 'statistics'])->name('statistics');

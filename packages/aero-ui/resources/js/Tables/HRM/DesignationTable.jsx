@@ -42,10 +42,8 @@ const DesignationTable = ({
     canEditDesignation = false,
     canDeleteDesignation = false
 }) => {
-    // Check permissions directly from auth object
-    const { auth } = usePage().props;
-    const hasEditPermission = canEditDesignation || auth.permissions?.includes('designations.update') || false;
-    const hasDeletePermission = canDeleteDesignation || auth.permissions?.includes('designations.delete') || false;
+    const hasEditPermission = canEditDesignation;
+    const hasDeletePermission = canDeleteDesignation;
     
     // Set up columns based on screen size
     const columns = useMemo(() => {

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 | to gracefully return 404 on central domains instead of crashing.
 */
 
-Route::prefix('pos')->name('pos.')->middleware(['web', InitializeTenancyIfNotCentral::class, 'tenant', 'auth'])->group(function () {
+Route::prefix('pos')->name('pos.')->middleware(['web', InitializeTenancyIfNotCentral::class, 'tenant', 'auth', 'hrmac:pos'])->group(function () {
     // POS Terminal
     Route::get('/', [POSController::class, 'index'])->name('index');
     Route::post('/process-sale', [POSController::class, 'processSale'])->name('process-sale');

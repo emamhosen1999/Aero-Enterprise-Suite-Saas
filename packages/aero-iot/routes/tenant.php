@@ -26,6 +26,7 @@ Route::middleware([
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
     'auth',
+    'hrmac:iot',
 ])->prefix('iot')->name('tenant.iot.')->group(function () {
 
     // IoT Dashboard

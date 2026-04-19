@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Route;
 | to gracefully return 404 on central domains instead of crashing.
 */
 
-Route::prefix('scm')->name('scm.')->middleware(['web', InitializeTenancyIfNotCentral::class, 'tenant', 'auth'])->group(function () {
+Route::prefix('scm')->name('scm.')->middleware(['web', InitializeTenancyIfNotCentral::class, 'tenant', 'auth', 'hrmac:scm'])->group(function () {
     // Procurement
     Route::resource('procurement', ProcurementController::class);
     Route::post('procurement/{id}/approve', [ProcurementController::class, 'approve'])->name('procurement.approve');

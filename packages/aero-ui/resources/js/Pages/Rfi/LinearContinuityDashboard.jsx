@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import {
     Button,
     Card,
@@ -131,7 +132,8 @@ const LinearContinuityDashboard = ({ title, projects }) => {
     );
 
     // Permission checks
-    const canCreate = auth.permissions?.includes('rfi.create') || false;
+    const { hasAccess } = useHRMAC();
+    const canCreate = hasAccess('rfi.linear-progress.linear-reports.create');
 
     // Fetch dashboard stats
     const fetchStats = useCallback(async () => {

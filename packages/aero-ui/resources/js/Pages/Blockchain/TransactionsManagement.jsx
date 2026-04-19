@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import { Head, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { Button, Card, CardBody, CardHeader, Input, Select, SelectItem, Chip, Tooltip } from "@heroui/react";
@@ -22,6 +23,7 @@ import { showToast } from '@/utils/toastUtils.jsx';
 
 const TransactionsManagement = ({ title }) => {
     const { auth } = usePage().props;
+    const { hasAccess: hrmacHasAccess } = useHRMAC();
     
     // 1. Theme radius helper (REQUIRED)
     const getThemeRadius = () => {
@@ -120,8 +122,8 @@ const TransactionsManagement = ({ title }) => {
     ], [stats]);
 
     // 5. Permission checks (REQUIRED)
-    const canCreate = auth.permissions?.includes('blockchain.transactions.create') || false;
-    const canView = auth.permissions?.includes('blockchain.transactions.view') || false;
+    const canCreate = hrmacHasAccess('blockchain.transactions.create');
+    const canView = hrmacHasAccess('blockchain.transactions.view');
 
     // 6. Data fetching with axios
     const fetchTransactions = useCallback(async () => {

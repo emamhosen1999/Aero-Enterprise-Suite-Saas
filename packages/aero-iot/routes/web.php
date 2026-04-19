@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware(['web', 'auth'])->prefix('iot')->name('iot.')->group(function () {
+Route::middleware(['web', 'auth', 'hrmac:iot'])->prefix('iot')->name('iot.')->group(function () {
 
     // Dashboard
     Route::get('/', function () {

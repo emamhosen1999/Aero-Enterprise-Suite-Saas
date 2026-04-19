@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Head, usePage } from "@inertiajs/react";
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import { 
   Card,
   CardBody,
@@ -114,9 +115,7 @@ const SystemMonitoringEnhanced = ({ title, initialData }) => {
     const [expandedPanel, setExpandedPanel] = useState('database');
 
     // Permission check
-    const hasPermission = (permission) => {
-        return auth?.permissions && auth.permissions.includes(permission);
-    };
+    const { hasAccess } = useHRMAC();
 
     // Auto-refresh logic
     useEffect(() => {

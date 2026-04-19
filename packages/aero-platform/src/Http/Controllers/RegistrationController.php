@@ -9,11 +9,13 @@ use Aero\Platform\Http\Requests\RegistrationDetailsRequest;
 use Aero\Platform\Http\Requests\RegistrationPlanRequest;
 use Aero\Platform\Http\Requests\RegistrationTrialRequest;
 use Aero\Platform\Jobs\ProvisionTenant;
+use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\PlatformSetting;
 use Aero\Platform\Models\Tenant;
 use Aero\Platform\Services\Monitoring\PlatformVerificationService;
 use Aero\Platform\Services\Monitoring\Tenant\TenantProvisioner;
 use Aero\Platform\Services\Monitoring\Tenant\TenantRegistrationSession;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -94,7 +96,7 @@ class RegistrationController extends Controller
 
         if ($skipVerification) {
             $reason = config('app.debug') ? 'debug mode (APP_DEBUG=true)' : 'maintenance mode';
-            Log::info('Skipping verification due to ' . $reason, [
+            Log::info('Skipping verification due to '.$reason, [
                 'email' => $email,
                 'subdomain' => $subdomain,
                 'maintenance_mode' => $platformSettings->maintenance_mode,
@@ -368,7 +370,7 @@ class RegistrationController extends Controller
 
         // Derive modules from the selected plan to prevent tampering
         if (! empty($payload['plan_id'])) {
-            $plan = \Aero\Platform\Models\Plan::with('modules:code')->find($payload['plan_id']);
+            $plan = Plan::with('modules:code')->find($payload['plan_id']);
 
             if ($plan) {
                 $allowed = $plan->module_codes ?? $plan->modules->pluck('code')->all();
@@ -496,11 +498,11 @@ class RegistrationController extends Controller
 
             // Dispatch async provisioning job AFTER transaction commits
             // Admin will be created after provisioning on tenant domain
-            ProvisionTenant::dispatch($tenant);
+            ProvisionTenant::dispatch($tenant)->afterCommit();
 
             // Store idempotency key to prevent duplicate submissions (valid for 1 hour)
             Cache::put($idempotencyKey, $tenant->id, now()->addHour());
-        } catch (\Illuminate\Database\QueryException $e) {
+        } catch (QueryException $e) {
             Log::error('Tenant creation/update failed', [
                 'error' => $e->getMessage(),
                 'sql' => $e->getSql() ?? null,

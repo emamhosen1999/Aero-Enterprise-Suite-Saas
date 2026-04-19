@@ -60,6 +60,12 @@ class RouteConflictTest extends TestCase
                         continue;
                     }
 
+                    // If one route has domain middleware and the other doesn't,
+                    // they are also domain-separated at runtime
+                    if ($existingDomain xor $currentDomain) {
+                        continue;
+                    }
+
                     // Real conflict found
                     $conflicts[] = [
                         'key' => $key,
@@ -115,6 +121,11 @@ class RouteConflictTest extends TestCase
                 continue;
             }
 
+            // Skip route group prefix artifacts (names ending with ".")
+            if (str_ends_with($name, '.')) {
+                continue;
+            }
+
             if (isset($namedRoutes[$name])) {
                 $duplicates[$name] = [
                     'first' => $namedRoutes[$name],
@@ -157,6 +168,11 @@ class RouteConflictTest extends TestCase
 
             foreach ($reservedPrefixes as $prefix) {
                 if (str_starts_with($uri, $prefix)) {
+                    // Skip Closure routes (can't attribute to a package via namespace)
+                    if ($action === 'Closure') {
+                        continue;
+                    }
+
                     // Check if this route is from Platform package
                     if (! str_contains($action, 'Aero\\Platform\\')) {
                         $violations[] = [

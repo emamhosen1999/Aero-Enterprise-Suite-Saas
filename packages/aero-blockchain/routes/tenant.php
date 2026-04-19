@@ -12,11 +12,12 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 |
 | These routes are loaded for tenant-specific blockchain functionality.
-| They are automatically tenant-scoped and include tenant isolation.
+| All routes are protected by HRMAC middleware using dot-notation paths
+| matching config/module.php hierarchy.
 |
 */
 
-Route::middleware(['web', 'auth:web', 'tenant'])->prefix('blockchain')->name('tenant.blockchain.')->group(function () {
+Route::middleware(['web', 'auth:web', 'tenant', 'hrmac:blockchain'])->prefix('blockchain')->name('tenant.blockchain.')->group(function () {
 
     // Tenant Blockchain Dashboard
     Route::get('/', function () {

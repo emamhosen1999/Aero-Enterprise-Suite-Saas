@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import {
   Button,
   Card,
@@ -95,9 +96,10 @@ const CmsPageBuilder = ({ page = null, blocks = [] }) => {
   const [blockData, setBlockData] = useState({});
 
   // Permission checks (REQUIRED)
-  const canCreate = auth.permissions?.includes('cms.pages.create') || false;
-  const canEdit = auth.permissions?.includes('cms.pages.edit') || false;
-  const canDelete = auth.permissions?.includes('cms.pages.delete') || false;
+  const { hasAccess } = useHRMAC();
+  const canCreate = hasAccess('cms.pages.list.create');
+  const canEdit = hasAccess('cms.pages.editor.edit');
+  const canDelete = hasAccess('cms.pages.list.delete');
 
   // Open/close modal helpers
   const openModal = (modalName) => {

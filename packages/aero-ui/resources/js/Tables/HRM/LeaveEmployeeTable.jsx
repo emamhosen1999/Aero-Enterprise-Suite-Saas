@@ -13,7 +13,7 @@ import {
     UserIcon
 } from '@heroicons/react/24/outline';
 import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
-
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import {usePage} from "@inertiajs/react";
 import {showToast} from '@/utils/toastUtils';
 import {getProfileAvatarTokens} from '@/Components/ProfileAvatar';
@@ -147,8 +147,9 @@ const LeaveEmployeeTable = React.forwardRef(({
             </div>
         );
     }, [selectedKeys, leaves, onBulkDelete]);
-    const canViewLeaves = auth.permissions?.includes('leaves.view') || false;
-    const canManageOwnLeaves = auth.permissions?.includes('leave.own.view') || false;
+    const { hasAccess } = useHRMAC();
+    const canViewLeaves = hasAccess('hrm.leaves.leave-requests.view');
+    const canManageOwnLeaves = hasAccess('hrm.employee-self-service.my-leaves.view');
     const hasAdminAccess = isAdminView && (canApproveLeaves || canEditLeaves || canDeleteLeaves);
 
     // Permission-based access control (replacing role-based checks)

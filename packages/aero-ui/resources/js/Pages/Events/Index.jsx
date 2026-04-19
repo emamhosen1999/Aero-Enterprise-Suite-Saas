@@ -492,7 +492,7 @@ const EventsIndex = ({ events: initialEvents, filters: initialFilters }) => {
                                                                             >
                                                                                 View
                                                                             </Button>
-                                                                            {auth.permissions?.includes('event.update') && (
+                                                                            {canUpdate('hrm.events.event-list') && (
                                                                                 <Button
                                                                                     size="sm"
                                                                                     color="primary"

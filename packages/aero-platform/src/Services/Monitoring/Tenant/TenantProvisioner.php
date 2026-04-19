@@ -56,8 +56,10 @@ class TenantProvisioner
 
         // Check if tenant already exists from verification step
         // This preserves admin_email_verified_at and admin_phone_verified_at
+        // Fix: Use AND (not OR) to prevent tenant takeover by matching only one field
         $existingTenant = Tenant::where('email', $email)
-            ->orWhere('subdomain', $subdomain)
+            ->where('subdomain', $subdomain)
+            ->whereIn('status', [Tenant::STATUS_PENDING, Tenant::STATUS_FAILED])
             ->first();
 
         if ($existingTenant) {

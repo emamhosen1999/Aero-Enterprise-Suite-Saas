@@ -7,7 +7,7 @@ use Aero\RealEstate\Http\Controllers\MaintenanceController;
 use Aero\RealEstate\Http\Controllers\PropertyController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['web', 'auth'])->prefix('real-estate')->name('real-estate.')->group(function () {
+Route::middleware(['web', 'auth', 'hrmac:real-estate'])->prefix('real-estate')->name('real-estate.')->group(function () {
 
     // Property Management Routes
     Route::prefix('properties')->name('properties.')->group(function () {

@@ -3,12 +3,12 @@
 namespace Aero\HRM\Policies;
 
 use Aero\Core\Models\User;
-use Aero\Core\Policies\Concerns\ChecksModuleAccess;
+use Aero\HRMAC\Concerns\ChecksHRMAC;
 use Aero\HRM\Models\Leave;
 
 class LeavePolicy
 {
-    use ChecksModuleAccess;
+    use ChecksHRMAC;
 
     /**
      * Determine whether the user can view any models.
