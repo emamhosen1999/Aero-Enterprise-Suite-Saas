@@ -49,13 +49,7 @@ class RfiModuleProvider extends AbstractModuleProvider
      */
     protected function loadRoutes(): void
     {
-        // Load API routes for PATENTABLE features
-        $apiRoutesPath = $this->getModulePath('routes/api.php');
-        if (file_exists($apiRoutesPath)) {
-            $this->loadRoutesFrom($apiRoutesPath);
-        }
-
-        // Web routes are handled by AeroRfiServiceProvider
+        // Intentionally no-op.
     }
 
     /**
