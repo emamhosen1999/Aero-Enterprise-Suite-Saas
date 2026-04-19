@@ -18,8 +18,6 @@ class BlockchainServiceProvider extends ServiceProvider
     {
         // Load routes
         $this->loadRoutesFrom(__DIR__.'/../../routes/web.php');
-        $this->loadRoutesFrom(__DIR__.'/../../routes/api.php');
-        $this->loadRoutesFrom(__DIR__.'/../../routes/tenant.php');
 
         // Load migrations
         $this->loadMigrationsFrom(__DIR__.'/../../database/migrations');

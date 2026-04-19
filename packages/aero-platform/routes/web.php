@@ -289,4 +289,8 @@ Route::middleware('platform.domain')->group(function () {
             ->name('capture');
     });
 
+    Route::prefix('api')->middleware('api')->group(function () {
+        require __DIR__.'/api.php';
+    });
+
 });

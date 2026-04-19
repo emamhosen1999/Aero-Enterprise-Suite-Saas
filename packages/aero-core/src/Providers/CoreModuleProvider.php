@@ -160,10 +160,7 @@ class CoreModuleProvider extends AbstractModuleProvider
     public function getRoutes(): array
     {
         return [
-            'admin' => $this->getModulePath('routes/admin.php'),
-            'tenant' => $this->getModulePath('routes/tenant.php'),
             'web' => $this->getModulePath('routes/web.php'),
-            'api' => $this->getModulePath('routes/api.php'),
         ];
     }
 
