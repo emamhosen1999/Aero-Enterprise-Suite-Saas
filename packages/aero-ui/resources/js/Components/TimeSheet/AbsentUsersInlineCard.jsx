@@ -24,6 +24,7 @@ import {
 
 import PageHeader from '@/Components/PageHeader';
 import ProfileAvatar from '@/Components/ProfileAvatar';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 
 // Inline AbsentUsersCard component for the combined layout
@@ -32,17 +33,7 @@ export const AbsentUsersInlineCard = React.memo(({ absentUsers, selectedDate, ge
     const [searchTerm, setSearchTerm] = useState('');
 
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     // Filter absent users based on search term
     const filteredAbsentUsers = useMemo(() => {
@@ -104,7 +95,7 @@ export const AbsentUsersInlineCard = React.memo(({ absentUsers, selectedDate, ge
     if (!isLoaded) {
         return (
             <div className="h-full flex flex-col">
-                <div className="mb-4 flex-shrink-0">
+                <div className="mb-4 shrink-0">
                     <h3 
                         className="font-semibold flex items-center gap-2 text-lg text-default-700"
                         style={{ 
@@ -208,7 +199,7 @@ export const AbsentUsersInlineCard = React.memo(({ absentUsers, selectedDate, ge
 
     return (
         <div className="h-full flex flex-col">
-            <div className="mb-4 flex-shrink-0">
+            <div className="mb-4 shrink-0">
                 <h3 
                     className="font-semibold flex items-center gap-2 text-lg text-default-700"
                     style={{ 
@@ -224,7 +215,7 @@ export const AbsentUsersInlineCard = React.memo(({ absentUsers, selectedDate, ge
                 </h3>
             </div>
             {/* Search Input */}
-            <div className="mb-3 flex-shrink-0">
+            <div className="mb-3 shrink-0">
                 <Input
                     type="text"
                     placeholder="Search absent employees..."
@@ -233,7 +224,7 @@ export const AbsentUsersInlineCard = React.memo(({ absentUsers, selectedDate, ge
                     startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                     variant="bordered"
                     size="sm"
-                    radius={getThemeRadius()}
+                    radius={themeRadius}
                     aria-label="Search absent employees"
                     classNames={{
                         input: "text-sm"
@@ -246,7 +237,7 @@ export const AbsentUsersInlineCard = React.memo(({ absentUsers, selectedDate, ge
 
             {/* Show search results count */}
             {searchTerm && (
-                <div className="mb-2 flex-shrink-0">
+                <div className="mb-2 shrink-0">
                     <p 
                         className="text-default-500 text-xs"
                         style={{ fontFamily: `var(--fontFamily, "Inter")` }}
@@ -375,7 +366,7 @@ export const AbsentUsersInlineCard = React.memo(({ absentUsers, selectedDate, ge
                                         </div>
                                         {userLeave && (
                                             <div 
-                                                className="px-1.5 py-0.5 ml-2 flex-shrink-0"
+                                                className="px-1.5 py-0.5 ml-2 shrink-0"
                                                 style={{
                                                     background: `color-mix(in srgb, ${getLeaveStatusColor(userLeave.status)} 15%, transparent)`,
                                                     borderColor: `color-mix(in srgb, ${getLeaveStatusColor(userLeave.status)} 30%, transparent)`,
@@ -406,7 +397,7 @@ export const AbsentUsersInlineCard = React.memo(({ absentUsers, selectedDate, ge
                                                 color="primary"
                                                 variant="flat"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 startContent={<UserPlusIcon className="w-3 h-3" />}
                                                 onPress={() => onMarkAsPresent(user, selectedDate)}
                                                 style={{
@@ -424,14 +415,14 @@ export const AbsentUsersInlineCard = React.memo(({ absentUsers, selectedDate, ge
                     })}
                 </AnimatePresence>
                 {visibleUsersCount < filteredAbsentUsers.length && (
-                    <div className="text-center mt-4 pb-4 flex-shrink-0">
+                    <div className="text-center mt-4 pb-4 shrink-0">
                         <Button 
                             variant="bordered" 
                             onPress={handleLoadMore}
                             startContent={<ChevronDownIcon className="w-4 h-4" />}
                             size="sm"
                             color="warning"
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             fullWidth
                             style={{
                                 fontFamily: `var(--fontFamily, "Inter")`,

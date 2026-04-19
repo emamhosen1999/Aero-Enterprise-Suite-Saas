@@ -44,6 +44,7 @@ import App from "@/Layouts/App.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
 import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const Trials = ({ trials: initialTrials, stats: initialStats, plans, filters: initialFilters, auth }) => {
     const [isMobile, setIsMobile] = useState(false);
@@ -76,17 +77,7 @@ const Trials = ({ trials: initialTrials, stats: initialStats, plans, filters: in
         return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
 
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'xl';
-    };
+    const themeRadius = useThemeRadius();
 
     const hasPermission = (permission) => {
         return auth?.permissions?.includes(permission) || auth?.permissions?.includes('*');
@@ -490,14 +481,14 @@ const Trials = ({ trials: initialTrials, stats: initialStats, plans, filters: in
                                         onValueChange={(value) => setFilters(prev => ({ ...prev, search: value }))}
                                         startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                                         className="w-full sm:w-80"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                     <Select
                                         placeholder="Filter by status"
                                         selectedKeys={filters.filter !== 'all' ? [filters.filter] : []}
                                         onSelectionChange={(keys) => setFilters(prev => ({ ...prev, filter: Array.from(keys)[0] || 'all' }))}
                                         className="w-full sm:w-48"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         <SelectItem key="all">All Trials</SelectItem>
                                         <SelectItem key="active">Active</SelectItem>
@@ -547,7 +538,7 @@ const Trials = ({ trials: initialTrials, stats: initialStats, plans, filters: in
                                             page={pagination.currentPage}
                                             onChange={(page) => fetchTrials(page)}
                                             showControls
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                     </div>
                                 )}
@@ -563,5 +554,4 @@ const Trials = ({ trials: initialTrials, stats: initialStats, plans, filters: in
 Trials.layout = (page) => <App children={page} />;
 
 export default Trials;
-
 

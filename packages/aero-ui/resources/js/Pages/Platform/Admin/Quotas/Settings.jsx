@@ -4,6 +4,7 @@ import { Card, CardHeader, CardBody, Input, Slider, Switch, Select, SelectItem, 
 import { showToast } from '@/utils/toastUtils';
 
 import PageHeader from '@/Components/PageHeader';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 export default function Settings({ title, settings: initialSettings }) {
     const [settings, setSettings] = useState(initialSettings || {
@@ -18,18 +19,8 @@ export default function Settings({ title, settings: initialSettings }) {
         retention: 90
     });
 
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'xl';
-    };
+    const themeRadius = useThemeRadius();
 
-    const themeRadius = getThemeRadius();
     const quotaTypes = ['users', 'storage', 'api_calls', 'employees', 'projects'];
 
     const handleQuotaChange = (type, field, value) => {
@@ -318,5 +309,4 @@ export default function Settings({ title, settings: initialSettings }) {
         </>
     );
 }
-
 

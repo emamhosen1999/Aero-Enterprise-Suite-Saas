@@ -10,24 +10,15 @@ import React from 'react';
 import { usePage, router } from '@inertiajs/react';
 import { hasAccess, isSuperAdmin } from '@/utils/moduleAccessUtils';
 import { Card, CardBody, CardHeader, Button, Chip } from '@heroui/react';
-import { 
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import {
     LockClosedIcon, 
     HomeIcon,
     ShieldExclamationIcon 
 } from '@heroicons/react/24/outline';
 
 const DefaultAccessDenied = ({ accessPath, message }) => {
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
     
     return (
         <div className="flex items-center justify-center min-h-screen p-6">
@@ -52,7 +43,7 @@ const DefaultAccessDenied = ({ accessPath, message }) => {
                         className="w-20 h-20 rounded-full flex items-center justify-center"
                         style={{ 
                             backgroundColor: 'color-mix(in srgb, var(--theme-danger, #F31260) 20%, transparent)',
-                            borderRadius: getThemeRadius()
+                            borderRadius: themeRadius
                         }}
                     >
                         <LockClosedIcon 

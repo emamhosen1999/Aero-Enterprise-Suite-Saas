@@ -207,19 +207,6 @@ const CreateEvent = () => {
             )
         }));
     };
-
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-
     return (
         <>
             <Head title="Create Event" />
@@ -251,7 +238,7 @@ const CreateEvent = () => {
                                                 variant="flat"
                                                 onPress={() => router.get(route('events.index'))}
                                                 startContent={<ArrowLeftIcon className="w-5 h-5" />}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 Back to Events
                                             </Button>
@@ -275,7 +262,7 @@ const CreateEvent = () => {
                                                             errorMessage={errors.title}
                                                             isInvalid={!!errors.title}
                                                             isRequired
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                         
                                                         <Input
@@ -286,7 +273,7 @@ const CreateEvent = () => {
                                                             errorMessage={errors.slug}
                                                             isInvalid={!!errors.slug}
                                                             description="Auto-generated from title, can be customized"
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                         
                                                         <Input
@@ -298,7 +285,7 @@ const CreateEvent = () => {
                                                             isInvalid={!!errors.venue}
                                                             startContent={<MapPinIcon className="w-4 h-4" />}
                                                             isRequired
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                         
                                                         <Input
@@ -309,7 +296,7 @@ const CreateEvent = () => {
                                                             errorMessage={errors.event_date}
                                                             isInvalid={!!errors.event_date}
                                                             isRequired
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                         
                                                         <Input
@@ -320,7 +307,7 @@ const CreateEvent = () => {
                                                             errorMessage={errors.event_time}
                                                             isInvalid={!!errors.event_time}
                                                             isRequired
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                         
                                                         <Input
@@ -330,7 +317,7 @@ const CreateEvent = () => {
                                                             onChange={(e) => setData(prev => ({ ...prev, registration_deadline: e.target.value }))}
                                                             errorMessage={errors.registration_deadline}
                                                             isInvalid={!!errors.registration_deadline}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                         
                                                         <Input
@@ -341,7 +328,7 @@ const CreateEvent = () => {
                                                             onChange={(e) => setData(prev => ({ ...prev, max_participants: e.target.value }))}
                                                             errorMessage={errors.max_participants}
                                                             isInvalid={!!errors.max_participants}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                     </div>
                                                     
@@ -355,7 +342,7 @@ const CreateEvent = () => {
                                                             isInvalid={!!errors.description}
                                                             rows={4}
                                                             isRequired
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                     </div>
                                                     
@@ -388,7 +375,7 @@ const CreateEvent = () => {
                                                             value={data.food_details}
                                                             onChange={(e) => updateField('food_details', e.target.value)}
                                                             rows={3}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                         
                                                         <Textarea
@@ -397,7 +384,7 @@ const CreateEvent = () => {
                                                             value={data.rules}
                                                             onChange={(e) => updateField('rules', e.target.value)}
                                                             rows={3}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                     </div>
                                                 </CardBody>
@@ -413,7 +400,7 @@ const CreateEvent = () => {
                                                             placeholder="Enter organizer name"
                                                             value={data.organizer_name}
                                                             onChange={(e) => updateField('organizer_name', e.target.value)}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                         
                                                         <Input
@@ -421,7 +408,7 @@ const CreateEvent = () => {
                                                             placeholder="Enter phone number"
                                                             value={data.organizer_phone}
                                                             onChange={(e) => updateField('organizer_phone', e.target.value)}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                         
                                                         <Input
@@ -430,7 +417,7 @@ const CreateEvent = () => {
                                                             placeholder="Enter email address"
                                                             value={data.organizer_email}
                                                             onChange={(e) => updateField('organizer_email', e.target.value)}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                     </div>
                                                 </CardBody>
@@ -446,7 +433,7 @@ const CreateEvent = () => {
                                                             placeholder="SEO title"
                                                             value={data.meta_title}
                                                             onChange={(e) => updateField('meta_title', e.target.value)}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                         
                                                         <Textarea
@@ -455,7 +442,7 @@ const CreateEvent = () => {
                                                             value={data.meta_description}
                                                             onChange={(e) => updateField('meta_description', e.target.value)}
                                                             rows={3}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                         
                                                         <Input
@@ -463,7 +450,7 @@ const CreateEvent = () => {
                                                             placeholder="Comma separated keywords"
                                                             value={data.meta_keywords}
                                                             onChange={(e) => updateField('meta_keywords', e.target.value)}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                     </div>
                                                 </CardBody>
@@ -480,7 +467,7 @@ const CreateEvent = () => {
                                                             variant="flat"
                                                             startContent={<PlusIcon className="w-4 h-4" />}
                                                             onPress={addCustomField}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         >
                                                             Add Field
                                                         </Button>
@@ -499,7 +486,7 @@ const CreateEvent = () => {
                                                                                 variant="flat"
                                                                                 isIconOnly
                                                                                 onPress={() => removeCustomField(index)}
-                                                                                radius={getThemeRadius()}
+                                                                                radius={themeRadius}
                                                                             >
                                                                                 <TrashIcon className="w-4 h-4" />
                                                                             </Button>
@@ -512,7 +499,7 @@ const CreateEvent = () => {
                                                                                 value={field.field_name}
                                                                                 onChange={(e) => updateCustomField(index, 'field_name', e.target.value)}
                                                                                 size="sm"
-                                                                                radius={getThemeRadius()}
+                                                                                radius={themeRadius}
                                                                             />
                                                                             
                                                                             <Input
@@ -521,7 +508,7 @@ const CreateEvent = () => {
                                                                                 value={field.field_label}
                                                                                 onChange={(e) => updateCustomField(index, 'field_label', e.target.value)}
                                                                                 size="sm"
-                                                                                radius={getThemeRadius()}
+                                                                                radius={themeRadius}
                                                                             />
                                                                             
                                                                             <Select
@@ -529,7 +516,7 @@ const CreateEvent = () => {
                                                                                 selectedKeys={[field.field_type]}
                                                                                 onChange={(e) => updateCustomField(index, 'field_type', e.target.value)}
                                                                                 size="sm"
-                                                                                radius={getThemeRadius()}
+                                                                                radius={themeRadius}
                                                                             >
                                                                                 <SelectItem key="text" value="text">Text</SelectItem>
                                                                                 <SelectItem key="textarea" value="textarea">Textarea</SelectItem>
@@ -551,7 +538,7 @@ const CreateEvent = () => {
                                                                                 value={field.placeholder}
                                                                                 onChange={(e) => updateCustomField(index, 'placeholder', e.target.value)}
                                                                                 size="sm"
-                                                                                radius={getThemeRadius()}
+                                                                                radius={themeRadius}
                                                                             />
                                                                             
                                                                             <Input
@@ -560,7 +547,7 @@ const CreateEvent = () => {
                                                                                 value={field.help_text}
                                                                                 onChange={(e) => updateCustomField(index, 'help_text', e.target.value)}
                                                                                 size="sm"
-                                                                                radius={getThemeRadius()}
+                                                                                radius={themeRadius}
                                                                             />
                                                                         </div>
                                                                         
@@ -613,7 +600,7 @@ const CreateEvent = () => {
                                                     variant="flat"
                                                     onPress={() => router.get(route('events.index'))}
                                                     isDisabled={processing}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 >
                                                     Cancel
                                                 </Button>
@@ -621,7 +608,7 @@ const CreateEvent = () => {
                                                     type="submit"
                                                     color="primary"
                                                     isLoading={processing}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 >
                                                     Create Event
                                                 </Button>

@@ -18,6 +18,7 @@ import {
     ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline';
 import { useTheme } from '@/Context/ThemeContext.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 export default function SessionExpiredModal({ setSessionExpired }) {
     const [countdown, setCountdown] = useState(10);
@@ -25,19 +26,7 @@ export default function SessionExpiredModal({ setSessionExpired }) {
     const { theme } = useTheme();
 
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     useEffect(() => {
         if (countdown === 0) {
@@ -77,7 +66,7 @@ export default function SessionExpiredModal({ setSessionExpired }) {
             hideCloseButton
             isDismissable={false}
             isKeyboardDismissDisabled
-            radius={getThemeRadius()}
+            radius={themeRadius}
             classNames={{
                 base: "border-0",
                 backdrop: "bg-gradient-to-t from-zinc-900 to-zinc-900/10 backdrop-opacity-20",
@@ -155,7 +144,7 @@ export default function SessionExpiredModal({ setSessionExpired }) {
                                         value={progressValue}
                                         color="primary"
                                         size="sm"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         classNames={{
                                             track: "drop-shadow-md border border-default",
                                             indicator: "bg-gradient-to-r from-primary-500 to-primary-600",
@@ -168,7 +157,7 @@ export default function SessionExpiredModal({ setSessionExpired }) {
                                     color="primary"
                                     variant="flat"
                                     size="sm"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     style={{
                                         fontFamily: `var(--fontFamily, "Inter")`,
                                     }}
@@ -205,7 +194,7 @@ export default function SessionExpiredModal({ setSessionExpired }) {
                         color="primary"
                         variant="solid"
                         size="lg"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         startContent={
                             <ArrowRightOnRectangleIcon className="w-4 h-4" />
                         }

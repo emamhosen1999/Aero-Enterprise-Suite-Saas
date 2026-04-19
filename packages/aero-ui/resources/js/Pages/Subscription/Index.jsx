@@ -149,7 +149,7 @@ export default function SubscriptionIndex({
                                         className="p-4 rounded-lg bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-800"
                                     >
                                         <div className="flex items-start gap-3">
-                                            <ClockIcon className="w-5 h-5 text-warning-600 flex-shrink-0 mt-0.5" />
+                                            <ClockIcon className="w-5 h-5 text-warning-600 shrink-0 mt-0.5" />
                                             <div>
                                                 <p className="font-semibold text-warning-800 dark:text-warning-400">
                                                     Trial Period Active
@@ -174,7 +174,7 @@ export default function SubscriptionIndex({
                                         className="p-4 rounded-lg bg-danger-50 dark:bg-danger-900/20 border border-danger-200 dark:border-danger-800"
                                     >
                                         <div className="flex items-start gap-3">
-                                            <ExclamationTriangleIcon className="w-5 h-5 text-danger-600 flex-shrink-0 mt-0.5" />
+                                            <ExclamationTriangleIcon className="w-5 h-5 text-danger-600 shrink-0 mt-0.5" />
                                             <div className="flex-1">
                                                 <p className="font-semibold text-danger-800 dark:text-danger-400">
                                                     Subscription Cancelled

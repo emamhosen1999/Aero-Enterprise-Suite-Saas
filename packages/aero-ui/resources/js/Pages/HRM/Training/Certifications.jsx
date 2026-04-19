@@ -35,19 +35,6 @@ const CertificationIssuance = ({ title, trainingPrograms = [], employees = [], d
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete } = useHRMAC();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -584,7 +571,7 @@ const CertificationIssuance = ({ title, trainingPrograms = [], employees = [], d
                                                 selectedKeys={formData.employee_id ? [formData.employee_id] : []}
                                                 onSelectionChange={(keys) => handleFormChange('employee_id', Array.from(keys)[0] || '')}
                                                 isRequired
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {employees.map(employee => (
                                                     <SelectItem key={employee.id}>{employee.name}</SelectItem>
@@ -596,7 +583,7 @@ const CertificationIssuance = ({ title, trainingPrograms = [], employees = [], d
                                                 placeholder="Select training program"
                                                 selectedKeys={formData.training_program_id ? [formData.training_program_id] : []}
                                                 onSelectionChange={(keys) => handleFormChange('training_program_id', Array.from(keys)[0] || '')}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {trainingPrograms.map(program => (
                                                     <SelectItem key={program.id}>{program.title}</SelectItem>
@@ -611,14 +598,14 @@ const CertificationIssuance = ({ title, trainingPrograms = [], employees = [], d
                                                 value={formData.certification_name}
                                                 onValueChange={(value) => handleFormChange('certification_name', value)}
                                                 isRequired
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Select
                                                 label="Certification Type"
                                                 selectedKeys={[formData.certification_type]}
                                                 onSelectionChange={(keys) => handleFormChange('certification_type', Array.from(keys)[0])}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {certificationTypes.map(type => (
                                                     <SelectItem key={type.key} description={type.description}>
@@ -633,7 +620,7 @@ const CertificationIssuance = ({ title, trainingPrograms = [], employees = [], d
                                                 label="Certificate Number"
                                                 value={formData.certificate_number}
                                                 onValueChange={(value) => handleFormChange('certificate_number', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 endContent={
                                                     <Button
                                                         size="sm"
@@ -650,7 +637,7 @@ const CertificationIssuance = ({ title, trainingPrograms = [], employees = [], d
                                                 placeholder="HR Department"
                                                 value={formData.issuing_authority}
                                                 onValueChange={(value) => handleFormChange('issuing_authority', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                         </div>
                                     </div>
@@ -665,7 +652,7 @@ const CertificationIssuance = ({ title, trainingPrograms = [], employees = [], d
                                                 value={formData.issued_date}
                                                 onValueChange={(value) => handleFormChange('issued_date', value)}
                                                 isRequired
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Input
@@ -673,7 +660,7 @@ const CertificationIssuance = ({ title, trainingPrograms = [], employees = [], d
                                                 type="date"
                                                 value={formData.expiry_date}
                                                 onValueChange={(value) => handleFormChange('expiry_date', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 description="Leave empty for non-expiring certificates"
                                             />
                                         </div>
@@ -695,7 +682,7 @@ const CertificationIssuance = ({ title, trainingPrograms = [], employees = [], d
                                                     label="Renewal Period"
                                                     selectedKeys={[formData.renewal_period_months]}
                                                     onSelectionChange={(keys) => handleFormChange('renewal_period_months', Array.from(keys)[0])}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 >
                                                     <SelectItem key="6">6 Months</SelectItem>
                                                     <SelectItem key="12">1 Year</SelectItem>
@@ -715,7 +702,7 @@ const CertificationIssuance = ({ title, trainingPrograms = [], employees = [], d
                                                 type="date"
                                                 value={formData.training_completion_date}
                                                 onValueChange={(value) => handleFormChange('training_completion_date', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Input
@@ -724,7 +711,7 @@ const CertificationIssuance = ({ title, trainingPrograms = [], employees = [], d
                                                 placeholder="40"
                                                 value={formData.hours_completed}
                                                 onValueChange={(value) => handleFormChange('hours_completed', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                         </div>
 
@@ -737,7 +724,7 @@ const CertificationIssuance = ({ title, trainingPrograms = [], employees = [], d
                                                 placeholder="85"
                                                 value={formData.training_score}
                                                 onValueChange={(value) => handleFormChange('training_score', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Input
@@ -748,7 +735,7 @@ const CertificationIssuance = ({ title, trainingPrograms = [], employees = [], d
                                                 placeholder="70"
                                                 value={formData.minimum_score_required}
                                                 onValueChange={(value) => handleFormChange('minimum_score_required', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                         </div>
 
@@ -757,7 +744,7 @@ const CertificationIssuance = ({ title, trainingPrograms = [], employees = [], d
                                             placeholder="List the key skills acquired through this training..."
                                             value={formData.skills_acquired}
                                             onValueChange={(value) => handleFormChange('skills_acquired', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <Textarea
@@ -765,7 +752,7 @@ const CertificationIssuance = ({ title, trainingPrograms = [], employees = [], d
                                             placeholder="Describe competencies demonstrated by the employee..."
                                             value={formData.competencies}
                                             onValueChange={(value) => handleFormChange('competencies', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                     </div>
                                 </Tab>
@@ -823,7 +810,7 @@ const CertificationIssuance = ({ title, trainingPrograms = [], employees = [], d
                                             placeholder="Professional Certification Body"
                                             value={formData.accreditation_body}
                                             onValueChange={(value) => handleFormChange('accreditation_body', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <Textarea
@@ -831,7 +818,7 @@ const CertificationIssuance = ({ title, trainingPrograms = [], employees = [], d
                                             placeholder="Additional notes about the assessment or certification process..."
                                             value={formData.assessment_notes}
                                             onValueChange={(value) => handleFormChange('assessment_notes', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                     </div>
                                 </Tab>
@@ -868,7 +855,7 @@ const CertificationIssuance = ({ title, trainingPrograms = [], employees = [], d
                                     label="Renewal Period"
                                     selectedKeys={[formData.renewal_period_months]}
                                     onSelectionChange={(keys) => handleFormChange('renewal_period_months', Array.from(keys)[0])}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 >
                                     <SelectItem key="6">6 Months</SelectItem>
                                     <SelectItem key="12">1 Year</SelectItem>
@@ -994,7 +981,7 @@ const CertificationIssuance = ({ title, trainingPrograms = [], employees = [], d
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select

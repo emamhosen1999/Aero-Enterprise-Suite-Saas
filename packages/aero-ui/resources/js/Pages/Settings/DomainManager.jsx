@@ -336,7 +336,7 @@ const DomainManager = () => {
                 {/* Domain Info */}
                 <div className="flex items-start gap-3 flex-1 min-w-0">
                     <div
-                        className="p-2 rounded-lg flex-shrink-0"
+                        className="p-2 rounded-lg shrink-0"
                         style={{
                             background: domain.is_primary 
                                 ? `color-mix(in srgb, var(--theme-warning) 15%, transparent)`
@@ -359,7 +359,7 @@ const DomainManager = () => {
                             </span>
                             {domain.is_primary && (
                                 <Tooltip content="Primary Domain">
-                                    <StarSolid className="w-4 h-4 text-warning flex-shrink-0" />
+                                    <StarSolid className="w-4 h-4 text-warning shrink-0" />
                                 </Tooltip>
                             )}
                         </div>
@@ -574,7 +574,7 @@ const DomainManager = () => {
                             style={{ background: 'color-mix(in srgb, var(--theme-warning) 10%, transparent)' }}
                         >
                             <div className="flex items-start gap-3">
-                                <InformationCircleIcon className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+                                <InformationCircleIcon className="w-5 h-5 text-warning shrink-0 mt-0.5" />
                                 <div>
                                     <p className="text-sm font-medium text-warning-600 dark:text-warning-400">
                                         After adding, DNS configuration will be required.
@@ -628,7 +628,7 @@ const DomainManager = () => {
                                 style={{ background: 'color-mix(in srgb, var(--theme-danger) 10%, transparent)' }}
                             >
                                 <div className="flex items-start gap-3">
-                                    <ExclamationTriangleIcon className="w-5 h-5 text-danger flex-shrink-0 mt-0.5" />
+                                    <ExclamationTriangleIcon className="w-5 h-5 text-danger shrink-0 mt-0.5" />
                                     <div>
                                         <p className="text-sm font-medium text-danger">
                                             Verification Failed
@@ -897,7 +897,7 @@ const DomainManager = () => {
                     <ModalBody className="py-6">
                         <div className="flex items-start gap-3">
                             <div 
-                                className="p-2 rounded-lg flex-shrink-0"
+                                className="p-2 rounded-lg shrink-0"
                                 style={{ background: 'color-mix(in srgb, var(--theme-danger) 15%, transparent)' }}
                             >
                                 <ExclamationTriangleIcon className="w-6 h-6 text-danger" />

@@ -96,7 +96,7 @@ const TestimonialBlock = ({ data = {} }) => {
                             )}
 
                             {/* Quote */}
-                            <p className="text-sm text-foreground mb-4 italic flex-grow">
+                            <p className="text-sm text-foreground mb-4 italic grow">
                                 &quot;{testimonial.quote}&quot;
                             </p>
 

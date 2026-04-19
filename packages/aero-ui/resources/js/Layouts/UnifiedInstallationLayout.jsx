@@ -239,13 +239,13 @@ const UnifiedInstallationLayout = ({
 
             <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800 flex flex-col">
                 {/* Header */}
-                <div className="w-full bg-white dark:bg-gray-900 border-b border-divider shadow-sm">
+                <div className="w-full bg-background border-b border-divider shadow-sm">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
                         <div className="flex items-center justify-between">
                             {/* Logo & App Name */}
                             <div className="flex items-center gap-2 sm:gap-3">
                                 {logo ? (
-                                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden flex items-center justify-center bg-white dark:bg-gray-800">
+                                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden flex items-center justify-center bg-content2">
                                         <img 
                                             src={logo} 
                                             alt={appName}
@@ -299,7 +299,7 @@ const UnifiedInstallationLayout = ({
                 </div>
 
                 {/* Progress Bar */}
-                <div className="w-full bg-white dark:bg-gray-900 border-b border-divider">
+                <div className="w-full bg-background border-b border-divider">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-sm font-medium text-foreground">

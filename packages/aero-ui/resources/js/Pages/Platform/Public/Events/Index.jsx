@@ -16,15 +16,10 @@ import {
     MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 // Helper function to get theme radius from CSS variable
-const getThemeRadius = () => {
-    const borderRadius = getComputedStyle(document.documentElement)
-        .getPropertyValue('--borderRadius')
-        .trim();
-    return borderRadius || 'md';
-};
-
+const themeRadius = useThemeRadius();
 const PublicEventsIndex = ({ events }) => {
     const [searchQuery, setSearchQuery] = React.useState('');
     
@@ -57,7 +52,7 @@ const PublicEventsIndex = ({ events }) => {
                         startContent={<MagnifyingGlassIcon className="w-5 h-5" />}
                         size="lg"
                         className="max-w-2xl"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                     />
                 </div>
                 
@@ -70,7 +65,7 @@ const PublicEventsIndex = ({ events }) => {
                                 className="hover:shadow-xl transition-shadow cursor-pointer"
                                 isPressable
                                 onPress={() => router.get(route('public.events.show', event.slug))}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                             >
                                 {event.banner_image && (
                                     <CardHeader className="p-0">
@@ -115,7 +110,7 @@ const PublicEventsIndex = ({ events }) => {
                                                 color={event.is_registration_open ? 'success' : 'default'}
                                                 size="sm"
                                                 variant="flat"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {event.is_registration_open ? 'Registration Open' : 'Registration Closed'}
                                             </Chip>
@@ -124,7 +119,7 @@ const PublicEventsIndex = ({ events }) => {
                                                 size="sm"
                                                 color="primary"
                                                 onPress={() => router.get(route('public.events.show', event.slug))}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 View Details
                                             </Button>

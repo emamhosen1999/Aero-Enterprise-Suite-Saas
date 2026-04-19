@@ -33,19 +33,6 @@ const LeaveBalances = ({ title, departments = [], employees = [], leaveTypes = [
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete } = useHRMAC();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -578,7 +565,7 @@ const LeaveBalances = ({ title, departments = [], employees = [], leaveTypes = [
                                         label="Adjustment Type"
                                         selectedKeys={[adjustmentData.adjustment_type]}
                                         onSelectionChange={(keys) => handleAdjustmentChange('adjustment_type', Array.from(keys)[0])}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {adjustmentTypes.map(type => (
                                             <SelectItem key={type.key} description={type.description}>
@@ -594,7 +581,7 @@ const LeaveBalances = ({ title, departments = [], employees = [], leaveTypes = [
                                         step="0.5"
                                         value={adjustmentData.adjustment_days}
                                         onValueChange={(value) => handleAdjustmentChange('adjustment_days', value)}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         isRequired
                                     />
                                 </div>
@@ -604,7 +591,7 @@ const LeaveBalances = ({ title, departments = [], employees = [], leaveTypes = [
                                     placeholder="Explain why this adjustment is necessary..."
                                     value={adjustmentData.reason}
                                     onValueChange={(value) => handleAdjustmentChange('reason', value)}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     isRequired
                                 />
 
@@ -614,7 +601,7 @@ const LeaveBalances = ({ title, departments = [], employees = [], leaveTypes = [
                                         type="date"
                                         value={adjustmentData.effective_date}
                                         onValueChange={(value) => handleAdjustmentChange('effective_date', value)}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
 
                                     <Input
@@ -622,7 +609,7 @@ const LeaveBalances = ({ title, departments = [], employees = [], leaveTypes = [
                                         type="date"
                                         value={adjustmentData.expires_on}
                                         onValueChange={(value) => handleAdjustmentChange('expires_on', value)}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                 </div>
 
@@ -631,7 +618,7 @@ const LeaveBalances = ({ title, departments = [], employees = [], leaveTypes = [
                                     placeholder="Any additional notes or comments..."
                                     value={adjustmentData.notes}
                                     onValueChange={(value) => handleAdjustmentChange('notes', value)}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
                             </div>
                         </ModalBody>
@@ -802,7 +789,7 @@ const LeaveBalances = ({ title, departments = [], employees = [], leaveTypes = [
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select

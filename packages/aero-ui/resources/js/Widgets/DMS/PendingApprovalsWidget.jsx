@@ -80,7 +80,7 @@ export default function PendingApprovalsWidget({
                                 <Avatar
                                     name={approval.requester?.name || 'U'}
                                     size="sm"
-                                    className="flex-shrink-0"
+                                    className="shrink-0"
                                 />
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium truncate">

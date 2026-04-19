@@ -14,6 +14,7 @@ import {
 import {DocumentTextIcon, MapPinIcon, UserIcon} from "@heroicons/react/24/outline";
 import {showToast} from "@/utils/toastUtils";
 import axios from 'axios';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const WorkLocationForm = ({ modalType, open, closeModal, setData, currentRow, users }) => {
     const [formData, setFormData] = useState({
@@ -26,19 +27,7 @@ const WorkLocationForm = ({ modalType, open, closeModal, setData, currentRow, us
     const [errors, setErrors] = useState({});
 
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     useEffect(() => {
         if (modalType === 'update' && currentRow) {
@@ -193,7 +182,7 @@ const WorkLocationForm = ({ modalType, open, closeModal, setData, currentRow, us
                                         value={formData.location}
                                         onChange={(e) => handleInputChange('location', e.target.value)}
                                         variant="bordered"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         startContent={<MapPinIcon className="w-4 h-4 text-default-400" />}
                                         classNames={{
                                             input: "text-foreground",
@@ -223,7 +212,7 @@ const WorkLocationForm = ({ modalType, open, closeModal, setData, currentRow, us
                                             value={formData.start_chainage}
                                             onChange={(e) => handleInputChange('start_chainage', e.target.value)}
                                             variant="bordered"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             startContent={<DocumentTextIcon className="w-4 h-4 text-default-400" />}
                                             classNames={{
                                                 input: "text-foreground",
@@ -249,7 +238,7 @@ const WorkLocationForm = ({ modalType, open, closeModal, setData, currentRow, us
                                             value={formData.end_chainage}
                                             onChange={(e) => handleInputChange('end_chainage', e.target.value)}
                                             variant="bordered"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             startContent={<DocumentTextIcon className="w-4 h-4 text-default-400" />}
                                             classNames={{
                                                 input: "text-foreground",
@@ -281,7 +270,7 @@ const WorkLocationForm = ({ modalType, open, closeModal, setData, currentRow, us
                                             handleInputChange('incharge', selectedKey || '');
                                         }}
                                         variant="bordered"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         startContent={<UserIcon className="w-4 h-4 text-default-400" />}
                                         classNames={{
                                             trigger: `bg-content2/50 hover:bg-content2/70 
@@ -311,7 +300,7 @@ const WorkLocationForm = ({ modalType, open, closeModal, setData, currentRow, us
                                 variant="light"
                                 onPress={handleClose}
                                 disabled={loading}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 style={{
                                     fontFamily: `var(--fontFamily, "Inter")`,
                                 }}
@@ -322,7 +311,7 @@ const WorkLocationForm = ({ modalType, open, closeModal, setData, currentRow, us
                                 color="primary"
                                 onPress={handleSubmit}
                                 isLoading={loading}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 style={{
                                     fontFamily: `var(--fontFamily, "Inter")`,
                                 }}

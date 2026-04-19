@@ -15,6 +15,7 @@ import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
 import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const PlanShow = ({ plan: initialPlan, modules = [], title = 'Plan Details' }) => {
     const { auth } = usePage().props;
@@ -23,17 +24,7 @@ const PlanShow = ({ plan: initialPlan, modules = [], title = 'Plan Details' }) =
     const [loading, setLoading] = useState(false);
 
     // 1. Theme radius helper (REQUIRED)
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     // 2. Responsive breakpoints (REQUIRED)
     const [isMobile, setIsMobile] = useState(false);
@@ -181,7 +172,7 @@ const PlanShow = ({ plan: initialPlan, modules = [], title = 'Plan Details' }) =
                                                 <Button
                                                     isIconOnly
                                                     variant="light"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     onPress={() => router.visit(route('admin.plans.index'))}
                                                     className="shrink-0"
                                                 >
@@ -235,7 +226,7 @@ const PlanShow = ({ plan: initialPlan, modules = [], title = 'Plan Details' }) =
                                                     startContent={<PencilIcon className="w-4 h-4" />}
                                                     onPress={() => router.visit(route('admin.plans.edit', plan.id))}
                                                     size={isMobile ? "sm" : "md"}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 >
                                                     Edit Plan
                                                 </Button>
@@ -245,7 +236,7 @@ const PlanShow = ({ plan: initialPlan, modules = [], title = 'Plan Details' }) =
                                                     startContent={<DocumentDuplicateIcon className="w-4 h-4" />}
                                                     onPress={() => router.visit(route('admin.plans.clone', plan.id))}
                                                     size={isMobile ? "sm" : "md"}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 >
                                                     Clone
                                                 </Button>
@@ -255,7 +246,7 @@ const PlanShow = ({ plan: initialPlan, modules = [], title = 'Plan Details' }) =
                                                     startContent={<ArchiveBoxIcon className="w-4 h-4" />}
                                                     onPress={handleArchive}
                                                     size={isMobile ? "sm" : "md"}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 >
                                                     {plan.is_active ? 'Archive' : 'Activate'}
                                                 </Button>
@@ -283,7 +274,7 @@ const PlanShow = ({ plan: initialPlan, modules = [], title = 'Plan Details' }) =
 
                                     {/* Pricing Section */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <Card radius={getThemeRadius()}>
+                                        <Card radius={themeRadius}>
                                             <CardHeader className="border-b border-divider">
                                                 <div className="flex items-center gap-2">
                                                     <CurrencyDollarIcon className="w-5 h-5 text-primary" />
@@ -321,7 +312,7 @@ const PlanShow = ({ plan: initialPlan, modules = [], title = 'Plan Details' }) =
                                     </Card>
 
                                     {/* Limits Section */}
-                                    <Card radius={getThemeRadius()}>
+                                    <Card radius={themeRadius}>
                                         <CardHeader className="border-b border-divider">
                                             <div className="flex items-center gap-2">
                                                 <ChartBarIcon className="w-5 h-5 text-secondary" />
@@ -356,7 +347,7 @@ const PlanShow = ({ plan: initialPlan, modules = [], title = 'Plan Details' }) =
                                 <Divider />
 
                                 {/* Features Section */}
-                                <Card radius={getThemeRadius()}>
+                                <Card radius={themeRadius}>
                                     <CardHeader className="border-b border-divider">
                                         <div className="flex items-center gap-2">
                                             <CheckCircleIcon className="w-5 h-5 text-success" />
@@ -387,7 +378,7 @@ const PlanShow = ({ plan: initialPlan, modules = [], title = 'Plan Details' }) =
                                 </Card>
 
                                 {/* Modules Section */}
-                                <Card radius={getThemeRadius()}>
+                                <Card radius={themeRadius}>
                                     <CardHeader className="border-b border-divider">
                                         <div className="flex items-center gap-2">
                                             <CubeIcon className="w-5 h-5 text-primary" />
@@ -448,7 +439,7 @@ const PlanShow = ({ plan: initialPlan, modules = [], title = 'Plan Details' }) =
 
                                 {/* Stripe Integration Section */}
                                 {(plan.stripe_product_id || plan.stripe_monthly_price_id || plan.stripe_yearly_price_id) && (
-                                    <Card radius={getThemeRadius()}>
+                                    <Card radius={themeRadius}>
                                         <CardHeader className="border-b border-divider">
                                             <div className="flex items-center gap-2">
                                                 <ArrowTrendingUpIcon className="w-5 h-5 text-warning" />

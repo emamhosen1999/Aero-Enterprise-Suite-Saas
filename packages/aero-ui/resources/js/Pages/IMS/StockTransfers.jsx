@@ -28,6 +28,7 @@ import {
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const StockTransfers = ({ transfers = [], warehouses = [], auth }) => {
     // TODO: Replace with actual HRMAC module path once hierarchy is defined
@@ -55,16 +56,7 @@ const StockTransfers = ({ transfers = [], warehouses = [], auth }) => {
     }, []);
 
     // Theme helper
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     // Permission helper
     const hasPermission = (permission) => {
@@ -199,7 +191,7 @@ const StockTransfers = ({ transfers = [], warehouses = [], auth }) => {
                         <Button
                             color="primary"
                             startContent={<PlusIcon className="w-5 h-5" />}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         >
                             New Transfer
                         </Button>
@@ -214,12 +206,12 @@ const StockTransfers = ({ transfers = [], warehouses = [], auth }) => {
                         onValueChange={handleSearchChange}
                         startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                         className="w-full sm:w-64"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                     />
                     <Select
                         placeholder="From Warehouse"
                         className="w-full sm:w-48"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         onChange={(e) => setFromWarehouseFilter(e.target.value)}
                     >
                         <SelectItem key="all" value="all">All Warehouses</SelectItem>
@@ -230,7 +222,7 @@ const StockTransfers = ({ transfers = [], warehouses = [], auth }) => {
                     <Select
                         placeholder="To Warehouse"
                         className="w-full sm:w-48"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         onChange={(e) => setToWarehouseFilter(e.target.value)}
                     >
                         <SelectItem key="all" value="all">All Warehouses</SelectItem>
@@ -241,7 +233,7 @@ const StockTransfers = ({ transfers = [], warehouses = [], auth }) => {
                     <Select
                         placeholder="All Status"
                         className="w-full sm:w-48"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         onChange={(e) => setStatusFilter(e.target.value)}
                     >
                         <SelectItem key="all" value="all">All Status</SelectItem>
@@ -253,7 +245,7 @@ const StockTransfers = ({ transfers = [], warehouses = [], auth }) => {
                     <Button
                         variant="flat"
                         startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                     >
                         Export
                     </Button>

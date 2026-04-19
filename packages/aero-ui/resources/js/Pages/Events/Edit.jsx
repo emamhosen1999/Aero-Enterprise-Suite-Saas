@@ -189,19 +189,6 @@ const EditEvent = ({ event }) => {
             )
         }));
     };
-
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-
     return (
         <>
             <Head title={`Edit ${event.title}`} />
@@ -233,7 +220,7 @@ const EditEvent = ({ event }) => {
                                                 variant="flat"
                                                 onPress={() => router.get(route('events.show', event.id))}
                                                 startContent={<ArrowLeftIcon className="w-5 h-5" />}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 Back to Event
                                             </Button>
@@ -257,7 +244,7 @@ const EditEvent = ({ event }) => {
                                                             errorMessage={errors.title}
                                                             isInvalid={!!errors.title}
                                                             isRequired
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                         
                                                         <Input
@@ -268,7 +255,7 @@ const EditEvent = ({ event }) => {
                                                             errorMessage={errors.slug}
                                                             isInvalid={!!errors.slug}
                                                             description="Auto-generated from title, can be customized"
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                         
                                                         <Input
@@ -280,7 +267,7 @@ const EditEvent = ({ event }) => {
                                                             isInvalid={!!errors.venue}
                                                             startContent={<MapPinIcon className="w-4 h-4" />}
                                                             isRequired
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                         
                                                         <Input
@@ -291,7 +278,7 @@ const EditEvent = ({ event }) => {
                                                             errorMessage={errors.event_date}
                                                             isInvalid={!!errors.event_date}
                                                             isRequired
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                         
                                                         <Input
@@ -302,7 +289,7 @@ const EditEvent = ({ event }) => {
                                                             errorMessage={errors.event_time}
                                                             isInvalid={!!errors.event_time}
                                                             isRequired
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                         
                                                         <Input
@@ -312,7 +299,7 @@ const EditEvent = ({ event }) => {
                                                             onChange={(e) => setData('registration_deadline', e.target.value)}
                                                             errorMessage={errors.registration_deadline}
                                                             isInvalid={!!errors.registration_deadline}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                         
                                                         <Input
@@ -323,7 +310,7 @@ const EditEvent = ({ event }) => {
                                                             onChange={(e) => setData('max_participants', e.target.value)}
                                                             errorMessage={errors.max_participants}
                                                             isInvalid={!!errors.max_participants}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                     </div>
                                                     
@@ -337,7 +324,7 @@ const EditEvent = ({ event }) => {
                                                             isInvalid={!!errors.description}
                                                             rows={4}
                                                             isRequired
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                     </div>
                                                     
@@ -370,7 +357,7 @@ const EditEvent = ({ event }) => {
                                                             value={data.food_details}
                                                             onChange={(e) => setData('food_details', e.target.value)}
                                                             rows={3}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                         
                                                         <Textarea
@@ -379,7 +366,7 @@ const EditEvent = ({ event }) => {
                                                             value={data.rules}
                                                             onChange={(e) => setData('rules', e.target.value)}
                                                             rows={3}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                     </div>
                                                 </CardBody>
@@ -395,7 +382,7 @@ const EditEvent = ({ event }) => {
                                                             placeholder="Enter organizer name"
                                                             value={data.organizer_name}
                                                             onChange={(e) => setData('organizer_name', e.target.value)}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                         
                                                         <Input
@@ -403,7 +390,7 @@ const EditEvent = ({ event }) => {
                                                             placeholder="Enter phone number"
                                                             value={data.organizer_phone}
                                                             onChange={(e) => setData('organizer_phone', e.target.value)}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                         
                                                         <Input
@@ -412,7 +399,7 @@ const EditEvent = ({ event }) => {
                                                             placeholder="Enter email address"
                                                             value={data.organizer_email}
                                                             onChange={(e) => setData('organizer_email', e.target.value)}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                     </div>
                                                 </CardBody>
@@ -428,7 +415,7 @@ const EditEvent = ({ event }) => {
                                                             placeholder="Enter meta title (for SEO)"
                                                             value={data.meta_title}
                                                             onChange={(e) => setData('meta_title', e.target.value)}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                         
                                                         <Textarea
@@ -437,7 +424,7 @@ const EditEvent = ({ event }) => {
                                                             value={data.meta_description}
                                                             onChange={(e) => setData('meta_description', e.target.value)}
                                                             rows={2}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                         
                                                         <Input
@@ -445,7 +432,7 @@ const EditEvent = ({ event }) => {
                                                             placeholder="Enter comma-separated keywords"
                                                             value={data.meta_keywords}
                                                             onChange={(e) => setData('meta_keywords', e.target.value)}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                     </div>
                                                 </CardBody>
@@ -462,7 +449,7 @@ const EditEvent = ({ event }) => {
                                                             variant="flat"
                                                             startContent={<PlusIcon className="w-4 h-4" />}
                                                             onPress={addCustomField}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         >
                                                             Add Field
                                                         </Button>
@@ -481,7 +468,7 @@ const EditEvent = ({ event }) => {
                                                                                 variant="flat"
                                                                                 isIconOnly
                                                                                 onPress={() => removeCustomField(index)}
-                                                                                radius={getThemeRadius()}
+                                                                                radius={themeRadius}
                                                                             >
                                                                                 <TrashIcon className="w-4 h-4" />
                                                                             </Button>
@@ -494,7 +481,7 @@ const EditEvent = ({ event }) => {
                                                                                 value={field.field_name}
                                                                                 onChange={(e) => updateCustomField(index, 'field_name', e.target.value)}
                                                                                 size="sm"
-                                                                                radius={getThemeRadius()}
+                                                                                radius={themeRadius}
                                                                             />
                                                                             
                                                                             <Input
@@ -503,7 +490,7 @@ const EditEvent = ({ event }) => {
                                                                                 value={field.field_label}
                                                                                 onChange={(e) => updateCustomField(index, 'field_label', e.target.value)}
                                                                                 size="sm"
-                                                                                radius={getThemeRadius()}
+                                                                                radius={themeRadius}
                                                                             />
                                                                             
                                                                             <Select
@@ -511,7 +498,7 @@ const EditEvent = ({ event }) => {
                                                                                 selectedKeys={[field.field_type]}
                                                                                 onChange={(e) => updateCustomField(index, 'field_type', e.target.value)}
                                                                                 size="sm"
-                                                                                radius={getThemeRadius()}
+                                                                                radius={themeRadius}
                                                                             >
                                                                                 <SelectItem key="text" value="text">Text</SelectItem>
                                                                                 <SelectItem key="textarea" value="textarea">Textarea</SelectItem>
@@ -533,7 +520,7 @@ const EditEvent = ({ event }) => {
                                                                                 value={field.placeholder}
                                                                                 onChange={(e) => updateCustomField(index, 'placeholder', e.target.value)}
                                                                                 size="sm"
-                                                                                radius={getThemeRadius()}
+                                                                                radius={themeRadius}
                                                                             />
                                                                             
                                                                             <Input
@@ -542,7 +529,7 @@ const EditEvent = ({ event }) => {
                                                                                 value={field.help_text}
                                                                                 onChange={(e) => updateCustomField(index, 'help_text', e.target.value)}
                                                                                 size="sm"
-                                                                                radius={getThemeRadius()}
+                                                                                radius={themeRadius}
                                                                             />
                                                                         </div>
                                                                         
@@ -595,7 +582,7 @@ const EditEvent = ({ event }) => {
                                                     variant="flat"
                                                     onPress={() => router.get(route('events.show', event.id))}
                                                     isDisabled={processing}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 >
                                                     Cancel
                                                 </Button>
@@ -603,7 +590,7 @@ const EditEvent = ({ event }) => {
                                                     type="submit"
                                                     color="primary"
                                                     isLoading={processing}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 >
                                                     Update Event
                                                 </Button>

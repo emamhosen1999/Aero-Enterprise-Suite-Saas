@@ -8,24 +8,14 @@ import StatsCards from '@/Components/StatsCards.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const LaborDeploymentsIndex = ({ title }) => {
     const { auth } = usePage().props;
     const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
-    const [isMobile, setIsMobile] = useState(false);
+    const themeRadius = useThemeRadius();
+const [isMobile, setIsMobile] = useState(false);
     
     useEffect(() => {
         const checkScreenSize = () => setIsMobile(window.innerWidth < 640);
@@ -210,10 +200,10 @@ const LaborDeploymentsIndex = ({ title }) => {
                                     
                                     <div className="flex flex-col sm:flex-row gap-4 mb-6">
                                         <Input label="Search" placeholder="Search..." value={filters.search} onChange={(e) => handleFilterChange('search', e.target.value)}
-                                            startContent={<MagnifyingGlassIcon className="w-4 h-4" />} variant="bordered" size="sm" radius={getThemeRadius()} classNames={{ inputWrapper: "bg-default-100" }} />
+                                            startContent={<MagnifyingGlassIcon className="w-4 h-4" />} variant="bordered" size="sm" radius={themeRadius} classNames={{ inputWrapper: "bg-default-100" }} />
                                         
                                         <Select label="Skill Category" placeholder="All Skills" selectedKeys={filters.skill_category !== 'all' ? [filters.skill_category] : []}
-                                            onSelectionChange={(keys) => handleFilterChange('skill_category', Array.from(keys)[0] || 'all')} variant="bordered" size="sm" radius={getThemeRadius()} classNames={{ trigger: "bg-default-100" }}>
+                                            onSelectionChange={(keys) => handleFilterChange('skill_category', Array.from(keys)[0] || 'all')} variant="bordered" size="sm" radius={themeRadius} classNames={{ trigger: "bg-default-100" }}>
                                             <SelectItem key="all">All Skills</SelectItem>
                                             <SelectItem key="skilled">Skilled</SelectItem>
                                             <SelectItem key="semi_skilled">Semi-Skilled</SelectItem>
@@ -221,7 +211,7 @@ const LaborDeploymentsIndex = ({ title }) => {
                                         </Select>
                                         
                                         <Select label="Trade" placeholder="All Trades" selectedKeys={filters.trade !== 'all' ? [filters.trade] : []}
-                                            onSelectionChange={(keys) => handleFilterChange('trade', Array.from(keys)[0] || 'all')} variant="bordered" size="sm" radius={getThemeRadius()} classNames={{ trigger: "bg-default-100" }}>
+                                            onSelectionChange={(keys) => handleFilterChange('trade', Array.from(keys)[0] || 'all')} variant="bordered" size="sm" radius={themeRadius} classNames={{ trigger: "bg-default-100" }}>
                                             <SelectItem key="all">All Trades</SelectItem>
                                             <SelectItem key="mason">Mason</SelectItem>
                                             <SelectItem key="carpenter">Carpenter</SelectItem>

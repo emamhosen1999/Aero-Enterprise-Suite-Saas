@@ -228,7 +228,7 @@ export default function BulkOnboardModal({
                                                 src={user.avatar}
                                                 name={user.name}
                                                 size="sm"
-                                                className="flex-shrink-0"
+                                                className="shrink-0"
                                             />
                                             <span className="text-sm truncate max-w-[150px]">{user.name}</span>
                                         </div>
@@ -432,7 +432,7 @@ export default function BulkOnboardModal({
                                                     key={`success-${index}`}
                                                     className="flex items-start gap-2 p-3 bg-success-50 dark:bg-success-100/10 rounded-lg"
                                                 >
-                                                    <CheckCircleIcon className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+                                                    <CheckCircleIcon className="w-5 h-5 text-success shrink-0 mt-0.5" />
                                                     <div className="flex-1 min-w-0">
                                                         <p className="text-sm font-medium">
                                                             {users.find((u) => u.id === item.user_id)?.name || `User ${item.user_id}`}
@@ -450,7 +450,7 @@ export default function BulkOnboardModal({
                                                     key={`failed-${index}`}
                                                     className="flex items-start gap-2 p-3 bg-danger-50 dark:bg-danger-100/10 rounded-lg"
                                                 >
-                                                    <XCircleIcon className="w-5 h-5 text-danger flex-shrink-0 mt-0.5" />
+                                                    <XCircleIcon className="w-5 h-5 text-danger shrink-0 mt-0.5" />
                                                     <div className="flex-1 min-w-0">
                                                         <p className="text-sm font-medium">
                                                             {users.find((u) => u.id === item.user_id)?.name || `User ${item.user_id}`}

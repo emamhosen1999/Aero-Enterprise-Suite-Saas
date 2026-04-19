@@ -18,6 +18,7 @@ import {CalendarDaysIcon, CheckIcon, ClockIcon, InformationCircleIcon} from "@he
 import {showToast} from "@/utils/toastUtils";
 import {differenceInDays, format} from 'date-fns';
 import axios from 'axios';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const HolidayForm = ({ 
     open, 
@@ -27,19 +28,7 @@ const HolidayForm = ({
     currentHoliday 
 }) => {
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
     
     // Form state
     const [formData, setFormData] = useState({
@@ -172,7 +161,7 @@ const HolidayForm = ({
             isOpen={open} 
             onClose={closeModal}
             size="3xl"
-            radius={getThemeRadius()}
+            radius={themeRadius}
             scrollBehavior="inside"
             classNames={{
                 base: "backdrop-blur-md mx-2 my-2 sm:mx-4 sm:my-8 max-h-[95vh]",
@@ -231,7 +220,7 @@ const HolidayForm = ({
                                                 errorMessage={errors.title}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 classNames={{
                                                     input: "text-small",
                                                     inputWrapper: "min-h-unit-10"
@@ -251,7 +240,7 @@ const HolidayForm = ({
                                                 errorMessage={errors.description}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 minRows={3}
                                                 maxRows={5}
                                                 classNames={{
@@ -289,7 +278,7 @@ const HolidayForm = ({
                                                 errorMessage={errors.type}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 classNames={{
                                                     trigger: "min-h-unit-10",
                                                     value: "text-small"
@@ -354,7 +343,7 @@ const HolidayForm = ({
                                                 <Chip 
                                                     variant="bordered" 
                                                     size="sm"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     style={{
                                                         borderColor: `var(--theme-primary)`,
                                                         color: `var(--theme-primary)`,
@@ -377,7 +366,7 @@ const HolidayForm = ({
                                                 errorMessage={errors.fromDate}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 startContent={<CalendarDaysIcon className="w-4 h-4 text-default-400" />}
                                                 classNames={{
                                                     input: "text-small",
@@ -398,7 +387,7 @@ const HolidayForm = ({
                                                 errorMessage={errors.toDate}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 startContent={<CalendarDaysIcon className="w-4 h-4 text-default-400" />}
                                                 classNames={{
                                                     input: "text-small",
@@ -513,7 +502,7 @@ const HolidayForm = ({
                                     color="default"
                                     variant="bordered"
                                     onPress={onClose}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     size="sm"
                                     isDisabled={processing}
                                     style={{
@@ -529,7 +518,7 @@ const HolidayForm = ({
                                     variant="solid"
                                     isLoading={processing}
                                     isDisabled={processing}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     size="sm"
                                     style={{
                                         borderRadius: `var(--borderRadius, 8px)`,

@@ -30,19 +30,6 @@ const Enrollment = ({ title, programs: initialPrograms = [], employees: initialE
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -523,7 +510,7 @@ const Enrollment = ({ title, programs: initialPrograms = [], employees: initialE
                                         selectedKeys={formData.program_id ? [formData.program_id] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, program_id: Array.from(keys)[0] || '' }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {programs.map(program => (
                                             <SelectItem key={program.id} value={program.id}>
@@ -538,7 +525,7 @@ const Enrollment = ({ title, programs: initialPrograms = [], employees: initialE
                                         selectedKeys={formData.employee_id ? [formData.employee_id] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, employee_id: Array.from(keys)[0] || '' }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {employees.map(employee => (
                                             <SelectItem key={employee.id} value={employee.id}>
@@ -556,7 +543,7 @@ const Enrollment = ({ title, programs: initialPrograms = [], employees: initialE
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, enrollment_date: value }))}
                                         type="date"
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
 
                                     <Input
@@ -565,7 +552,7 @@ const Enrollment = ({ title, programs: initialPrograms = [], employees: initialE
                                         value={formData.deadline}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, deadline: value }))}
                                         type="date"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                 </div>
 
@@ -575,7 +562,7 @@ const Enrollment = ({ title, programs: initialPrograms = [], employees: initialE
                                         placeholder="Select status"
                                         selectedKeys={formData.status ? [formData.status] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, status: Array.from(keys)[0] || 'enrolled' }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {enrollmentStatuses.map(status => (
                                             <SelectItem key={status.key}>{status.label}</SelectItem>
@@ -587,7 +574,7 @@ const Enrollment = ({ title, programs: initialPrograms = [], employees: initialE
                                         placeholder="Select priority"
                                         selectedKeys={formData.priority ? [formData.priority] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, priority: Array.from(keys)[0] || 'medium' }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {priorities.map(priority => (
                                             <SelectItem key={priority.key}>{priority.label}</SelectItem>
@@ -600,7 +587,7 @@ const Enrollment = ({ title, programs: initialPrograms = [], employees: initialE
                                     placeholder="Enter any notes"
                                     value={formData.notes}
                                     onValueChange={(value) => setFormData(prev => ({ ...prev, notes: value }))}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
 
                                 <div className="flex gap-4">
@@ -651,7 +638,7 @@ const Enrollment = ({ title, programs: initialPrograms = [], employees: initialE
                                     selectedKeys={bulkEnrollmentData.program_id ? [bulkEnrollmentData.program_id] : []}
                                     onSelectionChange={(keys) => setBulkEnrollmentData(prev => ({ ...prev, program_id: Array.from(keys)[0] || '' }))}
                                     isRequired
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 >
                                     {programs.map(program => (
                                         <SelectItem key={program.id} value={program.id}>
@@ -667,7 +654,7 @@ const Enrollment = ({ title, programs: initialPrograms = [], employees: initialE
                                     onSelectionChange={handleBulkEmployeeSelection}
                                     selectionMode="multiple"
                                     isRequired
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 >
                                     {employees.map(employee => (
                                         <SelectItem key={employee.id} value={employee.id}>
@@ -684,7 +671,7 @@ const Enrollment = ({ title, programs: initialPrograms = [], employees: initialE
                                         onValueChange={(value) => setBulkEnrollmentData(prev => ({ ...prev, enrollment_date: value }))}
                                         type="date"
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
 
                                     <Input
@@ -693,7 +680,7 @@ const Enrollment = ({ title, programs: initialPrograms = [], employees: initialE
                                         value={bulkEnrollmentData.deadline}
                                         onValueChange={(value) => setBulkEnrollmentData(prev => ({ ...prev, deadline: value }))}
                                         type="date"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                 </div>
 
@@ -963,7 +950,7 @@ const Enrollment = ({ title, programs: initialPrograms = [], employees: initialE
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select

@@ -101,19 +101,6 @@ const RegistrationsIndex = ({ event, registrations: initialRegistrations }) => {
             description: 'Not approved'
         }
     ], [registrations]);
-
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
 
@@ -211,7 +198,7 @@ const RegistrationsIndex = ({ event, registrations: initialRegistrations }) => {
     };
     
     const handleExportCsv = () => {
-        window.location.href = route('events.registrations.export-csv', event.id);
+        router.visit(route('events.registrations.export-csv', event.id));
     };
     
     const handlePrintToken = (registration) => {
@@ -264,7 +251,7 @@ const RegistrationsIndex = ({ event, registrations: initialRegistrations }) => {
                                                     variant="flat"
                                                     onPress={() => router.get(route('events.show', event.id))}
                                                     startContent={<ArrowLeftIcon className="w-5 h-5" />}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     size={isMobile ? 'sm' : 'md'}
                                                 >
                                                     {!isMobile && 'Back to Event'}
@@ -274,7 +261,7 @@ const RegistrationsIndex = ({ event, registrations: initialRegistrations }) => {
                                                     variant="flat"
                                                     onPress={handleExportCsv}
                                                     startContent={<DocumentArrowDownIcon className="w-5 h-5" />}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     size={isMobile ? 'sm' : 'md'}
                                                 >
                                                     Export CSV
@@ -297,7 +284,7 @@ const RegistrationsIndex = ({ event, registrations: initialRegistrations }) => {
                                                     onChange={(e) => setSearchQuery(e.target.value)}
                                                     startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                                     className="max-w-md"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 />
                                                 
                                                 {selectedKeys.size > 0 && (
@@ -306,7 +293,7 @@ const RegistrationsIndex = ({ event, registrations: initialRegistrations }) => {
                                                             color="success"
                                                             variant="flat"
                                                             onPress={handleBulkApprove}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         >
                                                             Approve Selected ({selectedKeys.size})
                                                         </Button>
@@ -314,7 +301,7 @@ const RegistrationsIndex = ({ event, registrations: initialRegistrations }) => {
                                                             color="danger"
                                                             variant="flat"
                                                             onPress={handleBulkReject}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         >
                                                             Reject Selected ({selectedKeys.size})
                                                         </Button>
@@ -360,17 +347,17 @@ const RegistrationsIndex = ({ event, registrations: initialRegistrations }) => {
                                         </div>
                                                     </TableCell>
                                                     <TableCell>
-                                                        <Chip size="sm" color={getStatusColor(registration.status)} variant="flat" radius={getThemeRadius()}>
+                                                        <Chip size="sm" color={getStatusColor(registration.status)} variant="flat" radius={themeRadius}>
                                                             {registration.status}
                                                         </Chip>
                                                     </TableCell>
                                                     <TableCell>
                                                         {registration.payment_verified ? (
-                                                            <Chip size="sm" color="success" variant="flat" radius={getThemeRadius()}>Verified</Chip>
+                                                            <Chip size="sm" color="success" variant="flat" radius={themeRadius}>Verified</Chip>
                                                         ) : registration.payment_proof ? (
-                                                            <Chip size="sm" color="warning" variant="flat" radius={getThemeRadius()}>Pending</Chip>
+                                                            <Chip size="sm" color="warning" variant="flat" radius={themeRadius}>Pending</Chip>
                                                         ) : (
-                                                            <Chip size="sm" color="default" variant="flat" radius={getThemeRadius()}>No Proof</Chip>
+                                                            <Chip size="sm" color="default" variant="flat" radius={themeRadius}>No Proof</Chip>
                                                         )}
                                                     </TableCell>
                                     <TableCell>
@@ -440,7 +427,7 @@ const RegistrationsIndex = ({ event, registrations: initialRegistrations }) => {
                                                         page={registrations.current_page}
                                                         onChange={(page) => router.get(route('events.registrations.index', event.id), { page })}
                                                         showControls
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                     />
                                                 </div>
                                             )}
@@ -454,7 +441,7 @@ const RegistrationsIndex = ({ event, registrations: initialRegistrations }) => {
             </div>
             
             {/* Reject Modal */}
-            <Modal isOpen={isOpen} onClose={onClose} radius={getThemeRadius()}>
+            <Modal isOpen={isOpen} onClose={onClose} radius={themeRadius}>
                 <ModalContent>
                     <ModalHeader>
                         {actionType === 'bulkReject' ? 'Reject Selected Registrations' : 'Reject Registration'}
@@ -466,17 +453,17 @@ const RegistrationsIndex = ({ event, registrations: initialRegistrations }) => {
                             value={rejectReason}
                             onChange={(e) => setRejectReason(e.target.value)}
                             rows={4}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         />
                     </ModalBody>
                     <ModalFooter>
-                        <Button variant="flat" onPress={onClose} radius={getThemeRadius()}>
+                        <Button variant="flat" onPress={onClose} radius={themeRadius}>
                             Cancel
                         </Button>
                         <Button 
                             color="danger" 
                             onPress={actionType === 'bulkReject' ? executeBulkReject : handleReject}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         >
                             Reject
                         </Button>

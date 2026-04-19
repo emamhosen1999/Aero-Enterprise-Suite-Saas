@@ -14,7 +14,8 @@ import {
   Divider,
   Code
 } from "@heroui/react";
-import { 
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import {
   CommandLineIcon, 
   DocumentTextIcon,
   CogIcon,
@@ -36,17 +37,7 @@ const ContractInteractionModal = ({
   const [errors, setErrors] = useState({});
 
   // Theme radius helper
-  const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 16) return 'lg';
-    return 'full';
-  };
+  const themeRadius = useThemeRadius();
 
   // Mock contract functions (in a real app, this would come from the ABI)
   const contractFunctions = [
@@ -232,7 +223,7 @@ const ContractInteractionModal = ({
                 isInvalid={!!errors.function}
                 errorMessage={errors.function}
                 isRequired
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 classNames={{
                   trigger: "bg-default-100"
                 }}
@@ -277,7 +268,7 @@ const ContractInteractionModal = ({
                       onValueChange={(value) => handleParamChange(param, value)}
                       isInvalid={!!errors[param]}
                       errorMessage={errors[param]}
-                      radius={getThemeRadius()}
+                      radius={themeRadius}
                       classNames={{
                         inputWrapper: "bg-default-100"
                       }}
@@ -304,7 +295,7 @@ const ContractInteractionModal = ({
                       onValueChange={setGasLimit}
                       isInvalid={!!errors.gasLimit}
                       errorMessage={errors.gasLimit}
-                      radius={getThemeRadius()}
+                      radius={themeRadius}
                       classNames={{
                         inputWrapper: "bg-default-100"
                       }}
@@ -316,7 +307,7 @@ const ContractInteractionModal = ({
                       onValueChange={setGasPrice}
                       isInvalid={!!errors.gasPrice}
                       errorMessage={errors.gasPrice}
-                      radius={getThemeRadius()}
+                      radius={themeRadius}
                       classNames={{
                         inputWrapper: "bg-default-100"
                       }}
@@ -326,7 +317,7 @@ const ContractInteractionModal = ({
                       placeholder="0"
                       value={value}
                       onValueChange={setValue}
-                      radius={getThemeRadius()}
+                      radius={themeRadius}
                       classNames={{
                         inputWrapper: "bg-default-100"
                       }}
@@ -361,7 +352,7 @@ const ContractInteractionModal = ({
             variant="flat" 
             onPress={handleClose}
             isDisabled={loading}
-            radius={getThemeRadius()}
+            radius={themeRadius}
           >
             Cancel
           </Button>
@@ -369,7 +360,7 @@ const ContractInteractionModal = ({
             color={selectedFunctionData?.type === 'read' ? 'success' : 'primary'}
             onPress={handleExecute}
             isLoading={loading}
-            radius={getThemeRadius()}
+            radius={themeRadius}
             startContent={!loading ? <PlayIcon className="w-4 h-4" /> : null}
             isDisabled={!selectedFunction}
           >

@@ -21,23 +21,15 @@ import WalletsTable from '@/Tables/WalletsTable.jsx';
 import CreateWalletModal from '@/Components/Modals/CreateWalletModal.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { router } from '@inertiajs/react';
 
 const WalletsManagement = ({ title }) => {
     const { auth } = usePage().props;
     const { hasAccess: hrmacHasAccess } = useHRMAC();
     
     // 1. Theme radius helper (REQUIRED)
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
     
     // 2. Responsive breakpoints (REQUIRED)
     const [isMobile, setIsMobile] = useState(false);
@@ -311,7 +303,7 @@ const WalletsManagement = ({ title }) => {
                                                 )}
                                                 <Button color="secondary" variant="flat"
                                                     startContent={<ArrowsRightLeftIcon className="w-4 h-4" />}
-                                                    onPress={() => window.location.href = route('blockchain.transactions.create')}
+                                                    onPress={() => router.visit(route('blockchain.transactions.create'))}
                                                     size={isMobile ? "sm" : "md"}
                                                 >
                                                     Send Transaction
@@ -336,7 +328,7 @@ const WalletsManagement = ({ title }) => {
                                             classNames={{
                                                 inputWrapper: "bg-default-100"
                                             }}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             variant="bordered"
                                             size="sm"
                                         />
@@ -347,7 +339,7 @@ const WalletsManagement = ({ title }) => {
                                             selectedKeys={filters.network !== 'all' ? [filters.network] : []}
                                             onSelectionChange={(keys) => handleFilterChange('network', Array.from(keys)[0] || 'all')}
                                             classNames={{ trigger: "bg-default-100" }}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             variant="bordered"
                                             size="sm"
                                         >
@@ -365,7 +357,7 @@ const WalletsManagement = ({ title }) => {
                                             selectedKeys={filters.type !== 'all' ? [filters.type] : []}
                                             onSelectionChange={(keys) => handleFilterChange('type', Array.from(keys)[0] || 'all')}
                                             classNames={{ trigger: "bg-default-100" }}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             variant="bordered"
                                             size="sm"
                                         >
@@ -382,7 +374,7 @@ const WalletsManagement = ({ title }) => {
                                             selectedKeys={filters.status !== 'all' ? [filters.status] : []}
                                             onSelectionChange={(keys) => handleFilterChange('status', Array.from(keys)[0] || 'all')}
                                             classNames={{ trigger: "bg-default-100" }}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             variant="bordered"
                                             size="sm"
                                         >

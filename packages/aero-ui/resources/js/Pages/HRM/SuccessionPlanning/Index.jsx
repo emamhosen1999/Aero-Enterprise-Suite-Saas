@@ -49,6 +49,7 @@ import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
 import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { router } from '@inertiajs/react';
 
 const SuccessionPlanningIndex = ({ title, stats: initialStats, designations, departments }) => {
     const { auth } = usePage().props;
@@ -329,7 +330,7 @@ const SuccessionPlanningIndex = ({ title, stats: initialStats, designations, dep
                             <DropdownItem
                                 key="view"
                                 startContent={<EyeIcon className="w-4 h-4" />}
-                                onPress={() => window.location.href = route('hrm.succession.show', item.id)}
+                                onPress={() => router.visit(route('hrm.succession.show', item.id))}
                             >
                                 View Details
                             </DropdownItem>

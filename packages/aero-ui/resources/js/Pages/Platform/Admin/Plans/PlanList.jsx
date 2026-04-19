@@ -7,22 +7,13 @@ import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
 import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const PlanList = ({ plans: initialPlans = [], stats: initialStats = {}, title }) => {
     const { auth } = usePage().props;
 
     // 1. Theme radius helper (REQUIRED)
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     // 2. Responsive breakpoints (REQUIRED)
     const [isMobile, setIsMobile] = useState(false);
@@ -342,7 +333,7 @@ const PlanList = ({ plans: initialPlans = [], stats: initialStats = {}, title })
                                             value={searchQuery}
                                             onValueChange={setSearchQuery}
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             variant="bordered"
                                             size="sm"
                                             classNames={{ inputWrapper: "bg-default-100" }}
@@ -352,7 +343,7 @@ const PlanList = ({ plans: initialPlans = [], stats: initialStats = {}, title })
                                             placeholder="All Tiers"
                                             selectedKeys={tierFilter !== 'all' ? [tierFilter] : []}
                                             onSelectionChange={(keys) => setTierFilter(Array.from(keys)[0] || 'all')}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             variant="bordered"
                                             size="sm"
                                             className="w-full sm:w-48"
@@ -367,7 +358,7 @@ const PlanList = ({ plans: initialPlans = [], stats: initialStats = {}, title })
                                             placeholder="Status"
                                             selectedKeys={statusFilter !== 'all' ? [statusFilter] : []}
                                             onSelectionChange={(keys) => setStatusFilter(Array.from(keys)[0] || 'all')}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             variant="bordered"
                                             size="sm"
                                             className="w-full sm:w-48"
@@ -382,7 +373,7 @@ const PlanList = ({ plans: initialPlans = [], stats: initialStats = {}, title })
                                     {loading ? (
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                             {[1, 2, 3].map((i) => (
-                                                <Card key={i} radius={getThemeRadius()}>
+                                                <Card key={i} radius={themeRadius}>
                                                     <CardHeader className="border-b border-divider p-4">
                                                         <Skeleton className="h-6 w-32 rounded" />
                                                     </CardHeader>
@@ -395,13 +386,13 @@ const PlanList = ({ plans: initialPlans = [], stats: initialStats = {}, title })
                                             ))}
                                         </div>
                                     ) : filteredPlans.length === 0 ? (
-                                        <Card radius={getThemeRadius()}>
+                                        <Card radius={themeRadius}>
                                             <CardBody className="p-12 text-center">
                                                 <p className="text-default-500">No subscription plans have been configured. Create a plan to begin.</p>
                                                 <Button
                                                     color="primary"
                                                     className="mt-4"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     onPress={() => router.visit(route('admin.plans.create'))}
                                                 >
                                                     Create Plan
@@ -411,24 +402,24 @@ const PlanList = ({ plans: initialPlans = [], stats: initialStats = {}, title })
                                     ) : (
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                             {filteredPlans.map((plan) => (
-                                                <Card key={plan.id} radius={getThemeRadius()} className="hover:shadow-lg transition-shadow">
+                                                <Card key={plan.id} radius={themeRadius} className="hover:shadow-lg transition-shadow">
                                                     <CardHeader className="border-b border-divider p-4 flex justify-between items-start">
                                                         <div className="flex-1">
                                                             <div className="flex items-center gap-2 mb-2">
                                                                 <h3 className="text-lg font-semibold text-foreground">{plan.name}</h3>
-                                                                <Chip size="sm" color={getTierColor(plan.tier)} radius={getThemeRadius()}>
+                                                                <Chip size="sm" color={getTierColor(plan.tier)} radius={themeRadius}>
                                                                     {plan.tier}
                                                                 </Chip>
                                                             </div>
                                                             {plan.archived && (
-                                                                <Chip size="sm" color="warning" variant="flat" radius={getThemeRadius()}>
+                                                                <Chip size="sm" color="warning" variant="flat" radius={themeRadius}>
                                                                     Archived
                                                                 </Chip>
                                                             )}
                                                         </div>
                                                         <Dropdown>
                                                             <DropdownTrigger>
-                                                                <Button isIconOnly size="sm" variant="light" radius={getThemeRadius()}>
+                                                                <Button isIconOnly size="sm" variant="light" radius={themeRadius}>
                                                                     <EllipsisVerticalIcon className="w-5 h-5" />
                                                                 </Button>
                                                             </DropdownTrigger>
@@ -504,7 +495,7 @@ const PlanList = ({ plans: initialPlans = [], stats: initialStats = {}, title })
                                                         <Button
                                                             fullWidth
                                                             variant="bordered"
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             onPress={() => router.visit(route('admin.plans.show', plan.id))}
                                                         >
                                                             View Details

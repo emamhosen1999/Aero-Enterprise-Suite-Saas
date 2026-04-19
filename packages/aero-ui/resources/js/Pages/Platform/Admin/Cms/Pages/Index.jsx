@@ -43,7 +43,7 @@ const Index = ({ title, pages, filters, stats }) => {
   const palette = useMemo(() => ({
     baseText: 'text-slate-900 dark:text-white',
     mutedText: 'text-slate-600 dark:text-slate-400',
-    card: 'bg-white dark:bg-slate-950/50 border border-slate-200 dark:border-white/10',
+    card: 'bg-background/50 border border-slate-200 dark:border-white/10',
     header: 'border-b border-slate-200 dark:border-white/10',
   }), []);
 

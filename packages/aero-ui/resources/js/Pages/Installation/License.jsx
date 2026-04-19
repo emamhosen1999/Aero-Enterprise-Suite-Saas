@@ -23,6 +23,7 @@ import {
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 /**
  * License Validation Page (Standalone Mode Only)
@@ -51,17 +52,8 @@ export default function License() {
     const [errors, setErrors] = useState({});
 
     useEffect(() => {
-        const getThemeRadius = () => {
-            const rootStyles = getComputedStyle(document.documentElement);
-            const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-            const radiusValue = parseInt(borderRadius);
-            if (radiusValue === 0) return 'none';
-            if (radiusValue <= 4) return 'sm';
-            if (radiusValue <= 8) return 'md';
-            if (radiusValue <= 12) return 'lg';
-            return 'xl';
-        };
-        setThemeRadius(getThemeRadius());
+        const themeRadius = useThemeRadius();
+        setThemeRadius(themeRadius);
     }, []);
 
     // Auto-detect provider from license key
@@ -254,7 +246,7 @@ export default function License() {
                         {validated && validationResult && (
                             <div className="bg-success-50 dark:bg-success-900/20 rounded-lg p-4 border border-success-200 dark:border-success-800">
                                 <div className="flex items-start gap-3">
-                                    <CheckCircleIcon className="w-6 h-6 text-success flex-shrink-0 mt-0.5" />
+                                    <CheckCircleIcon className="w-6 h-6 text-success shrink-0 mt-0.5" />
                                     <div>
                                         <h4 className="font-semibold text-success-700 dark:text-success-300">
                                             License Validated

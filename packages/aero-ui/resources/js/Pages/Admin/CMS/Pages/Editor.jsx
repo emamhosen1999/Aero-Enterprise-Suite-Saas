@@ -8,21 +8,12 @@ import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
 import BlockLibrary from '../../../../Components/CMS/BlockLibrary.jsx';
 import BlockEditor from '../../../../Components/CMS/BlockEditor.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const CmsPageEditor = ({ page = null, blockTypes = [] }) => {
     const { auth } = usePage().props;
 
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     const [isMobile, setIsMobile] = useState(false);
     const [pageData, setPageData] = useState(page || { title: '', slug: '', content: { blocks: [] } });
@@ -357,14 +348,14 @@ const CmsPageEditor = ({ page = null, blockTypes = [] }) => {
                                         value={pageData.title}
                                         onChange={(e) => setPageData({ ...pageData, title: e.target.value })}
                                         size="sm"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                     <Input
                                         label="Slug"
                                         value={pageData.slug}
                                         onChange={(e) => setPageData({ ...pageData, slug: e.target.value })}
                                         size="sm"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                     <div className="pt-2 border-t">
                                         <p className="text-xs font-semibold text-default-600 mb-2">Status</p>

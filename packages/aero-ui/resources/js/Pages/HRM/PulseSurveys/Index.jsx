@@ -49,6 +49,7 @@ import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
 import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { router } from '@inertiajs/react';
 
 const PulseSurveysIndex = ({ title, stats: initialStats, departments }) => {
     const { auth } = usePage().props;
@@ -212,7 +213,7 @@ const PulseSurveysIndex = ({ title, stats: initialStats, departments }) => {
                         </DropdownTrigger>
                         <DropdownMenu>
                             <DropdownItem key="view" startContent={<EyeIcon className="w-4 h-4" />}
-                                onPress={() => window.location.href = route('hrm.pulse-surveys.show', item.id)}>
+                                onPress={() => router.visit(route('hrm.pulse-surveys.show', item.id))}>
                                 View Results
                             </DropdownItem>
                             {item.status === 'draft' && canManage && (

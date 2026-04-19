@@ -19,15 +19,10 @@ import {
     PrinterIcon
 } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 // Helper function to get theme radius from CSS variable
-const getThemeRadius = () => {
-    const borderRadius = getComputedStyle(document.documentElement)
-        .getPropertyValue('--borderRadius')
-        .trim();
-    return borderRadius || 'md';
-};
-
+const themeRadius = useThemeRadius();
 const CheckRegistration = ({ registration, event }) => {
     const { data, setData, post, processing, errors } = useForm({
         token: ''
@@ -82,7 +77,7 @@ const CheckRegistration = ({ registration, event }) => {
 
                 {/* Search Form */}
                 {!registration && (
-                    <Card className="mb-8" radius={getThemeRadius()}>
+                    <Card className="mb-8" radius={themeRadius}>
                         <CardBody className="p-6">
                             <form onSubmit={handleSubmit}>
                                 <div className="flex flex-col sm:flex-row gap-3">
@@ -96,7 +91,7 @@ const CheckRegistration = ({ registration, event }) => {
                                         isInvalid={!!errors.token}
                                         errorMessage={errors.token}
                                         startContent={<MagnifyingGlassIcon className="w-5 h-5 text-default-400" />}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                     <Button
                                         type="submit"
@@ -104,7 +99,7 @@ const CheckRegistration = ({ registration, event }) => {
                                         size="lg"
                                         isLoading={processing}
                                         className="sm:w-auto w-full"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         Check Status
                                     </Button>
@@ -116,7 +111,7 @@ const CheckRegistration = ({ registration, event }) => {
 
                 {/* Registration Details */}
                 {registration && event && (
-                    <Card radius={getThemeRadius()}>
+                    <Card radius={themeRadius}>
                         <CardBody className="p-8">
                             {/* Status Icon */}
                             <div className="flex justify-center mb-6">
@@ -136,7 +131,7 @@ const CheckRegistration = ({ registration, event }) => {
                                     size="lg"
                                     variant="flat"
                                     className="mb-3"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 >
                                     {registration.status.toUpperCase()}
                                 </Chip>
@@ -254,7 +249,7 @@ const CheckRegistration = ({ registration, event }) => {
                                     variant="flat"
                                     startContent={<ArrowLeftIcon className="w-4 h-4" />}
                                     onPress={() => router.get(route('public.events.index'))}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 >
                                     Return to Events
                                 </Button>
@@ -263,7 +258,7 @@ const CheckRegistration = ({ registration, event }) => {
                                         color="primary"
                                         startContent={<PrinterIcon className="w-4 h-4" />}
                                         onPress={handlePrintToken}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         Print Token
                                     </Button>

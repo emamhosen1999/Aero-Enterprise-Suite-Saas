@@ -45,6 +45,7 @@ import {
 import App from '@/Layouts/App.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 /**
  * WorkLayers Management - PATENTABLE COMPONENT
@@ -57,19 +58,8 @@ const WorkLayersIndex = ({ title, layers: initialLayers }) => {
     const { auth } = usePage().props;
     
     // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
-    // Responsive breakpoints
+    const themeRadius = useThemeRadius();
+// Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     
     useEffect(() => {
@@ -415,7 +405,7 @@ const WorkLayersIndex = ({ title, layers: initialLayers }) => {
                                 isInvalid={!!formErrors.name}
                                 errorMessage={formErrors.name?.[0]}
                                 isRequired
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                             />
                             
                             <Input
@@ -425,7 +415,7 @@ const WorkLayersIndex = ({ title, layers: initialLayers }) => {
                                 onValueChange={(v) => setFormData(prev => ({ ...prev, code: v }))}
                                 isInvalid={!!formErrors.code}
                                 errorMessage={formErrors.code?.[0]}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                             />
                             
                             <Input
@@ -438,7 +428,7 @@ const WorkLayersIndex = ({ title, layers: initialLayers }) => {
                                 errorMessage={formErrors.layer_order?.[0]}
                                 isRequired
                                 min={1}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                             />
                             
                             <Select
@@ -448,7 +438,7 @@ const WorkLayersIndex = ({ title, layers: initialLayers }) => {
                                 onSelectionChange={(keys) => setFormData(prev => ({ ...prev, prerequisite_layer_id: Array.from(keys)[0] || '' }))}
                                 isInvalid={!!formErrors.prerequisite_layer_id}
                                 errorMessage={formErrors.prerequisite_layer_id?.[0]}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                             >
                                 {layers
                                     .filter(l => l.id !== editingLayer?.id)
@@ -471,7 +461,7 @@ const WorkLayersIndex = ({ title, layers: initialLayers }) => {
                                 type="color"
                                 value={formData.color}
                                 onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 classNames={{
                                     input: "h-10"
                                 }}
@@ -484,14 +474,14 @@ const WorkLayersIndex = ({ title, layers: initialLayers }) => {
                                 value={formData.default_thickness}
                                 onValueChange={(v) => setFormData(prev => ({ ...prev, default_thickness: v }))}
                                 endContent={<span className="text-default-400 text-xs">m</span>}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                             />
                             
                             <Select
                                 label="Unit of Measurement"
                                 selectedKeys={formData.unit ? [formData.unit] : ['m³']}
                                 onSelectionChange={(keys) => setFormData(prev => ({ ...prev, unit: Array.from(keys)[0] || 'm³' }))}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                             >
                                 <SelectItem key="m³">Cubic Meter (m³)</SelectItem>
                                 <SelectItem key="m²">Square Meter (m²)</SelectItem>
@@ -507,7 +497,7 @@ const WorkLayersIndex = ({ title, layers: initialLayers }) => {
                                 value={String(formData.min_photos_required)}
                                 onValueChange={(v) => setFormData(prev => ({ ...prev, min_photos_required: parseInt(v) || 0 }))}
                                 min={0}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                             />
                         </div>
                         
@@ -517,7 +507,7 @@ const WorkLayersIndex = ({ title, layers: initialLayers }) => {
                             value={formData.description}
                             onValueChange={(v) => setFormData(prev => ({ ...prev, description: v }))}
                             className="mt-4"
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         />
                         
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">

@@ -28,19 +28,6 @@ const Reviews360 = ({ title, employees: initialEmployees = [] }) => {
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -454,7 +441,7 @@ const Reviews360 = ({ title, employees: initialEmployees = [] }) => {
                                         selectedKeys={formData.employee_id ? [formData.employee_id] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, employee_id: Array.from(keys)[0] || '' }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {employees.map(employee => (
                                             <SelectItem key={employee.id}>{employee.name} - {employee.designation?.name}</SelectItem>
@@ -466,7 +453,7 @@ const Reviews360 = ({ title, employees: initialEmployees = [] }) => {
                                         placeholder="e.g., Q4 2025, Annual 2025"
                                         value={formData.review_cycle}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, review_cycle: value }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                 </div>
 
@@ -475,7 +462,7 @@ const Reviews360 = ({ title, employees: initialEmployees = [] }) => {
                                     label="Due Date"
                                     value={formData.due_date}
                                     onValueChange={(value) => setFormData(prev => ({ ...prev, due_date: value }))}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
 
                                 <Textarea
@@ -484,7 +471,7 @@ const Reviews360 = ({ title, employees: initialEmployees = [] }) => {
                                     value={formData.instructions}
                                     onValueChange={(value) => setFormData(prev => ({ ...prev, instructions: value }))}
                                     rows={4}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
 
                                 <div>
@@ -758,7 +745,7 @@ const Reviews360 = ({ title, employees: initialEmployees = [] }) => {
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select

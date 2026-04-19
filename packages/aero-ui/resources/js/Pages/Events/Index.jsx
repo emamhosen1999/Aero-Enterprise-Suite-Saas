@@ -43,19 +43,6 @@ const EventsIndex = ({ events: initialEvents, filters: initialFilters }) => {
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
-    // Theme radius helper (REQUIRED for StandardPageLayout)
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints (REQUIRED for StandardPageLayout)
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -425,7 +412,7 @@ const EventsIndex = ({ events: initialEvents, filters: initialFilters }) => {
                                                             <div className="flex flex-col md:flex-row gap-4">
                                                                 {/* Event Banner */}
                                                                 {event.banner_image && (
-                                                                    <div className="w-full md:w-48 h-32 rounded-lg overflow-hidden flex-shrink-0">
+                                                                    <div className="w-full md:w-48 h-32 rounded-lg overflow-hidden shrink-0">
                                                                         <img
                                                                             src={`/storage/${event.banner_image}`}
                                                                             alt={event.title}

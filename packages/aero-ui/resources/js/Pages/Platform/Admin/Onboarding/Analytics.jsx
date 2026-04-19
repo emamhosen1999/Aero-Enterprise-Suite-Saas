@@ -21,6 +21,7 @@ import {
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const Analytics = ({ 
     stats: initialStats, 
@@ -46,17 +47,7 @@ const Analytics = ({
         return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
 
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'xl';
-    };
+    const themeRadius = useThemeRadius();
 
     const changePeriod = (newPeriod) => {
         setPeriod(newPeriod);
@@ -326,5 +317,4 @@ const Analytics = ({
 Analytics.layout = (page) => <App children={page} />;
 
 export default Analytics;
-
 

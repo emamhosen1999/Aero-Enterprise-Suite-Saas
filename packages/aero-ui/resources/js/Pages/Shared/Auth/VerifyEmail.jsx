@@ -10,6 +10,7 @@ import {
 import { Button, Card, Spinner } from '@heroui/react';
 import { useTheme } from '@/Context/ThemeContext';
 import { useBranding } from '@/Hooks/useBranding';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 /**
  * Verify Email Component
@@ -54,18 +55,8 @@ export default function VerifyEmail({ status }) {
         setIsLoaded(true);
     }, []);
 
-    const getThemeRadius = () => {
-        const borderRadius = themeSettings?.layout?.borderRadius;
-        if (!borderRadius) return 'lg';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-
-    const submit = (e) => {
+    const themeRadius = useThemeRadius();
+const submit = (e) => {
         e.preventDefault();
         post(route('verification.send'));
     };
@@ -269,7 +260,7 @@ export default function VerifyEmail({ status }) {
                                         <div className="p-4">
                                             <div className="flex items-center gap-3">
                                                 <CheckCircleIcon 
-                                                    className="w-5 h-5 flex-shrink-0"
+                                                    className="w-5 h-5 shrink-0"
                                                     style={{ color: 'var(--theme-success, #22C55E)' }}
                                                 />
                                                 <p 
@@ -292,7 +283,7 @@ export default function VerifyEmail({ status }) {
                                         type="submit"
                                         color="primary"
                                         size="lg"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         className="w-full font-semibold"
                                         isLoading={processing}
                                         startContent={!processing && <ArrowPathIcon className="w-4 h-4" />}

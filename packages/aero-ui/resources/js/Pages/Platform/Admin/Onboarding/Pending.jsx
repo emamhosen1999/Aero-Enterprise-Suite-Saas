@@ -46,6 +46,7 @@ import App from "@/Layouts/App.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
 import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const Pending = ({ registrations: initialRegistrations, stats: initialStats, filters: initialFilters, auth }) => {
     const [isMobile, setIsMobile] = useState(false);
@@ -78,17 +79,7 @@ const Pending = ({ registrations: initialRegistrations, stats: initialStats, fil
         return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
 
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'xl';
-    };
+    const themeRadius = useThemeRadius();
 
     const hasPermission = (permission) => {
         return auth?.permissions?.includes(permission) || auth?.permissions?.includes('*');
@@ -472,14 +463,14 @@ const Pending = ({ registrations: initialRegistrations, stats: initialStats, fil
                                         onValueChange={(value) => setFilters(prev => ({ ...prev, search: value }))}
                                         startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                                         className="w-full sm:w-80"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                     <Select
                                         placeholder="Filter by status"
                                         selectedKeys={filters.status !== 'all' ? [filters.status] : []}
                                         onSelectionChange={(keys) => setFilters(prev => ({ ...prev, status: Array.from(keys)[0] || 'all' }))}
                                         className="w-full sm:w-48"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         <SelectItem key="all">All Status</SelectItem>
                                         <SelectItem key="verify_email">Awaiting Verification</SelectItem>
@@ -530,7 +521,7 @@ const Pending = ({ registrations: initialRegistrations, stats: initialStats, fil
                                             page={pagination.currentPage}
                                             onChange={(page) => fetchRegistrations(page)}
                                             showControls
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                     </div>
                                 )}
@@ -546,5 +537,4 @@ const Pending = ({ registrations: initialRegistrations, stats: initialStats, fil
 Pending.layout = (page) => <App children={page} />;
 
 export default Pending;
-
 

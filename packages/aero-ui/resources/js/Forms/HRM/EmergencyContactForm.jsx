@@ -3,22 +3,11 @@ import React, {useEffect, useState} from "react";
 import {Phone} from 'lucide-react';
 import {showToast} from "@/utils/toastUtils";
 import { safeRoute } from "@/utils/routeUtils";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const EmergencyContactForm = ({user,setUser, open, closeModal }) => {
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     const [initialUserData, setInitialUserData] = useState({
         id: user.id,
@@ -171,7 +160,7 @@ const EmergencyContactForm = ({user,setUser, open, closeModal }) => {
             isOpen={open}
             onOpenChange={processing ? undefined : closeModal}
             size="2xl"
-            radius={getThemeRadius()}
+            radius={themeRadius}
             scrollBehavior="inside"
             classNames={{
                 base: "bg-content1",
@@ -221,7 +210,7 @@ const EmergencyContactForm = ({user,setUser, open, closeModal }) => {
                                                 errorMessage={errors.emergency_contact_primary_name}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 classNames={{
                                                     input: "text-small",
                                                     inputWrapper: "min-h-unit-10"
@@ -241,7 +230,7 @@ const EmergencyContactForm = ({user,setUser, open, closeModal }) => {
                                                 errorMessage={errors.emergency_contact_primary_relationship}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 classNames={{
                                                     input: "text-small",
                                                     inputWrapper: "min-h-unit-10"
@@ -261,7 +250,7 @@ const EmergencyContactForm = ({user,setUser, open, closeModal }) => {
                                                 errorMessage={errors.emergency_contact_primary_phone}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 classNames={{
                                                     input: "text-small",
                                                     inputWrapper: "min-h-unit-10"
@@ -293,7 +282,7 @@ const EmergencyContactForm = ({user,setUser, open, closeModal }) => {
                                                 errorMessage={errors.emergency_contact_secondary_name}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 classNames={{
                                                     input: "text-small",
                                                     inputWrapper: "min-h-unit-10"
@@ -312,7 +301,7 @@ const EmergencyContactForm = ({user,setUser, open, closeModal }) => {
                                                 errorMessage={errors.emergency_contact_secondary_relationship}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 classNames={{
                                                     input: "text-small",
                                                     inputWrapper: "min-h-unit-10"
@@ -331,7 +320,7 @@ const EmergencyContactForm = ({user,setUser, open, closeModal }) => {
                                                 errorMessage={errors.emergency_contact_secondary_phone}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 classNames={{
                                                     input: "text-small",
                                                     inputWrapper: "min-h-unit-10"
@@ -355,7 +344,7 @@ const EmergencyContactForm = ({user,setUser, open, closeModal }) => {
                         onPress={closeModal}
                         isDisabled={processing}
                         variant="light"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         style={{
                             fontFamily: `var(--fontFamily, "Inter")`,
                         }}
@@ -368,7 +357,7 @@ const EmergencyContactForm = ({user,setUser, open, closeModal }) => {
                         color="primary"
                         type="submit"
                         isLoading={processing}
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         style={{
                             fontFamily: `var(--fontFamily, "Inter")`,
                         }}
@@ -383,7 +372,6 @@ const EmergencyContactForm = ({user,setUser, open, closeModal }) => {
 };
 
 export default EmergencyContactForm;
-
 
 
 

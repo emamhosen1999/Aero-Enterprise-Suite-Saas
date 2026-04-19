@@ -88,7 +88,7 @@ export default function SharedWithMeWidget({
                                 <Avatar
                                     name={doc.shared_by?.name || 'U'}
                                     size="sm"
-                                    className="flex-shrink-0"
+                                    className="shrink-0"
                                 />
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium truncate">{doc.name}</p>

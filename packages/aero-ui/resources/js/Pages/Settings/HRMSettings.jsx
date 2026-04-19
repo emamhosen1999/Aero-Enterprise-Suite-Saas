@@ -30,6 +30,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { showToast } from "@/utils/toastUtils";
 import StatsCards from '@/Components/StatsCards.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const HRMSettings = ({ title, activeTab = 0 }) => {
     const [selectedTab, setSelectedTab] = useState(String(activeTab));
@@ -56,19 +57,8 @@ const HRMSettings = ({ title, activeTab = 0 }) => {
     }, []);
 
     // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-
-    // Stats data
+    const themeRadius = useThemeRadius();
+// Stats data
     const statsData = [
         { 
             title: "Onboarding Steps", 

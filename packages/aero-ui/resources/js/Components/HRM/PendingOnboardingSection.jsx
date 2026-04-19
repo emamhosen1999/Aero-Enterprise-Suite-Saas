@@ -18,6 +18,7 @@ import {
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import OnboardEmployeeModal from './OnboardEmployeeModal';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const PendingOnboardingSection = ({
   departments = [],
@@ -26,18 +27,8 @@ const PendingOnboardingSection = ({
   onOnboardingComplete
 }) => {
   // Theme radius helper
-  const getThemeRadius = () => {
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 12) return 'lg';
-    return 'xl';
-  };
+  const themeRadius = useThemeRadius();
 
-  const themeRadius = getThemeRadius();
 
   // Component state
   const [isExpanded, setIsExpanded] = useState(true);
@@ -257,7 +248,7 @@ const PendingOnboardingSection = ({
                             size="md"
                             radius={themeRadius}
                             classNames={{
-                              base: "bg-gradient-to-br from-primary-400 to-primary-600 flex-shrink-0",
+                              base: "bg-gradient-to-br from-primary-400 to-primary-600 shrink-0",
                               icon: "text-white"
                             }}
                           />

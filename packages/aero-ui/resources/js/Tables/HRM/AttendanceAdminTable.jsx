@@ -26,23 +26,10 @@ import {
     XCircleIcon as XSolid
 } from '@heroicons/react/24/solid';
 import dayjs from 'dayjs';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 // Theme utility function
-const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 12) return 'lg';
-    return 'xl';
-};
-
-
+const themeRadius = useThemeRadius();
 const AttendanceAdminTable = ({
                                   loading,
                                   attendanceData,
@@ -158,7 +145,7 @@ const AttendanceAdminTable = ({
                     background: `color-mix(in srgb, var(--theme-content1) 85%, transparent)`,
                     backdropFilter: 'blur(16px)',
                     border: `1px solid color-mix(in srgb, var(--theme-content2) 50%, transparent)`,
-                    borderRadius: getThemeRadius(),
+                    borderRadius: themeRadius,
                 }}
             >
                 <CardBody className="p-3">
@@ -264,7 +251,7 @@ const AttendanceAdminTable = ({
                                         size="sm"
                                         variant="flat"
                                         startContent={<CalendarDaysIcon className="w-3 h-3"/>}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         style={{
                                             background: leaveCount > 0 
                                                 ? 'color-mix(in srgb, var(--theme-warning) 20%, transparent)'
@@ -302,7 +289,7 @@ const AttendanceAdminTable = ({
                                     background: `color-mix(in srgb, var(--theme-content1) 85%, transparent)`,
                                     backdropFilter: 'blur(16px)',
                                     border: `1px solid color-mix(in srgb, var(--theme-content2) 50%, transparent)`,
-                                    borderRadius: getThemeRadius(),
+                                    borderRadius: themeRadius,
                                 }}
                             >
                                 <CardBody className="p-3">
@@ -481,7 +468,7 @@ const AttendanceAdminTable = ({
                     isHeaderSticky
                     removeWrapper
                     aria-label="Monthly Attendance Table"
-                    radius={getThemeRadius()}
+                    radius={themeRadius}
                     classNames={{
                         base: "max-h-[520px] overflow-auto",
                         table: "min-h-[200px] w-full",
@@ -628,7 +615,7 @@ const AttendanceAdminTable = ({
                                                             variant={leaveCount > 0 ? "flat" : "bordered"}
                                                             color={leaveCount > 0 ? "warning" : "default"}
                                                             className="min-w-8"
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             style={{
                                                                 fontFamily: `var(--fontFamily, "Inter")`,
                                                             }}

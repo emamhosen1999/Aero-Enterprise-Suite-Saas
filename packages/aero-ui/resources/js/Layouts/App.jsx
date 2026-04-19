@@ -13,7 +13,8 @@ import { usePage, router } from "@inertiajs/react";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-import { ScrollShadow, Divider } from "@heroui/react";
+import { ScrollShadow, Divider, Button } from "@heroui/react";
+import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { NavigationProvider, Sidebar, Header, useNavigation } from "@/Layouts/Navigation";
@@ -106,13 +107,13 @@ const MainContentArea = React.memo(({
       }}
     >
       {/* Header with integrated navigation */}
-      <header className="sticky top-0 z-[30] w-full overflow-hidden">
+      <header className="sticky top-0 z-[30] w-full overflow-hidden print:hidden">
         <ImpersonationBanner />
         <Header pages={pages} showNav={!sidebarOpen} />
       </header>
       
       {/* Breadcrumb */}
-      <div className="px-3 pt-2">
+      <div className="px-3 pt-2 print:hidden">
         {breadcrumbContent}
       </div>
 
@@ -138,7 +139,7 @@ const MainContentArea = React.memo(({
 
       {/* Bottom Navigation for Mobile */}
       {bottomNavContent && (
-        <footer className="sticky bottom-0 z-[30] border-t border-divider">
+        <footer className="sticky bottom-0 z-[30] border-t border-divider print:hidden">
           {bottomNavContent}
         </footer>
       )}
@@ -358,53 +359,31 @@ const App = React.memo(({ children }) => {
 
                 {/* Floating Theme Settings Button - Desktop Only */}
                 {authData?.user && !isMobile && (
-                  <div className="fixed bottom-8 right-8 z-50">
-                    <motion.button
-                      onClick={staticToggleThemeDrawer}
-                      className="
-                        flex items-center justify-center
-                        w-16 h-16 
-                        bg-primary text-primary-foreground
-                        rounded-full shadow-xl hover:shadow-2xl
-                        transition-all duration-300 ease-out
-                        hover:scale-110 active:scale-95
-                        border-3 border-primary-200
-                        backdrop-blur-sm
-                        relative
-                      "
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ 
-                        delay: 0.5, 
-                        duration: 0.4, 
-                        type: "spring", 
-                        stiffness: 260, 
-                        damping: 20 
-                      }}
+                  <motion.div
+                    className="fixed bottom-8 right-8 z-50 print:hidden"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{
+                      delay: 0.5,
+                      duration: 0.4,
+                      type: "spring",
+                      stiffness: 260,
+                      damping: 20
+                    }}
+                  >
+                    <Button
+                      isIconOnly
+                      color="primary"
+                      variant="shadow"
+                      size="lg"
+                      radius="full"
+                      onPress={staticToggleThemeDrawer}
+                      className="w-16 h-16 border-3 border-primary-200"
+                      aria-label="Theme settings"
                     >
-                      <svg 
-                        className="w-6 h-6" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                      >
-                        <path 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          strokeWidth={2} 
-                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" 
-                        />
-                        <path 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          strokeWidth={2} 
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" 
-                        />
-                      </svg>
-                    </motion.button>
-                  </div>
+                      <Cog6ToothIcon className="w-6 h-6" />
+                    </Button>
+                  </motion.div>
                 )}
 
                 {/* Main Application Layout */}
@@ -415,7 +394,9 @@ const App = React.memo(({ children }) => {
                   }}
                 >
                   {/* Sidebar - Desktop visible, Mobile drawer */}
-                  <Sidebar pages={pages} />
+                  <div className="print:hidden">
+                    <Sidebar pages={pages} />
+                  </div>
 
                   {/* Main Content Area */}
                   <MainContentArea

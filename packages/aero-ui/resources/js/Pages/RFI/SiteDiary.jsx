@@ -12,6 +12,7 @@ import {
 import App from '@/Layouts/App.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 /**
  * SiteDiary - Daily activity logging page
@@ -28,19 +29,8 @@ import { showToast } from '@/utils/toastUtils.jsx';
 const SiteDiary = () => {
     const { auth } = usePage().props;
 
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-
-    const [isMobile, setIsMobile] = useState(false);
+    const themeRadius = useThemeRadius();
+const [isMobile, setIsMobile] = useState(false);
     useEffect(() => {
         const checkScreenSize = () => setIsMobile(window.innerWidth < 640);
         checkScreenSize();
@@ -229,7 +219,7 @@ const SiteDiary = () => {
                                             setForm(prev => ({ ...prev, date: e.target.value }));
                                             setDate(e.target.value);
                                         }}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         classNames={{ inputWrapper: "bg-default-100" }}
                                     />
 
@@ -262,7 +252,7 @@ const SiteDiary = () => {
                                         value={form.activities}
                                         onValueChange={(value) => setForm(prev => ({ ...prev, activities: value }))}
                                         minRows={3}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         className="md:col-span-2"
                                         classNames={{ inputWrapper: "bg-default-100" }}
                                     />
@@ -273,7 +263,7 @@ const SiteDiary = () => {
                                         startContent={<UserGroupIcon className="w-4 h-4 text-default-400" />}
                                         value={form.manpower_count}
                                         onValueChange={(value) => setForm(prev => ({ ...prev, manpower_count: value }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         classNames={{ inputWrapper: "bg-default-100" }}
                                     />
 
@@ -284,7 +274,7 @@ const SiteDiary = () => {
                                         value={form.equipment_used}
                                         onValueChange={(value) => setForm(prev => ({ ...prev, equipment_used: value }))}
                                         minRows={2}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         classNames={{ inputWrapper: "bg-default-100" }}
                                     />
 
@@ -295,7 +285,7 @@ const SiteDiary = () => {
                                         value={form.materials_used}
                                         onValueChange={(value) => setForm(prev => ({ ...prev, materials_used: value }))}
                                         minRows={2}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         className="md:col-span-2"
                                         classNames={{ inputWrapper: "bg-default-100" }}
                                     />
@@ -306,7 +296,7 @@ const SiteDiary = () => {
                                         value={form.progress_summary}
                                         onValueChange={(value) => setForm(prev => ({ ...prev, progress_summary: value }))}
                                         minRows={3}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         className="md:col-span-2"
                                         classNames={{ inputWrapper: "bg-default-100" }}
                                     />
@@ -317,7 +307,7 @@ const SiteDiary = () => {
                                         value={form.issues_encountered}
                                         onValueChange={(value) => setForm(prev => ({ ...prev, issues_encountered: value }))}
                                         minRows={2}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         className="md:col-span-2"
                                         classNames={{ inputWrapper: "bg-default-100" }}
                                     />

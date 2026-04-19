@@ -26,6 +26,7 @@ import {
 import {showToast} from "@/utils/toastUtils";
 import axios from 'axios';
 import dayjs from 'dayjs';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const BulkMarkAsPresentForm = ({ 
     open, 
@@ -36,19 +37,7 @@ const BulkMarkAsPresentForm = ({
     selectedUsers = []
 }) => {
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
     
     // Form state
     const [formData, setFormData] = useState({
@@ -205,7 +194,7 @@ const BulkMarkAsPresentForm = ({
             isOpen={open} 
             onClose={closeModal}
             size="4xl"
-            radius={getThemeRadius()}
+            radius={themeRadius}
             scrollBehavior="inside"
             classNames={{
                 base: "backdrop-blur-md mx-2 my-2 sm:mx-4 sm:my-8 max-h-[95vh]",
@@ -283,7 +272,7 @@ const BulkMarkAsPresentForm = ({
                                                 errorMessage={errors.date}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 startContent={<CalendarDaysIcon className="w-4 h-4 text-default-400" />}
                                                 classNames={{
                                                     input: "text-small",
@@ -304,7 +293,7 @@ const BulkMarkAsPresentForm = ({
                                                 errorMessage={errors.punch_in_time}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 startContent={<ClockIcon className="w-4 h-4 text-default-400" />}
                                                 classNames={{
                                                     input: "text-small",
@@ -325,7 +314,7 @@ const BulkMarkAsPresentForm = ({
                                                 errorMessage={errors.punch_out_time}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 startContent={<ClockIcon className="w-4 h-4 text-default-400" />}
                                                 classNames={{
                                                     input: "text-small",
@@ -422,7 +411,7 @@ const BulkMarkAsPresentForm = ({
                                                 errorMessage={errors.location}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 startContent={<MapPinIcon className="w-4 h-4 text-default-400" />}
                                                 classNames={{
                                                     input: "text-small",
@@ -443,7 +432,7 @@ const BulkMarkAsPresentForm = ({
                                                 errorMessage={errors.reason}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 minRows={3}
                                                 maxRows={5}
                                                 classNames={{
@@ -513,7 +502,7 @@ const BulkMarkAsPresentForm = ({
                                     color="default"
                                     variant="bordered"
                                     onPress={onClose}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     size="sm"
                                     isDisabled={processing}
                                     style={{
@@ -529,7 +518,7 @@ const BulkMarkAsPresentForm = ({
                                     variant="solid"
                                     isLoading={processing}
                                     isDisabled={processing || formData.user_ids.length === 0}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     size="sm"
                                     style={{
                                         borderRadius: `var(--borderRadius, 8px)`,

@@ -30,16 +30,18 @@ import App from '@/Layouts/App.jsx';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import { ThemedCard } from '@/Components/UI/ThemedCard';
-import { getThemeRadius, getStatusColor, useResponsiveBreakpoints } from '@/utils/themeUtils';
+import { getStatusColor, useResponsiveBreakpoints } from '@/utils/themeUtils';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 import { useTheme } from '@/Context/ThemeContext';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { router } from '@inertiajs/react';
 
 const EmployeeList = ({ title, departments = [], designations = [], roles = [] }) => {
     const { auth } = usePage().props;
     const { canCreate, canUpdate, canDelete, canView } = useHRMAC();
-    const { getThemeRadius: themeRadius } = useTheme();
+    const themeRadius = useThemeRadius();
     
     // Use centralized responsive breakpoints
     const { isMobile, isTablet } = useResponsiveBreakpoints();
@@ -438,7 +440,7 @@ const EmployeeList = ({ title, departments = [], designations = [], roles = [] }
                             src={employee.avatar}
                             name={employee.full_name}
                             size="sm"
-                            className="flex-shrink-0"
+                            className="shrink-0"
                         />
                         <div>
                             <p className="font-medium">{employee.full_name}</p>
@@ -547,7 +549,7 @@ const EmployeeList = ({ title, departments = [], designations = [], roles = [] }
                                 isIconOnly
                                 size="sm"
                                 variant="light"
-                                onPress={() => window.location.href = route('hrm.employees.edit', employee.id)}
+                                onPress={() => router.visit(route('hrm.employees.edit', employee.id))}
                             >
                                 <PencilIcon className="w-4 h-4" />
                             </Button>
@@ -629,7 +631,7 @@ const EmployeeList = ({ title, departments = [], designations = [], roles = [] }
                                 placeholder="Choose an action"
                                 selectedKeys={bulkAction ? [bulkAction] : []}
                                 onSelectionChange={(keys) => setBulkAction(Array.from(keys)[0] || '')}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                             >
                                 {bulkActions.map(action => (
                                     <SelectItem key={action.key}>
@@ -710,7 +712,7 @@ const EmployeeList = ({ title, departments = [], designations = [], roles = [] }
                                 color="primary" 
                                 variant="shadow"
                                 startContent={<PlusIcon className="w-4 h-4" />}
-                                onPress={() => window.location.href = route('hrm.employees.create')}
+                                onPress={() => router.visit(route('hrm.employees.create'))}
                                 size={isMobile ? "sm" : "md"}
                             >
                                 Add Employee
@@ -744,7 +746,7 @@ const EmployeeList = ({ title, departments = [], designations = [], roles = [] }
                                         startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                         variant="bordered"
                                         size="sm"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                     
                                     <Select
@@ -817,7 +819,7 @@ const EmployeeList = ({ title, departments = [], designations = [], roles = [] }
                                             value={filters.hire_date_from}
                                             onChange={(e) => handleFilterChange('hire_date_from', e.target.value)}
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         <Input
                                             label="Hired Before"
@@ -825,7 +827,7 @@ const EmployeeList = ({ title, departments = [], designations = [], roles = [] }
                                             value={filters.hire_date_to}
                                             onChange={(e) => handleFilterChange('hire_date_to', e.target.value)}
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                     </div>
                                 </div>

@@ -7,6 +7,7 @@ import {
     Button,
     Divider
 } from "@heroui/react";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 import {
     CheckCircleIcon,
     PrinterIcon,
@@ -14,13 +15,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 // Helper function to get theme radius from CSS variable
-const getThemeRadius = () => {
-    const borderRadius = getComputedStyle(document.documentElement)
-        .getPropertyValue('--borderRadius')
-        .trim();
-    return borderRadius || 'md';
-};
-
+const themeRadius = useThemeRadius();
 const RegistrationSuccess = ({ event, registration }) => {
     const handlePrint = () => {
         window.print();
@@ -30,7 +25,7 @@ const RegistrationSuccess = ({ event, registration }) => {
         <div className="min-h-screen bg-gradient-to-br from-primary-50 via-secondary-50 to-background flex items-center justify-center p-4">
             <Head title="Registration Successful" />
             
-            <Card className="max-w-2xl w-full" radius={getThemeRadius()}>
+            <Card className="max-w-2xl w-full" radius={themeRadius}>
                 <CardBody className="p-8 text-center">
                     <div className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6">
                         <CheckCircleIcon className="w-12 h-12 text-success" />
@@ -95,7 +90,7 @@ const RegistrationSuccess = ({ event, registration }) => {
                             variant="flat"
                             startContent={<ArrowLeftIcon className="w-4 h-4" />}
                             onPress={() => router.get(route('public.events.index'))}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         >
                             Return to Events
                         </Button>
@@ -103,7 +98,7 @@ const RegistrationSuccess = ({ event, registration }) => {
                             color="primary"
                             startContent={<PrinterIcon className="w-4 h-4" />}
                             onPress={handlePrint}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         >
                             Print Token
                         </Button>

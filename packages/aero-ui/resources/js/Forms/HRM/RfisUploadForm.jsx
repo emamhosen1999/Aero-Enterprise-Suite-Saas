@@ -59,19 +59,7 @@ const RfisUploadForm = ({ open, closeModal, setTotalRows, setData, refreshData, 
     const [previewData, setPreviewData] = useState(null);
 
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     // Validate file before processing
     const validateFile = (file) => {
@@ -281,7 +269,7 @@ const RfisUploadForm = ({ open, closeModal, setTotalRows, setData, refreshData, 
             isOpen={open} 
             onClose={handleClose}
             size="4xl"
-            radius={getThemeRadius()}
+            radius={themeRadius}
             placement="center"
             scrollBehavior="inside"
             classNames={{
@@ -321,6 +309,7 @@ const RfisUploadForm = ({ open, closeModal, setTotalRows, setData, refreshData, 
                                         fontFamily: `var(--fontFamily, "Inter")`,
                                     }}>
                                         Import RFIs
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
                                     </h2>
                                     <p className="text-sm text-default-500">
                                         Upload Excel or CSV file to import multiple rfi entries
@@ -344,7 +333,7 @@ const RfisUploadForm = ({ open, closeModal, setTotalRows, setData, refreshData, 
                                                     ? 'border-success bg-success/5' 
                                                     : 'border-default-300 hover:border-default-400'
                                         }`}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         <CardBody className="p-8">
                                             <div
@@ -600,7 +589,7 @@ const RfisUploadForm = ({ open, closeModal, setTotalRows, setData, refreshData, 
                                 variant="bordered"
                                 onPress={handleClose}
                                 disabled={processing}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 size="sm"
                                 style={{
                                     borderRadius: `var(--borderRadius, 8px)`,
@@ -614,7 +603,7 @@ const RfisUploadForm = ({ open, closeModal, setTotalRows, setData, refreshData, 
                                 onPress={handleSubmit}
                                 isLoading={processing}
                                 disabled={!file || validationErrors.length > 0}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 size="sm"
                                 startContent={!processing ? <DocumentArrowUpIcon className="w-4 h-4" /> : null}
                                 style={{

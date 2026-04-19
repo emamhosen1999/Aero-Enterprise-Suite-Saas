@@ -26,19 +26,6 @@ const TaxSetup = ({ title, employees: initialEmployees = [] }) => {
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -460,7 +447,7 @@ const TaxSetup = ({ title, employees: initialEmployees = [] }) => {
                                     value={formData.name}
                                     onValueChange={(value) => setFormData(prev => ({ ...prev, name: value }))}
                                     isRequired
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -470,7 +457,7 @@ const TaxSetup = ({ title, employees: initialEmployees = [] }) => {
                                         selectedKeys={formData.tax_type ? [formData.tax_type] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, tax_type: Array.from(keys)[0] || 'income' }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {taxTypes.map(type => (
                                             <SelectItem key={type.key}>{type.label}</SelectItem>
@@ -483,7 +470,7 @@ const TaxSetup = ({ title, employees: initialEmployees = [] }) => {
                                         selectedKeys={formData.tax_category ? [formData.tax_category] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, tax_category: Array.from(keys)[0] || 'federal' }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {taxCategories.map(category => (
                                             <SelectItem key={category.key}>{category.label}</SelectItem>
@@ -496,7 +483,7 @@ const TaxSetup = ({ title, employees: initialEmployees = [] }) => {
                                         selectedKeys={formData.calculation_method ? [formData.calculation_method] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, calculation_method: Array.from(keys)[0] || 'percentage' }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {calculationMethods.map(method => (
                                             <SelectItem key={method.key}>{method.label}</SelectItem>
@@ -511,7 +498,7 @@ const TaxSetup = ({ title, employees: initialEmployees = [] }) => {
                                         value={formData.country}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, country: value }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
 
                                     <Select
@@ -519,7 +506,7 @@ const TaxSetup = ({ title, employees: initialEmployees = [] }) => {
                                         placeholder="Select state"
                                         selectedKeys={formData.state ? [formData.state] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, state: Array.from(keys)[0] || '' }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {usStates.map(state => (
                                             <SelectItem key={state}>{state}</SelectItem>
@@ -536,7 +523,7 @@ const TaxSetup = ({ title, employees: initialEmployees = [] }) => {
                                         type="number"
                                         step="0.01"
                                         endContent="%"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
 
                                     <Input
@@ -547,7 +534,7 @@ const TaxSetup = ({ title, employees: initialEmployees = [] }) => {
                                         type="number"
                                         step="0.01"
                                         startContent="$"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                 </div>
 
@@ -560,7 +547,7 @@ const TaxSetup = ({ title, employees: initialEmployees = [] }) => {
                                         type="number"
                                         step="0.01"
                                         startContent="$"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
 
                                     <Input
@@ -571,7 +558,7 @@ const TaxSetup = ({ title, employees: initialEmployees = [] }) => {
                                         type="number"
                                         step="0.01"
                                         startContent="$"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                 </div>
 
@@ -582,7 +569,7 @@ const TaxSetup = ({ title, employees: initialEmployees = [] }) => {
                                         value={formData.effective_date}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, effective_date: value }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
 
                                     <Select
@@ -590,7 +577,7 @@ const TaxSetup = ({ title, employees: initialEmployees = [] }) => {
                                         placeholder="Select status"
                                         selectedKeys={formData.status ? [formData.status] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, status: Array.from(keys)[0] || 'active' }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {taxStatuses.map(status => (
                                             <SelectItem key={status.key}>{status.label}</SelectItem>
@@ -603,7 +590,7 @@ const TaxSetup = ({ title, employees: initialEmployees = [] }) => {
                                     placeholder="Enter description"
                                     value={formData.description}
                                     onValueChange={(value) => setFormData(prev => ({ ...prev, description: value }))}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
                             </div>
                         </ModalBody>
@@ -824,7 +811,7 @@ const TaxSetup = ({ title, employees: initialEmployees = [] }) => {
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select

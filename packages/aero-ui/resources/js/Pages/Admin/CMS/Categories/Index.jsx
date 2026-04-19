@@ -6,21 +6,12 @@ import { PlusIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const CmsCategories = ({ title = 'CMS Categories' }) => {
     const { auth } = usePage().props;
 
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     const [isMobile, setIsMobile] = useState(false);
     const [categories, setCategories] = useState([]);
@@ -177,7 +168,7 @@ const CmsCategories = ({ title = 'CMS Categories' }) => {
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             size="sm"
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         />
                         <Input
                             label="Slug"
@@ -185,7 +176,7 @@ const CmsCategories = ({ title = 'CMS Categories' }) => {
                             value={formData.slug}
                             onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                             size="sm"
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         />
                         <Textarea
                             label="Description"
@@ -200,7 +191,7 @@ const CmsCategories = ({ title = 'CMS Categories' }) => {
                             value={formData.icon || ''}
                             onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
                             size="sm"
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         />
                         <Input
                             label="Color"
@@ -208,7 +199,7 @@ const CmsCategories = ({ title = 'CMS Categories' }) => {
                             value={formData.color || '#000000'}
                             onChange={(e) => setFormData({ ...formData, color: e.target.value })}
                             size="sm"
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         />
                     </ModalBody>
                     <ModalFooter>

@@ -18,6 +18,7 @@ import {showToast} from "@/utils/toastUtils";
 import DepartmentEmployeeSelector from "@/Components/DepartmentEmployeeSelector.jsx";
 import ApprovalChain from "@/Components/Leave/ApprovalChain.jsx";
 import {usePage} from "@inertiajs/react";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const LeaveForm = ({
                        open,
@@ -38,19 +39,7 @@ const LeaveForm = ({
                        fetchLeavesStats
 }) => {
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
    
 
     const {auth} = usePage().props;
@@ -339,7 +328,7 @@ const LeaveForm = ({
             isOpen={open} 
             onClose={closeModal}
             size="3xl"
-            radius={getThemeRadius()}
+            radius={themeRadius}
             scrollBehavior="inside"
             classNames={{
                 base: "backdrop-blur-md mx-2 my-2 sm:mx-4 sm:my-8 max-h-[95vh]",
@@ -394,7 +383,7 @@ const LeaveForm = ({
                                             errorMessage={errors.leaveType}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             startContent={<UserIcon size={16} className="text-default-400" />}
                                             classNames={{
                                                 trigger: "min-h-unit-10",
@@ -446,7 +435,7 @@ const LeaveForm = ({
                                             errorMessage={errors.fromDate}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             startContent={<CalendarIcon size={16} className="text-default-400" />}
                                             classNames={{
                                                 input: "text-small",
@@ -469,7 +458,7 @@ const LeaveForm = ({
                                             errorMessage={errors.toDate}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             startContent={<CalendarIcon size={16} className="text-default-400" />}
                                             classNames={{
                                                 input: "text-small",
@@ -491,7 +480,7 @@ const LeaveForm = ({
                                             errorMessage={errors.daysCount}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             startContent={<ClockIcon size={16} className="text-default-400" />}
                                             classNames={{
                                                 input: "text-small",
@@ -516,7 +505,7 @@ const LeaveForm = ({
                                             errorMessage={errors.remainingLeaves}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             startContent={<ClockIcon size={16} className="text-default-400" />}
                                             classNames={{
                                                 input: "text-small",
@@ -560,7 +549,7 @@ const LeaveForm = ({
                                             errorMessage={errors.leaveReason}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             minRows={3}
                                             maxRows={5}
                                             classNames={{
@@ -592,7 +581,7 @@ const LeaveForm = ({
                                     color="default"
                                     variant="bordered"
                                     onPress={onClose}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     size="sm"
                                     style={{
                                         borderRadius: `var(--borderRadius, 8px)`,
@@ -607,7 +596,7 @@ const LeaveForm = ({
                                     variant="solid"
                                     isLoading={processing}
                                     isDisabled={processing}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     size="sm"
                                     style={{
                                         borderRadius: `var(--borderRadius, 8px)`,

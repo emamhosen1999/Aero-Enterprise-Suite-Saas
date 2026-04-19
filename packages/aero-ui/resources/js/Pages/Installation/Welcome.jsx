@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import UnifiedInstallationLayout from '@/Layouts/UnifiedInstallationLayout';
 import { Card, CardHeader, CardBody, CardFooter, Button, Chip } from '@heroui/react';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 import { 
     RocketLaunchIcon, 
     ServerIcon, 
@@ -44,17 +45,8 @@ export default function Welcome() {
     const [themeRadius, setThemeRadius] = useState('lg');
 
     useEffect(() => {
-        const getThemeRadius = () => {
-            const rootStyles = getComputedStyle(document.documentElement);
-            const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-            const radiusValue = parseInt(borderRadius);
-            if (radiusValue === 0) return 'none';
-            if (radiusValue <= 4) return 'sm';
-            if (radiusValue <= 8) return 'md';
-            if (radiusValue <= 12) return 'lg';
-            return 'xl';
-        };
-        setThemeRadius(getThemeRadius());
+        const themeRadius = useThemeRadius();
+        setThemeRadius(themeRadius);
     }, []);
 
     const handleStart = () => {
@@ -147,7 +139,7 @@ export default function Welcome() {
                 <CardHeader className="flex flex-col items-center gap-4 pt-8 pb-6">
                     {/* Logo */}
                     {logo ? (
-                        <div className="w-20 h-20 rounded-2xl overflow-hidden flex items-center justify-center bg-white dark:bg-gray-800 shadow-lg">
+                        <div className="w-20 h-20 rounded-2xl overflow-hidden flex items-center justify-center bg-content2 shadow-lg">
                             <img 
                                 src={logo} 
                                 alt={appName}
@@ -198,7 +190,7 @@ export default function Welcome() {
                                     key={index}
                                     className="flex gap-3 p-4 bg-default-50 dark:bg-default-100/10 rounded-lg"
                                 >
-                                    <div className="flex-shrink-0">
+                                    <div className="shrink-0">
                                         <feature.icon className="w-6 h-6 text-primary" />
                                     </div>
                                     <div>
@@ -230,7 +222,7 @@ export default function Welcome() {
                                                     className="p-3 rounded-lg border border-divider bg-default-50"
                                                 >
                                                     <div className="flex items-start gap-3">
-                                                        <div className="flex-shrink-0 mt-0.5">
+                                                        <div className="shrink-0 mt-0.5">
                                                             <CheckCircleIcon className="w-5 h-5 text-success" />
                                                         </div>
                                                         <div className="flex-1 min-w-0">

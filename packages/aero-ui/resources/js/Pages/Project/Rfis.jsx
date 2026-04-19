@@ -68,22 +68,7 @@ const Rfis = ({ auth, title, allData, jurisdictions, users, reports, reports_wit
     }, []);
     const isMediumScreen = useMediaQuery('(min-width: 641px) and (max-width: 1024px)');
 
-    // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-
-    const [data, setData] = useState([]);
+const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [modeSwitch, setModeSwitch] = useState(false); // Track mode switching
@@ -844,7 +829,7 @@ const Rfis = ({ auth, title, allData, jurisdictions, users, reports, reports_wit
                                                 onChange={(e) => handleSearch(e)}
                                                 variant="bordered"
                                                 size={isMobile ? "sm" : "md"}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 startContent={
                                                     <MagnifyingGlassIcon className="w-4 h-4 text-default-400" />
                                                 }
@@ -862,7 +847,7 @@ const Rfis = ({ auth, title, allData, jurisdictions, users, reports, reports_wit
                                         </div>
                                         <div className="flex gap-2 items-center">
                                             {/* View Mode Toggle */}
-                                            <ButtonGroup size="sm" radius={getThemeRadius()}>
+                                            <ButtonGroup size="sm" radius={themeRadius}>
                                                 <Button 
                                                     color={viewMode === 'table' ? 'primary' : 'default'}
                                                     variant={viewMode === 'table' ? 'solid' : 'bordered'}
@@ -883,7 +868,7 @@ const Rfis = ({ auth, title, allData, jurisdictions, users, reports, reports_wit
                                             
                                             <ButtonGroup 
                                                 variant="bordered" 
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 className="bg-white/5"
                                             >
                                                 <Button
@@ -929,7 +914,7 @@ const Rfis = ({ auth, title, allData, jurisdictions, users, reports, reports_wit
                                                             }}
                                                             variant="bordered"
                                                             size="sm"
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             classNames={{
                                                                 trigger: "text-sm",
                                                                 value: "text-foreground",
@@ -965,7 +950,7 @@ const Rfis = ({ auth, title, allData, jurisdictions, users, reports, reports_wit
                                                                 }}
                                                                 variant="bordered"
                                                                 size="sm"
-                                                                radius={getThemeRadius()}
+                                                                radius={themeRadius}
                                                                 startContent={<UserIcon className="w-4 h-4 text-default-400" />}
                                                                 classNames={{
                                                                     trigger: "text-sm",
@@ -1004,7 +989,7 @@ const Rfis = ({ auth, title, allData, jurisdictions, users, reports, reports_wit
                                                                 }}
                                                                 variant="bordered"
                                                                 size="sm"
-                                                                radius={getThemeRadius()}
+                                                                radius={themeRadius}
                                                                 startContent={<MapPinIcon className="w-4 h-4 text-default-400" />}
                                                                 classNames={{
                                                                     trigger: "text-sm",
@@ -1074,7 +1059,7 @@ const Rfis = ({ auth, title, allData, jurisdictions, users, reports, reports_wit
                                                     onChange={(e) => handleDateChange(e.target.value)}
                                                     variant="bordered"
                                                     size="sm"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     min={overallStartDate}
                                                     max={overallEndDate}
                                                     classNames={{
@@ -1102,7 +1087,7 @@ const Rfis = ({ auth, title, allData, jurisdictions, users, reports, reports_wit
                                                 })}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 min={overallStartDate}
                                                 max={overallEndDate}
                                                 classNames={{
@@ -1127,7 +1112,7 @@ const Rfis = ({ auth, title, allData, jurisdictions, users, reports, reports_wit
                                                 })}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 min={overallStartDate}
                                                 max={overallEndDate}
                                                 classNames={{
@@ -1148,7 +1133,7 @@ const Rfis = ({ auth, title, allData, jurisdictions, users, reports, reports_wit
                             
                             {/* Content Area - Conditional Rendering */}
                             <Card 
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 className="bg-content2/50 backdrop-blur-md border border-divider/30"
                                 style={{
                                     fontFamily: `var(--fontFamily, "Inter")`,

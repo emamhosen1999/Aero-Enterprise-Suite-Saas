@@ -27,19 +27,6 @@ const Programs = ({ title, trainers: initialTrainers = [], employees: initialEmp
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -443,7 +430,7 @@ const Programs = ({ title, trainers: initialTrainers = [], employees: initialEmp
                                     value={formData.name}
                                     onValueChange={(value) => setFormData(prev => ({ ...prev, name: value }))}
                                     isRequired
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
 
                                 <Textarea
@@ -452,7 +439,7 @@ const Programs = ({ title, trainers: initialTrainers = [], employees: initialEmp
                                     value={formData.description}
                                     onValueChange={(value) => setFormData(prev => ({ ...prev, description: value }))}
                                     rows={3}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -462,7 +449,7 @@ const Programs = ({ title, trainers: initialTrainers = [], employees: initialEmp
                                         selectedKeys={formData.category ? [formData.category] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, category: Array.from(keys)[0] || 'technical' }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {categories.map(category => (
                                             <SelectItem key={category.key}>{category.label}</SelectItem>
@@ -474,7 +461,7 @@ const Programs = ({ title, trainers: initialTrainers = [], employees: initialEmp
                                         placeholder="Select trainer"
                                         selectedKeys={formData.trainer_id ? [formData.trainer_id] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, trainer_id: Array.from(keys)[0] || '' }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {trainers.map(trainer => (
                                             <SelectItem key={trainer.id}>{trainer.name}</SelectItem>
@@ -487,7 +474,7 @@ const Programs = ({ title, trainers: initialTrainers = [], employees: initialEmp
                                         selectedKeys={formData.delivery_method ? [formData.delivery_method] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, delivery_method: Array.from(keys)[0] || 'in_person' }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {deliveryMethods.map(method => (
                                             <SelectItem key={method.key}>{method.label}</SelectItem>
@@ -503,7 +490,7 @@ const Programs = ({ title, trainers: initialTrainers = [], employees: initialEmp
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, duration_hours: value }))}
                                         type="number"
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
 
                                     <Input
@@ -512,7 +499,7 @@ const Programs = ({ title, trainers: initialTrainers = [], employees: initialEmp
                                         value={formData.max_participants}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, max_participants: value }))}
                                         type="number"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                 </div>
 
@@ -522,7 +509,7 @@ const Programs = ({ title, trainers: initialTrainers = [], employees: initialEmp
                                         label="Start Date"
                                         value={formData.start_date}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, start_date: value }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                     
                                     <Input
@@ -530,7 +517,7 @@ const Programs = ({ title, trainers: initialTrainers = [], employees: initialEmp
                                         label="End Date"
                                         value={formData.end_date}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, end_date: value }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
 
                                     <Input
@@ -538,7 +525,7 @@ const Programs = ({ title, trainers: initialTrainers = [], employees: initialEmp
                                         label="Registration Deadline"
                                         value={formData.registration_deadline}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, registration_deadline: value }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                 </div>
 
@@ -548,7 +535,7 @@ const Programs = ({ title, trainers: initialTrainers = [], employees: initialEmp
                                         placeholder="Enter location or online platform"
                                         value={formData.location}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, location: value }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
 
                                     <Input
@@ -559,7 +546,7 @@ const Programs = ({ title, trainers: initialTrainers = [], employees: initialEmp
                                         type="number"
                                         step="0.01"
                                         startContent="$"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                 </div>
 
@@ -569,7 +556,7 @@ const Programs = ({ title, trainers: initialTrainers = [], employees: initialEmp
                                     value={formData.prerequisites}
                                     onValueChange={(value) => setFormData(prev => ({ ...prev, prerequisites: value }))}
                                     rows={2}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
 
                                 <Textarea
@@ -578,7 +565,7 @@ const Programs = ({ title, trainers: initialTrainers = [], employees: initialEmp
                                     value={formData.objectives}
                                     onValueChange={(value) => setFormData(prev => ({ ...prev, objectives: value }))}
                                     rows={3}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
 
                                 <Textarea
@@ -587,7 +574,7 @@ const Programs = ({ title, trainers: initialTrainers = [], employees: initialEmp
                                     value={formData.materials}
                                     onValueChange={(value) => setFormData(prev => ({ ...prev, materials: value }))}
                                     rows={2}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -607,7 +594,7 @@ const Programs = ({ title, trainers: initialTrainers = [], employees: initialEmp
                                         placeholder="Select status"
                                         selectedKeys={formData.status ? [formData.status] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, status: Array.from(keys)[0] || 'draft' }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {programStatuses.map(status => (
                                             <SelectItem key={status.key}>{status.label}</SelectItem>
@@ -868,7 +855,7 @@ const Programs = ({ title, trainers: initialTrainers = [], employees: initialEmp
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select

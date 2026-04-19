@@ -24,6 +24,7 @@ import {showToast} from "@/utils/toastUtils";
 import axios from 'axios';
 import dayjs from 'dayjs';
 import LocationPickerMap from '@/Components/LocationPickerMap';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 
 const MarkAsPresentForm = ({ 
@@ -38,19 +39,7 @@ const MarkAsPresentForm = ({
     const { props: { auth } } = usePage();
     
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
     
     // Form state
     const [formData, setFormData] = useState({
@@ -191,14 +180,14 @@ const MarkAsPresentForm = ({
             isOpen={open} 
             onClose={closeModal}
             size="2xl"
-            radius={getThemeRadius()}
+            radius={themeRadius}
             scrollBehavior="inside"
             classNames={{
                 base: "backdrop-blur-md mx-2 my-2 sm:mx-4 sm:my-4 max-h-[90vh]",
                 backdrop: "bg-black/50 backdrop-blur-sm",
-                header: "border-b border-divider flex-shrink-0",
+                header: "border-b border-divider shrink-0",
                 body: "overflow-y-auto max-h-[calc(90vh-8rem)]",
-                footer: "border-t border-divider flex-shrink-0",
+                footer: "border-t border-divider shrink-0",
                 closeButton: "hover:bg-white/5 active:bg-white/10"
             }}
             style={{
@@ -275,7 +264,7 @@ const MarkAsPresentForm = ({
                                                     errorMessage={errors.user_id}
                                                     variant="bordered"
                                                     size="sm"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     classNames={{
                                                         trigger: "min-h-unit-12",
                                                         value: "text-small"
@@ -326,7 +315,7 @@ const MarkAsPresentForm = ({
                                                 errorMessage={errors.date}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 startContent={<CalendarDaysIcon className="w-4 h-4 text-default-400" />}
                                                 classNames={{
                                                     input: "text-small",
@@ -368,7 +357,7 @@ const MarkAsPresentForm = ({
                                                 errorMessage={errors.punch_in_time}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 startContent={<ClockIcon className="w-4 h-4 text-default-400" />}
                                                 classNames={{
                                                     input: "text-small",
@@ -389,7 +378,7 @@ const MarkAsPresentForm = ({
                                                 errorMessage={errors.punch_out_time}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 startContent={<ClockIcon className="w-4 h-4 text-default-400" />}
                                                 classNames={{
                                                     input: "text-small",
@@ -461,7 +450,7 @@ const MarkAsPresentForm = ({
                                     color="default"
                                     variant="bordered"
                                     onPress={onClose}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     size="sm"
                                     isDisabled={processing}
                                     style={{
@@ -477,7 +466,7 @@ const MarkAsPresentForm = ({
                                     variant="solid"
                                     isLoading={processing}
                                     isDisabled={processing || !formData.user_id}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     size="sm"
                                     style={{
                                         borderRadius: `var(--borderRadius, 8px)`,

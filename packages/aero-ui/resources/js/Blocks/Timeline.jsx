@@ -164,7 +164,7 @@ const Timeline = ({ content = {} }) => {
                             className="relative flex gap-6 pb-8 last:pb-0"
                         >
                             {/* Dot */}
-                            <div className="flex-shrink-0 mt-1">
+                            <div className="shrink-0 mt-1">
                                 <TimelineDot status={item.status} index={index} />
                             </div>
 

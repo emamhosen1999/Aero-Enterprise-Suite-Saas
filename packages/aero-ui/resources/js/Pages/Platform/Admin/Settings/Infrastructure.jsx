@@ -23,6 +23,7 @@ import {
 } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App.jsx';
 import { showToast } from '@/utils/toastUtils.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 // ---------------------------------------------------------------------------
 // Shared style helpers (same pattern as Platform.jsx / Settings pages)
@@ -109,17 +110,7 @@ const Infrastructure = ({ title, platformSettings }) => {
     // -----------------------------------------------------------------------
     // Theme helpers
     // -----------------------------------------------------------------------
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const v = getComputedStyle(document.documentElement)
-            .getPropertyValue('--borderRadius')?.trim() || '12px';
-        const n = parseInt(v);
-        if (n === 0) return 'none';
-        if (n <= 4) return 'sm';
-        if (n <= 8) return 'md';
-        if (n <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     // -----------------------------------------------------------------------
     // Responsive
@@ -361,7 +352,7 @@ const Infrastructure = ({ title, platformSettings }) => {
                                                     placeholder="server123.web-hosting.com"
                                                     value={cpanelHost}
                                                     onValueChange={setCpanelHost}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     variant="bordered"
                                                     description="Hostname from your cPanel URL — not your site domain"
                                                 />
@@ -371,7 +362,7 @@ const Infrastructure = ({ title, platformSettings }) => {
                                                     type="number"
                                                     value={cpanelPort}
                                                     onValueChange={setCpanelPort}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     variant="bordered"
                                                     description="Default 2083 (HTTPS). Use 2082 for HTTP (not recommended)"
                                                 />
@@ -380,7 +371,7 @@ const Infrastructure = ({ title, platformSettings }) => {
                                                     placeholder="yourusername"
                                                     value={cpanelUsername}
                                                     onValueChange={setCpanelUsername}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     variant="bordered"
                                                     description="Your cPanel login username. DB names will be prefixed with this."
                                                 />
@@ -389,7 +380,7 @@ const Infrastructure = ({ title, platformSettings }) => {
                                                     placeholder="Leave blank to use username"
                                                     value={cpanelDbUser}
                                                     onValueChange={setCpanelDbUser}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     variant="bordered"
                                                     description="The MySQL user granted access to tenant databases. Defaults to cPanel username."
                                                 />
@@ -402,7 +393,7 @@ const Infrastructure = ({ title, platformSettings }) => {
                                                 type="password"
                                                 value={cpanelToken}
                                                 onValueChange={setCpanelToken}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 variant="bordered"
                                                 description="Generated in cPanel → Security → Manage API Tokens. Stored encrypted."
                                                 startContent={<LockClosedIcon className="w-4 h-4 text-default-400" />}

@@ -222,10 +222,10 @@ export default function UploadManager({ currentPath = '/', onComplete }) {
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2 flex-1 min-w-0">
                                             {upload.status === 'completed' && (
-                                                <CheckCircleIcon className="w-5 h-5 text-success flex-shrink-0" />
+                                                <CheckCircleIcon className="w-5 h-5 text-success shrink-0" />
                                             )}
                                             {upload.status === 'failed' && (
-                                                <ExclamationCircleIcon className="w-5 h-5 text-danger flex-shrink-0" />
+                                                <ExclamationCircleIcon className="w-5 h-5 text-danger shrink-0" />
                                             )}
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-medium truncate">{upload.name}</p>

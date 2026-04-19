@@ -52,7 +52,7 @@ const TaskList = ({ tasks, onTaskStatusChange }) => {
                       : 'hover:bg-default-50 dark:hover:bg-default-50/20'
                   }`}
                 >
-                  <div className="flex-shrink-0 pt-1">
+                  <div className="shrink-0 pt-1">
                     <Checkbox
                       isSelected={task.status === 'completed'}
                       onValueChange={(checked) => 
@@ -114,7 +114,7 @@ const TaskList = ({ tasks, onTaskStatusChange }) => {
                     
                     {task.notes && (
                       <div className="flex gap-1 mt-3">
-                        <DocumentTextIcon className="w-4 h-4 text-default-400 flex-shrink-0 mt-0.5" />
+                        <DocumentTextIcon className="w-4 h-4 text-default-400 shrink-0 mt-0.5" />
                         <p className="text-xs text-default-500">
                           {task.notes}
                         </p>

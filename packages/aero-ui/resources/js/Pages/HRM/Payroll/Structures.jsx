@@ -33,6 +33,7 @@ import App from '@/Layouts/App.jsx';
 import { useThemeRadius } from '@/Hooks/useThemeRadius';
 import { showToast } from '@/utils/toastUtils';
 import StatsCards from '@/Components/StatsCards';
+import { router } from '@inertiajs/react';
 
 const Structures = ({ title, structures, departments }) => {
     const themeRadius = useThemeRadius();
@@ -320,7 +321,7 @@ const Structures = ({ title, structures, departments }) => {
                                         <Button
                                             variant="flat"
                                             startContent={<ArrowLeftIcon className="w-4 h-4" />}
-                                            onPress={() => window.location.href = route('hrm.payroll.index')}
+                                            onPress={() => router.visit(route('hrm.payroll.index'))}
                                         >
                                             Back to Payroll
                                         </Button>

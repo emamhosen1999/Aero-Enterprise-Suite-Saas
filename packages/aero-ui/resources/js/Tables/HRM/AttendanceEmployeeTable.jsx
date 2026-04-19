@@ -16,6 +16,7 @@ import dayjs from "dayjs";
 import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import {CalendarDaysIcon, ClockIcon, ExclamationTriangleIcon,} from '@heroicons/react/24/outline';
 import axios from 'axios';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const AttendanceEmployeeTable = ({ handleDateChange, selectedDate, updateTimeSheet, externalFilterData, externalEmployee }) => {
     const { url } = usePage();
@@ -38,21 +39,8 @@ const AttendanceEmployeeTable = ({ handleDateChange, selectedDate, updateTimeShe
     }, [externalFilterData]);
 
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-
-    // Helper function to safely format time
+    const themeRadius = useThemeRadius();
+// Helper function to safely format time
     const formatTime = useCallback((timeString, date) => {
         if (!timeString) return null;
         
@@ -316,7 +304,7 @@ const AttendanceEmployeeTable = ({ handleDateChange, selectedDate, updateTimeShe
                                 removeWrapper
                                 aria-label="Employee attendance timesheet table"
                                 isHeaderSticky
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 classNames={{
                                     base: "max-h-[520px] overflow-auto",
                                     table: "min-h-[200px] w-full",
@@ -367,7 +355,7 @@ const AttendanceEmployeeTable = ({ handleDateChange, selectedDate, updateTimeShe
                                 showShadow
                                 color="primary"
                                 variant="bordered"
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 page={currentPage}
                                 total={lastPage}
                                 onChange={handlePageChange}

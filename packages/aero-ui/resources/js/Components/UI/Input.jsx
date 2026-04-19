@@ -37,7 +37,7 @@ const Input = forwardRef(({
                 isInvalid={!!error}
                 errorMessage={error}
                 startContent={Icon && (
-                    <Icon className="w-5 h-5 text-default-400 pointer-events-none flex-shrink-0" />
+                    <Icon className="w-5 h-5 text-default-400 pointer-events-none shrink-0" />
                 )}
                 endContent={showPasswordToggle && type === 'password' && (
                     <button

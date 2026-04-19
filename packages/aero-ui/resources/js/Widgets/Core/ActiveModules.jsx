@@ -88,9 +88,9 @@ const ActiveModules = ({ data = [], isRefreshing = false }) => {
                                 <p className="text-sm font-medium truncate">{product.name}</p>
                             </div>
                             {product.enabled ? (
-                                <CheckCircleIcon className="w-4 h-4 text-success flex-shrink-0" />
+                                <CheckCircleIcon className="w-4 h-4 text-success shrink-0" />
                             ) : (
-                                <XCircleIcon className="w-4 h-4 text-default-300 flex-shrink-0" />
+                                <XCircleIcon className="w-4 h-4 text-default-300 shrink-0" />
                             )}
                         </div>
                     ))}

@@ -29,19 +29,6 @@ const LeaveBalances = ({ title, employees = [], leaveTypes = [], departments = [
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete } = useHRMAC();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -463,7 +450,7 @@ const LeaveBalances = ({ title, employees = [], leaveTypes = [], departments = [
                                             placeholder="Select employee"
                                             selectedKeys={adjustmentData.employee_id ? [adjustmentData.employee_id] : []}
                                             onSelectionChange={(keys) => setAdjustmentData(prev => ({ ...prev, employee_id: Array.from(keys)[0] || '' }))}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         >
                                             {employees.map(employee => (
                                                 <SelectItem key={employee.id}>{employee.name}</SelectItem>
@@ -475,7 +462,7 @@ const LeaveBalances = ({ title, employees = [], leaveTypes = [], departments = [
                                             placeholder="Select leave type"
                                             selectedKeys={adjustmentData.leave_type_id ? [adjustmentData.leave_type_id] : []}
                                             onSelectionChange={(keys) => setAdjustmentData(prev => ({ ...prev, leave_type_id: Array.from(keys)[0] || '' }))}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         >
                                             {leaveTypes.map(type => (
                                                 <SelectItem key={type.id}>{type.name}</SelectItem>
@@ -489,7 +476,7 @@ const LeaveBalances = ({ title, employees = [], leaveTypes = [], departments = [
                                         label="Adjustment Type"
                                         selectedKeys={[adjustmentData.adjustment_type]}
                                         onSelectionChange={(keys) => setAdjustmentData(prev => ({ ...prev, adjustment_type: Array.from(keys)[0] }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {adjustmentTypes.map(type => (
                                             <SelectItem key={type.key}>{type.label}</SelectItem>
@@ -502,7 +489,7 @@ const LeaveBalances = ({ title, employees = [], leaveTypes = [], departments = [
                                         placeholder="Enter amount"
                                         value={adjustmentData.amount}
                                         onValueChange={(value) => setAdjustmentData(prev => ({ ...prev, amount: value }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                 </div>
 
@@ -511,7 +498,7 @@ const LeaveBalances = ({ title, employees = [], leaveTypes = [], departments = [
                                     type="date"
                                     value={adjustmentData.effective_date}
                                     onValueChange={(value) => setAdjustmentData(prev => ({ ...prev, effective_date: value }))}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
 
                                 <Select
@@ -519,7 +506,7 @@ const LeaveBalances = ({ title, employees = [], leaveTypes = [], departments = [
                                     placeholder="Select reason"
                                     selectedKeys={adjustmentData.reason ? [adjustmentData.reason] : []}
                                     onSelectionChange={(keys) => setAdjustmentData(prev => ({ ...prev, reason: Array.from(keys)[0] || '' }))}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 >
                                     <SelectItem key="policy_change">Policy Change</SelectItem>
                                     <SelectItem key="error_correction">Error Correction</SelectItem>
@@ -535,7 +522,7 @@ const LeaveBalances = ({ title, employees = [], leaveTypes = [], departments = [
                                     placeholder="Additional notes (optional)"
                                     value={adjustmentData.notes}
                                     onValueChange={(value) => setAdjustmentData(prev => ({ ...prev, notes: value }))}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
                             </div>
                         </ModalBody>
@@ -566,7 +553,7 @@ const LeaveBalances = ({ title, employees = [], leaveTypes = [], departments = [
                                     selectionMode="multiple"
                                     selectedKeys={bulkAllocationData.department_ids}
                                     onSelectionChange={(keys) => setBulkAllocationData(prev => ({ ...prev, department_ids: Array.from(keys) }))}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 >
                                     {departments.map(dept => (
                                         <SelectItem key={dept.id}>{dept.name}</SelectItem>
@@ -578,7 +565,7 @@ const LeaveBalances = ({ title, employees = [], leaveTypes = [], departments = [
                                     placeholder="Select leave type"
                                     selectedKeys={bulkAllocationData.leave_type_id ? [bulkAllocationData.leave_type_id] : []}
                                     onSelectionChange={(keys) => setBulkAllocationData(prev => ({ ...prev, leave_type_id: Array.from(keys)[0] || '' }))}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 >
                                     {leaveTypes.map(type => (
                                         <SelectItem key={type.id}>{type.name}</SelectItem>
@@ -592,7 +579,7 @@ const LeaveBalances = ({ title, employees = [], leaveTypes = [], departments = [
                                         placeholder="Enter amount"
                                         value={bulkAllocationData.allocation_amount}
                                         onValueChange={(value) => setBulkAllocationData(prev => ({ ...prev, allocation_amount: value }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
 
                                     <Input
@@ -600,7 +587,7 @@ const LeaveBalances = ({ title, employees = [], leaveTypes = [], departments = [
                                         type="date"
                                         value={bulkAllocationData.effective_date}
                                         onValueChange={(value) => setBulkAllocationData(prev => ({ ...prev, effective_date: value }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                 </div>
 
@@ -616,7 +603,7 @@ const LeaveBalances = ({ title, employees = [], leaveTypes = [], departments = [
                                     placeholder="Additional notes (optional)"
                                     value={bulkAllocationData.notes}
                                     onValueChange={(value) => setBulkAllocationData(prev => ({ ...prev, notes: value }))}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
                             </div>
                         </ModalBody>
@@ -721,7 +708,7 @@ const LeaveBalances = ({ title, employees = [], leaveTypes = [], departments = [
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select

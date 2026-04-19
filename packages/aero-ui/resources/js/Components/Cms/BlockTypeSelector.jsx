@@ -77,7 +77,7 @@ const BlockTypeSelector = ({ onSelect, selectedType = null, category = null }) =
     return (
       <Card className="border-danger">
         <CardBody className="flex gap-4 flex-row items-start">
-          <ExclamationTriangleIcon className="w-6 h-6 text-danger flex-shrink-0 mt-1" />
+          <ExclamationTriangleIcon className="w-6 h-6 text-danger shrink-0 mt-1" />
           <div>
             <p className="text-sm font-semibold text-danger">{error}</p>
             <Button 

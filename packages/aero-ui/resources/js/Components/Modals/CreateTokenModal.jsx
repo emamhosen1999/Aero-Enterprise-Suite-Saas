@@ -14,7 +14,8 @@ import {
   Divider,
   Chip
 } from "@heroui/react";
-import { 
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import {
   CurrencyDollarIcon,
   CubeIcon
 } from "@heroicons/react/24/outline";
@@ -40,17 +41,7 @@ const CreateTokenModal = ({
   const [errors, setErrors] = useState({});
 
   // Theme radius helper
-  const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 16) return 'lg';
-    return 'full';
-  };
+  const themeRadius = useThemeRadius();
 
   // Network options
   const networks = [
@@ -180,7 +171,7 @@ const CreateTokenModal = ({
                 isInvalid={!!errors.name}
                 errorMessage={errors.name}
                 isRequired
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 classNames={{ inputWrapper: "bg-default-100" }}
               />
               <Input
@@ -191,7 +182,7 @@ const CreateTokenModal = ({
                 isInvalid={!!errors.symbol}
                 errorMessage={errors.symbol}
                 isRequired
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 classNames={{ inputWrapper: "bg-default-100" }}
               />
             </div>
@@ -206,14 +197,14 @@ const CreateTokenModal = ({
                 isInvalid={!!errors.totalSupply}
                 errorMessage={errors.totalSupply}
                 isRequired
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 classNames={{ inputWrapper: "bg-default-100" }}
               />
               <Select
                 label="Decimals"
                 selectedKeys={formData.decimals ? [formData.decimals] : []}
                 onSelectionChange={(keys) => handleInputChange('decimals', Array.from(keys)[0] || '18')}
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 classNames={{ trigger: "bg-default-100" }}
               >
                 {decimalsOptions.map((opt) => (
@@ -230,7 +221,7 @@ const CreateTokenModal = ({
               isInvalid={!!errors.network}
               errorMessage={errors.network}
               isRequired
-              radius={getThemeRadius()}
+              radius={themeRadius}
               classNames={{ trigger: "bg-default-100" }}
               startContent={<CubeIcon className="w-4 h-4 text-default-400" />}
             >
@@ -288,7 +279,7 @@ const CreateTokenModal = ({
               placeholder="Describe your token"
               value={formData.description}
               onValueChange={(value) => handleInputChange('description', value)}
-              radius={getThemeRadius()}
+              radius={themeRadius}
               classNames={{ inputWrapper: "bg-default-100" }}
               minRows={3}
             />
@@ -322,14 +313,14 @@ const CreateTokenModal = ({
         </ModalBody>
         
         <ModalFooter>
-          <Button variant="flat" onPress={handleClose} isDisabled={loading} radius={getThemeRadius()}>
+          <Button variant="flat" onPress={handleClose} isDisabled={loading} radius={themeRadius}>
             Cancel
           </Button>
           <Button 
             color="primary" 
             onPress={handleSubmit}
             isLoading={loading}
-            radius={getThemeRadius()}
+            radius={themeRadius}
             startContent={!loading ? <CurrencyDollarIcon className="w-4 h-4" /> : null}
           >
             {loading ? 'Creating...' : 'Create Token'}

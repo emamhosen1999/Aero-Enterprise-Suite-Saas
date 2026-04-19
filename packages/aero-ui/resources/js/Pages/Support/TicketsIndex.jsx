@@ -140,7 +140,7 @@ const TicketsIndex = ({ tickets = [], agents = [], auth }) => {
             case 'subject':
                 return (
                     <div className="flex items-start gap-2">
-                        <ChatBubbleLeftIcon className="w-4 h-4 text-default-400 mt-0.5 flex-shrink-0" />
+                        <ChatBubbleLeftIcon className="w-4 h-4 text-default-400 mt-0.5 shrink-0" />
                         <span className="line-clamp-2">{ticket.subject}</span>
                     </div>
                 );

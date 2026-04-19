@@ -54,11 +54,11 @@ const FAQSectionBlock = ({ data = {} }) => {
                                 }}
                                 className="w-full flex items-center justify-between p-5 hover:bg-default-100/50 transition-colors text-left"
                             >
-                                <h3 className="font-semibold text-foreground flex-grow">
+                                <h3 className="font-semibold text-foreground grow">
                                     {item.question}
                                 </h3>
                                 <ChevronDownIcon
-                                    className={`w-5 h-5 text-default-400 transition-transform flex-shrink-0 ml-4 ${
+                                    className={`w-5 h-5 text-default-400 transition-transform shrink-0 ml-4 ${
                                         expandedKey.has(index) ? 'rotate-180' : ''
                                     }`}
                                 />

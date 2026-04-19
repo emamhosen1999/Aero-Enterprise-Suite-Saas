@@ -9,6 +9,7 @@ import {
   ExclamationTriangleIcon, DocumentArrowDownIcon 
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -38,18 +39,8 @@ const OnboardingAnalyticsDashboard = ({ dateRange = 30 }) => {
     fetchAnalytics();
   }, [selectedRange]);
 
-  const getThemeRadius = () => {
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 12) return 'lg';
-    return 'xl';
-  };
+  const themeRadius = useThemeRadius();
 
-  const themeRadius = getThemeRadius();
 
   const getCardStyle = () => ({
     background: `var(--theme-content1, #FAFAFA)`,

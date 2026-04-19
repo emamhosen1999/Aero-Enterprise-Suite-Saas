@@ -6,21 +6,12 @@ import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon } from "@heroicons
 import App from '@/Layouts/App.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const CmsTemplates = ({ title = 'CMS Templates' }) => {
     const { auth } = usePage().props;
 
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     const [isMobile, setIsMobile] = useState(false);
     const [templates, setTemplates] = useState([]);
@@ -172,7 +163,7 @@ const CmsTemplates = ({ title = 'CMS Templates' }) => {
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             size="sm"
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         />
                         <Input
                             label="Slug"
@@ -180,7 +171,7 @@ const CmsTemplates = ({ title = 'CMS Templates' }) => {
                             value={formData.slug}
                             onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                             size="sm"
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         />
                         <Textarea
                             label="Description"

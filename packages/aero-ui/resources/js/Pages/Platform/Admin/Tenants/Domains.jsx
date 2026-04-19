@@ -38,20 +38,11 @@ import {
 import { showToast } from '@/utils/toastUtils';
 import App from "@/Layouts/App.jsx";
 import StatsCards from '@/Components/StatsCards';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const Domains = ({ auth, title }) => {
     // Theme radius helper (REQUIRED)
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     // Responsive breakpoints (REQUIRED)
     const [isMobile, setIsMobile] = useState(false);
@@ -395,7 +386,7 @@ const Domains = ({ auth, title }) => {
                                                 <Button
                                                     variant="flat"
                                                     startContent={<ArrowPathIcon className="w-4 h-4" />}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     onPress={fetchDomains}
                                                     size={isMobile ? "sm" : "md"}
                                                 >
@@ -417,7 +408,7 @@ const Domains = ({ auth, title }) => {
                                             value={filters.search}
                                             onValueChange={(v) => handleFilterChange('search', v)}
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             classNames={{ inputWrapper: "bg-default-100" }}
                                             className="flex-1"
                                         />
@@ -425,7 +416,7 @@ const Domains = ({ auth, title }) => {
                                             placeholder="All Types"
                                             selectedKeys={[filters.type]}
                                             onSelectionChange={(keys) => handleFilterChange('type', Array.from(keys)[0] || 'all')}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             classNames={{ trigger: "bg-default-100" }}
                                             className="w-full sm:w-36"
                                         >
@@ -437,7 +428,7 @@ const Domains = ({ auth, title }) => {
                                             placeholder="SSL Status"
                                             selectedKeys={[filters.ssl_status]}
                                             onSelectionChange={(keys) => handleFilterChange('ssl_status', Array.from(keys)[0] || 'all')}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             classNames={{ trigger: "bg-default-100" }}
                                             className="w-full sm:w-36"
                                         >
@@ -492,7 +483,7 @@ const Domains = ({ auth, title }) => {
                                                 onChange={(page) => setPagination(prev => ({ ...prev, currentPage: page }))}
                                                 color="primary"
                                                 showControls
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                         </div>
                                     )}

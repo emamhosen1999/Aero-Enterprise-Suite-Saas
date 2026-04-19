@@ -1007,7 +1007,7 @@ const LeaveSummary = ({ title, summaryData }) => {
                                                                 <TableRow key={index}>
                                                                     <TableCell>
                                                                         <div className="flex items-center gap-2 min-w-0" style={{ maxWidth: "150px" }}>
-                                                                            <BuildingOfficeIcon className="w-3 h-3 text-default-400 flex-shrink-0" />
+                                                                            <BuildingOfficeIcon className="w-3 h-3 text-default-400 shrink-0" />
                                                                             <span className="text-sm font-medium truncate" title={dept.department}>
                                                                                 {dept.department}
                                                                             </span>

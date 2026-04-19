@@ -17,6 +17,7 @@ import {
   Pagination,
   User
 } from "@heroui/react";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 import {
   EyeIcon,
   DocumentDuplicateIcon,
@@ -36,19 +37,8 @@ const TransactionsTable = ({
   onRowsPerPageChange = () => {},
 }) => {
   // Theme radius helper
-  const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 16) return 'lg';
-    return 'full';
-  };
-
-  // Copy to clipboard
+  const themeRadius = useThemeRadius();
+// Copy to clipboard
   const copyToClipboard = useCallback(async (text) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -275,7 +265,7 @@ const TransactionsTable = ({
           page={pagination.currentPage}
           total={Math.ceil(pagination.total / pagination.perPage)}
           onChange={onPageChange}
-          radius={getThemeRadius()}
+          radius={themeRadius}
         />
         <div className="hidden sm:flex w-[30%] justify-end gap-2">
           {/* Rows per page selector could go here */}

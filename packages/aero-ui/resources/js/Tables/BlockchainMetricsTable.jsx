@@ -17,6 +17,7 @@ import {
   Pagination,
   Progress
 } from "@heroui/react";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 import {
   EyeIcon,
   ArrowTopRightOnSquareIcon,
@@ -38,19 +39,8 @@ const BlockchainMetricsTable = ({
   onRowsPerPageChange = () => {},
 }) => {
   // Theme radius helper
-  const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 16) return 'lg';
-    return 'full';
-  };
-
-  // Format numbers
+  const themeRadius = useThemeRadius();
+// Format numbers
   const formatNumber = useCallback((value, type = 'number') => {
     if (!value || isNaN(value)) return '0';
     
@@ -122,7 +112,7 @@ const BlockchainMetricsTable = ({
       case "network":
         return (
           <div className="flex items-center gap-3">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               {metric.icon ? (
                 <img src={metric.icon} alt={metric.name} className="w-8 h-8 rounded-full" />
               ) : (
@@ -294,7 +284,7 @@ const BlockchainMetricsTable = ({
           page={pagination.currentPage}
           total={Math.ceil(pagination.total / pagination.perPage)}
           onChange={onPageChange}
-          radius={getThemeRadius()}
+          radius={themeRadius}
         />
         <div className="hidden sm:flex w-[30%] justify-end gap-2">
           {/* Rows per page selector could go here */}

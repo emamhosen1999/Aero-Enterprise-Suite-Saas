@@ -27,19 +27,6 @@ const InterviewScheduling = ({ title, applicants: initialApplicants = [], interv
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -417,7 +404,7 @@ const InterviewScheduling = ({ title, applicants: initialApplicants = [], interv
                                         selectedKeys={formData.applicant_id ? [formData.applicant_id] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, applicant_id: Array.from(keys)[0] || '' }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {applicants.map(applicant => (
                                             <SelectItem key={applicant.id}>{applicant.name} - {applicant.job_opening?.title}</SelectItem>
@@ -430,7 +417,7 @@ const InterviewScheduling = ({ title, applicants: initialApplicants = [], interv
                                         selectedKeys={formData.interviewer_id ? [formData.interviewer_id] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, interviewer_id: Array.from(keys)[0] || '' }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {interviewers.map(interviewer => (
                                             <SelectItem key={interviewer.id}>{interviewer.name}</SelectItem>
@@ -446,7 +433,7 @@ const InterviewScheduling = ({ title, applicants: initialApplicants = [], interv
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, interview_date: value }))}
                                         min={getCurrentDateTime().date}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                     
                                     <Input
@@ -455,7 +442,7 @@ const InterviewScheduling = ({ title, applicants: initialApplicants = [], interv
                                         value={formData.interview_time}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, interview_time: value }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                     
                                     <Input
@@ -465,7 +452,7 @@ const InterviewScheduling = ({ title, applicants: initialApplicants = [], interv
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, duration: parseInt(value) || 60 }))}
                                         min="15"
                                         max="480"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                 </div>
 
@@ -474,7 +461,7 @@ const InterviewScheduling = ({ title, applicants: initialApplicants = [], interv
                                         label="Interview Type"
                                         selectedKeys={[formData.interview_type]}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, interview_type: Array.from(keys)[0] }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {interviewTypes.map(type => (
                                             <SelectItem key={type.key}>{type.label}</SelectItem>
@@ -485,7 +472,7 @@ const InterviewScheduling = ({ title, applicants: initialApplicants = [], interv
                                         label="Status"
                                         selectedKeys={[formData.status]}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, status: Array.from(keys)[0] }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {interviewStatuses.map(status => (
                                             <SelectItem key={status.key}>{status.label}</SelectItem>
@@ -499,7 +486,7 @@ const InterviewScheduling = ({ title, applicants: initialApplicants = [], interv
                                         placeholder="Enter interview location"
                                         value={formData.location}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, location: value }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                 )}
 
@@ -509,7 +496,7 @@ const InterviewScheduling = ({ title, applicants: initialApplicants = [], interv
                                         placeholder="Enter video call meeting link"
                                         value={formData.meeting_link}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, meeting_link: value }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                 )}
 
@@ -519,7 +506,7 @@ const InterviewScheduling = ({ title, applicants: initialApplicants = [], interv
                                     value={formData.notes}
                                     onValueChange={(value) => setFormData(prev => ({ ...prev, notes: value }))}
                                     rows={3}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
                             </div>
                         </ModalBody>
@@ -716,7 +703,7 @@ const InterviewScheduling = ({ title, applicants: initialApplicants = [], interv
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select

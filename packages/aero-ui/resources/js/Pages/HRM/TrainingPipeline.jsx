@@ -32,19 +32,6 @@ const TrainingPipeline = ({ title, departments = [], trainers = [], programs = [
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete } = useHRMAC();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -633,7 +620,7 @@ const TrainingPipeline = ({ title, departments = [], trainers = [], programs = [
                                             value={formData.pipeline_name}
                                             onValueChange={(value) => handleFormChange('pipeline_name', value)}
                                             isRequired
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <Textarea
@@ -641,7 +628,7 @@ const TrainingPipeline = ({ title, departments = [], trainers = [], programs = [
                                             placeholder="Comprehensive training program for new employees covering company policies, procedures, and job-specific skills..."
                                             value={formData.description}
                                             onValueChange={(value) => handleFormChange('description', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -649,7 +636,7 @@ const TrainingPipeline = ({ title, departments = [], trainers = [], programs = [
                                                 label="Target Audience"
                                                 selectedKeys={[formData.target_audience]}
                                                 onSelectionChange={(keys) => handleFormChange('target_audience', Array.from(keys)[0])}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {targetAudiences.map(audience => (
                                                     <SelectItem key={audience.key} description={audience.description}>
@@ -664,7 +651,7 @@ const TrainingPipeline = ({ title, departments = [], trainers = [], programs = [
                                                     placeholder="Select department"
                                                     selectedKeys={formData.department_id ? [formData.department_id] : []}
                                                     onSelectionChange={(keys) => handleFormChange('department_id', Array.from(keys)[0] || '')}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 >
                                                     {departments.map(dept => (
                                                         <SelectItem key={dept.id}>{dept.name}</SelectItem>
@@ -676,7 +663,7 @@ const TrainingPipeline = ({ title, departments = [], trainers = [], programs = [
                                                 label="Priority"
                                                 selectedKeys={[formData.priority]}
                                                 onSelectionChange={(keys) => handleFormChange('priority', Array.from(keys)[0])}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {priorities.map(priority => (
                                                     <SelectItem key={priority.key}>
@@ -689,7 +676,7 @@ const TrainingPipeline = ({ title, departments = [], trainers = [], programs = [
                                                 label="Training Provider"
                                                 selectedKeys={[formData.training_provider]}
                                                 onSelectionChange={(keys) => handleFormChange('training_provider', Array.from(keys)[0])}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {trainingProviders.map(provider => (
                                                     <SelectItem key={provider.key}>
@@ -705,7 +692,7 @@ const TrainingPipeline = ({ title, departments = [], trainers = [], programs = [
                                                 type="date"
                                                 value={formData.start_date}
                                                 onValueChange={(value) => handleFormChange('start_date', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Input
@@ -713,7 +700,7 @@ const TrainingPipeline = ({ title, departments = [], trainers = [], programs = [
                                                 type="date"
                                                 value={formData.end_date}
                                                 onValueChange={(value) => handleFormChange('end_date', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Input
@@ -723,7 +710,7 @@ const TrainingPipeline = ({ title, departments = [], trainers = [], programs = [
                                                 max="52"
                                                 value={formData.duration_weeks}
                                                 onValueChange={(value) => handleFormChange('duration_weeks', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                         </div>
                                     </div>
@@ -754,7 +741,7 @@ const TrainingPipeline = ({ title, departments = [], trainers = [], programs = [
                                                     addTrainingProgram(programId);
                                                 }
                                             }}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         >
                                             {programs.filter(p => !formData.training_programs.includes(p.id)).map(program => (
                                                 <SelectItem key={program.id}>
@@ -825,7 +812,7 @@ const TrainingPipeline = ({ title, departments = [], trainers = [], programs = [
                                                     max="100"
                                                     value={formData.min_pass_score}
                                                     onValueChange={(value) => handleFormChange('min_pass_score', value)}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 />
 
                                                 <Input
@@ -835,7 +822,7 @@ const TrainingPipeline = ({ title, departments = [], trainers = [], programs = [
                                                     max="10"
                                                     value={formData.max_attempts_per_module}
                                                     onValueChange={(value) => handleFormChange('max_attempts_per_module', value)}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 />
                                             </div>
 
@@ -887,7 +874,7 @@ const TrainingPipeline = ({ title, departments = [], trainers = [], programs = [
                                                     label="Update Frequency"
                                                     selectedKeys={[formData.progress_update_frequency]}
                                                     onSelectionChange={(keys) => handleFormChange('progress_update_frequency', Array.from(keys)[0])}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 >
                                                     {updateFrequencies.map(freq => (
                                                         <SelectItem key={freq.key}>
@@ -908,7 +895,7 @@ const TrainingPipeline = ({ title, departments = [], trainers = [], programs = [
                                                     max="30"
                                                     value={formData.escalate_overdue_days}
                                                     onValueChange={(value) => handleFormChange('escalate_overdue_days', value)}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 />
 
                                                 <Input
@@ -918,7 +905,7 @@ const TrainingPipeline = ({ title, departments = [], trainers = [], programs = [
                                                     max="14"
                                                     value={formData.manager_notification_days}
                                                     onValueChange={(value) => handleFormChange('manager_notification_days', value)}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 />
                                             </div>
                                         </div>
@@ -952,7 +939,7 @@ const TrainingPipeline = ({ title, departments = [], trainers = [], programs = [
                                             placeholder="Welcome to our comprehensive training program! This pipeline will guide you through..."
                                             value={formData.welcome_message}
                                             onValueChange={(value) => handleFormChange('welcome_message', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <Textarea
@@ -960,7 +947,7 @@ const TrainingPipeline = ({ title, departments = [], trainers = [], programs = [
                                             placeholder="Congratulations! You have successfully completed the training pipeline..."
                                             value={formData.completion_message}
                                             onValueChange={(value) => handleFormChange('completion_message', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -971,7 +958,7 @@ const TrainingPipeline = ({ title, departments = [], trainers = [], programs = [
                                                 step="0.01"
                                                 value={formData.cost_per_participant}
                                                 onValueChange={(value) => handleFormChange('cost_per_participant', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 startContent="$"
                                             />
 
@@ -980,7 +967,7 @@ const TrainingPipeline = ({ title, departments = [], trainers = [], programs = [
                                                 placeholder="TRAINING-2024-Q1"
                                                 value={formData.budget_code}
                                                 onValueChange={(value) => handleFormChange('budget_code', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                         </div>
 
@@ -1000,7 +987,7 @@ const TrainingPipeline = ({ title, departments = [], trainers = [], programs = [
                                             placeholder="Any additional notes or special instructions for this training pipeline..."
                                             value={formData.notes}
                                             onValueChange={(value) => handleFormChange('notes', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                     </div>
                                 </Tab>
@@ -1119,7 +1106,7 @@ const TrainingPipeline = ({ title, departments = [], trainers = [], programs = [
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select

@@ -17,6 +17,7 @@ import {
   Pagination,
   Code
 } from "@heroui/react";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 import {
   EyeIcon,
   PlayIcon,
@@ -42,19 +43,8 @@ const SmartContractsTable = ({
   onRowsPerPageChange = () => {},
 }) => {
   // Theme radius helper
-  const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 16) return 'lg';
-    return 'full';
-  };
-
-  // Copy to clipboard
+  const themeRadius = useThemeRadius();
+// Copy to clipboard
   const copyToClipboard = useCallback(async (text) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -126,7 +116,7 @@ const SmartContractsTable = ({
       case "contract":
         return (
           <div className="flex items-center gap-3">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               {contract.verified ? (
                 <div className="w-8 h-8 rounded-full bg-success/20 flex items-center justify-center">
                   <ShieldCheckIcon className="w-4 h-4 text-success" />
@@ -321,7 +311,7 @@ const SmartContractsTable = ({
           page={pagination.currentPage}
           total={Math.ceil(pagination.total / pagination.perPage)}
           onChange={onPageChange}
-          radius={getThemeRadius()}
+          radius={themeRadius}
         />
         <div className="hidden sm:flex w-[30%] justify-end gap-2">
           {/* Rows per page selector could go here */}

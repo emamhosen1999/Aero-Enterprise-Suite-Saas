@@ -20,23 +20,12 @@ import {
     Bars3BottomLeftIcon
 } from '@heroicons/react/24/outline';
 import ProfileAvatar from '@/Components/ProfileAvatar';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 dayjs.extend(isBetween);
 
 // Helper function to convert theme borderRadius to HeroUI radius values
-const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 16) return 'lg';
-    return 'full';
-};
+const themeRadius = useThemeRadius();
 
 // Get theme-aware card styles consistent with StatisticCard
 const getCardStyle = () => ({
@@ -95,7 +84,7 @@ const UpdateSection = ({ title, items, users, icon: IconComponent, color }) => {
     return (
         <Card 
             className="h-full flex flex-col"
-            radius={getThemeRadius()}
+            radius={themeRadius}
             style={getCardStyle()}
             onMouseEnter={(e) => {
                 e.currentTarget.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, ${color} 50%, transparent)`;
@@ -115,7 +104,7 @@ const UpdateSection = ({ title, items, users, icon: IconComponent, color }) => {
             >
                 <div className="flex items-center gap-3 w-full">
                     <div 
-                        className="p-2 rounded-xl flex items-center justify-center min-w-[48px] min-h-[48px] flex-shrink-0"
+                        className="p-2 rounded-xl flex items-center justify-center min-w-[48px] min-h-[48px] shrink-0"
                         style={{
                             backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`,
                             borderRadius: `var(--borderRadius, 12px)`,
@@ -177,7 +166,7 @@ const UpdateSection = ({ title, items, users, icon: IconComponent, color }) => {
                                     (() => {
                                         const leaves = item.leaves.filter((leave) => leave.leave_type === item.type);
                                         return leaves.length > 0 && (
-                                            <div className="flex gap-1 flex-shrink-0">
+                                            <div className="flex gap-1 shrink-0">
                                                 <AvatarGroup 
                                                     max={4} 
                                                     isBordered
@@ -516,7 +505,7 @@ const UpdatesCards = () => {
                         <div key={idx}>
                             <Card 
                                 className="w-full h-full" 
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 style={getCardStyle()}
                             >
                                 <Skeleton className="rounded-lg mb-2" isLoaded={false}>
@@ -538,7 +527,7 @@ const UpdatesCards = () => {
             <div className={`${isLargeScreen ? 'p-6' : isMediumScreen ? 'p-4' : 'p-3'} flex items-center justify-center min-h-[200px]`}>
                 <Card 
                     
-                    radius={getThemeRadius()}
+                    radius={themeRadius}
                     style={{
                         ...getCardStyle(),
                         borderColor: `color-mix(in srgb, var(--theme-danger) 50%, transparent)`,
@@ -582,7 +571,7 @@ const UpdatesCards = () => {
                             transition={{ delay: (index * 0.1), duration: 0.3 }}
                             className="w-full"
                         >
-                            <div className="flex flex-col flex-grow w-full">
+                            <div className="flex flex-col grow w-full">
                                 <UpdateSection 
                                     title={section.title} 
                                     items={section.items} 
@@ -604,7 +593,7 @@ const UpdatesCards = () => {
                 >
                     <div className="mt-4">
                         <Card
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             style={getCardStyle()}
                             onMouseEnter={(e) => {
                                 e.currentTarget.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-warning) 50%, transparent)`;
@@ -624,7 +613,7 @@ const UpdatesCards = () => {
                             >
                                 <div className="flex items-center gap-3 w-full">
                                     <div 
-                                        className="p-2 rounded-xl flex items-center justify-center min-w-[48px] min-h-[48px] flex-shrink-0"
+                                        className="p-2 rounded-xl flex items-center justify-center min-w-[48px] min-h-[48px] shrink-0"
                                         style={{
                                             backgroundColor: `color-mix(in srgb, var(--theme-warning) 15%, transparent)`,
                                             borderRadius: `var(--borderRadius, 12px)`,

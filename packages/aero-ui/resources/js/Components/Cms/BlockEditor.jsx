@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem, Tab, Tabs, Textarea, Switch } from "@heroui/react";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const BlockEditor = ({ isOpen, onOpenChange, block = null, blockType = null, onSave, saving = false }) => {
     const [formData, setFormData] = useState({});
@@ -13,17 +14,7 @@ const BlockEditor = ({ isOpen, onOpenChange, block = null, blockType = null, onS
         }
     }, [block, isOpen]);
 
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     const renderFormField = (field) => {
         const value = formData[field.name] || '';
@@ -32,7 +23,7 @@ const BlockEditor = ({ isOpen, onOpenChange, block = null, blockType = null, onS
             placeholder: field.placeholder,
             isRequired: field.required,
             size: "sm",
-            radius: getThemeRadius(),
+            radius: themeRadius,
         };
 
         switch (field.type) {
@@ -145,7 +136,7 @@ const BlockEditor = ({ isOpen, onOpenChange, block = null, blockType = null, onS
                                 value={formData.customClasses || ''}
                                 onChange={(e) => setFormData({ ...formData, customClasses: e.target.value })}
                                 size="sm"
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                             />
                             <Select
                                 label="Visibility"
@@ -153,7 +144,7 @@ const BlockEditor = ({ isOpen, onOpenChange, block = null, blockType = null, onS
                                 selectedKeys={formData.visibility ? [formData.visibility] : []}
                                 onSelectionChange={(keys) => setFormData({ ...formData, visibility: Array.from(keys)[0] })}
                                 size="sm"
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                             >
                                 <SelectItem key="always">Always Visible</SelectItem>
                                 <SelectItem key="desktop">Desktop Only</SelectItem>

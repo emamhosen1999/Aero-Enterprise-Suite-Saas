@@ -259,7 +259,7 @@ export default function SubscriptionInvoices({ invoices, pagination }) {
                 <Card className="mt-6 bg-primary-50 dark:bg-primary-900/20">
                     <CardBody>
                         <div className="flex items-start gap-3">
-                            <DocumentTextIcon className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                            <DocumentTextIcon className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                             <div>
                                 <p className="font-semibold text-primary-800 dark:text-primary-400 mb-1">
                                     Need help with an invoice?

@@ -15,25 +15,14 @@ import {
 import {Briefcase, Building2} from 'lucide-react';
 import axios from 'axios';
 import {showToast} from '@/utils/toastUtils';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const DepartmentForm = ({ open, onClose, onSuccess, department = null, managers = [], parentDepartments = [] }) => {
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
     
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     // Initial form state
     const initialFormState = {
@@ -182,7 +171,7 @@ const DepartmentForm = ({ open, onClose, onSuccess, department = null, managers 
             isOpen={open}
             onOpenChange={loading ? undefined : onClose}
             size="2xl"
-            radius={getThemeRadius()}
+            radius={themeRadius}
             scrollBehavior="inside"
             classNames={{
                 base: "bg-content1",
@@ -226,7 +215,7 @@ const DepartmentForm = ({ open, onClose, onSuccess, department = null, managers 
                                     isRequired
                                     variant="bordered"
                                     size="sm"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     startContent={<Building2 size={16} className="text-default-400" />}
                                     classNames={{
                                         input: "text-small",
@@ -249,7 +238,7 @@ const DepartmentForm = ({ open, onClose, onSuccess, department = null, managers 
                                     errorMessage={errors.code?.[0]}
                                     variant="bordered"
                                     size="sm"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     description="Unique identifier"
                                     classNames={{
                                         input: "text-small",
@@ -272,7 +261,7 @@ const DepartmentForm = ({ open, onClose, onSuccess, department = null, managers 
                                     errorMessage={errors.description?.[0]}
                                     variant="bordered"
                                     size="sm"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     classNames={{
                                         input: "text-small",
                                         inputWrapper: "min-h-unit-10"
@@ -297,7 +286,7 @@ const DepartmentForm = ({ open, onClose, onSuccess, department = null, managers 
                                     errorMessage={errors.parent_id?.[0]}
                                     variant="bordered"
                                     size="sm"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     description="None = Top-Level Department"
                                     classNames={{
                                         trigger: "min-h-unit-10",
@@ -329,7 +318,7 @@ const DepartmentForm = ({ open, onClose, onSuccess, department = null, managers 
                                     errorMessage={errors.manager_id?.[0]}
                                     variant="bordered"
                                     size="sm"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     startContent={<Briefcase size={16} className="text-default-400" />}
                                     classNames={{
                                         trigger: "min-h-unit-10",
@@ -358,7 +347,7 @@ const DepartmentForm = ({ open, onClose, onSuccess, department = null, managers 
                                     errorMessage={errors.location?.[0]}
                                     variant="bordered"
                                     size="sm"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     classNames={{
                                         input: "text-small",
                                         inputWrapper: "min-h-unit-10"
@@ -380,7 +369,7 @@ const DepartmentForm = ({ open, onClose, onSuccess, department = null, managers 
                                     errorMessage={errors.established_date?.[0]}
                                     variant="bordered"
                                     size="sm"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     classNames={{
                                         input: "text-small",
                                         inputWrapper: "min-h-unit-10"
@@ -434,7 +423,7 @@ const DepartmentForm = ({ open, onClose, onSuccess, department = null, managers 
                             onPress={onClose}
                             isDisabled={loading}
                             variant="light"
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             style={{
                                 fontFamily: `var(--fontFamily, "Inter")`,
                             }}
@@ -445,7 +434,7 @@ const DepartmentForm = ({ open, onClose, onSuccess, department = null, managers 
                             type="submit"
                             color="primary"
                             isLoading={loading}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             style={{
                                 fontFamily: `var(--fontFamily, "Inter")`,
                             }}
@@ -460,4 +449,3 @@ const DepartmentForm = ({ open, onClose, onSuccess, department = null, managers 
 };
 
 export default DepartmentForm;
-

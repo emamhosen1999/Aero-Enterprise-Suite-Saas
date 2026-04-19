@@ -142,7 +142,7 @@ const LogoCloud = ({
             <div className="flex animate-marquee gap-8">
                 {/* Duplicate logos for seamless loop */}
                 {[...logos, ...logos].map((logo, index) => (
-                    <div key={index} className="flex-shrink-0">
+                    <div key={index} className="shrink-0">
                         {logo.image ? (
                             <img
                                 src={logo.image}

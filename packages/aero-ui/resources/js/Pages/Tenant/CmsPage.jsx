@@ -21,7 +21,7 @@ const CmsPage = ({ page, blocks = [] }) => {
     <>
       <Head title={headData.title} description={headData.description} />
 
-      <div className="min-h-screen bg-white dark:bg-slate-950">
+      <div className="min-h-screen bg-background">
         {/* Render all blocks in order */}
         {sortedBlocks.length === 0 ? (
           <div className="flex items-center justify-center min-h-screen">

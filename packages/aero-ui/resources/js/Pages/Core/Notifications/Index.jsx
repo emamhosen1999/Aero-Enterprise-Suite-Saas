@@ -409,7 +409,7 @@ const NotificationsIndex = () => {
                         : 'border-divider bg-content1'
                     }`}
                   >
-                    <div className={`flex-shrink-0 p-2 rounded-full ${
+                    <div className={`shrink-0 p-2 rounded-full ${
                       isUnread ? `bg-${colorClass}/10` : 'bg-default-100'
                     }`}>
                       <Icon className={`w-5 h-5 ${

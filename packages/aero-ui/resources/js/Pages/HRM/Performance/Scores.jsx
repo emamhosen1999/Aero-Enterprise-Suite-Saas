@@ -34,19 +34,6 @@ const ScoreAggregation = ({ title, performanceCycles = [], employees = [], depar
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete } = useHRMAC();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -760,7 +747,7 @@ const ScoreAggregation = ({ title, performanceCycles = [], employees = [], depar
                                                 selectedKeys={formData.employee_id ? [formData.employee_id] : []}
                                                 onSelectionChange={(keys) => handleFormChange('employee_id', Array.from(keys)[0] || '')}
                                                 isRequired
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {employees.map(employee => (
                                                     <SelectItem key={employee.id}>
@@ -775,7 +762,7 @@ const ScoreAggregation = ({ title, performanceCycles = [], employees = [], depar
                                                 selectedKeys={formData.cycle_id ? [formData.cycle_id] : []}
                                                 onSelectionChange={(keys) => handleFormChange('cycle_id', Array.from(keys)[0] || '')}
                                                 isRequired
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {performanceCycles.map(cycle => (
                                                     <SelectItem key={cycle.id}>{cycle.name}</SelectItem>
@@ -787,7 +774,7 @@ const ScoreAggregation = ({ title, performanceCycles = [], employees = [], depar
                                             label="Aggregation Method"
                                             selectedKeys={[formData.aggregation_method]}
                                             onSelectionChange={(keys) => handleFormChange('aggregation_method', Array.from(keys)[0])}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         >
                                             {aggregationMethods.map(method => (
                                                 <SelectItem key={method.key} description={method.description}>
@@ -801,7 +788,7 @@ const ScoreAggregation = ({ title, performanceCycles = [], employees = [], depar
                                             type="date"
                                             value={formData.calculation_date}
                                             onValueChange={(value) => handleFormChange('calculation_date', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                     </div>
                                 </Tab>
@@ -818,7 +805,7 @@ const ScoreAggregation = ({ title, performanceCycles = [], employees = [], depar
                                                 max="100"
                                                 value={formData.goal_weight}
                                                 onValueChange={(value) => handleFormChange('goal_weight', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 color={formData.aggregation_method === 'weighted_average' ? 'primary' : 'default'}
                                                 isDisabled={formData.aggregation_method !== 'weighted_average'}
                                             />
@@ -830,7 +817,7 @@ const ScoreAggregation = ({ title, performanceCycles = [], employees = [], depar
                                                 max="100"
                                                 value={formData.competency_weight}
                                                 onValueChange={(value) => handleFormChange('competency_weight', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 color={formData.aggregation_method === 'weighted_average' ? 'primary' : 'default'}
                                                 isDisabled={formData.aggregation_method !== 'weighted_average'}
                                             />
@@ -842,7 +829,7 @@ const ScoreAggregation = ({ title, performanceCycles = [], employees = [], depar
                                                 max="100"
                                                 value={formData.feedback_weight}
                                                 onValueChange={(value) => handleFormChange('feedback_weight', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 color={formData.aggregation_method === 'weighted_average' ? 'primary' : 'default'}
                                                 isDisabled={formData.aggregation_method !== 'weighted_average'}
                                             />
@@ -854,7 +841,7 @@ const ScoreAggregation = ({ title, performanceCycles = [], employees = [], depar
                                                 max="100"
                                                 value={formData.self_assessment_weight}
                                                 onValueChange={(value) => handleFormChange('self_assessment_weight', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 color={formData.aggregation_method === 'weighted_average' ? 'primary' : 'default'}
                                                 isDisabled={formData.aggregation_method !== 'weighted_average'}
                                             />
@@ -887,7 +874,7 @@ const ScoreAggregation = ({ title, performanceCycles = [], employees = [], depar
                                                 max="2"
                                                 value={formData.adjustment_factor}
                                                 onValueChange={(value) => handleFormChange('adjustment_factor', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 description="Adjustment to final score (-2 to +2)"
                                             />
                                         </div>
@@ -897,7 +884,7 @@ const ScoreAggregation = ({ title, performanceCycles = [], employees = [], depar
                                             placeholder="Reason for score adjustment..."
                                             value={formData.adjustment_reason}
                                             onValueChange={(value) => handleFormChange('adjustment_reason', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <Textarea
@@ -905,7 +892,7 @@ const ScoreAggregation = ({ title, performanceCycles = [], employees = [], depar
                                             placeholder="Additional notes about this performance evaluation..."
                                             value={formData.reviewer_notes}
                                             onValueChange={(value) => handleFormChange('reviewer_notes', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         {/* Score Preview */}
@@ -957,7 +944,7 @@ const ScoreAggregation = ({ title, performanceCycles = [], employees = [], depar
                                     selectedKeys={formData.cycle_id ? [formData.cycle_id] : []}
                                     onSelectionChange={(keys) => handleFormChange('cycle_id', Array.from(keys)[0] || '')}
                                     isRequired
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 >
                                     {performanceCycles.map(cycle => (
                                         <SelectItem key={cycle.id}>{cycle.name}</SelectItem>
@@ -969,7 +956,7 @@ const ScoreAggregation = ({ title, performanceCycles = [], employees = [], depar
                                     placeholder="Select department or leave empty for all"
                                     selectedKeys={formData.department_id && formData.department_id !== 'all' ? [formData.department_id] : []}
                                     onSelectionChange={(keys) => handleFormChange('department_id', Array.from(keys)[0] || 'all')}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 >
                                     <SelectItem key="all">All Departments</SelectItem>
                                     {departments.map(department => (
@@ -981,7 +968,7 @@ const ScoreAggregation = ({ title, performanceCycles = [], employees = [], depar
                                     label="Aggregation Method"
                                     selectedKeys={[formData.aggregation_method]}
                                     onSelectionChange={(keys) => handleFormChange('aggregation_method', Array.from(keys)[0])}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 >
                                     {aggregationMethods.map(method => (
                                         <SelectItem key={method.key} description={method.description}>
@@ -1150,7 +1137,7 @@ const ScoreAggregation = ({ title, performanceCycles = [], employees = [], depar
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select

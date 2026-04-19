@@ -26,6 +26,7 @@ import LinearProgressMap from '@/Components/Rfi/LinearProgressMap.jsx';
 import GeoLockedRfiForm from '@/Components/Rfi/GeoLockedRfiForm.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 /**
  * Linear Continuity Dashboard - PATENTABLE COMPONENT
@@ -44,19 +45,8 @@ const LinearContinuityDashboard = ({ title, projects }) => {
     const { auth } = usePage().props;
 
     // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-
-    // Responsive breakpoints
+    const themeRadius = useThemeRadius();
+// Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
 
@@ -279,7 +269,7 @@ const LinearContinuityDashboard = ({ title, projects }) => {
                                             }
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             className="flex-1"
                                         >
                                             {projects?.map((project) => (
@@ -296,7 +286,7 @@ const LinearContinuityDashboard = ({ title, projects }) => {
                                             onSelectionChange={(keys) => setSelectedLayer(Array.from(keys)[0])}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             className="flex-1"
                                         >
                                             {layerOptions.map((layer) => (
@@ -326,7 +316,7 @@ const LinearContinuityDashboard = ({ title, projects }) => {
                                                 }
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                             <Input
                                                 type="number"
@@ -339,7 +329,7 @@ const LinearContinuityDashboard = ({ title, projects }) => {
                                                 }
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                         </div>
                                     </div>

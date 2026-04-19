@@ -14,21 +14,11 @@ import {
 import React, { useEffect, useState } from "react";
 import { useForm } from 'laravel-precognition-react';
 import { showToast } from "@/utils/toastUtils";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
-const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 16) return 'lg';
-    return 'full';
-};
+const themeRadius = useThemeRadius();
 
 const ExpenseClaimForm = ({ claim, categories, open, closeModal, onSuccess, editMode = false }) => {
-    const themeRadius = getThemeRadius();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Format expense_date properly for HTML date input (YYYY-MM-DD)

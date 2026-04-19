@@ -3,24 +3,13 @@ import {ExclamationTriangleIcon, TrashIcon} from '@heroicons/react/24/outline';
 import {Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader} from '@heroui/react';
 import axios from 'axios';
 import {showToast} from '@/utils/toastUtils';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const DeleteDepartmentForm = ({ open, onClose, onSuccess, department }) => {
     const [loading, setLoading] = useState(false);
 
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
     
     // Handle department deletion
     const handleDelete = async () => {
@@ -106,7 +95,7 @@ const DeleteDepartmentForm = ({ open, onClose, onSuccess, department }) => {
             isOpen={open}
             onOpenChange={loading ? undefined : onClose}
             size="lg"
-            radius={getThemeRadius()}
+            radius={themeRadius}
             classNames={{
                 base: "bg-content1",
                 backdrop: "bg-black/50 backdrop-blur-sm",
@@ -140,7 +129,7 @@ const DeleteDepartmentForm = ({ open, onClose, onSuccess, department }) => {
                             border: '1px solid color-mix(in srgb, var(--theme-warning) 30%, transparent)',
                             borderRadius: `var(--borderRadius, 8px)`,
                         }}>
-                            <ExclamationTriangleIcon className="w-6 h-6 flex-shrink-0" style={{ color: 'var(--theme-warning)' }} />
+                            <ExclamationTriangleIcon className="w-6 h-6 shrink-0" style={{ color: 'var(--theme-warning)' }} />
                             <div>
                                 <p className="text-sm font-medium mb-1" style={{
                                     fontFamily: `var(--fontFamily, "Inter")`,
@@ -184,7 +173,7 @@ const DeleteDepartmentForm = ({ open, onClose, onSuccess, department }) => {
                         onPress={onClose} 
                         isDisabled={loading} 
                         variant="light"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         style={{
                             fontFamily: `var(--fontFamily, "Inter")`,
                         }}
@@ -196,7 +185,7 @@ const DeleteDepartmentForm = ({ open, onClose, onSuccess, department }) => {
                         color="danger"
                         isDisabled={loading || department.employee_count > 0}
                         isLoading={loading}
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         startContent={!loading && <TrashIcon className="w-4 h-4" />}
                         style={{
                             fontFamily: `var(--fontFamily, "Inter")`,

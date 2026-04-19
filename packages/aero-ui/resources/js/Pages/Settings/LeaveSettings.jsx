@@ -43,6 +43,7 @@ import {
     MagnifyingGlassIcon,
     CheckCircleIcon,
 } from "@heroicons/react/24/outline";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 import {
     CheckCircleIcon as CheckCircleSolid,
     XCircleIcon as XCircleSolid,
@@ -96,21 +97,8 @@ const LeaveSettings = () => {
     const [newLeaveType, setNewLeaveType] = useState(initialLeaveType);
 
     // Helper function to convert theme borderRadius to HeroUI radius values (following LeavesAdmin pattern)
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-
-    // Form validation
+    const themeRadius = useThemeRadius();
+// Form validation
     const isFormValid = useMemo(() => {
         return newLeaveType.type.trim() && 
                newLeaveType.days && 
@@ -446,7 +434,7 @@ const LeaveSettings = () => {
                                                 onChange={handleInputChange}
                                                 variant="bordered"
                                                 size={isMobile ? "sm" : "md"}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 isRequired
                                                 startContent={<ClockIcon className="w-4 h-4 text-default-400" />}
                                                 aria-label="Enter leave type name"
@@ -469,7 +457,7 @@ const LeaveSettings = () => {
                                                 onChange={handleInputChange}
                                                 variant="bordered"
                                                 size={isMobile ? "sm" : "md"}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 isRequired
                                                 startContent={<CalendarDaysIcon className="w-4 h-4 text-default-400" />}
                                                 aria-label="Enter number of days allocated"
@@ -490,7 +478,7 @@ const LeaveSettings = () => {
                                                 onChange={handleInputChange}
                                                 variant="bordered"
                                                 size={isMobile ? "sm" : "md"}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 startContent={<UserGroupIcon className="w-4 h-4 text-default-400" />}
                                                 aria-label="Enter eligibility criteria"
                                                 classNames={{
@@ -667,7 +655,7 @@ const LeaveSettings = () => {
                                                 onChange={handleInputChange}
                                                 variant="bordered"
                                                 size={isMobile ? "sm" : "md"}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 startContent={<InformationCircleIcon className="w-4 h-4 text-default-400" />}
                                                 aria-label="Enter special conditions"
                                                 classNames={{
@@ -688,7 +676,7 @@ const LeaveSettings = () => {
                                                     onPress={resetForm}
                                                     startContent={<XCircleIcon className="w-4 h-4" />}
                                                     size={isMobile ? "sm" : "md"}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     className="font-semibold"
                                                     aria-label="Cancel editing"
                                                     style={{
@@ -706,7 +694,7 @@ const LeaveSettings = () => {
                                                 isLoading={loading}
                                                 isDisabled={!isFormValid}
                                                 size={isMobile ? "sm" : "md"}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 className="font-semibold"
                                                 aria-label={isEditing ? "Update leave type" : "Add leave type"}
                                                 style={{
@@ -811,7 +799,7 @@ const LeaveSettings = () => {
                                                     startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                                                     variant="bordered"
                                                     size="sm"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     className="w-full"
                                                     aria-label="Search leave types"
                                                     classNames={{
@@ -831,7 +819,7 @@ const LeaveSettings = () => {
                                         <ScrollShadow className="max-h-[600px]">
                                             <Table 
                                                 aria-label="Leave types table"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 className="min-w-full"
                                                 classNames={{
                                                     wrapper: "shadow-none bg-transparent",
@@ -920,7 +908,7 @@ const LeaveSettings = () => {
                                                                         color="primary"
                                                                         variant="flat"
                                                                         size="sm"
-                                                                        radius={getThemeRadius()}
+                                                                        radius={themeRadius}
                                                                         className="font-semibold"
                                                                         style={{
                                                                             fontFamily: `var(--fontFamily, "Inter")`,
@@ -948,7 +936,7 @@ const LeaveSettings = () => {
                                                                             color={leave.carry_forward ? 'success' : 'danger'}
                                                                             variant="flat"
                                                                             size="sm"
-                                                                            radius={getThemeRadius()}
+                                                                            radius={themeRadius}
                                                                             className="text-xs font-medium"
                                                                             style={{
                                                                                 fontFamily: `var(--fontFamily, "Inter")`,
@@ -963,7 +951,7 @@ const LeaveSettings = () => {
                                                                             color={leave.earned_leave ? 'success' : 'warning'}
                                                                             variant="flat"
                                                                             size="sm"
-                                                                            radius={getThemeRadius()}
+                                                                            radius={themeRadius}
                                                                             className="text-xs font-medium"
                                                                             style={{
                                                                                 fontFamily: `var(--fontFamily, "Inter")`,
@@ -978,7 +966,7 @@ const LeaveSettings = () => {
                                                                             color={(leave.requires_approval ?? true) ? 'primary' : 'default'}
                                                                             variant="flat"
                                                                             size="sm"
-                                                                            radius={getThemeRadius()}
+                                                                            radius={themeRadius}
                                                                             className="text-xs font-medium"
                                                                             style={{
                                                                                 fontFamily: `var(--fontFamily, "Inter")`,
@@ -994,7 +982,7 @@ const LeaveSettings = () => {
                                                                                 color="success"
                                                                                 variant="flat"
                                                                                 size="sm"
-                                                                                radius={getThemeRadius()}
+                                                                                radius={themeRadius}
                                                                                 className="text-xs font-medium"
                                                                                 style={{
                                                                                     fontFamily: `var(--fontFamily, "Inter")`,
@@ -1009,7 +997,7 @@ const LeaveSettings = () => {
                                                             <TableCell>
                                                                 {leave.special_conditions ? (
                                                                     <div className="flex items-center gap-2">
-                                                                        <InformationCircleIcon className="w-4 h-4 text-warning-500 flex-shrink-0" />
+                                                                        <InformationCircleIcon className="w-4 h-4 text-warning-500 shrink-0" />
                                                                         <p 
                                                                             className="text-sm text-foreground"
                                                                             style={{
@@ -1040,7 +1028,7 @@ const LeaveSettings = () => {
                                                                             size="sm"
                                                                             onPress={() => editLeaveType(leave.id)}
                                                                             aria-label={`Edit ${leave.type}`}
-                                                                            radius={getThemeRadius()}
+                                                                            radius={themeRadius}
                                                                             style={{
                                                                                 fontFamily: `var(--fontFamily, "Inter")`,
                                                                             }}
@@ -1057,7 +1045,7 @@ const LeaveSettings = () => {
                                                                             onPress={() => prepareDelete(leave)}
                                                                             isLoading={deleteLoading === leave.id}
                                                                             aria-label={`Delete ${leave.type}`}
-                                                                            radius={getThemeRadius()}
+                                                                            radius={themeRadius}
                                                                             style={{
                                                                                 fontFamily: `var(--fontFamily, "Inter")`,
                                                                             }}
@@ -1086,7 +1074,7 @@ const LeaveSettings = () => {
                 onClose={onDeleteModalClose}
                 size="md"
                 backdrop="blur"
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 classNames={{
                     base: "border-[1px] border-divider bg-content1",
                     header: "border-b-[1px] border-divider",
@@ -1126,7 +1114,7 @@ const LeaveSettings = () => {
                             variant="flat" 
                             onPress={onDeleteModalClose}
                             isDisabled={deleteLoading === deleteCandidate?.id}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             style={{
                                 fontFamily: `var(--fontFamily, "Inter")`,
                             }}
@@ -1138,7 +1126,7 @@ const LeaveSettings = () => {
                             onPress={deleteLeaveType}
                             isLoading={deleteLoading === deleteCandidate?.id}
                             startContent={deleteLoading !== deleteCandidate?.id ? <TrashIcon className="w-4 h-4" /> : null}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             style={{
                                 fontFamily: `var(--fontFamily, "Inter")`,
                             }}

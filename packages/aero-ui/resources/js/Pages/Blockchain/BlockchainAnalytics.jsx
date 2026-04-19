@@ -21,23 +21,14 @@ import TokenAnalyticsChart from '@/Components/Charts/TokenAnalyticsChart.jsx';
 import BlockchainMetricsTable from '@/Tables/BlockchainMetricsTable.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const BlockchainAnalytics = ({ title }) => {
     const { auth } = usePage().props;
     const { hasAccess: hrmacHasAccess } = useHRMAC();
     
     // 1. Theme radius helper (REQUIRED)
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
     
     // 2. Responsive breakpoints (REQUIRED)
     const [isMobile, setIsMobile] = useState(false);
@@ -305,7 +296,7 @@ const BlockchainAnalytics = ({ title }) => {
                                                     selectedKeys={selectedNetwork !== 'all' ? [selectedNetwork] : []}
                                                     onSelectionChange={(keys) => setSelectedNetwork(Array.from(keys)[0] || 'all')}
                                                     classNames={{ trigger: "bg-default-100" }}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     variant="bordered"
                                                     size="sm"
                                                     className="w-32"
@@ -323,7 +314,7 @@ const BlockchainAnalytics = ({ title }) => {
                                                     selectedKeys={[timeRange]}
                                                     onSelectionChange={(keys) => setTimeRange(Array.from(keys)[0])}
                                                     classNames={{ trigger: "bg-default-100" }}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     variant="bordered"
                                                     size="sm"
                                                     className="w-28"

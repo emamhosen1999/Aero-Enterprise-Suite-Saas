@@ -18,6 +18,7 @@ import { useForm } from 'laravel-precognition-react';
 import { showToast } from "@/utils/toastUtils";
 import { UserIcon } from "@heroicons/react/24/solid";
 import ProfileAvatar from '@/Components/ProfileAvatar';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 /**
  * Helper to get routes based on context
@@ -52,28 +53,9 @@ const AddEditUserForm = ({user, roles, setUsers, open, closeModal, editMode = fa
     const [hover, setHover] = useState(false);
     const [selectedImage, setSelectedImage] = useState(user?.profile_image_url || user?.profile_image || null);
     const [selectedImageFile, setSelectedImageFile] = useState(null);
-    const [themeRadius, setThemeRadius] = useState('lg');
 
-    // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    // Set theme radius on mount (client-side only)
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            setThemeRadius(getThemeRadius());
-        }
-    }, []);
+    // Theme radius from centralized hook
+    const themeRadius = useThemeRadius();
 
     // Initialize Precognition form with proper method and URL
     const form = useForm(
@@ -260,9 +242,9 @@ const AddEditUserForm = ({user, roles, setUsers, open, closeModal, editMode = fa
             classNames={{
                 base: "backdrop-blur-md max-h-[95vh] my-2",
                 backdrop: "bg-black/50 backdrop-blur-sm",
-                header: "border-b border-divider flex-shrink-0",
+                header: "border-b border-divider shrink-0",
                 body: "overflow-y-auto max-h-[calc(95vh-160px)]",
-                footer: "border-t border-divider flex-shrink-0",
+                footer: "border-t border-divider shrink-0",
                 closeButton: "hover:bg-white/5 active:bg-white/10"
             }}
             style={{

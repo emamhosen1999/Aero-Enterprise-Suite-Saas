@@ -226,7 +226,7 @@ const ContactForm = ({
     // Render success message
     if (isSubmitted) {
         return (
-            <section className="py-12 lg:py-16 bg-white dark:bg-gray-900">
+            <section className="py-12 lg:py-16 bg-background">
                 <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
@@ -318,7 +318,7 @@ const ContactForm = ({
 
     if (layout === 'split') {
         return (
-            <section className="py-12 lg:py-16 bg-white dark:bg-gray-900">
+            <section className="py-12 lg:py-16 bg-background">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
                         {/* Info side */}
@@ -362,7 +362,7 @@ const ContactForm = ({
 
     // Simple layout (default)
     return (
-        <section className="py-12 lg:py-16 bg-white dark:bg-gray-900">
+        <section className="py-12 lg:py-16 bg-background">
             <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
                 {(title || subtitle) && (
                     <motion.div

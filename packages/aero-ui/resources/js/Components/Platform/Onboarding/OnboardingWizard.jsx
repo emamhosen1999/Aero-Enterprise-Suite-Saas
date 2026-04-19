@@ -5,6 +5,7 @@ import { TIMEZONES } from '@/utils/timezones';
 import { showToast } from '@/utils/toastUtils';
 import { router } from '@inertiajs/react';
 import axios from 'axios';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 export default function OnboardingWizard({ open, onClose, plans = [], templates = [] }) {
     const [currentStep, setCurrentStep] = useState(1);
@@ -47,18 +48,8 @@ export default function OnboardingWizard({ open, onClose, plans = [], templates 
     const [errors, setErrors] = useState({});
 
     // Get theme radius
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
-    const themeRadius = getThemeRadius();
 
     const steps = [
         { number: 1, title: 'Basic Information', icon: '📋' },
@@ -543,5 +534,4 @@ export default function OnboardingWizard({ open, onClose, plans = [], templates 
         </Modal>
     );
 }
-
 

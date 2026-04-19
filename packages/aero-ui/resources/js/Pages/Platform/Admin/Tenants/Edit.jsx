@@ -25,20 +25,11 @@ import {
 } from "@heroicons/react/24/outline";
 import { showToast } from '@/utils/toastUtils';
 import App from "@/Layouts/App.jsx";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const Edit = ({ auth, tenantId, title }) => {
     // Theme radius helper (REQUIRED)
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     // Responsive breakpoints (REQUIRED)
     const [isMobile, setIsMobile] = useState(false);
@@ -278,7 +269,7 @@ const Edit = ({ auth, tenantId, title }) => {
                                                 <Button
                                                     isIconOnly
                                                     variant="light"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     onPress={() => router.visit(route('admin.tenants.show', { tenant: tenantId }))}
                                                     className="shrink-0"
                                                 >
@@ -318,7 +309,7 @@ const Edit = ({ auth, tenantId, title }) => {
                                             <div className="flex gap-2 flex-wrap">
                                                 <Button
                                                     variant="flat"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     onPress={() => router.visit(route('admin.tenants.index'))}
                                                     size={isMobile ? "sm" : "md"}
                                                 >
@@ -351,7 +342,7 @@ const Edit = ({ auth, tenantId, title }) => {
                                                             isInvalid={!!errors.name}
                                                             errorMessage={errors.name}
                                                             isRequired
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             classNames={{ inputWrapper: "bg-default-100" }}
                                                         />
                                                         <Input
@@ -363,7 +354,7 @@ const Edit = ({ auth, tenantId, title }) => {
                                                             isInvalid={!!errors.email}
                                                             errorMessage={errors.email}
                                                             isRequired
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             classNames={{ inputWrapper: "bg-default-100" }}
                                                         />
                                                         <Input
@@ -371,7 +362,7 @@ const Edit = ({ auth, tenantId, title }) => {
                                                             placeholder="+1 234 567 8900"
                                                             value={formData.phone}
                                                             onValueChange={(v) => handleChange('phone', v)}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             classNames={{ inputWrapper: "bg-default-100" }}
                                                         />
                                                     </div>
@@ -393,7 +384,7 @@ const Edit = ({ auth, tenantId, title }) => {
                                     value={tenant?.subdomain || ''}
                                     isReadOnly
                                     description="Subdomain cannot be changed after creation"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     classNames={{ inputWrapper: "bg-default-50" }}
                                 />
                                 <div className="flex flex-wrap gap-2">
@@ -423,7 +414,7 @@ const Edit = ({ auth, tenantId, title }) => {
                                     placeholder="Select plan"
                                     selectedKeys={formData.plan_id ? [formData.plan_id] : []}
                                     onSelectionChange={(keys) => handleChange('plan_id', Array.from(keys)[0])}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     classNames={{ trigger: "bg-default-100" }}
                                 >
                                     {plans.map(plan => (
@@ -438,7 +429,7 @@ const Edit = ({ auth, tenantId, title }) => {
                                     value={formData.trial_ends_at}
                                     onChange={(e) => handleChange('trial_ends_at', e.target.value)}
                                     description="Leave empty for no trial"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     classNames={{ inputWrapper: "bg-default-100" }}
                                 />
                                 <Input
@@ -447,7 +438,7 @@ const Edit = ({ auth, tenantId, title }) => {
                                     value={formData.subscription_ends_at}
                                     onChange={(e) => handleChange('subscription_ends_at', e.target.value)}
                                     description="Leave empty for ongoing subscription"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     classNames={{ inputWrapper: "bg-default-100" }}
                                 />
                             </div>
@@ -502,7 +493,7 @@ const Edit = ({ auth, tenantId, title }) => {
                                     color="primary"
                                     className="w-full"
                                     size="lg"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     onPress={handleSubmit}
                                     isLoading={saving}
                                     startContent={!saving && <CheckIcon className="w-5 h-5" />}
@@ -512,7 +503,7 @@ const Edit = ({ auth, tenantId, title }) => {
                                 <Button
                                     variant="flat"
                                     className="w-full"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     onPress={() => router.visit(route('admin.tenants.index'))}
                                 >
                                     Cancel

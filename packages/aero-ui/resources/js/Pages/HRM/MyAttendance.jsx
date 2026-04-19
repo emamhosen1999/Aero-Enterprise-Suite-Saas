@@ -29,19 +29,6 @@ const MyAttendance = ({ title, currentEmployee, attendanceData = [], leaveTypes:
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate } = useHRMAC();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -469,7 +456,7 @@ const MyAttendance = ({ title, currentEmployee, attendanceData = [], leaveTypes:
                                     value={correctionData.date}
                                     onValueChange={(value) => setCorrectionData(prev => ({ ...prev, date: value }))}
                                     type="date"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
                                 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -478,7 +465,7 @@ const MyAttendance = ({ title, currentEmployee, attendanceData = [], leaveTypes:
                                         value={correctionData.clock_in_time}
                                         onValueChange={(value) => setCorrectionData(prev => ({ ...prev, clock_in_time: value }))}
                                         type="time"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                     
                                     <Input
@@ -486,7 +473,7 @@ const MyAttendance = ({ title, currentEmployee, attendanceData = [], leaveTypes:
                                         value={correctionData.clock_out_time}
                                         onValueChange={(value) => setCorrectionData(prev => ({ ...prev, clock_out_time: value }))}
                                         type="time"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                 </div>
 
@@ -495,7 +482,7 @@ const MyAttendance = ({ title, currentEmployee, attendanceData = [], leaveTypes:
                                     placeholder="Select reason for correction"
                                     selectedKeys={correctionData.reason ? [correctionData.reason] : []}
                                     onSelectionChange={(keys) => setCorrectionData(prev => ({ ...prev, reason: Array.from(keys)[0] || '' }))}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 >
                                     <SelectItem key="forgot_clock_in">Forgot to Clock In</SelectItem>
                                     <SelectItem key="forgot_clock_out">Forgot to Clock Out</SelectItem>
@@ -510,7 +497,7 @@ const MyAttendance = ({ title, currentEmployee, attendanceData = [], leaveTypes:
                                     placeholder="Enter additional details"
                                     value={correctionData.notes}
                                     onValueChange={(value) => setCorrectionData(prev => ({ ...prev, notes: value }))}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
                             </div>
                         </ModalBody>
@@ -665,7 +652,7 @@ const MyAttendance = ({ title, currentEmployee, attendanceData = [], leaveTypes:
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select

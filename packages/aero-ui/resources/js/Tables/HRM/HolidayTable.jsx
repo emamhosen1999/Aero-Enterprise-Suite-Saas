@@ -35,22 +35,10 @@ import {
 } from "@heroicons/react/24/outline";
 import {differenceInDays, format, isAfter, isBefore} from 'date-fns';
 import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 // Theme utility function
-const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 12) return 'lg';
-    return 'xl';
-};
-
+const themeRadius = useThemeRadius();
 const HolidayTable = ({ 
     holidaysData, 
     onEdit, 
@@ -233,7 +221,7 @@ const HolidayTable = ({
                         size="sm"
                         variant="bordered"
                         startContent={<span className="text-xs">{typeConfig.icon}</span>}
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         classNames={{
                             base: "border-default-200",
                             content: "text-foreground",
@@ -259,7 +247,7 @@ const HolidayTable = ({
                         size="sm"
                         variant="bordered"
                         startContent={<StatusIcon className="w-3 h-3" />}
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         classNames={{
                             base: "border-default-200",
                             content: "text-foreground",
@@ -331,7 +319,7 @@ const HolidayTable = ({
                                 <MagnifyingGlassIcon className="w-4 h-4 text-default-400" />
                             }
                             variant="bordered"
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             classNames={{
                                 inputWrapper: "border-default-200 hover:border-default-300 focus-within:border-primary",
                                 input: "text-foreground",
@@ -348,7 +336,7 @@ const HolidayTable = ({
                                 isIconOnly={isMobile}
                                 color={showFilters ? 'primary' : 'default'}
                                 onPress={() => setShowFilters(!showFilters)}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 classNames={{
                                     base: "border-default-200 hover:border-default-300",
                                 }}
@@ -385,7 +373,7 @@ const HolidayTable = ({
                                     variant="bordered"
                                     selectedKeys={new Set(typeFilter)}
                                     onSelectionChange={(keys) => setTypeFilter(Array.from(keys))}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     classNames={{ 
                                         trigger: "border-default-200 hover:border-default-300 focus-within:border-primary",
                                         popoverContent: "border-default-200",
@@ -412,7 +400,7 @@ const HolidayTable = ({
                                     variant="bordered"
                                     selectedKeys={new Set(statusFilter)}
                                     onSelectionChange={(keys) => setStatusFilter(Array.from(keys))}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     classNames={{ 
                                         trigger: "border-default-200 hover:border-default-300 focus-within:border-primary",
                                         popoverContent: "border-default-200",
@@ -449,7 +437,7 @@ const HolidayTable = ({
                                     variant="bordered"
                                     selectedKeys={new Set(yearFilter)}
                                     onSelectionChange={(keys) => setYearFilter(Array.from(keys))}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     classNames={{ 
                                         trigger: "border-default-200 hover:border-default-300 focus-within:border-primary",
                                         popoverContent: "border-default-200",
@@ -482,7 +470,7 @@ const HolidayTable = ({
                                     variant="bordered"
                                     selectedKeys={new Set([rowsPerPage.toString()])}
                                     onSelectionChange={(keys) => setRowsPerPage(Number(Array.from(keys)[0]))}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     classNames={{ 
                                         trigger: "border-default-200 hover:border-default-300 focus-within:border-primary",
                                         popoverContent: "border-default-200",
@@ -588,7 +576,7 @@ const HolidayTable = ({
                     page={page}
                     total={pages}
                     onChange={setPage}
-                    radius={getThemeRadius()}
+                    radius={themeRadius}
                     classNames={{
                         wrapper: "border-default-200",
                         item: "border-default-200",
@@ -604,7 +592,7 @@ const HolidayTable = ({
                         size="sm"
                         variant="flat"
                         onPress={() => setPage(1)}
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         style={{
                             fontFamily: `var(--fontFamily, "Inter")`,
                         }}
@@ -616,7 +604,7 @@ const HolidayTable = ({
                         size="sm"
                         variant="flat"
                         onPress={() => setPage(pages)}
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         style={{
                             fontFamily: `var(--fontFamily, "Inter")`,
                         }}
@@ -641,7 +629,7 @@ const HolidayTable = ({
                     background: `color-mix(in srgb, var(--theme-content1) 85%, transparent)`,
                     backdropFilter: 'blur(16px)',
                     border: `1px solid color-mix(in srgb, var(--theme-content2) 50%, transparent)`,
-                    borderRadius: getThemeRadius(),
+                    borderRadius: themeRadius,
                 }}
             >
                 <CardBody className="p-4">
@@ -669,7 +657,7 @@ const HolidayTable = ({
                                 size="md"
                                 variant="bordered"
                                 startContent={<statusConfig.icon className="w-3 h-3" />}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 classNames={{
                                     base: "border-default-200",
                                     content: "text-foreground font-medium",
@@ -689,7 +677,7 @@ const HolidayTable = ({
                                         variant="light"
                                         className="min-w-8 h-8"
                                         style={{
-                                            borderRadius: getThemeRadius(),
+                                            borderRadius: themeRadius,
                                         }}
                                     >
                                         <EllipsisVerticalIcon className="w-4 h-4" />
@@ -738,7 +726,7 @@ const HolidayTable = ({
                                     size="sm"
                                     variant="bordered"
                                     startContent={<span className="text-xs">{typeConfig.icon}</span>}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     classNames={{
                                         base: "border-default-200",
                                         content: "text-foreground font-medium",
@@ -812,7 +800,7 @@ const HolidayTable = ({
         return (
             <Card 
                 className="shadow-md"
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 style={{
                     background: `var(--theme-content1)`,
                     border: `1px solid var(--theme-divider)`,
@@ -865,7 +853,7 @@ const HolidayTable = ({
                             page={page}
                             total={pages}
                             onChange={setPage}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             classNames={{
                                 wrapper: "border-default-200",
                                 item: "border-default-200",
@@ -895,7 +883,7 @@ const HolidayTable = ({
                     topContentPlacement="outside"
                     isCompact
                     removeWrapper
-                    radius={getThemeRadius()}
+                    radius={themeRadius}
                     classNames={{
                         base: "max-h-[520px] overflow-auto",
                         table: "min-h-[200px] w-full",
@@ -976,7 +964,7 @@ const HolidayTable = ({
                         page={page}
                         total={pages}
                         onChange={setPage}
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         classNames={{
                             wrapper: "border-default-200",
                             item: "border-default-200",

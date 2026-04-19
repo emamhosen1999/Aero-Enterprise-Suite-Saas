@@ -38,6 +38,7 @@ import 'leaflet-fullscreen/dist/Leaflet.fullscreen.js';
 import 'leaflet-fullscreen/dist/leaflet.fullscreen.css';
 import L from 'leaflet';
 import { usePage } from "@inertiajs/react";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 // Utility function to replace MUI's alpha function
 const alpha = (color, opacity) => {
@@ -56,16 +57,7 @@ const alpha = (color, opacity) => {
 };
 
 // Helper function to convert theme borderRadius to HeroUI radius values
-const getThemeRadius = () => {
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 16) return 'lg';
-    return 'full';
-};
+const themeRadius = useThemeRadius();
 
 
 // Constants following ISO standards
@@ -1518,7 +1510,7 @@ const UserLocationsCard = React.memo(({ updateMap, selectedDate }) => {
                                         variant="bordered"
                                         color="primary"
                                         size="md"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         onPress={handleRefresh}
                                         startContent={<RefreshCw className="w-4 h-4" />}
                                         style={{

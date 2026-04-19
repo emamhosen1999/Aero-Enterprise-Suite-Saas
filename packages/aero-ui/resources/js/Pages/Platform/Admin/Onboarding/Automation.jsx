@@ -40,6 +40,7 @@ import App from "@/Layouts/App.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
 import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const Automation = ({ 
     stats: initialStats, 
@@ -67,17 +68,7 @@ const Automation = ({
         return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
 
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'xl';
-    };
+    const themeRadius = useThemeRadius();
 
     const canManageAutomation = auth?.permissions?.includes('platform-onboarding.onboarding_automation.manage')
         || auth?.permissions?.includes('*');
@@ -439,19 +430,19 @@ const Automation = ({
                                 label="Rule Name"
                                 placeholder="Enter rule name"
                                 defaultValue={ruleModal.rule?.name || ''}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                             />
                             <Textarea
                                 label="Description"
                                 placeholder="Describe what this rule does"
                                 defaultValue={ruleModal.rule?.description || ''}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                             />
                             <Select
                                 label="Trigger Event"
                                 placeholder="Select trigger"
                                 defaultSelectedKeys={ruleModal.rule?.trigger ? [ruleModal.rule.trigger] : []}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                             >
                                 <SelectItem key="on_registration">On Registration</SelectItem>
                                 <SelectItem key="trial_expiring">Trial Expiring</SelectItem>
@@ -462,7 +453,7 @@ const Automation = ({
                             <Select
                                 label="Email Template"
                                 placeholder="Select email template"
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                             >
                                 <SelectItem key="welcome">Welcome Email</SelectItem>
                                 <SelectItem key="trial_reminder">Trial Reminder</SelectItem>
@@ -494,5 +485,4 @@ const Automation = ({
 Automation.layout = (page) => <App children={page} />;
 
 export default Automation;
-
 

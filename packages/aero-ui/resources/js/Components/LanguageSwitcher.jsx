@@ -103,7 +103,7 @@ const LanguageItem = memo(({ code, lang, isActive, onSelect }) => (
             }
         `}
     >
-        <FlagIcon code={code} className="w-6 h-6 flex-shrink-0" />
+        <FlagIcon code={code} className="w-6 h-6 shrink-0" />
         <div className="flex flex-col flex-1 min-w-0">
             <span className={`font-medium text-sm ${isActive ? 'text-primary' : 'text-foreground'}`}>
                 {lang.nativeName}
@@ -115,7 +115,7 @@ const LanguageItem = memo(({ code, lang, isActive, onSelect }) => (
             )}
         </div>
         {isActive && (
-            <CheckIcon className="w-4 h-4 text-primary flex-shrink-0" />
+            <CheckIcon className="w-4 h-4 text-primary shrink-0" />
         )}
     </button>
 ));

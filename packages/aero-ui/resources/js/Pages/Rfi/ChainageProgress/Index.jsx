@@ -32,6 +32,7 @@ import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 /**
  * ChainageProgressMap - PATENTABLE COMPONENT
@@ -43,19 +44,8 @@ const ChainageProgressIndex = ({ title, workLocations, workLayers, statuses }) =
     const { auth } = usePage().props;
     
     // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
-    // Responsive breakpoints
+    const themeRadius = useThemeRadius();
+// Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
     
@@ -340,7 +330,7 @@ const ChainageProgressIndex = ({ title, workLocations, workLayers, statuses }) =
                                             selectedKeys={selectedLocation ? [String(selectedLocation)] : []}
                                             onSelectionChange={handleLocationChange}
                                             className="min-w-[200px]"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             isRequired
                                         >
                                             {(workLocations || []).map(loc => (
@@ -356,7 +346,7 @@ const ChainageProgressIndex = ({ title, workLocations, workLayers, statuses }) =
                                             selectedKeys={selectedLayer !== 'all' ? [selectedLayer] : []}
                                             onSelectionChange={(keys) => setSelectedLayer(Array.from(keys)[0] || 'all')}
                                             className="min-w-[180px]"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         >
                                             <SelectItem key="all">All Layers</SelectItem>
                                             {(workLayers || []).map(layer => (
@@ -378,7 +368,7 @@ const ChainageProgressIndex = ({ title, workLocations, workLayers, statuses }) =
                                             selectedKeys={selectedStatus !== 'all' ? [selectedStatus] : []}
                                             onSelectionChange={(keys) => setSelectedStatus(Array.from(keys)[0] || 'all')}
                                             className="min-w-[150px]"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         >
                                             <SelectItem key="all">All Statuses</SelectItem>
                                             {Object.entries(statuses || {}).map(([key, label]) => (
@@ -398,7 +388,7 @@ const ChainageProgressIndex = ({ title, workLocations, workLayers, statuses }) =
                                             value={chainageRange.from}
                                             onValueChange={(v) => setChainageRange(prev => ({ ...prev, from: v }))}
                                             className="max-w-[120px]"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             endContent={<span className="text-default-400 text-xs">m</span>}
                                         />
                                         
@@ -409,7 +399,7 @@ const ChainageProgressIndex = ({ title, workLocations, workLayers, statuses }) =
                                             value={chainageRange.to}
                                             onValueChange={(v) => setChainageRange(prev => ({ ...prev, to: v }))}
                                             className="max-w-[120px]"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             endContent={<span className="text-default-400 text-xs">m</span>}
                                         />
                                     </div>

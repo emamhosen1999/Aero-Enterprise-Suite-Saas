@@ -2,6 +2,8 @@
 
 namespace Aero\Core\Providers;
 
+use Illuminate\Support\Facades\Route;
+
 /**
  * Core Module Provider
  *

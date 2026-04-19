@@ -48,6 +48,7 @@ import {
 import axios from 'axios';
 import {PhoneOff} from "lucide-react";
 import ApprovalActions from '@/Components/Leave/ApprovalActions.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 
 const LeaveEmployeeTable = React.forwardRef(({
@@ -90,21 +91,8 @@ const LeaveEmployeeTable = React.forwardRef(({
     );
 
      // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-
-    const topContent = React.useMemo(() => {
+    const themeRadius = useThemeRadius();
+const topContent = React.useMemo(() => {
         const isAllSelected = selectedKeys === "all";
         const hasSelection = isAllSelected || selectedKeys.size > 0;
         const selectedCount = isAllSelected ? leaves.length : selectedKeys.size;
@@ -128,7 +116,7 @@ const LeaveEmployeeTable = React.forwardRef(({
                                     background: `color-mix(in srgb, var(--theme-danger) 20%, transparent)`,
                                     border: `1px solid color-mix(in srgb, var(--theme-danger) 30%, transparent)`,
                                     color: 'var(--theme-danger)',
-                                    borderRadius: getThemeRadius(),
+                                    borderRadius: themeRadius,
                                 }}
                             >
                                 Delete {selectedCount} selected
@@ -304,7 +292,7 @@ const LeaveEmployeeTable = React.forwardRef(({
                     background: colors.bg,
                     border: `1px solid ${colors.border}`,
                     color: colors.color,
-                    borderRadius: getThemeRadius(),
+                    borderRadius: themeRadius,
                 }}
             >
                 {status}
@@ -346,7 +334,7 @@ const LeaveEmployeeTable = React.forwardRef(({
                     background: `color-mix(in srgb, var(--theme-content1) 85%, transparent)`,
                     backdropFilter: 'blur(16px)',
                     border: `1px solid color-mix(in srgb, var(--theme-content2) 50%, transparent)`,
-                    borderRadius: getThemeRadius(),
+                    borderRadius: themeRadius,
                 }}
             >
                 <CardBody className="p-3">
@@ -459,7 +447,7 @@ const LeaveEmployeeTable = React.forwardRef(({
                                     background: 'color-mix(in srgb, var(--theme-content2) 50%, transparent)',
                                     border: `1px solid color-mix(in srgb, var(--theme-content3) 50%, transparent)`,
                                     color: 'var(--theme-foreground)',
-                                    borderRadius: getThemeRadius(),
+                                    borderRadius: themeRadius,
                                 }}
                             >
                                 {duration}
@@ -770,7 +758,7 @@ const LeaveEmployeeTable = React.forwardRef(({
                             color="primary"
                             variant="bordered"
                             page={currentPage}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             total={lastPage}
                             onChange={handlePageChange}
                             
@@ -803,7 +791,7 @@ const LeaveEmployeeTable = React.forwardRef(({
                     removeWrapper
                     aria-label="Leave Management Table"
                     disabledBehavior="selection"
-                    radius={getThemeRadius()}
+                    radius={themeRadius}
                     classNames={{
                         base: "max-h-[520px] overflow-auto",
                         table: "min-h-[200px] w-full",
@@ -886,7 +874,7 @@ const LeaveEmployeeTable = React.forwardRef(({
                         color="primary"
                         variant="bordered"
                         page={currentPage}
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         total={lastPage}
                         onChange={handlePageChange}
                         

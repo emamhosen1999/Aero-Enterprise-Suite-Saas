@@ -8,25 +8,15 @@ import StatsCards from '@/Components/StatsCards.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const WeatherLogsIndex = ({ title }) => {
     const { auth } = usePage().props;
     const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
     // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
-    // Responsive breakpoints
+    const themeRadius = useThemeRadius();
+// Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
     
@@ -413,7 +403,7 @@ const WeatherLogsIndex = ({ title }) => {
                                             onSelectionChange={(keys) => handleFilterChange('weather_condition', Array.from(keys)[0] || 'all')}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             classNames={{ trigger: "bg-default-100" }}
                                         >
                                             <SelectItem key="all">All Conditions</SelectItem>
@@ -432,7 +422,7 @@ const WeatherLogsIndex = ({ title }) => {
                                             onSelectionChange={(keys) => handleFilterChange('work_impact', Array.from(keys)[0] || 'all')}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             classNames={{ trigger: "bg-default-100" }}
                                         >
                                             <SelectItem key="all">All Impact</SelectItem>

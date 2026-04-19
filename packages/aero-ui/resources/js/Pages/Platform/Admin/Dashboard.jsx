@@ -188,7 +188,7 @@ const PlatformStatusHero = ({ stats, loading, themeRadius, onRefresh, refreshing
     <CardHeader className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 border-b p-4 sm:p-6" style={getHeaderStyle()}>
       <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0 flex-1">
         <div 
-          className="p-2.5 sm:p-3 flex-shrink-0"
+          className="p-2.5 sm:p-3 shrink-0"
           style={{
             borderRadius: `var(--borderRadius, 12px)`,
             background: `linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%)`,
@@ -199,7 +199,7 @@ const PlatformStatusHero = ({ stats, loading, themeRadius, onRefresh, refreshing
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1">
             <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground truncate">{greeting}, {auth?.user?.name || 'Admin'}!</h1>
-            <Chip color={statusConfig.color} variant="flat" size="sm" startContent={<StatusIcon className="h-3 w-3" />} className="flex-shrink-0">
+            <Chip color={statusConfig.color} variant="flat" size="sm" startContent={<StatusIcon className="h-3 w-3" />} className="shrink-0">
               {statusConfig.label}
             </Chip>
           </div>
@@ -208,7 +208,7 @@ const PlatformStatusHero = ({ stats, loading, themeRadius, onRefresh, refreshing
           </p>
         </div>
       </div>
-      <div className="flex gap-2 flex-wrap flex-shrink-0">
+      <div className="flex gap-2 flex-wrap shrink-0">
         <Button 
           variant="flat" 
           radius={themeRadius} 
@@ -237,7 +237,7 @@ const PlatformStatusHero = ({ stats, loading, themeRadius, onRefresh, refreshing
             <p className="text-[10px] sm:text-xs text-default-500 uppercase tracking-wide mb-1 truncate">Active Tenants</p>
             <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{stats?.activeTenants ?? 0}</p>
             <p className="text-[10px] sm:text-xs text-success flex items-center justify-center gap-1 mt-1">
-              <ArrowTrendingUpIcon className="h-3 w-3 flex-shrink-0" /> <span className="truncate">+{stats?.newThisWeek ?? 0} this week</span>
+              <ArrowTrendingUpIcon className="h-3 w-3 shrink-0" /> <span className="truncate">+{stats?.newThisWeek ?? 0} this week</span>
             </p>
           </div>
           <div className="p-3 sm:p-4 text-center" style={getItemStyle()}>
@@ -249,7 +249,7 @@ const PlatformStatusHero = ({ stats, loading, themeRadius, onRefresh, refreshing
             <p className="text-[10px] sm:text-xs text-default-500 uppercase tracking-wide mb-1 truncate">Monthly Revenue</p>
             <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-success">{stats?.formatted?.mrr ?? `$${((stats?.mrr ?? 0)/1000).toFixed(0)}K`}</p>
             <p className="text-[10px] sm:text-xs text-success flex items-center justify-center gap-1 mt-1">
-              <ArrowTrendingUpIcon className="h-3 w-3 flex-shrink-0" /> <span>+{stats?.mrrGrowth ?? 0}%</span>
+              <ArrowTrendingUpIcon className="h-3 w-3 shrink-0" /> <span>+{stats?.mrrGrowth ?? 0}%</span>
             </p>
           </div>
           <div className="p-3 sm:p-4 text-center" style={getItemStyle()}>
@@ -294,7 +294,7 @@ const KeyMetricsGrid = ({ stats, loading, canViewBilling = true }) => {
               <CardBody className="p-3 sm:p-4">
                 <div className="flex items-start justify-between gap-2 mb-2 sm:mb-3">
                   <div 
-                    className="p-1.5 sm:p-2 flex-shrink-0"
+                    className="p-1.5 sm:p-2 shrink-0"
                     style={{
                       borderRadius: `var(--borderRadius, 8px)`,
                       background: `color-mix(in srgb, ${metric.color} 15%, transparent)`,
@@ -306,7 +306,7 @@ const KeyMetricsGrid = ({ stats, loading, canViewBilling = true }) => {
                     <Chip 
                       size="sm" 
                       variant="flat" 
-                      className="flex-shrink-0 text-[10px] sm:text-xs px-1.5 sm:px-2"
+                      className="shrink-0 text-[10px] sm:text-xs px-1.5 sm:px-2"
                       color={metric.trend === 'up' ? 'success' : metric.trend === 'down' && metric.label === 'Churn Rate' ? 'success' : 'danger'}
                       startContent={metric.trend === 'up' ? <ArrowTrendingUpIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> : <ArrowTrendingDownIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3" />}
                     >
@@ -333,7 +333,7 @@ const ModuleUsageCard = ({ modules, loading, themeRadius }) => (
         <p className="text-[10px] sm:text-xs uppercase tracking-wide text-default-500">Module Adoption</p>
         <h3 className="text-base sm:text-lg font-semibold text-foreground truncate">Active Modules by Tenant</h3>
       </div>
-      <Button as={Link} href={route('admin.modules.index')} size="sm" variant="flat" color="primary" radius={themeRadius} className="flex-shrink-0 w-full sm:w-auto">
+      <Button as={Link} href={route('admin.modules.index')} size="sm" variant="flat" color="primary" radius={themeRadius} className="shrink-0 w-full sm:w-auto">
         Manage Modules
       </Button>
     </CardHeader>
@@ -353,7 +353,7 @@ const ModuleUsageCard = ({ modules, loading, themeRadius }) => (
             >
               <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
                 <div 
-                  className="p-1.5 sm:p-2 rounded-lg flex-shrink-0"
+                  className="p-1.5 sm:p-2 rounded-lg shrink-0"
                   style={{ background: `color-mix(in srgb, ${module.color} 15%, transparent)` }}
                 >
                   <module.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" style={{ color: module.color }} />
@@ -394,13 +394,13 @@ const SubscriptionDistributionCard = ({ plans, loading, themeRadius }) => {
               <div className="flex flex-wrap items-center justify-between gap-1 sm:gap-2 mb-2">
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                   <div 
-                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex-shrink-0" 
+                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full shrink-0" 
                     style={{ background: plan.color }}
                   />
                   <span className="font-medium text-foreground text-xs sm:text-sm truncate">{plan.name}</span>
                   <Chip size="sm" variant="flat" className="hidden sm:flex text-[10px] px-1.5">${plan.price}/mo</Chip>
                 </div>
-                <span className="text-xs sm:text-sm font-semibold text-foreground flex-shrink-0">{plan.count} tenants</span>
+                <span className="text-xs sm:text-sm font-semibold text-foreground shrink-0">{plan.count} tenants</span>
               </div>
               <div className="flex items-center gap-2 sm:gap-3">
                 <Progress 
@@ -409,7 +409,7 @@ const SubscriptionDistributionCard = ({ plans, loading, themeRadius }) => {
                   className="flex-1 h-1.5 sm:h-2"
                   style={{ '--progress-color': plan.color }}
                 />
-                <span className="text-[10px] sm:text-sm text-default-500 w-16 sm:w-20 text-right flex-shrink-0">
+                <span className="text-[10px] sm:text-sm text-default-500 w-16 sm:w-20 text-right shrink-0">
                   ${(plan.mrr/1000).toFixed(0)}K
                 </span>
               </div>
@@ -445,7 +445,7 @@ const RecentTenantsCard = ({ tenants, loading, themeRadius }) => {
           <p className="text-[10px] sm:text-xs uppercase tracking-wide text-default-500">Recent Activity</p>
           <h3 className="text-base sm:text-lg font-semibold text-foreground">New Tenants</h3>
         </div>
-        <Button as={Link} href={route('admin.tenants.index')} size="sm" variant="flat" color="primary" radius={themeRadius} className="flex-shrink-0 w-full sm:w-auto">
+        <Button as={Link} href={route('admin.tenants.index')} size="sm" variant="flat" color="primary" radius={themeRadius} className="shrink-0 w-full sm:w-auto">
           View All
         </Button>
       </CardHeader>
@@ -465,7 +465,7 @@ const RecentTenantsCard = ({ tenants, loading, themeRadius }) => {
                   <Avatar 
                     name={tenant.name} 
                     size="sm" 
-                    className="flex-shrink-0"
+                    className="shrink-0"
                     style={{ 
                       background: `linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%)`,
                       color: 'white',
@@ -476,7 +476,7 @@ const RecentTenantsCard = ({ tenants, loading, themeRadius }) => {
                     <p className="text-[10px] sm:text-xs text-default-500 truncate">{tenant.domain}.aeos365.com · {tenant.createdAt}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 sm:gap-3 flex-wrap flex-shrink-0 ml-8 sm:ml-0">
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap shrink-0 ml-8 sm:ml-0">
                   <Chip size="sm" variant="flat" color={getStatusColor(tenant.status)} className="text-[10px] sm:text-xs">
                     {tenant.status}
                   </Chip>
@@ -523,7 +523,7 @@ const SystemHealthCard = ({ health, loading, themeRadius }) => {
           <p className="text-[10px] sm:text-xs uppercase tracking-wide text-default-500">Infrastructure</p>
           <h3 className="text-base sm:text-lg font-semibold text-foreground truncate">System Health</h3>
         </div>
-        <Button as={Link} href="/admin/infrastructure" size="sm" variant="flat" color="warning" radius={themeRadius} className="flex-shrink-0 w-full sm:w-auto">
+        <Button as={Link} href="/admin/infrastructure" size="sm" variant="flat" color="warning" radius={themeRadius} className="shrink-0 w-full sm:w-auto">
           View Details
         </Button>
       </CardHeader>
@@ -564,7 +564,7 @@ const SystemHealthCard = ({ health, loading, themeRadius }) => {
                     {getStatusIcon(service.status)}
                     <span className="text-xs sm:text-sm text-foreground truncate">{service.name}</span>
                   </div>
-                  <span className="text-[10px] sm:text-xs text-default-500 flex-shrink-0">{service.latency}</span>
+                  <span className="text-[10px] sm:text-xs text-default-500 shrink-0">{service.latency}</span>
                 </div>
               ))}
             </div>
@@ -598,7 +598,7 @@ const AlertsCard = ({ alerts, loading, themeRadius }) => {
             <BellAlertIcon className="h-4 w-4 sm:h-5 sm:w-5 text-default-400" />
           </Badge>
         </div>
-        <Button size="sm" variant="flat" color="danger" radius={themeRadius} className="flex-shrink-0 w-full sm:w-auto">
+        <Button size="sm" variant="flat" color="danger" radius={themeRadius} className="shrink-0 w-full sm:w-auto">
           View All
         </Button>
       </CardHeader>
@@ -621,7 +621,7 @@ const AlertsCard = ({ alerts, loading, themeRadius }) => {
               >
                 <div className="flex items-start gap-2 sm:gap-3">
                   <div 
-                    className="p-1.5 sm:p-2 rounded-lg flex-shrink-0"
+                    className="p-1.5 sm:p-2 rounded-lg shrink-0"
                     style={{ background: `color-mix(in srgb, ${config.bg} 15%, transparent)` }}
                   >
                     <config.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" style={{ color: config.bg }} />
@@ -629,7 +629,7 @@ const AlertsCard = ({ alerts, loading, themeRadius }) => {
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
                       <p className="font-medium text-foreground text-xs sm:text-sm truncate max-w-[180px] sm:max-w-none">{alert.title}</p>
-                      <Chip size="sm" color={config.color} variant="flat" className="text-[10px] px-1.5 flex-shrink-0">{alert.severity}</Chip>
+                      <Chip size="sm" color={config.color} variant="flat" className="text-[10px] px-1.5 shrink-0">{alert.severity}</Chip>
                     </div>
                     <p className="text-[10px] sm:text-xs text-default-500 line-clamp-2">{alert.description}</p>
                     <p className="text-[10px] sm:text-xs text-default-400 mt-1">{alert.time}</p>
@@ -682,7 +682,7 @@ const RecentActivityCard = ({ activities, loading, themeRadius }) => (
         <p className="text-[10px] sm:text-xs uppercase tracking-wide text-default-500">Timeline</p>
         <h3 className="text-base sm:text-lg font-semibold text-foreground">Recent Activity</h3>
       </div>
-      <Button size="sm" variant="flat" color="primary" radius={themeRadius} className="flex-shrink-0 w-full sm:w-auto">
+      <Button size="sm" variant="flat" color="primary" radius={themeRadius} className="shrink-0 w-full sm:w-auto">
         View All
       </Button>
     </CardHeader>
@@ -696,7 +696,7 @@ const RecentActivityCard = ({ activities, loading, themeRadius }) => (
           {activities.map((activity, index) => (
             <div key={index} className="flex items-start gap-2 sm:gap-3">
               <div 
-                className="p-1.5 sm:p-2 rounded-lg flex-shrink-0"
+                className="p-1.5 sm:p-2 rounded-lg shrink-0"
                 style={{ 
                   background: `color-mix(in srgb, var(--theme-${activity.color}) 15%, transparent)` 
                 }}
@@ -723,7 +723,7 @@ const BillingOverviewCard = ({ billing, loading, themeRadius }) => (
         <p className="text-[10px] sm:text-xs uppercase tracking-wide text-default-500">Financials</p>
         <h3 className="text-base sm:text-lg font-semibold text-foreground truncate">Billing Overview</h3>
       </div>
-      <Button as={Link} href="/admin/billing" size="sm" variant="flat" color="success" radius={themeRadius} className="flex-shrink-0 w-full sm:w-auto">
+      <Button as={Link} href="/admin/billing" size="sm" variant="flat" color="success" radius={themeRadius} className="shrink-0 w-full sm:w-auto">
         Billing Portal
       </Button>
     </CardHeader>

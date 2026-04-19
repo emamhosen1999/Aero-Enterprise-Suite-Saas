@@ -20,7 +20,7 @@ const KanbanColumn = ({ stage, color, onViewCandidate, themeRadius }) => {
     return (
         <motion.div
             layout
-            className="flex-shrink-0 w-80"
+            className="shrink-0 w-80"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}

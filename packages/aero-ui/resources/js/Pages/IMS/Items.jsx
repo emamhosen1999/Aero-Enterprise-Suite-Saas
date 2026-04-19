@@ -126,7 +126,7 @@ const Items = ({ items = [], categories = [], brands = [], auth }) => {
                         src={item.image}
                         name={item.name}
                         size="md"
-                        className="flex-shrink-0"
+                        className="shrink-0"
                         showFallback
                     />
                 );

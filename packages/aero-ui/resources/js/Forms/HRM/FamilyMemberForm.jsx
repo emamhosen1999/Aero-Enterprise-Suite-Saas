@@ -3,22 +3,11 @@ import {Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader,
 import {Users} from "lucide-react";
 import {showToast} from "@/utils/toastUtils";
 import { safeRoute } from "@/utils/routeUtils";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const FamilyMemberForm = ({ user, open, closeModal, handleDelete, setUser }) => {
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     const [initialUserData, setInitialUserData] = useState({
         id: user.id,
@@ -163,7 +152,7 @@ const FamilyMemberForm = ({ user, open, closeModal, handleDelete, setUser }) => 
             isOpen={open}
             onOpenChange={processing ? undefined : closeModal}
             size="2xl"
-            radius={getThemeRadius()}
+            radius={themeRadius}
             scrollBehavior="inside"
             classNames={{
                 base: "bg-content1",
@@ -204,7 +193,7 @@ const FamilyMemberForm = ({ user, open, closeModal, handleDelete, setUser }) => 
                                 isInvalid={Boolean(errors.family_member_name)}
                                 errorMessage={errors.family_member_name}
                                 size="sm"
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 classNames={{
                                     input: "text-small",
                                     inputWrapper: "min-h-unit-10"
@@ -223,7 +212,7 @@ const FamilyMemberForm = ({ user, open, closeModal, handleDelete, setUser }) => 
                                 isInvalid={Boolean(errors.family_member_relationship)}
                                 errorMessage={errors.family_member_relationship}
                                 size="sm"
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 classNames={{
                                     input: "text-small",
                                     inputWrapper: "min-h-unit-10"
@@ -243,7 +232,7 @@ const FamilyMemberForm = ({ user, open, closeModal, handleDelete, setUser }) => 
                                 isInvalid={Boolean(errors.family_member_dob)}
                                 errorMessage={errors.family_member_dob}
                                 size="sm"
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 classNames={{
                                     input: "text-small",
                                     inputWrapper: "min-h-unit-10"
@@ -262,7 +251,7 @@ const FamilyMemberForm = ({ user, open, closeModal, handleDelete, setUser }) => 
                                 isInvalid={Boolean(errors.family_member_phone)}
                                 errorMessage={errors.family_member_phone}
                                 size="sm"
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 classNames={{
                                     input: "text-small",
                                     inputWrapper: "min-h-unit-10"
@@ -282,7 +271,7 @@ const FamilyMemberForm = ({ user, open, closeModal, handleDelete, setUser }) => 
                         onPress={closeModal}
                         isDisabled={processing}
                         variant="light"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         style={{
                             fontFamily: `var(--fontFamily, "Inter")`,
                         }}
@@ -295,7 +284,7 @@ const FamilyMemberForm = ({ user, open, closeModal, handleDelete, setUser }) => 
                         color="primary"
                         type="submit"
                         isLoading={processing}
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         style={{
                             fontFamily: `var(--fontFamily, "Inter")`,
                         }}

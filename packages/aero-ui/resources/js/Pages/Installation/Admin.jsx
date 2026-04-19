@@ -24,6 +24,7 @@ import {
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 /**
  * Admin Account Creation Page
@@ -58,17 +59,8 @@ export default function Admin() {
     const [passwordStrength, setPasswordStrength] = useState({ score: 0, label: '', color: '' });
 
     useEffect(() => {
-        const getThemeRadius = () => {
-            const rootStyles = getComputedStyle(document.documentElement);
-            const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-            const radiusValue = parseInt(borderRadius);
-            if (radiusValue === 0) return 'none';
-            if (radiusValue <= 4) return 'sm';
-            if (radiusValue <= 8) return 'md';
-            if (radiusValue <= 12) return 'lg';
-            return 'xl';
-        };
-        setThemeRadius(getThemeRadius());
+        const themeRadius = useThemeRadius();
+        setThemeRadius(themeRadius);
     }, []);
 
     // Calculate password strength

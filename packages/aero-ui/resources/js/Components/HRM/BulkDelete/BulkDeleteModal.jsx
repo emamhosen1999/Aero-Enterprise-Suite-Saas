@@ -20,6 +20,7 @@ import {
 
 import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const BulkDeleteModal = ({ 
     open, 
@@ -29,19 +30,7 @@ const BulkDeleteModal = ({
     allUsers = []
 }) => {
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
     // State
     const [isDeleting, setIsDeleting] = useState(false);
     const [errors, setErrors] = useState({});
@@ -157,7 +146,7 @@ const BulkDeleteModal = ({
             isOpen={open} 
             onClose={onClose}
             size="2xl"
-            radius={getThemeRadius()}
+            radius={themeRadius}
             scrollBehavior="inside"
             classNames={{
                 base: "backdrop-blur-md mx-2 my-2 sm:mx-4 sm:my-8 max-h-[95vh]",
@@ -267,7 +256,7 @@ const BulkDeleteModal = ({
                                                                         leave.status?.toLowerCase() === 'pending' ? 'warning' :
                                                                         leave.status?.toLowerCase() === 'rejected' ? 'danger' : 'default'
                                                                     }
-                                                                    radius={getThemeRadius()}
+                                                                    radius={themeRadius}
                                                                     style={{
                                                                         borderRadius: `var(--borderRadius, 8px)`,
                                                                     }}
@@ -279,7 +268,7 @@ const BulkDeleteModal = ({
                                                                         size="sm" 
                                                                         variant="bordered" 
                                                                         color="danger"
-                                                                        radius={getThemeRadius()}
+                                                                        radius={themeRadius}
                                                                         style={{
                                                                             borderRadius: `var(--borderRadius, 8px)`,
                                                                         }}
@@ -333,7 +322,7 @@ const BulkDeleteModal = ({
                                 color="default"
                                 variant="bordered"
                                 onPress={onModalClose}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 size="sm"
                                 isDisabled={isDeleting}
                                 style={{
@@ -350,7 +339,7 @@ const BulkDeleteModal = ({
                                 isLoading={isDeleting}
                                 isDisabled={!canDelete || isDeleting || selectedLeaves.length === 0}
                                 startContent={!isDeleting && <TrashIcon className="w-4 h-4" />}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 size="sm"
                                 style={{
                                     borderRadius: `var(--borderRadius, 8px)`,

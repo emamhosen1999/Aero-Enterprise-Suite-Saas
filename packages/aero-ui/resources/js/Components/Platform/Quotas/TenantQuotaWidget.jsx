@@ -22,22 +22,14 @@ import {
   FolderIcon,
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { router } from '@inertiajs/react';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // THEME UTILITIES
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const getThemeRadius = () => {
-  if (typeof window === 'undefined') return 'lg';
-  const rootStyles = getComputedStyle(document.documentElement);
-  const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-  const radiusValue = parseInt(borderRadius);
-  if (radiusValue === 0) return 'none';
-  if (radiusValue <= 4) return 'sm';
-  if (radiusValue <= 8) return 'md';
-  if (radiusValue <= 12) return 'lg';
-  return 'xl';
-};
+const themeRadius = useThemeRadius();
 
 const getCardStyle = () => ({
   background: `linear-gradient(135deg, var(--theme-content1, #FAFAFA) 0%, var(--theme-content2, #F4F4F5) 100%)`,
@@ -70,7 +62,7 @@ export default function TenantQuotaWidget({ tenantId, initialQuotas, collapsible
   const [themeRadius, setThemeRadius] = useState('lg');
 
   useEffect(() => {
-    setThemeRadius(getThemeRadius());
+    setThemeRadius(themeRadius);
   }, []);
 
   // Fetch quota data
@@ -281,7 +273,7 @@ export default function TenantQuotaWidget({ tenantId, initialQuotas, collapsible
                 color="primary"
                 variant="flat"
                 className="w-full"
-                onPress={() => window.location.href = route('tenant.quotas.details')}
+                onPress={() => router.visit(route('tenant.quotas.details'))}
               >
                 View Detailed Usage
               </Button>

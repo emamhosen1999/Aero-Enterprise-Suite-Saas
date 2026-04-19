@@ -69,6 +69,7 @@ import {
 } from '@heroicons/react/24/solid';
 import axios from 'axios';
 import { jsPDF } from "jspdf";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const RfisTable = ({ 
     allData, 
@@ -94,21 +95,8 @@ const RfisTable = ({
     const isMobile = useMediaQuery('(max-width: 640px)');
 
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-
-    // Handle refresh functionality
+    const themeRadius = useThemeRadius();
+// Handle refresh functionality
     const handleRefresh = useCallback(() => {
         router.reload({ only: ['allData', 'reports_with_rfis'], onSuccess: () => {
             showToast.success('Daily works data refreshed successfully');
@@ -955,7 +943,7 @@ const RfisTable = ({
                     {Array.from({ length: 5 }).map((_, index) => (
                         <Card
                             key={index}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             className="mb-2 bg-content1/98 backdrop-blur-sm border border-divider/30"
                         >
                             <CardHeader className="pb-2 px-3 py-3 flex flex-col relative">
@@ -1003,7 +991,7 @@ const RfisTable = ({
             return (
                 <Card
                     key={work.id}
-                    radius={getThemeRadius()}
+                    radius={themeRadius}
                     className="mb-2 bg-content1/98 backdrop-blur-sm border border-divider/30 shadow-sm hover:shadow-md transition-all duration-200"
                     style={{
                         fontFamily: `var(--fontFamily, "Inter")`,
@@ -1123,7 +1111,7 @@ const RfisTable = ({
                                         size="sm"
                                         type="datetime-local"
                                         variant="bordered"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         value={work.completion_time
                                             ? new Date(work.completion_time).toLocaleString('sv-SE').replace(' ', 'T').slice(0, 16)
                                             : ''
@@ -1154,7 +1142,7 @@ const RfisTable = ({
                                         <Select
                                             size="sm"
                                             variant="bordered"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             placeholder="Select in-charge"
                                             aria-label="Select in-charge person"
                                             selectedKeys={work.incharge && finalInCharges.find(user => user.id === parseInt(work.incharge)) 
@@ -1229,7 +1217,7 @@ const RfisTable = ({
                                         <Select
                                             size="sm"
                                             variant="bordered"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             placeholder="Select assignee"
                                             aria-label="Select assigned person"
                                             selectedKeys={work.assigned && getAvailableAssignees(work.incharge).find(user => user.id === parseInt(work.assigned))
@@ -1346,7 +1334,7 @@ const RfisTable = ({
                                             }
                                         }}
                                         isDisabled={updatingWorkId === work.id}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         classNames={{
                                             trigger: `min-h-8 w-full transition-colors`,
                                             value: "text-sm font-medium",
@@ -1407,7 +1395,7 @@ const RfisTable = ({
                                             size="sm"
                                             type="date"
                                             variant="bordered"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             value={work.rfi_submission_date ? 
                                                 new Date(work.rfi_submission_date).toISOString().slice(0, 10) : ''
                                             }
@@ -1433,7 +1421,7 @@ const RfisTable = ({
                                         size="sm"
                                         variant="ghost"
                                         color="primary"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         onPress={() => {
                                             setCurrentRow(work);
                                             openModal("editRfi");
@@ -1446,7 +1434,7 @@ const RfisTable = ({
                                         size="sm"
                                         variant="ghost"
                                         color="danger"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         onPress={() => handleClickOpen(work.id, "deleteRfi")}
                                         startContent={<TrashIcon className="w-4 h-4" />}
                                     >
@@ -1626,7 +1614,7 @@ const RfisTable = ({
                                         }
                                     }}
                                     isDisabled={updatingWorkId === work.id}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     classNames={{
                                         trigger: `min-h-10 w-full transition-colors`,
                                         value: "text-sm font-medium",
@@ -1805,7 +1793,7 @@ const RfisTable = ({
                                 <Select
                                     size="sm"
                                     variant="bordered"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     placeholder="Select in-charge"
                                     aria-label="Select in-charge person"
                                     selectedKeys={work.incharge && finalInCharges.find(user => user.id === parseInt(work.incharge)) 
@@ -1932,7 +1920,7 @@ const RfisTable = ({
                                 <Select
                                     size="sm"
                                     variant="bordered"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     placeholder="Select assignee"
                                     aria-label="Select assigned person"
                                     selectedKeys={work.assigned && getAvailableAssignees(work.incharge).find(user => user.id === parseInt(work.assigned))
@@ -2125,7 +2113,7 @@ const RfisTable = ({
                                     size="sm"
                                     variant="ghost"
                                     color="primary"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     onPress={() => {
                                         if (updatingWorkId === work.id) return;
                                         setCurrentRow(work);
@@ -2142,7 +2130,7 @@ const RfisTable = ({
                                     size="sm"
                                     variant="ghost"
                                     color="danger"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     onPress={() => {
                                         if (updatingWorkId === work.id) return;
                                         setCurrentRow(work);
@@ -2203,7 +2191,7 @@ const RfisTable = ({
                             total={lastPage}
                             onChange={handlePageChange}
                             size="sm"
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             classNames={{
                                 wrapper: "bg-content1/80 backdrop-blur-md border-divider/50",
                                 item: "bg-content1/50 border-divider/30",
@@ -2309,7 +2297,7 @@ const RfisTable = ({
                     variant="flat"
                     color="primary"
                     size="sm"
-                    radius={getThemeRadius()}
+                    radius={themeRadius}
                     style={{
                         backgroundColor: 'rgba(var(--color-primary), 0.1)',
                         borderColor: 'rgba(var(--color-primary), 0.3)',
@@ -2330,7 +2318,7 @@ const RfisTable = ({
                     isStriped
                     aria-label="RFIs Management Table"
                     isHeaderSticky
-                    radius={getThemeRadius()}
+                    radius={themeRadius}
                     classNames={{
                         base: "max-h-[520px] overflow-auto",
                         table: "min-h-[200px] w-full",
@@ -2400,7 +2388,7 @@ const RfisTable = ({
                         total={lastPage}
                         onChange={handlePageChange}
                         size={isMediumScreen ? "sm" : "md"}
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         classNames={{
                             wrapper: "bg-content1/80 backdrop-blur-md border-divider/50",
                             item: "bg-content1/50 border-divider/30",

@@ -693,3 +693,96 @@ button .text-3d-float,
     display: inline-block;
     transform-style: preserve-3d;
 }
+
+/* ============================================
+   PRINT MEDIA STYLES
+   Hide UI chrome, format content for paper/PDF
+   Enterprise-grade print output
+   ============================================ */
+@media print {
+    /* Hide all navigation chrome */
+    header,
+    footer,
+    nav,
+    [data-slot="sidebar"],
+    [data-slot="bottom-nav"],
+    .no-print,
+    .print\\:hidden {
+        display: none !important;
+    }
+
+    /* Show print-only elements */
+    .print-only,
+    .print\\:block {
+        display: block !important;
+    }
+
+    /* Reset the app shell — full width, no overflow clipping */
+    body {
+        margin: 0;
+        padding: 0;
+        background: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    #app,
+    #app > div {
+        overflow: visible !important;
+        height: auto !important;
+    }
+
+    /* Main content area — remove flex constraints */
+    main,
+    [role="main"] {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: visible !important;
+        flex: none !important;
+    }
+
+    /* Cards — flatten for paper */
+    .aero-card,
+    [data-slot="base"] {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        background: white !important;
+    }
+
+    /* Tables — ensure headers repeat per printed page */
+    table thead {
+        display: table-header-group;
+    }
+
+    table tbody tr {
+        page-break-inside: avoid;
+    }
+
+    /* Hide floating elements */
+    .fixed,
+    [class*="fixed"] {
+        position: static !important;
+    }
+
+    /* Hide interactive controls that make no sense on paper */
+    .z-50,
+    [class*="z-50"] {
+        display: none !important;
+    }
+
+    /* Remove animations */
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+
+    /* A4 page setup */
+    @page {
+        size: A4;
+        margin: 15mm;
+    }
+}

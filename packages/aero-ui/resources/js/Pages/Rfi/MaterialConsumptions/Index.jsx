@@ -38,25 +38,15 @@ import StatsCards from '@/Components/StatsCards.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const MaterialConsumptions = ({ title }) => {
     const { auth } = usePage().props;
     const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
 
     // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-
-    // Responsive breakpoints
+    const themeRadius = useThemeRadius();
+// Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
 
@@ -379,7 +369,7 @@ const MaterialConsumptions = ({ title }) => {
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             classNames={{ inputWrapper: 'bg-default-100' }}
                                         />
 
@@ -391,7 +381,7 @@ const MaterialConsumptions = ({ title }) => {
                                             }
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             classNames={{ trigger: 'bg-default-100' }}
                                         >
                                             <SelectItem key="">All Types</SelectItem>
@@ -409,7 +399,7 @@ const MaterialConsumptions = ({ title }) => {
                                             }
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             classNames={{ trigger: 'bg-default-100' }}
                                         >
                                             <SelectItem key="">All Status</SelectItem>
@@ -465,7 +455,7 @@ const MaterialConsumptions = ({ title }) => {
                                                             setPagination((prev) => ({ ...prev, currentPage: page }))
                                                         }
                                                         showControls
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                     />
                                                 </div>
                                             )}

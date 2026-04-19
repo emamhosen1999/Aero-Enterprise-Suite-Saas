@@ -16,6 +16,7 @@ import {CalendarIcon, MapPinIcon, UserIcon, UsersIcon} from 'lucide-react';
 import {showToast} from "@/utils/toastUtils";
 import {usePage} from "@inertiajs/react";
 import axios from 'axios';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const TrainingForm = ({
     open,
@@ -29,19 +30,7 @@ const TrainingForm = ({
     fetchTrainingStats
 }) => {
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     const { auth } = usePage().props;
     const isEditMode = !!currentTraining;
@@ -237,7 +226,7 @@ const TrainingForm = ({
             isOpen={open} 
             onClose={onClose}
             size="4xl"
-            radius={getThemeRadius()}
+            radius={themeRadius}
             classNames={{
                 base: "backdrop-blur-md mx-2 my-2 sm:mx-4 sm:my-8",
                 backdrop: "bg-black/50 backdrop-blur-sm",
@@ -279,7 +268,7 @@ const TrainingForm = ({
                                     errorMessage={errors.title}
                                     variant="bordered"
                                     size="sm"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     isRequired
                                     classNames={{
                                         input: "text-small",
@@ -302,7 +291,7 @@ const TrainingForm = ({
                                     errorMessage={errors.category_id}
                                     variant="bordered"
                                     size="sm"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     isRequired
                                 >
                                     {categories.map((category) => (
@@ -327,7 +316,7 @@ const TrainingForm = ({
                                     errorMessage={errors.trainer_id}
                                     variant="bordered"
                                     size="sm"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     startContent={<UserIcon size={16} className="text-default-400" />}
                                 >
                                     {trainers.map((trainer) => (
@@ -349,7 +338,7 @@ const TrainingForm = ({
                                     errorMessage={errors.start_date}
                                     variant="bordered"
                                     size="sm"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     startContent={<CalendarIcon size={16} className="text-default-400" />}
                                     isRequired
                                 />
@@ -366,7 +355,7 @@ const TrainingForm = ({
                                     errorMessage={errors.end_date}
                                     variant="bordered"
                                     size="sm"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     startContent={<CalendarIcon size={16} className="text-default-400" />}
                                 />
                             </div>
@@ -382,7 +371,7 @@ const TrainingForm = ({
                                     errorMessage={errors.location}
                                     variant="bordered"
                                     size="sm"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     startContent={<MapPinIcon size={16} className="text-default-400" />}
                                 />
                             </div>
@@ -399,7 +388,7 @@ const TrainingForm = ({
                                     errorMessage={errors.max_participants}
                                     variant="bordered"
                                     size="sm"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     startContent={<UsersIcon size={16} className="text-default-400" />}
                                 />
                             </div>
@@ -418,7 +407,7 @@ const TrainingForm = ({
                                     errorMessage={errors.status}
                                     variant="bordered"
                                     size="sm"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 >
                                     <SelectItem key="scheduled" value="scheduled">Scheduled</SelectItem>
                                     <SelectItem key="in_progress" value="in_progress">In Progress</SelectItem>
@@ -438,7 +427,7 @@ const TrainingForm = ({
                                     errorMessage={errors.description}
                                     variant="bordered"
                                     size="sm"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     minRows={3}
                                     maxRows={5}
                                 />
@@ -455,7 +444,7 @@ const TrainingForm = ({
                                     errorMessage={errors.notes}
                                     variant="bordered"
                                     size="sm"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     minRows={2}
                                     maxRows={3}
                                 />
@@ -477,7 +466,7 @@ const TrainingForm = ({
                                             }}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             className="flex-1"
                                         >
                                             {availableEmployees.map((employee) => (
@@ -490,7 +479,7 @@ const TrainingForm = ({
                                             color="primary"
                                             variant="flat"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             isDisabled={!selectedEmployee}
                                             onPress={addParticipant}
                                         >
@@ -534,7 +523,7 @@ const TrainingForm = ({
                             color="default"
                             variant="bordered"
                             onPress={onClose}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             size="sm"
                             isDisabled={processing}
                         >
@@ -546,7 +535,7 @@ const TrainingForm = ({
                             variant="solid"
                             isLoading={processing}
                             isDisabled={processing}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             size="sm"
                         >
                             {processing 

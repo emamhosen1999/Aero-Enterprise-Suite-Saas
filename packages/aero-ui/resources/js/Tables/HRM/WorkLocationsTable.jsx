@@ -36,6 +36,7 @@ import {
     TrashIcon,
     UserIcon,
 } from '@heroicons/react/24/outline';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 import {
     CheckCircleIcon as CheckCircleSolid,
     ExclamationTriangleIcon as ExclamationTriangleSolid,
@@ -57,21 +58,8 @@ const WorkLocationsTable = ({
     const isMobile = useMediaQuery('(max-width: 640px)');
 
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-
-    // Handle refresh functionality
+    const themeRadius = useThemeRadius();
+// Handle refresh functionality
     const handleRefresh = useCallback(() => {
         router.reload({ only: ['jurisdictions'], onSuccess: () => {
             showToast.success('Work locations data refreshed successfully');
@@ -321,7 +309,7 @@ const WorkLocationsTable = ({
                         variant="flat"
                         color="primary"
                         size="sm"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         style={{
                             backgroundColor: 'rgba(var(--color-primary), 0.1)',
                             borderColor: 'rgba(var(--color-primary), 0.3)',
@@ -352,7 +340,7 @@ const WorkLocationsTable = ({
                     variant="flat"
                     color="primary"
                     size="sm"
-                    radius={getThemeRadius()}
+                    radius={themeRadius}
                     style={{
                         backgroundColor: 'rgba(var(--color-primary), 0.1)',
                         borderColor: 'rgba(var(--color-primary), 0.3)',

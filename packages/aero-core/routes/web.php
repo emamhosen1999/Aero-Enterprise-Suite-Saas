@@ -133,6 +133,8 @@ Route::post('/api/version/check', function (Request $request) {
 // ============================================================================
 // ROOT ROUTE - Smart redirect to first accessible page
 // ============================================================================
+// EnsureTenantContext prevents this route from matching on the platform domain
+// (aeos365.test) in SaaS mode, so the platform's public landing page is served instead.
 Route::get('/', function () {
     // Check if HRMAC package is available for smart landing
     if (class_exists('Aero\HRMAC\Contracts\RoleModuleAccessInterface')) {
@@ -178,14 +180,14 @@ Route::get('/', function () {
 
     // Fallback for standalone mode or when HRMAC isn't loaded
     return redirect()->route('core.dashboard');
-})->middleware(['auth:web']);
+})->middleware([\Aero\Core\Http\Middleware\EnsureTenantContext::class, 'auth:web']);
 
 // ============================================================================
 // HOME ROUTE - Alias for root route, redirects to dashboard
 // ============================================================================
 Route::get('/home', function () {
     return redirect()->route('core.dashboard');
-})->middleware(['auth:web'])->name('core.home');
+})->middleware([\Aero\Core\Http\Middleware\EnsureTenantContext::class, 'auth:web'])->name('core.home');
 
 // ============================================================================
 // PLATFORM IMPERSONATION TOKEN ROUTES (No Auth - token IS the authentication)

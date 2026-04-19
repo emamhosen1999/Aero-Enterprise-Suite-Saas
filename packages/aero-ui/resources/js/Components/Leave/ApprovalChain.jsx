@@ -71,7 +71,7 @@ export default function ApprovalChain({ approvalChain, currentLevel, status }) {
                                         : 'bg-default-100 dark:bg-default-50'
                                 }`}
                             >
-                                <div className="flex-shrink-0 mt-0.5">
+                                <div className="shrink-0 mt-0.5">
                                     {getStatusIcon(level.status)}
                                 </div>
 

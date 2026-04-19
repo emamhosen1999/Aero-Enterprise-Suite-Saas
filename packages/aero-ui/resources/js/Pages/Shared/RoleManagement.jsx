@@ -709,7 +709,7 @@ const RoleManagement = (props) => {
                 <div className="mb-4 p-4">
                     <Card className="bg-warning/10 border border-warning/30" radius={themeRadius}>
                         <CardBody className="flex flex-row items-start gap-4">
-                            <ExclamationTriangleIcon className="w-6 h-6 text-warning flex-shrink-0 mt-0.5" />
+                            <ExclamationTriangleIcon className="w-6 h-6 text-warning shrink-0 mt-0.5" />
                             <div className="flex-1">
                                 <p className="font-semibold text-warning mb-2">
                                     Data Integrity Issues Detected
@@ -941,7 +941,7 @@ const RoleManagement = (props) => {
                                                                 variant="bordered"
                                                                 selectedKeys={[roleStatusFilter]}
                                                                 onSelectionChange={(keys) => handleRoleStatusFilterChange(Array.from(keys)[0])}
-                                                                className="w-full sm:w-[140px] sm:flex-shrink-0"
+                                                                className="w-full sm:w-[140px] sm:shrink-0"
                                                                 radius={themeRadius}
                                                                 classNames={{
                                                                     trigger: "bg-white/10 backdrop-blur-md border-white/20",
@@ -1014,7 +1014,7 @@ const RoleManagement = (props) => {
                                                                 variant="bordered"
                                                                 selectedKeys={[userRoleFilter]}
                                                                 onSelectionChange={(keys) => handleUserRoleFilterChange(Array.from(keys)[0])}
-                                                                className="w-full sm:w-[160px] sm:flex-shrink-0"
+                                                                className="w-full sm:w-[160px] sm:shrink-0"
                                                                 radius={themeRadius}
                                                                 classNames={{
                                                                     trigger: "bg-white/10 backdrop-blur-md border-white/20",

@@ -12,6 +12,7 @@ import {
   Textarea
 } from "@heroui/react";
 import { WalletIcon } from "@heroicons/react/24/outline";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const CreateWalletModal = ({ 
   isOpen, 
@@ -29,17 +30,7 @@ const CreateWalletModal = ({
   const [errors, setErrors] = useState({});
 
   // Theme radius helper
-  const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 16) return 'lg';
-    return 'full';
-  };
+  const themeRadius = useThemeRadius();
 
   // Blockchain options
   const blockchains = [
@@ -158,7 +149,7 @@ const CreateWalletModal = ({
               isInvalid={!!errors.name}
               errorMessage={errors.name}
               isRequired
-              radius={getThemeRadius()}
+              radius={themeRadius}
               classNames={{
                 inputWrapper: "bg-default-100"
               }}
@@ -173,7 +164,7 @@ const CreateWalletModal = ({
               isInvalid={!!errors.blockchain}
               errorMessage={errors.blockchain}
               isRequired
-              radius={getThemeRadius()}
+              radius={themeRadius}
               classNames={{
                 trigger: "bg-default-100"
               }}
@@ -194,7 +185,7 @@ const CreateWalletModal = ({
               isInvalid={!!errors.address}
               errorMessage={errors.address}
               isRequired
-              radius={getThemeRadius()}
+              radius={themeRadius}
               classNames={{
                 inputWrapper: "bg-default-100"
               }}
@@ -207,7 +198,7 @@ const CreateWalletModal = ({
               placeholder="Optional description for this wallet"
               value={formData.description}
               onValueChange={(value) => handleInputChange('description', value)}
-              radius={getThemeRadius()}
+              radius={themeRadius}
               classNames={{
                 inputWrapper: "bg-default-100"
               }}
@@ -230,7 +221,7 @@ const CreateWalletModal = ({
             variant="flat" 
             onPress={handleClose}
             isDisabled={loading}
-            radius={getThemeRadius()}
+            radius={themeRadius}
           >
             Cancel
           </Button>
@@ -238,7 +229,7 @@ const CreateWalletModal = ({
             color="primary" 
             onPress={handleSubmit}
             isLoading={loading}
-            radius={getThemeRadius()}
+            radius={themeRadius}
             startContent={!loading ? <WalletIcon className="w-4 h-4" /> : null}
           >
             {loading ? 'Creating...' : 'Create Wallet'}

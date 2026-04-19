@@ -35,6 +35,7 @@ import { useTheme } from '@/Context/ThemeContext';
 import { getDeviceId, getDeviceHeaders } from '@/utils/deviceAuth';
 import SocialLoginButtons from '@/Components/Auth/SocialLoginButtons';
 import { useBranding } from '@/Hooks/useBranding';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 /**
  * Enterprise Login Component for ERP System
@@ -193,19 +194,8 @@ export default function Login({
     const { logo, siteName } = useBranding();
     
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        const borderRadius = themeSettings.layout?.borderRadius;
-        if (!borderRadius) return 'lg';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
-    // ===== DEVICE DETECTION =====
+    const themeRadius = useThemeRadius();
+// ===== DEVICE DETECTION =====
     const { isMobile } = useDeviceType();
 
     // ===== REFS FOR FORM MANAGEMENT =====
@@ -722,7 +712,7 @@ export default function Login({
                                             <div className="p-4">
                                                 <div className="flex items-center gap-3">
                                                     <CheckCircleIcon 
-                                                        className="w-5 h-5 flex-shrink-0"
+                                                        className="w-5 h-5 shrink-0"
                                                         style={{ color: 'var(--theme-success, #22C55E)' }}
                                                     />
                                                     <p 
@@ -979,7 +969,7 @@ export default function Login({
                                         autoFocus
                                         isRequired
                                         size="lg"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         variant="bordered"
                                         color={(validationErrors.email || (validationErrors.hasAttemptedSubmit && !validationResults.email.isValid)) ? "danger" : "primary"}
                                         startContent={
@@ -1008,7 +998,7 @@ export default function Login({
                                         autoComplete="current-password"
                                         isRequired
                                         size="lg"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         variant="bordered"
                                         color={(validationErrors.password || (validationErrors.hasAttemptedSubmit && !validationResults.password.isValid)) ? "danger" : "primary"}
                                         startContent={

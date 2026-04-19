@@ -17,23 +17,15 @@ import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { router } from '@inertiajs/react';
 
 const BlockchainDashboard = ({ title }) => {
     const { auth } = usePage().props;
     const { hasAccess: hrmacHasAccess } = useHRMAC();
     
     // 1. Theme radius helper (REQUIRED)
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
     
     // 2. Responsive breakpoints (REQUIRED)
     const [isMobile, setIsMobile] = useState(false);
@@ -148,16 +140,16 @@ const BlockchainDashboard = ({ title }) => {
     const handleQuickAction = useCallback((action) => {
         switch (action) {
             case 'create-wallet':
-                window.location.href = route('blockchain.wallets.create');
+                router.visit(route('blockchain.wallets.create'));
                 break;
             case 'send-transaction':
-                window.location.href = route('blockchain.transactions.create');
+                router.visit(route('blockchain.transactions.create'));
                 break;
             case 'deploy-contract':
-                window.location.href = route('blockchain.contracts.create');
+                router.visit(route('blockchain.contracts.create'));
                 break;
             case 'manage-tokens':
-                window.location.href = route('blockchain.tokens.index');
+                router.visit(route('blockchain.tokens.index'));
                 break;
         }
     }, []);
@@ -254,7 +246,7 @@ const BlockchainDashboard = ({ title }) => {
                                                         variant="bordered"
                                                         isIconOnly={isMobile}
                                                         startContent={<CogIcon className="w-4 h-4" />}
-                                                        onPress={() => window.location.href = route('blockchain.settings.index')}
+                                                        onPress={() => router.visit(route('blockchain.settings.index'))}
                                                         size={isMobile ? "sm" : "md"}
                                                     >
                                                         {!isMobile && "Settings"}

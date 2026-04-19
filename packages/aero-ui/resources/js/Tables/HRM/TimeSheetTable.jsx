@@ -39,6 +39,7 @@ import {
 import axios from 'axios';
 
 import {AbsentUsersInlineCard} from '@/Components/TimeSheet/AbsentUsersInlineCard';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, externalFilterData, externalEmployee, onMarkAsPresent }) => {
     const { auth } = usePage().props;
@@ -75,21 +76,8 @@ const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, exter
     });
     
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
-    const [filterData, setFilterData] = useState(externalFilterData || {
+    const themeRadius = useThemeRadius();
+const [filterData, setFilterData] = useState(externalFilterData || {
         currentMonth: dayjs().format('YYYY-MM'),
     });
 
@@ -830,7 +818,7 @@ const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, exter
                                                                         color="success"
                                                                         variant="flat"
                                                                         size={isLargeScreen ? "md" : "sm"}
-                                                                        radius={getThemeRadius()}
+                                                                        radius={themeRadius}
                                                                         startContent={
                                                                             <DocumentArrowDownIcon className={`
                                                                                 ${isLargeScreen ? 'w-4 h-4' : 'w-3.5 h-3.5'}
@@ -850,7 +838,7 @@ const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, exter
                                                                         color="danger"
                                                                         variant="flat"
                                                                         size={isLargeScreen ? "md" : "sm"}
-                                                                        radius={getThemeRadius()}
+                                                                        radius={themeRadius}
                                                                         startContent={
                                                                             <DocumentArrowDownIcon className={`
                                                                                 ${isLargeScreen ? 'w-4 h-4' : 'w-3.5 h-3.5'}
@@ -919,7 +907,7 @@ const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, exter
                                                             onChange={(e) => setEmployee(e.target.value)}
                                                             variant="bordered"
                                                             size="sm"
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             startContent={
                                                                 <MagnifyingGlassIcon className="w-4 h-4 text-default-400" />
                                                             }
@@ -940,7 +928,7 @@ const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, exter
                                                             onChange={handleDateChange}
                                                             value={new Date(selectedDate).toISOString().slice(0, 10) || ''}
                                                             size="sm"
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             startContent={
                                                                 <CalendarDaysIcon className="w-4 h-4 text-default-400" />
                                                             }
@@ -997,7 +985,7 @@ const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, exter
                                                 >
                                                     
                                                 
-                                                    <div className="mb-4 flex-shrink-0">
+                                                    <div className="mb-4 shrink-0">
                                                         <h6 
                                                             className="text-lg font-semibold text-foreground flex items-center gap-2"
                                                             style={{ fontFamily: `var(--fontFamily, "Inter")` }}
@@ -1021,7 +1009,7 @@ const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, exter
                                                                 removeWrapper
                                                                 aria-label="Employee attendance timesheet table"
                                                                 isHeaderSticky
-                                                                radius={getThemeRadius()}
+                                                                radius={themeRadius}
                                                                 classNames={{
                                                                     base: "max-h-[520px] overflow-auto",
                                                                     table: "min-h-[200px] w-full",
@@ -1074,7 +1062,7 @@ const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, exter
                                                                 showShadow
                                                                 color="primary"
                                                                 variant="bordered"
-                                                                radius={getThemeRadius()}
+                                                                radius={themeRadius}
                                                                 page={currentPage}
                                                                 total={lastPage}
                                                                 onChange={handlePageChange}
@@ -1092,7 +1080,7 @@ const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, exter
 
                                         {/* Absent Users Section */}
                                         {canViewAllAttendance && (
-                                            <div className="lg:w-80 lg:flex-shrink-0 h-full">
+                                            <div className="lg:w-80 lg:shrink-0 h-full">
                                                 <AbsentUsersInlineCard 
                                                     absentUsers={absentUsers}
                                                     selectedDate={selectedDate}

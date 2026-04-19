@@ -56,6 +56,7 @@ import {
     TrashIcon,
     ArrowPathIcon,
 } from "@heroicons/react/24/outline";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 import {
     CheckCircleIcon as CheckCircleSolid,
     XCircleIcon as XCircleSolid,
@@ -312,21 +313,8 @@ const AttendanceSettings = () => {
     }, []);
 
     // Helper function to convert theme borderRadius to HeroUI radius values (following LeavesAdmin pattern)
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-
-    // State management
+    const themeRadius = useThemeRadius();
+// State management
     const [settings, setSettings] = useState(initialSettings || {});
     const [types, setTypes] = useState(initialTypes || []);
     const [loading, setLoading] = useState(false);
@@ -917,7 +905,7 @@ const AttendanceSettings = () => {
                                                         startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                                                         variant="bordered"
                                                         size="sm"
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         className="w-64"
                                                         aria-label="Search attendance types"
                                                         style={{
@@ -936,7 +924,7 @@ const AttendanceSettings = () => {
                                         onSelectionChange={setSelectedTab}
                                         variant="underlined"
                                         className="w-full"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         style={{
                                             fontFamily: `var(--fontFamily, "Inter")`,
                                         }}
@@ -958,7 +946,7 @@ const AttendanceSettings = () => {
                                                             name="office_start_time"
                                                             defaultValue={settings?.office_start_time || "09:00"}
                                                             variant="bordered"
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             className="max-w-full"
                                                             labelPlacement="outside"
                                                             isRequired
@@ -973,7 +961,7 @@ const AttendanceSettings = () => {
                                                             name="office_end_time"
                                                             defaultValue={settings?.office_end_time || "18:00"}
                                                             variant="bordered"
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             className="max-w-full"
                                                             labelPlacement="outside"
                                                             isRequired
@@ -989,7 +977,7 @@ const AttendanceSettings = () => {
                                                         name="break_time_duration"
                                                         defaultValue={settings?.break_time_duration || "60"}
                                                         variant="bordered"
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         className="max-w-md"
                                                         labelPlacement="outside"
                                                         min="0"
@@ -1014,7 +1002,7 @@ const AttendanceSettings = () => {
                                                             name="late_mark_after"
                                                             defaultValue={settings?.late_mark_after || "15"}
                                                             variant="bordered"
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             className="max-w-full"
                                                             labelPlacement="outside"
                                                             min="0"
@@ -1030,7 +1018,7 @@ const AttendanceSettings = () => {
                                                             name="early_leave_before"
                                                             defaultValue={settings?.early_leave_before || "30"}
                                                             variant="bordered"
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             className="max-w-full"
                                                             labelPlacement="outside"
                                                             min="0"
@@ -1047,7 +1035,7 @@ const AttendanceSettings = () => {
                                                         name="overtime_after"
                                                         defaultValue={settings?.overtime_after || "30"}
                                                         variant="bordered"
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         className="max-w-md"
                                                         labelPlacement="outside"
                                                         min="0"
@@ -1069,7 +1057,7 @@ const AttendanceSettings = () => {
                                                         <Checkbox
                                                             name="weekend_friday"
                                                             defaultSelected={settings?.weekend_days?.includes('friday')}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             style={{
                                                                 fontFamily: `var(--fontFamily, "Inter")`,
                                                             }}
@@ -1079,7 +1067,7 @@ const AttendanceSettings = () => {
                                                         <Checkbox
                                                             name="weekend_saturday"
                                                             defaultSelected={settings?.weekend_days?.includes('saturday')}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             style={{
                                                                 fontFamily: `var(--fontFamily, "Inter")`,
                                                             }}
@@ -1089,7 +1077,7 @@ const AttendanceSettings = () => {
                                                         <Checkbox
                                                             name="weekend_sunday"
                                                             defaultSelected={settings?.weekend_days?.includes('sunday')}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             style={{
                                                                 fontFamily: `var(--fontFamily, "Inter")`,
                                                             }}
@@ -1108,7 +1096,7 @@ const AttendanceSettings = () => {
                                                         isLoading={loading}
                                                         size={isMobile ? "sm" : "md"}
                                                         className="font-semibold"
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         style={{
                                                             fontFamily: `var(--fontFamily, "Inter")`,
                                                         }}
@@ -1180,7 +1168,7 @@ const AttendanceSettings = () => {
                                                                                 size="sm"
                                                                                 variant="flat"
                                                                                 startContent={<PlusIcon className="w-4 h-4" />}
-                                                                                radius={getThemeRadius()}
+                                                                                radius={themeRadius}
                                                                                 onPress={() => {
                                                                                     // Open modal to create new attendance type of this category
                                                                                     const newType = {
@@ -1241,7 +1229,7 @@ const AttendanceSettings = () => {
                                                                                                         variant="flat"
                                                                                                         color={status.color}
                                                                                                         size="sm"
-                                                                                                        radius={getThemeRadius()}
+                                                                                                        radius={themeRadius}
                                                                                                     >
                                                                                                         {status.text}
                                                                                                     </Chip>
@@ -1254,7 +1242,7 @@ const AttendanceSettings = () => {
                                                                                                                 size="sm"
                                                                                                                 variant="light"
                                                                                                                 color="primary"
-                                                                                                                radius={getThemeRadius()}
+                                                                                                                radius={themeRadius}
                                                                                                                 onPress={() => openTypeModal(type)}
                                                                                                             >
                                                                                                                 <PencilIcon className="w-4 h-4" />
@@ -1267,7 +1255,7 @@ const AttendanceSettings = () => {
                                                                                                                     size="sm"
                                                                                                                     variant="light"
                                                                                                                     color="secondary"
-                                                                                                                    radius={getThemeRadius()}
+                                                                                                                    radius={themeRadius}
                                                                                                                     onPress={() => openWaypointModal(type)}
                                                                                                                 >
                                                                                                                     <MapPinIcon className="w-4 h-4" />
@@ -1281,7 +1269,7 @@ const AttendanceSettings = () => {
                                                                                                                     size="sm"
                                                                                                                     variant="light"
                                                                                                                     color="warning"
-                                                                                                                    radius={getThemeRadius()}
+                                                                                                                    radius={themeRadius}
                                                                                                                     onPress={() => openPolygonModal(type)}
                                                                                                                 >
                                                                                                                     <MapPinIcon className="w-4 h-4" />
@@ -1294,7 +1282,7 @@ const AttendanceSettings = () => {
                                                                                                                 size="sm"
                                                                                                                 variant="light"
                                                                                                                 color="danger"
-                                                                                                                radius={getThemeRadius()}
+                                                                                                                radius={themeRadius}
                                                                                                                 onPress={() => handleDeleteType(type)}
                                                                                                             >
                                                                                                                 <TrashIcon className="w-4 h-4" />
@@ -1338,7 +1326,7 @@ const AttendanceSettings = () => {
                 onClose={onTypeModalClose}
                 size="2xl"
                 scrollBehavior="inside"
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 classNames={{
                     base: "bg-content1",
                     backdrop: "bg-black/50",
@@ -1372,7 +1360,7 @@ const AttendanceSettings = () => {
                                             value={typeFormData.name}
                                             onChange={(e) => setTypeFormData(prev => ({ ...prev, name: e.target.value }))}
                                             variant="bordered"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             isRequired
                                             style={{
                                                 fontFamily: `var(--fontFamily, "Inter")`,
@@ -1386,7 +1374,7 @@ const AttendanceSettings = () => {
                                             value={typeFormData.description}
                                             onChange={(e) => setTypeFormData(prev => ({ ...prev, description: e.target.value }))}
                                             variant="bordered"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             style={{
                                                 fontFamily: `var(--fontFamily, "Inter")`,
                                             }}
@@ -1397,7 +1385,7 @@ const AttendanceSettings = () => {
                                             name="is_active"
                                             isSelected={typeFormData.is_active}
                                             onValueChange={(value) => setTypeFormData(prev => ({ ...prev, is_active: value }))}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             style={{
                                                 fontFamily: `var(--fontFamily, "Inter")`,
                                             }}
@@ -1416,7 +1404,7 @@ const AttendanceSettings = () => {
                                                 name="allowed_ips"
                                                 defaultValue={editingType?.config?.allowed_ips?.join(', ') || ""}
                                                 variant="bordered"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 placeholder="192.168.1.1, 10.0.0.1"
                                                 style={{
                                                     fontFamily: `var(--fontFamily, "Inter")`,
@@ -1428,7 +1416,7 @@ const AttendanceSettings = () => {
                                                 name="allowed_ranges"
                                                 defaultValue={editingType?.config?.allowed_ranges?.join(', ') || ""}
                                                 variant="bordered"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 placeholder="192.168.1.0/24, 10.0.0.0/16"
                                                 style={{
                                                     fontFamily: `var(--fontFamily, "Inter")`,
@@ -1447,7 +1435,7 @@ const AttendanceSettings = () => {
                                                 type="number"
                                                 defaultValue={editingType?.config?.tolerance || 150}
                                                 variant="bordered"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 min="10"
                                                 max="1000"
                                                 style={{
@@ -1470,7 +1458,7 @@ const AttendanceSettings = () => {
                                                 type="number"
                                                 defaultValue={editingType?.config?.max_distance || 50}
                                                 variant="bordered"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 min="1"
                                                 max="500"
                                                 style={{
@@ -1495,7 +1483,7 @@ const AttendanceSettings = () => {
                                     color="danger" 
                                     variant="light" 
                                     onPress={onClose}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     style={{
                                         fontFamily: `var(--fontFamily, "Inter")`,
                                     }}
@@ -1511,7 +1499,7 @@ const AttendanceSettings = () => {
                                         }
                                     }}
                                     isLoading={typeLoading}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     style={{
                                         fontFamily: `var(--fontFamily, "Inter")`,
                                     }}
@@ -1533,7 +1521,7 @@ const AttendanceSettings = () => {
                 }}
                 size="5xl"
                 scrollBehavior="inside"
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 classNames={{
                     base: "bg-content1",
                     backdrop: "bg-black/50",
@@ -1563,7 +1551,7 @@ const AttendanceSettings = () => {
                                             value={waypointForm.tolerance}
                                             onChange={(e) => setWaypointForm(prev => ({ ...prev, tolerance: parseInt(e.target.value) || 150 }))}
                                             variant="bordered"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             min="10"
                                             max="1000"
                                             className="max-w-xs"
@@ -1615,7 +1603,7 @@ const AttendanceSettings = () => {
                                                         }
                                                     }}
                                                     startContent={isAddingWaypoint ? <XMarkIcon className="w-4 h-4" /> : <PlusIcon className="w-4 h-4" />}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     style={{ fontFamily: `var(--fontFamily, "Inter")` }}
                                                 >
                                                     {isAddingWaypoint ? 'Cancel Adding' : 'Add Waypoint'}
@@ -1636,7 +1624,7 @@ const AttendanceSettings = () => {
                                                             }
                                                         }}
                                                         startContent={<ArrowPathIcon className="w-4 h-4" />}
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         style={{ fontFamily: `var(--fontFamily, "Inter")` }}
                                                     >
                                                         Fit All
@@ -1753,7 +1741,7 @@ const AttendanceSettings = () => {
                                                                         variant="light"
                                                                         size="sm"
                                                                         onPress={() => centerMapOnWaypoint(waypoint)}
-                                                                        radius={getThemeRadius()}
+                                                                        radius={themeRadius}
                                                                         title="Center map on waypoint"
                                                                     >
                                                                         <MapPinIcon className="w-4 h-4" />
@@ -1764,7 +1752,7 @@ const AttendanceSettings = () => {
                                                                         variant="light"
                                                                         size="sm"
                                                                         onPress={() => removeWaypoint(index)}
-                                                                        radius={getThemeRadius()}
+                                                                        radius={themeRadius}
                                                                     >
                                                                         <TrashIcon className="w-4 h-4" />
                                                                     </Button>
@@ -1778,7 +1766,7 @@ const AttendanceSettings = () => {
                                                                     value={waypoint.lat}
                                                                     onChange={(e) => updateWaypoint(index, 'lat', e.target.value)}
                                                                     variant="bordered"
-                                                                    radius={getThemeRadius()}
+                                                                    radius={themeRadius}
                                                                     placeholder="e.g., 23.7588"
                                                                     size="sm"
                                                                     style={{
@@ -1792,7 +1780,7 @@ const AttendanceSettings = () => {
                                                                     value={waypoint.lng}
                                                                     onChange={(e) => updateWaypoint(index, 'lng', e.target.value)}
                                                                     variant="bordered"
-                                                                    radius={getThemeRadius()}
+                                                                    radius={themeRadius}
                                                                     placeholder="e.g., 90.3783"
                                                                     size="sm"
                                                                     style={{
@@ -1816,7 +1804,7 @@ const AttendanceSettings = () => {
                                         setIsAddingWaypoint(false);
                                         onClose();
                                     }}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     style={{
                                         fontFamily: `var(--fontFamily, "Inter")`,
                                     }}
@@ -1826,7 +1814,7 @@ const AttendanceSettings = () => {
                                 <Button 
                                     color="primary" 
                                     onPress={handleWaypointSubmit}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     style={{
                                         fontFamily: `var(--fontFamily, "Inter")`,
                                     }}
@@ -1848,7 +1836,7 @@ const AttendanceSettings = () => {
                 }}
                 size="5xl"
                 scrollBehavior="inside"
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 classNames={{
                     base: "bg-content1",
                     backdrop: "bg-black/50",
@@ -1928,7 +1916,7 @@ const AttendanceSettings = () => {
                                                         }
                                                     }}
                                                     startContent={isAddingPolygonPoint ? <XMarkIcon className="w-4 h-4" /> : <PlusIcon className="w-4 h-4" />}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     style={{ fontFamily: `var(--fontFamily, "Inter")` }}
                                                 >
                                                     {isAddingPolygonPoint ? 'Cancel Adding' : 'Add Point'}
@@ -1949,7 +1937,7 @@ const AttendanceSettings = () => {
                                                             }
                                                         }}
                                                         startContent={<ArrowPathIcon className="w-4 h-4" />}
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         style={{ fontFamily: `var(--fontFamily, "Inter")` }}
                                                     >
                                                         Fit All
@@ -2066,7 +2054,7 @@ const AttendanceSettings = () => {
                                                                         variant="light"
                                                                         size="sm"
                                                                         onPress={() => centerMapOnPolygonPoint(point)}
-                                                                        radius={getThemeRadius()}
+                                                                        radius={themeRadius}
                                                                         title="Center map on point"
                                                                     >
                                                                         <MapPinIcon className="w-4 h-4" />
@@ -2077,7 +2065,7 @@ const AttendanceSettings = () => {
                                                                         variant="light"
                                                                         size="sm"
                                                                         onPress={() => removePolygonPoint(index)}
-                                                                        radius={getThemeRadius()}
+                                                                        radius={themeRadius}
                                                                     >
                                                                         <TrashIcon className="w-4 h-4" />
                                                                     </Button>
@@ -2091,7 +2079,7 @@ const AttendanceSettings = () => {
                                                                     value={point.lat}
                                                                     onChange={(e) => updatePolygonPoint(index, 'lat', e.target.value)}
                                                                     variant="bordered"
-                                                                    radius={getThemeRadius()}
+                                                                    radius={themeRadius}
                                                                     placeholder="e.g., 23.7588"
                                                                     size="sm"
                                                                     style={{ fontFamily: `var(--fontFamily, "Inter")` }}
@@ -2103,7 +2091,7 @@ const AttendanceSettings = () => {
                                                                     value={point.lng}
                                                                     onChange={(e) => updatePolygonPoint(index, 'lng', e.target.value)}
                                                                     variant="bordered"
-                                                                    radius={getThemeRadius()}
+                                                                    radius={themeRadius}
                                                                     placeholder="e.g., 90.3783"
                                                                     size="sm"
                                                                     style={{ fontFamily: `var(--fontFamily, "Inter")` }}
@@ -2125,7 +2113,7 @@ const AttendanceSettings = () => {
                                         setIsAddingPolygonPoint(false);
                                         onClose();
                                     }}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     style={{ fontFamily: `var(--fontFamily, "Inter")` }}
                                 >
                                     Cancel
@@ -2134,7 +2122,7 @@ const AttendanceSettings = () => {
                                     color="warning" 
                                     onPress={handlePolygonSubmit}
                                     isDisabled={polygonForm.polygon.length < 3}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     style={{ fontFamily: `var(--fontFamily, "Inter")` }}
                                 >
                                     Save Polygon ({polygonForm.polygon.length}/3+ points)

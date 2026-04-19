@@ -45,20 +45,11 @@ import {
 import { showToast } from '@/utils/toastUtils';
 import App from "@/Layouts/App.jsx";
 import StatsCards from '@/Components/StatsCards';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const Show = ({ auth, tenantId, title, can_impersonate }) => {
     // Theme radius helper (REQUIRED)
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     // Responsive breakpoints (REQUIRED)
     const [isMobile, setIsMobile] = useState(false);
@@ -348,14 +339,14 @@ const Show = ({ auth, tenantId, title, can_impersonate }) => {
                         <Button 
                             variant="flat" 
                             onPress={() => setActionModal({ open: false, action: null })}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         >
                             Cancel
                         </Button>
                         <Button
                             color={actionModal.action === 'activate' || actionModal.action === 'restore' ? 'success' : 'warning'}
                             onPress={() => handleAction(actionModal.action)}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         >
                             {actionModal.action?.charAt(0).toUpperCase() + actionModal.action?.slice(1)}
                         </Button>
@@ -408,7 +399,7 @@ const Show = ({ auth, tenantId, title, can_impersonate }) => {
                                                 <Button
                                                     isIconOnly
                                                     variant="light"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     onPress={() => router.visit(route('admin.tenants.index'))}
                                                     className="shrink-0"
                                                 >
@@ -460,7 +451,7 @@ const Show = ({ auth, tenantId, title, can_impersonate }) => {
                                                     color="primary"
                                                     startContent={<PencilIcon className="w-4 h-4" />}
                                                     onPress={() => router.visit(route('admin.tenants.edit', { tenant: tenantId }))}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     size={isMobile ? "sm" : "md"}
                                                 >
                                                     Edit
@@ -486,7 +477,7 @@ const Show = ({ auth, tenantId, title, can_impersonate }) => {
                                                         color="warning"
                                                         variant="flat"
                                                         startContent={<PauseIcon className="w-4 h-4" />}
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         onPress={() => setActionModal({ open: true, action: 'suspend' })}
                                                     >
                                                         Suspend Tenant
@@ -497,7 +488,7 @@ const Show = ({ auth, tenantId, title, can_impersonate }) => {
                                                         color="success"
                                                         variant="flat"
                                                         startContent={<PlayIcon className="w-4 h-4" />}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     onPress={() => setActionModal({ open: true, action: 'activate' })}
                                 >
                                     Activate Tenant
@@ -507,7 +498,7 @@ const Show = ({ auth, tenantId, title, can_impersonate }) => {
                                 <Button
                                     variant="flat"
                                     startContent={<ArchiveBoxIcon className="w-4 h-4" />}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     onPress={() => setActionModal({ open: true, action: 'archive' })}
                                 >
                                     Archive Tenant
@@ -518,7 +509,7 @@ const Show = ({ auth, tenantId, title, can_impersonate }) => {
                                     color="success"
                                     variant="flat"
                                     startContent={<ArrowUturnLeftIcon className="w-4 h-4" />}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     onPress={() => setActionModal({ open: true, action: 'restore' })}
                                 >
                                     Restore Tenant
@@ -527,7 +518,7 @@ const Show = ({ auth, tenantId, title, can_impersonate }) => {
                             <Button
                                 variant="flat"
                                 startContent={<ArrowPathIcon className="w-4 h-4" />}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 onPress={fetchTenant}
                             >
                                 Refresh Data
@@ -538,7 +529,7 @@ const Show = ({ auth, tenantId, title, can_impersonate }) => {
                                     color="secondary"
                                     variant="flat"
                                     startContent={<UsersIcon className="w-4 h-4" />}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     onPress={() => setActionModal({ open: true, action: 'impersonate' })}
                                 >
                                     Impersonate Tenant
@@ -554,7 +545,7 @@ const Show = ({ auth, tenantId, title, can_impersonate }) => {
                         <Tabs 
                             selectedKey={selectedTab} 
                             onSelectionChange={setSelectedTab}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             variant="underlined"
                         >
                             <Tab key="overview" title={
@@ -705,7 +696,7 @@ const Show = ({ auth, tenantId, title, can_impersonate }) => {
                                                         variant="flat"
                                                         startContent={<ArrowPathIcon className="w-4 h-4" />}
                                                         onPress={() => handleRetryProvisioning()}
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                     >
                                                         Retry Provisioning
                                                     </Button>
@@ -823,7 +814,7 @@ const Show = ({ auth, tenantId, title, can_impersonate }) => {
                                                             : 0}
                                                         color="primary"
                                                         size="sm"
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                     />
                                                 </div>
                                             </div>
@@ -845,7 +836,7 @@ const Show = ({ auth, tenantId, title, can_impersonate }) => {
                                         <Button 
                                             color="primary" 
                                             className="mt-4"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             onPress={() => router.visit(route('admin.tenants.edit', { tenant: tenantId }))}
                                         >
                                             Assign Plan

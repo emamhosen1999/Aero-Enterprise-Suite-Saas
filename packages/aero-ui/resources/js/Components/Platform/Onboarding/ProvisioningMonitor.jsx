@@ -4,6 +4,7 @@ import { CheckCircleIcon, ClockIcon, XCircleIcon, ArrowPathIcon } from '@heroico
 import { showToast } from '@/utils/toastUtils';
 import { router } from '@inertiajs/react';
 import axios from 'axios';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 export default function ProvisioningMonitor({ tenantId, status: initialStatus = 'pending' }) {
     const [status, setStatus] = useState(initialStatus);
@@ -13,18 +14,8 @@ export default function ProvisioningMonitor({ tenantId, status: initialStatus = 
     const [polling, setPolling] = useState(false);
 
     // Get theme radius
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
-    const themeRadius = getThemeRadius();
 
     const provisioningSteps = [
         { id: 1, name: 'Validating Information', icon: '📋', duration: 2 },
@@ -175,7 +166,7 @@ export default function ProvisioningMonitor({ tenantId, status: initialStatus = 
                 {error && status === 'failed' && (
                     <div className="border border-danger rounded-lg p-4 bg-danger-50">
                         <div className="flex items-start gap-2">
-                            <XCircleIcon className="w-5 h-5 text-danger flex-shrink-0 mt-0.5" />
+                            <XCircleIcon className="w-5 h-5 text-danger shrink-0 mt-0.5" />
                             <div className="flex-1">
                                 <h4 className="font-semibold text-danger">Provisioning Failed</h4>
                                 <p className="text-sm text-danger mt-1">{error}</p>
@@ -215,7 +206,7 @@ export default function ProvisioningMonitor({ tenantId, status: initialStatus = 
                                         : 'bg-default-50'
                                 }`}
                             >
-                                <div className="flex-shrink-0">
+                                <div className="shrink-0">
                                     {isFailed ? (
                                         <XCircleIcon className="w-6 h-6 text-danger" />
                                     ) : (

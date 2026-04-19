@@ -30,19 +30,6 @@ const OfferLetters = ({ title, jobOpenings: initialJobOpenings = [], candidates:
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -560,7 +547,7 @@ const OfferLetters = ({ title, jobOpenings: initialJobOpenings = [], candidates:
                                             selectedKeys={formData.job_opening_id ? [formData.job_opening_id] : []}
                                             onSelectionChange={(keys) => handleJobOpeningChange(Array.from(keys)[0] || '')}
                                             isRequired
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         >
                                             {jobOpenings.map(job => (
                                                 <SelectItem key={job.id} value={job.id}>
@@ -575,7 +562,7 @@ const OfferLetters = ({ title, jobOpenings: initialJobOpenings = [], candidates:
                                             selectedKeys={formData.candidate_id ? [formData.candidate_id] : []}
                                             onSelectionChange={(keys) => setFormData(prev => ({ ...prev, candidate_id: Array.from(keys)[0] || '' }))}
                                             isRequired
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         >
                                             {candidates.map(candidate => (
                                                 <SelectItem key={candidate.id} value={candidate.id}>
@@ -592,7 +579,7 @@ const OfferLetters = ({ title, jobOpenings: initialJobOpenings = [], candidates:
                                             value={formData.position_title}
                                             onValueChange={(value) => setFormData(prev => ({ ...prev, position_title: value }))}
                                             isRequired
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <Input
@@ -600,7 +587,7 @@ const OfferLetters = ({ title, jobOpenings: initialJobOpenings = [], candidates:
                                             placeholder="Enter department"
                                             value={formData.department}
                                             onValueChange={(value) => setFormData(prev => ({ ...prev, department: value }))}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                     </div>
 
@@ -609,7 +596,7 @@ const OfferLetters = ({ title, jobOpenings: initialJobOpenings = [], candidates:
                                         placeholder="Select offer letter template"
                                         selectedKeys={formData.template_id ? [formData.template_id] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, template_id: Array.from(keys)[0] || '' }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {templates.map(template => (
                                             <SelectItem key={template.id} value={template.id}>
@@ -629,7 +616,7 @@ const OfferLetters = ({ title, jobOpenings: initialJobOpenings = [], candidates:
                                             placeholder="Select currency"
                                             selectedKeys={formData.currency ? [formData.currency] : []}
                                             onSelectionChange={(keys) => setFormData(prev => ({ ...prev, currency: Array.from(keys)[0] || 'USD' }))}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         >
                                             {currencies.map(currency => (
                                                 <SelectItem key={currency.key}>{currency.label}</SelectItem>
@@ -644,7 +631,7 @@ const OfferLetters = ({ title, jobOpenings: initialJobOpenings = [], candidates:
                                             startContent={getCurrencySymbol(formData.currency)}
                                             type="number"
                                             isRequired
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <Select
@@ -652,7 +639,7 @@ const OfferLetters = ({ title, jobOpenings: initialJobOpenings = [], candidates:
                                             placeholder="Select status"
                                             selectedKeys={formData.status ? [formData.status] : []}
                                             onSelectionChange={(keys) => setFormData(prev => ({ ...prev, status: Array.from(keys)[0] || 'draft' }))}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         >
                                             {offerStatuses.map(status => (
                                                 <SelectItem key={status.key}>{status.label}</SelectItem>
@@ -667,7 +654,7 @@ const OfferLetters = ({ title, jobOpenings: initialJobOpenings = [], candidates:
                                             value={formData.start_date}
                                             onValueChange={(value) => setFormData(prev => ({ ...prev, start_date: value }))}
                                             type="date"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <Input
@@ -676,7 +663,7 @@ const OfferLetters = ({ title, jobOpenings: initialJobOpenings = [], candidates:
                                             value={formData.offer_valid_until}
                                             onValueChange={(value) => setFormData(prev => ({ ...prev, offer_valid_until: value }))}
                                             type="date"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                     </div>
                                 </div>
@@ -691,7 +678,7 @@ const OfferLetters = ({ title, jobOpenings: initialJobOpenings = [], candidates:
                                         value={formData.benefits}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, benefits: value }))}
                                         rows={6}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
 
                                     <Textarea
@@ -700,7 +687,7 @@ const OfferLetters = ({ title, jobOpenings: initialJobOpenings = [], candidates:
                                         value={formData.terms_conditions}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, terms_conditions: value }))}
                                         rows={4}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
 
                                     <Textarea
@@ -709,7 +696,7 @@ const OfferLetters = ({ title, jobOpenings: initialJobOpenings = [], candidates:
                                         value={formData.notes}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, notes: value }))}
                                         rows={3}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                 </div>
 
@@ -970,7 +957,7 @@ const OfferLetters = ({ title, jobOpenings: initialJobOpenings = [], candidates:
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select

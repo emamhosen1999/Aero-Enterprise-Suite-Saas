@@ -3,6 +3,7 @@ import {Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader} from "
 import {ExclamationTriangleIcon} from '@heroicons/react/24/outline';
 import {showToast} from "@/utils/toastUtils";
 import axios from 'axios';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const DeleteTrainingForm = ({
     open,
@@ -16,19 +17,7 @@ const DeleteTrainingForm = ({
     const [deleting, setDeleting] = useState(false);
 
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     const handleDelete = async () => {
         if (!currentTraining) return;
@@ -107,7 +96,7 @@ const DeleteTrainingForm = ({
             isOpen={open} 
             onClose={onClose}
             size="md"
-            radius={getThemeRadius()}
+            radius={themeRadius}
             classNames={{
                 base: "backdrop-blur-md mx-2 my-2 sm:mx-4 sm:my-8",
                 backdrop: "bg-black/50 backdrop-blur-sm",
@@ -173,7 +162,7 @@ const DeleteTrainingForm = ({
                         color="default"
                         variant="bordered"
                         onPress={onClose}
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         size="sm"
                         isDisabled={deleting}
                     >
@@ -185,7 +174,7 @@ const DeleteTrainingForm = ({
                         onPress={handleDelete}
                         isLoading={deleting}
                         isDisabled={deleting}
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         size="sm"
                     >
                         {deleting ? 'Deleting...' : 'Delete Training'}

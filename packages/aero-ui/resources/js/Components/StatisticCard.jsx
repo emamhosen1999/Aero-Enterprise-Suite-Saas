@@ -67,7 +67,7 @@ const StatisticCard = ({ title, value, icon: IconComponent, color, isLoaded, tes
                                 {title}
                             </h3>
                             <div
-                                className="flex items-center justify-center min-w-[40px] sm:min-w-[48px] min-h-[40px] sm:min-h-[48px] flex-shrink-0"
+                                className="flex items-center justify-center min-w-[40px] sm:min-w-[48px] min-h-[40px] sm:min-h-[48px] shrink-0"
                                 style={{ 
                                     backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`,
                                     borderRadius: `var(--borderRadius, 12px)`,
@@ -194,7 +194,7 @@ const StatisticsWidgets = () => {
     if (error) {
         return (
             <div className="flex flex-col w-full h-full p-4">
-                <div className="flex-grow h-full flex items-center justify-center">
+                <div className="grow h-full flex items-center justify-center">
                 <Card 
                     className="p-4 transition-all duration-200"
                     style={{

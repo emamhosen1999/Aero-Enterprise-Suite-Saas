@@ -35,20 +35,11 @@ import {
 } from "@heroicons/react/24/outline";
 import { showToast } from '@/utils/toastUtils';
 import App from "@/Layouts/App.jsx";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const Databases = ({ auth, title }) => {
     // Theme radius helper (REQUIRED)
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     // Responsive breakpoints (REQUIRED)
     const [isMobile, setIsMobile] = useState(false);
@@ -316,7 +307,7 @@ const Databases = ({ auth, title }) => {
                                                 <Button
                                                     variant="flat"
                                                     startContent={<ArrowPathIcon className="w-4 h-4" />}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     onPress={fetchDatabases}
                                                     size={isMobile ? "sm" : "md"}
                                                 >
@@ -354,7 +345,7 @@ const Databases = ({ auth, title }) => {
                                             value={searchQuery}
                                             onValueChange={setSearchQuery}
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             classNames={{ inputWrapper: "bg-default-100" }}
                                         />
                                     </div>
@@ -412,7 +403,7 @@ const Databases = ({ auth, title }) => {
                                                         value={totalDatabases > 0 ? (healthyDatabases / totalDatabases) * 100 : 0} 
                                                         color="success" 
                                                         size="sm"
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                     />
                                                 </div>
                                                 <div>
@@ -429,7 +420,7 @@ const Databases = ({ auth, title }) => {
                                                         } 
                                                         color="primary" 
                                                         size="sm"
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                     />
                                                 </div>
                                             </div>

@@ -220,7 +220,7 @@ export default function Features() {
                     <ul className="space-y-1 md:space-y-1.5">
                       {submodule.features.map((feature) => (
                         <li key={feature} className={`flex items-start gap-1.5 md:gap-2 text-xs md:text-sm ${palette.featureItem}`}>
-                          <span className={`mt-0.5 flex-shrink-0 w-4 h-4 md:w-5 md:h-5 rounded-full bg-gradient-to-br ${currentModule.color} flex items-center justify-center text-white`}>
+                          <span className={`mt-0.5 shrink-0 w-4 h-4 md:w-5 md:h-5 rounded-full bg-gradient-to-br ${currentModule.color} flex items-center justify-center text-white`}>
                             {iconMap.check}
                           </span>
                           <span className="leading-tight">{feature}</span>
@@ -245,7 +245,7 @@ export default function Features() {
                     aria-label={submodule.name}
                     title={
                       <div className="flex items-center gap-2">
-                        <span className={`flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-br ${currentModule.color} flex items-center justify-center text-white text-[10px] font-bold`}>
+                        <span className={`shrink-0 w-5 h-5 rounded-full bg-gradient-to-br ${currentModule.color} flex items-center justify-center text-white text-[10px] font-bold`}>
                           {index + 1}
                         </span>
                         <span className="font-medium text-xs">{submodule.name}</span>
@@ -264,7 +264,7 @@ export default function Features() {
                     <div className="grid grid-cols-2 gap-x-2 gap-y-1 pl-7">
                       {submodule.features.map((feature) => (
                         <div key={feature} className={`flex items-center gap-1 text-[10px] ${palette.featureItem}`}>
-                          <span className={`flex-shrink-0 w-3 h-3 rounded-full bg-gradient-to-br ${currentModule.color} flex items-center justify-center text-white`}>
+                          <span className={`shrink-0 w-3 h-3 rounded-full bg-gradient-to-br ${currentModule.color} flex items-center justify-center text-white`}>
                             {iconMap.check}
                           </span>
                           <span className="truncate">{feature}</span>
@@ -302,7 +302,7 @@ export default function Features() {
                 >
                   <CardBody className="p-3 md:p-4">
                     <div className="flex items-start gap-2 md:gap-4">
-                      <div className={`flex-shrink-0 w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-gradient-to-br ${module.color} flex items-center justify-center text-white`}>
+                      <div className={`shrink-0 w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-gradient-to-br ${module.color} flex items-center justify-center text-white`}>
                         {iconMap[module.icon]}
                       </div>
                       <div className="flex-1 min-w-0">

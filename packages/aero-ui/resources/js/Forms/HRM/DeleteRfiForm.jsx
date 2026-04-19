@@ -9,29 +9,18 @@ import {
 import React from "react";
 import { showToast } from "@/utils/toastUtils";
 import { ExclamationTriangleIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const DeleteRfiForm = ({ open, handleClose, handleDelete, isLoading = false }) => {
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     return (
         <Modal
             isOpen={open}
             onClose={handleClose}
             size="md"
-            radius={getThemeRadius()}
+            radius={themeRadius}
             classNames={{
                 base: "backdrop-blur-md mx-2 my-2 sm:mx-4 sm:my-8",
                 backdrop: "bg-black/50 backdrop-blur-sm",
@@ -74,7 +63,7 @@ const DeleteRfiForm = ({ open, handleClose, handleDelete, isLoading = false }) =
                             fontFamily: `var(--fontFamily, "Inter")`,
                         }}>
                             <div className="flex items-start gap-3">
-                                <div className="p-3 rounded-full bg-danger/10 flex-shrink-0">
+                                <div className="p-3 rounded-full bg-danger/10 shrink-0">
                                     <TrashIcon className="w-6 h-6 text-danger" />
                                 </div>
                                 <div className="flex-1">
@@ -99,7 +88,7 @@ const DeleteRfiForm = ({ open, handleClose, handleDelete, isLoading = false }) =
                                 color="default"
                                 variant="bordered"
                                 onPress={handleClose}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 size="sm"
                                 isDisabled={isLoading}
                                 style={{
@@ -113,7 +102,7 @@ const DeleteRfiForm = ({ open, handleClose, handleDelete, isLoading = false }) =
                                 color="danger"
                                 variant="solid"
                                 onPress={handleDelete}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 size="sm"
                                 isLoading={isLoading}
                                 isDisabled={isLoading}

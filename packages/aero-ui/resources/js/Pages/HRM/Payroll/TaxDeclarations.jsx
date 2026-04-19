@@ -27,19 +27,6 @@ const TaxDeclarations = ({ title, employees: initialEmployees = [], taxYears: in
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -441,7 +428,7 @@ const TaxDeclarations = ({ title, employees: initialEmployees = [], taxYears: in
                                         selectedKeys={formData.employee_id ? [formData.employee_id] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, employee_id: Array.from(keys)[0] || '' }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {employees.map(employee => (
                                             <SelectItem key={employee.id} value={employee.id}>
@@ -457,7 +444,7 @@ const TaxDeclarations = ({ title, employees: initialEmployees = [], taxYears: in
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, tax_year: value }))}
                                         type="number"
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                 </div>
 
@@ -468,7 +455,7 @@ const TaxDeclarations = ({ title, employees: initialEmployees = [], taxYears: in
                                         selectedKeys={formData.declaration_type ? [formData.declaration_type] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, declaration_type: Array.from(keys)[0] || 'investment' }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {declarationTypes.map(type => (
                                             <SelectItem key={type.key}>{type.label}</SelectItem>
@@ -480,7 +467,7 @@ const TaxDeclarations = ({ title, employees: initialEmployees = [], taxYears: in
                                         placeholder="Select category"
                                         selectedKeys={formData.category ? [formData.category] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, category: Array.from(keys)[0] || '' }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {categories.map(category => (
                                             <SelectItem key={category.key}>{category.label}</SelectItem>
@@ -496,7 +483,7 @@ const TaxDeclarations = ({ title, employees: initialEmployees = [], taxYears: in
                                     startContent="₹"
                                     type="number"
                                     isRequired
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
 
                                 <Textarea
@@ -505,7 +492,7 @@ const TaxDeclarations = ({ title, employees: initialEmployees = [], taxYears: in
                                     value={formData.description}
                                     onValueChange={(value) => setFormData(prev => ({ ...prev, description: value }))}
                                     rows={3}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
 
                                 <div>
@@ -525,7 +512,7 @@ const TaxDeclarations = ({ title, employees: initialEmployees = [], taxYears: in
                                     placeholder="Select status"
                                     selectedKeys={formData.status ? [formData.status] : []}
                                     onSelectionChange={(keys) => setFormData(prev => ({ ...prev, status: Array.from(keys)[0] || 'draft' }))}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 >
                                     {declarationStatuses.map(status => (
                                         <SelectItem key={status.key}>{status.label}</SelectItem>
@@ -538,7 +525,7 @@ const TaxDeclarations = ({ title, employees: initialEmployees = [], taxYears: in
                                     value={formData.remarks}
                                     onValueChange={(value) => setFormData(prev => ({ ...prev, remarks: value }))}
                                     rows={2}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
                             </div>
                         </ModalBody>
@@ -748,7 +735,7 @@ const TaxDeclarations = ({ title, employees: initialEmployees = [], taxYears: in
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select

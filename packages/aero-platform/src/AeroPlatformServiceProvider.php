@@ -704,6 +704,15 @@ class AeroPlatformServiceProvider extends ServiceProvider
             $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
         });
 
+        // Platform API routes (public, no CSRF)
+        Route::group([
+            'middleware' => ['api'],
+            'prefix' => 'api',
+            'domain' => $platformDomain,
+        ], function () {
+            $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
+        });
+
         // Admin routes (for admin.domain.com - landlord guard)
         // Uses explicit domain constraint for proper route matching
         // This ensures admin.domain.com/login is distinct from domain.com/login

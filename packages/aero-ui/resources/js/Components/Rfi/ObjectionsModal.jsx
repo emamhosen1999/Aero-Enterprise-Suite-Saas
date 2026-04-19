@@ -38,7 +38,7 @@ import {
     ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
 import { showToast } from '@/utils/toastUtils';
-import { getThemeRadius } from '@/Hooks/useThemeRadius';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 import axios from 'axios';
 import { router } from '@inertiajs/react';
 
@@ -77,6 +77,7 @@ const ObjectionsModal = ({
     onObjectionsUpdated,
 }) => {
     const [activeTab, setActiveTab] = useState('attached');
+    const themeRadius = useThemeRadius();
     const [loading, setLoading] = useState(false);
     const [attachedObjections, setAttachedObjections] = useState([]);
     const [availableObjections, setAvailableObjections] = useState([]);
@@ -237,7 +238,7 @@ const ObjectionsModal = ({
                 key={objection.id} 
                 className={`mb-3 ${isActive ? 'border-l-4 border-warning' : 'border-l-4 border-success'}`}
                 shadow="sm"
-                radius={getThemeRadius()}
+                radius={themeRadius}
             >
                 <CardBody className="p-3 sm:p-4">
                     {/* Header */}
@@ -252,7 +253,7 @@ const ObjectionsModal = ({
                             <h4 className="font-semibold text-xs sm:text-sm truncate">{objection.title}</h4>
                             {objection.chainage_from && objection.chainage_to && (
                                 <div className="flex items-center gap-1 text-xs text-default-500 mt-1">
-                                    <MapPinIcon className="w-3 h-3 flex-shrink-0" />
+                                    <MapPinIcon className="w-3 h-3 shrink-0" />
                                     <span className="truncate">{objection.chainage_from} - {objection.chainage_to}</span>
                                 </div>
                             )}
@@ -265,7 +266,7 @@ const ObjectionsModal = ({
                                 color="danger"
                                 isLoading={detaching === objection.id}
                                 onPress={() => handleDetachObjection(objection.id)}
-                                className="flex-shrink-0"
+                                className="shrink-0"
                             >
                                 <XCircleIcon className="w-4 h-4" />
                             </Button>
@@ -362,7 +363,7 @@ const ObjectionsModal = ({
             size="3xl"
             scrollBehavior="inside"
             placement="bottom-center"
-            radius={getThemeRadius()}
+            radius={themeRadius}
             shouldBlockScroll={false}
             hideCloseButton={false}
             classNames={{
@@ -378,7 +379,7 @@ const ObjectionsModal = ({
                     <>
                         <ModalHeader className="flex flex-col gap-2 pb-4">
                             <div className="flex items-center gap-2 flex-wrap">
-                                <ShieldExclamationIcon className="w-5 h-5 text-warning flex-shrink-0" />
+                                <ShieldExclamationIcon className="w-5 h-5 text-warning shrink-0" />
                                 <span className="text-sm sm:text-base font-semibold truncate">RFI Objections - {rfi?.number}</span>
                                 {activeCount > 0 && (
                                     <Chip size="sm" color="warning" variant="solid">

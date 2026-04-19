@@ -32,6 +32,7 @@ import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
 import { parseDate } from "@internationalized/date";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const EnhancedRfisExportForm = ({ 
     open, 
@@ -41,19 +42,7 @@ const EnhancedRfisExportForm = ({
     inCharges = [] 
 }) => {
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     const [exportSettings, setExportSettings] = useState({
         format: 'excel',
@@ -225,7 +214,7 @@ const EnhancedRfisExportForm = ({
             isOpen={open} 
             onClose={closeModal}
             size="4xl"
-            radius={getThemeRadius()}
+            radius={themeRadius}
             scrollBehavior="inside"
             classNames={{
                 base: "backdrop-blur-md mx-2 my-2 sm:mx-4 sm:my-8 max-h-[95vh]",
@@ -277,7 +266,7 @@ const EnhancedRfisExportForm = ({
                         {/* Export Format */}
                         <Card 
                             className="bg-default-50"
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             style={{
                                 borderRadius: `var(--borderRadius, 12px)`,
                             }}
@@ -325,7 +314,7 @@ const EnhancedRfisExportForm = ({
                                 }))}
                                 size="sm"
                                 variant="bordered"
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 style={{
                                     fontFamily: `var(--fontFamily, "Inter")`,
                                 }}
@@ -347,7 +336,7 @@ const EnhancedRfisExportForm = ({
                                     }))}
                                     size="sm"
                                     variant="bordered"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     style={{
                                         fontFamily: `var(--fontFamily, "Inter")`,
                                     }}
@@ -368,7 +357,7 @@ const EnhancedRfisExportForm = ({
                                     }))}
                                     size="sm"
                                     variant="bordered"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     style={{
                                         fontFamily: `var(--fontFamily, "Inter")`,
                                     }}
@@ -389,7 +378,7 @@ const EnhancedRfisExportForm = ({
                                     }))}
                                     size="sm"
                                     variant="bordered"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     style={{
                                         fontFamily: `var(--fontFamily, "Inter")`,
                                     }}
@@ -435,7 +424,7 @@ const EnhancedRfisExportForm = ({
                         {/* Export Summary */}
                         <Card 
                             className="bg-primary-50 border-primary-200"
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             style={{
                                 borderRadius: `var(--borderRadius, 12px)`,
                                 background: `color-mix(in srgb, var(--theme-primary) 10%, transparent)`,
@@ -487,7 +476,7 @@ const EnhancedRfisExportForm = ({
                         variant="bordered"
                         onPress={closeModal}
                         isDisabled={isLoading}
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         size="sm"
                         style={{
                             borderRadius: `var(--borderRadius, 8px)`,
@@ -502,7 +491,7 @@ const EnhancedRfisExportForm = ({
                         isLoading={isLoading}
                         startContent={!isLoading && <Download size={16} />}
                         isDisabled={exportSettings.columns.length === 0}
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         size="sm"
                         style={{
                             borderRadius: `var(--borderRadius, 8px)`,

@@ -22,6 +22,7 @@ import {
 import App from '@/Layouts/App.jsx';
 import { useThemeRadius } from '@/Hooks/useThemeRadius';
 import { showToast } from '@/utils/toastUtils';
+import { router } from '@inertiajs/react';
 
 const CreatePayroll = ({ title, employees, allowanceTypes, deductionTypes }) => {
     const themeRadius = useThemeRadius();
@@ -82,7 +83,7 @@ const CreatePayroll = ({ title, employees, allowanceTypes, deductionTypes }) => 
                 onSuccess: (page) => {
                     resolve([page.props.flash?.message || 'Payroll created successfully']);
                     // Redirect to payroll index
-                    window.location.href = route('hrm.payroll.index');
+                    router.visit(route('hrm.payroll.index'));
                 },
                 onError: (errors) => {
                     reject(Object.values(errors).flat());
@@ -120,7 +121,7 @@ const CreatePayroll = ({ title, employees, allowanceTypes, deductionTypes }) => 
                                     <Button
                                         variant="flat"
                                         startContent={<ArrowLeftIcon className="w-4 h-4" />}
-                                        onPress={() => window.location.href = route('hrm.payroll.index')}
+                                        onPress={() => router.visit(route('hrm.payroll.index'))}
                                     >
                                         Back to Payroll
                                     </Button>
@@ -267,7 +268,7 @@ const CreatePayroll = ({ title, employees, allowanceTypes, deductionTypes }) => 
                                         <Button
                                             type="button"
                                             variant="flat"
-                                            onPress={() => window.location.href = route('hrm.payroll.index')}
+                                            onPress={() => router.visit(route('hrm.payroll.index'))}
                                             isDisabled={processing}
                                         >
                                             Cancel

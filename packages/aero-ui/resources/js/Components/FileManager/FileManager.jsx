@@ -245,7 +245,7 @@ const FileItem = ({
             />
 
             {/* Icon */}
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
                 {isFolder ? (
                     <FolderIcon className="w-8 h-8 text-warning" />
                 ) : item.thumbnail_url ? (
@@ -326,7 +326,7 @@ const UploadProgressItem = ({ file, progress, status }) => (
                 className="mt-1"
             />
         </div>
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
             {status === 'complete' && <CheckIcon className="w-5 h-5 text-success" />}
             {status === 'error' && <XMarkIcon className="w-5 h-5 text-danger" />}
             {status === 'uploading' && <Spinner size="sm" />}

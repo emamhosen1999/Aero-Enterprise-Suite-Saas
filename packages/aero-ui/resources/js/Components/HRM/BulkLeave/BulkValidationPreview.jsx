@@ -9,7 +9,8 @@ import {
     Progress 
 } from '@heroui/react';
 
-import { 
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import {
     CheckCircleIcon, 
     ExclamationTriangleIcon, 
     XCircleIcon,
@@ -17,19 +18,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 // Theme utility function
-const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 12) return 'lg';
-    return 'xl';
-};
+const themeRadius = useThemeRadius();
 
 const BulkValidationPreview = ({ 
     validationResults = [], 
@@ -108,7 +97,7 @@ const BulkValidationPreview = ({
         <div className="flex flex-col gap-3 sm:gap-4">
             {/* Summary Card */}
             <Card 
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 className="shadow-sm border border-divider/50"
                 style={{
                     borderRadius: `var(--borderRadius, 12px)`,
@@ -282,7 +271,7 @@ const BulkValidationPreview = ({
             {/* Detailed Results */}
             {validationResults.length > 0 && (
                 <Card 
-                    radius={getThemeRadius()}
+                    radius={themeRadius}
                     className="shadow-sm border border-divider/50"
                     style={{
                         borderRadius: `var(--borderRadius, 12px)`,
@@ -340,7 +329,7 @@ const BulkValidationPreview = ({
                                             size="sm" 
                                             variant="bordered" 
                                             color={getStatusColor(result.status)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             className="capitalize text-xs"
                                             style={{
                                                 fontFamily: `var(--fontFamily, "Inter")`,

@@ -32,19 +32,6 @@ const AttendanceRules = ({ title, departments = [], employees = [] }) => {
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete } = useHRMAC();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -594,7 +581,7 @@ const AttendanceRules = ({ title, departments = [], employees = [] }) => {
                                             value={formData.rule_name}
                                             onValueChange={(value) => handleFormChange('rule_name', value)}
                                             isRequired
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -602,7 +589,7 @@ const AttendanceRules = ({ title, departments = [], employees = [] }) => {
                                                 label="Rule Type"
                                                 selectedKeys={[formData.rule_type]}
                                                 onSelectionChange={(keys) => handleFormChange('rule_type', Array.from(keys)[0])}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {ruleTypes.map(type => (
                                                     <SelectItem key={type.key} description={type.description}>
@@ -615,7 +602,7 @@ const AttendanceRules = ({ title, departments = [], employees = [] }) => {
                                                 label="Applies To"
                                                 selectedKeys={[formData.applies_to]}
                                                 onSelectionChange={(keys) => handleFormChange('applies_to', Array.from(keys)[0])}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 <SelectItem key="all">All Users</SelectItem>
                                                 <SelectItem key="department">Specific Department</SelectItem>
@@ -629,7 +616,7 @@ const AttendanceRules = ({ title, departments = [], employees = [] }) => {
                                                 placeholder="Select department"
                                                 selectedKeys={formData.department_id ? [formData.department_id] : []}
                                                 onSelectionChange={(keys) => handleFormChange('department_id', Array.from(keys)[0] || '')}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {departments.map(dept => (
                                                     <SelectItem key={dept.id}>{dept.name}</SelectItem>
@@ -642,7 +629,7 @@ const AttendanceRules = ({ title, departments = [], employees = [] }) => {
                                             placeholder="Describe what this rule does and when it applies..."
                                             value={formData.description}
                                             onValueChange={(value) => handleFormChange('description', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -651,7 +638,7 @@ const AttendanceRules = ({ title, departments = [], employees = [] }) => {
                                                 type="date"
                                                 value={formData.effective_date}
                                                 onValueChange={(value) => handleFormChange('effective_date', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Input
@@ -659,7 +646,7 @@ const AttendanceRules = ({ title, departments = [], employees = [] }) => {
                                                 type="date"
                                                 value={formData.expiry_date}
                                                 onValueChange={(value) => handleFormChange('expiry_date', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                         </div>
                                     </div>
@@ -710,7 +697,7 @@ const AttendanceRules = ({ title, departments = [], employees = [] }) => {
                                                     max="10"
                                                     value={formData.max_devices_per_user}
                                                     onValueChange={(value) => handleFormChange('max_devices_per_user', value)}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 />
                                             </>
                                         )}
@@ -730,7 +717,7 @@ const AttendanceRules = ({ title, departments = [], employees = [] }) => {
                                                     placeholder="192.168.1.0/24&#10;10.0.0.0/8&#10;172.16.0.1"
                                                     value={formData.allowed_ip_addresses}
                                                     onValueChange={(value) => handleFormChange('allowed_ip_addresses', value)}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     description="One IP address or CIDR range per line"
                                                 />
 
@@ -739,7 +726,7 @@ const AttendanceRules = ({ title, departments = [], employees = [] }) => {
                                                     placeholder="List IP addresses to block..."
                                                     value={formData.blocked_ip_addresses}
                                                     onValueChange={(value) => handleFormChange('blocked_ip_addresses', value)}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 />
 
                                                 <div className="flex items-center justify-between">
@@ -775,7 +762,7 @@ const AttendanceRules = ({ title, departments = [], employees = [] }) => {
                                                             placeholder="Office Location 1: 40.7128, -74.0060&#10;Office Location 2: 34.0522, -118.2437"
                                                             value={formData.allowed_locations}
                                                             onValueChange={(value) => handleFormChange('allowed_locations', value)}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             description="Format: Name: latitude, longitude (one per line)"
                                                         />
 
@@ -787,7 +774,7 @@ const AttendanceRules = ({ title, departments = [], employees = [] }) => {
                                                                 max="1000"
                                                                 value={formData.geo_fence_radius}
                                                                 onValueChange={(value) => handleFormChange('geo_fence_radius', value)}
-                                                                radius={getThemeRadius()}
+                                                                radius={themeRadius}
                                                             />
 
                                                             <Input
@@ -797,7 +784,7 @@ const AttendanceRules = ({ title, departments = [], employees = [] }) => {
                                                                 max="100"
                                                                 value={formData.gps_accuracy_required}
                                                                 onValueChange={(value) => handleFormChange('gps_accuracy_required', value)}
-                                                                radius={getThemeRadius()}
+                                                                radius={themeRadius}
                                                             />
                                                         </div>
 
@@ -824,7 +811,7 @@ const AttendanceRules = ({ title, departments = [], employees = [] }) => {
                                             label="Violation Action"
                                             selectedKeys={[formData.violation_action]}
                                             onSelectionChange={(keys) => handleFormChange('violation_action', Array.from(keys)[0])}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         >
                                             {violationActions.map(action => (
                                                 <SelectItem key={action.key} description={action.description}>
@@ -841,7 +828,7 @@ const AttendanceRules = ({ title, departments = [], employees = [] }) => {
                                                 max="50"
                                                 value={formData.max_violations_per_day}
                                                 onValueChange={(value) => handleFormChange('max_violations_per_day', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Input
@@ -851,7 +838,7 @@ const AttendanceRules = ({ title, departments = [], employees = [] }) => {
                                                 max="60"
                                                 value={formData.violation_cooldown_minutes}
                                                 onValueChange={(value) => handleFormChange('violation_cooldown_minutes', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                         </div>
 
@@ -869,7 +856,7 @@ const AttendanceRules = ({ title, departments = [], employees = [] }) => {
                                                 placeholder="manager@company.com, hr@company.com"
                                                 value={formData.alert_recipients}
                                                 onValueChange={(value) => handleFormChange('alert_recipients', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 description="Comma-separated email addresses"
                                             />
                                         )}
@@ -878,7 +865,7 @@ const AttendanceRules = ({ title, departments = [], employees = [] }) => {
                                             label="Priority Level"
                                             selectedKeys={[formData.priority]}
                                             onSelectionChange={(keys) => handleFormChange('priority', Array.from(keys)[0])}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         >
                                             <SelectItem key="high">High Priority</SelectItem>
                                             <SelectItem key="medium">Medium Priority</SelectItem>
@@ -890,7 +877,7 @@ const AttendanceRules = ({ title, departments = [], employees = [] }) => {
                                             placeholder="Any additional implementation notes or special considerations..."
                                             value={formData.notes}
                                             onValueChange={(value) => handleFormChange('notes', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                     </div>
                                 </Tab>
@@ -1009,7 +996,7 @@ const AttendanceRules = ({ title, departments = [], employees = [] }) => {
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select

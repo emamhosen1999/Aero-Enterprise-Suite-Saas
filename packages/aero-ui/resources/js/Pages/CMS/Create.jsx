@@ -20,22 +20,13 @@ import App from '@/Layouts/App.jsx';
 import { getThemedCardStyle } from '@/Components/UI/ThemedCard';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const CmsCreate = ({ title }) => {
     const { auth } = usePage().props;
 
     // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
@@ -219,7 +210,7 @@ const CmsCreate = ({ title }) => {
                                                 isRequired
                                                 isInvalid={!!errors.title}
                                                 errorMessage={errors.title}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 classNames={{ inputWrapper: "bg-default-100" }}
                                             />
 
@@ -232,7 +223,7 @@ const CmsCreate = ({ title }) => {
                                                 isInvalid={!!errors.slug}
                                                 errorMessage={errors.slug}
                                                 startContent={<span className="text-default-400 text-sm">/</span>}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 classNames={{ inputWrapper: "bg-default-100" }}
                                             />
                                         </div>
@@ -248,7 +239,7 @@ const CmsCreate = ({ title }) => {
                                                 onValueChange={(value) => updateField('meta_title', value)}
                                                 isInvalid={!!errors.meta_title}
                                                 errorMessage={errors.meta_title}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 classNames={{ inputWrapper: "bg-default-100" }}
                                             />
 
@@ -260,7 +251,7 @@ const CmsCreate = ({ title }) => {
                                                 isInvalid={!!errors.meta_description}
                                                 errorMessage={errors.meta_description}
                                                 minRows={3}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 classNames={{ inputWrapper: "bg-default-100" }}
                                             />
 
@@ -269,7 +260,7 @@ const CmsCreate = ({ title }) => {
                                                 placeholder="keyword1, keyword2, keyword3"
                                                 value={formData.meta_keywords}
                                                 onValueChange={(value) => updateField('meta_keywords', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 classNames={{ inputWrapper: "bg-default-100" }}
                                             />
                                         </div>
@@ -311,7 +302,7 @@ const CmsCreate = ({ title }) => {
                                                         value={String(formData.nav_order)}
                                                         onValueChange={(value) => updateField('nav_order', parseInt(value) || 0)}
                                                         className="max-w-xs"
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         classNames={{ inputWrapper: "bg-default-100" }}
                                                     />
                                                 )}

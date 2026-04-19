@@ -15,26 +15,14 @@ import StatsCards from '@/Components/StatsCards.jsx';
 import TwoFactorSettings from '@/Components/Auth/TwoFactorSettings.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const Security = ({ title, twoFactorEnabled, recoveryCodesCount, sessions, devices }) => {
     const { auth } = usePage().props;
     
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
-    // Custom media queries
+    const themeRadius = useThemeRadius();
+// Custom media queries
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
     

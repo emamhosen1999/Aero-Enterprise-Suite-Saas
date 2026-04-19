@@ -187,7 +187,7 @@ export default function SubscriptionPlans({ plans = [], currentPlan, billingCycl
                                             <p className="text-sm font-semibold mb-3">Included Features:</p>
                                             {plan.features?.map((feature, idx) => (
                                                 <div key={idx} className="flex items-start gap-2">
-                                                    <CheckIcon className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+                                                    <CheckIcon className="w-5 h-5 text-success shrink-0 mt-0.5" />
                                                     <span className="text-sm">{feature}</span>
                                                 </div>
                                             ))}
@@ -195,7 +195,7 @@ export default function SubscriptionPlans({ plans = [], currentPlan, billingCycl
                                             {/* Limits */}
                                             {plan.max_users && (
                                                 <div className="flex items-start gap-2">
-                                                    <CheckIcon className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+                                                    <CheckIcon className="w-5 h-5 text-success shrink-0 mt-0.5" />
                                                     <span className="text-sm">
                                                         {plan.max_users === -1 ? 'Unlimited' : plan.max_users} users
                                                     </span>
@@ -204,7 +204,7 @@ export default function SubscriptionPlans({ plans = [], currentPlan, billingCycl
 
                                             {plan.max_storage_gb && (
                                                 <div className="flex items-start gap-2">
-                                                    <CheckIcon className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+                                                    <CheckIcon className="w-5 h-5 text-success shrink-0 mt-0.5" />
                                                     <span className="text-sm">
                                                         {plan.max_storage_gb} GB storage
                                                     </span>

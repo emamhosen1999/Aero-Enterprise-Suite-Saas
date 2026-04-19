@@ -71,7 +71,7 @@ const ThemePreview = ({ styleKey, config, isSelected, onClick }) => {
               </p>
             </div>
             {isSelected && (
-              <CheckIcon className="w-5 h-5 text-primary flex-shrink-0" />
+              <CheckIcon className="w-5 h-5 text-primary shrink-0" />
             )}
           </div>
 

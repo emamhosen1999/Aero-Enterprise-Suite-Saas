@@ -84,19 +84,6 @@ const Analytics = ({ auth, event, analytics }) => {
             description: 'Not approved'
         }
     ], [analytics]);
-
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
 
@@ -184,7 +171,7 @@ const Analytics = ({ auth, event, analytics }) => {
                                                 variant="flat"
                                                 onPress={() => router.get(route('events.show', event.id))}
                                                 startContent={<ArrowLeftIcon className="w-5 h-5" />}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 Back to Event
                                             </Button>
@@ -207,7 +194,7 @@ const Analytics = ({ auth, event, analytics }) => {
                                                         className="w-48"
                                                         defaultSelectedKeys={[timeRange]}
                                                         onChange={(e) => setTimeRange(e.target.value)}
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                     >
                                                         <SelectItem key="7" value="7">Last 7 Days</SelectItem>
                                                         <SelectItem key="30" value="30">Last 30 Days</SelectItem>

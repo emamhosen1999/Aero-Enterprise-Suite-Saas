@@ -29,19 +29,6 @@ const Pipeline = ({ title, jobOpenings: initialJobOpenings = [], departments: in
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -520,7 +507,7 @@ const Pipeline = ({ title, jobOpenings: initialJobOpenings = [], departments: in
                                         value={formData.name}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, name: value }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
 
                                     <Select
@@ -529,7 +516,7 @@ const Pipeline = ({ title, jobOpenings: initialJobOpenings = [], departments: in
                                         selectedKeys={formData.job_opening_id ? [formData.job_opening_id] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, job_opening_id: Array.from(keys)[0] || '' }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {jobOpenings.map(job => (
                                             <SelectItem key={job.id} value={job.id}>
@@ -545,7 +532,7 @@ const Pipeline = ({ title, jobOpenings: initialJobOpenings = [], departments: in
                                         placeholder="Select department"
                                         selectedKeys={formData.department_id ? [formData.department_id] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, department_id: Array.from(keys)[0] || '' }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {departments.map(dept => (
                                             <SelectItem key={dept.id} value={dept.id}>
@@ -559,7 +546,7 @@ const Pipeline = ({ title, jobOpenings: initialJobOpenings = [], departments: in
                                         placeholder="Select priority"
                                         selectedKeys={formData.priority ? [formData.priority] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, priority: Array.from(keys)[0] || 'medium' }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {priorities.map(priority => (
                                             <SelectItem key={priority.key}>{priority.label}</SelectItem>
@@ -573,7 +560,7 @@ const Pipeline = ({ title, jobOpenings: initialJobOpenings = [], departments: in
                                     value={formData.description}
                                     onValueChange={(value) => setFormData(prev => ({ ...prev, description: value }))}
                                     rows={3}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
 
                                 <div className="space-y-4">
@@ -600,7 +587,7 @@ const Pipeline = ({ title, jobOpenings: initialJobOpenings = [], departments: in
                                                         value={stage.name}
                                                         onValueChange={(value) => updateStage(index, 'name', value)}
                                                         size="sm"
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                     />
                                                 </div>
                                                 <Switch
@@ -912,7 +899,7 @@ const Pipeline = ({ title, jobOpenings: initialJobOpenings = [], departments: in
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select

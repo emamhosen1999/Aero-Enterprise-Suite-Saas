@@ -85,7 +85,7 @@ const TeamMembersBlock = ({ data = {} }) => {
                                     </div>
                                 )}
 
-                                <div className="p-5 flex-grow flex flex-col">
+                                <div className="p-5 grow flex flex-col">
                                     <div className="mb-3">
                                         <h3 className="text-lg font-bold text-foreground">
                                             {member.name}
@@ -98,7 +98,7 @@ const TeamMembersBlock = ({ data = {} }) => {
                                     </div>
 
                                     {member.bio && (
-                                        <p className="text-sm text-default-600 line-clamp-2 mb-4 flex-grow">
+                                        <p className="text-sm text-default-600 line-clamp-2 mb-4 grow">
                                             {member.bio}
                                         </p>
                                     )}

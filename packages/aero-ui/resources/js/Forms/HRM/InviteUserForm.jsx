@@ -16,6 +16,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { EnvelopeIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import { showToast } from "@/utils/toastUtils";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 /**
  * InviteUserForm - Modal form for sending team member invitations
@@ -43,24 +44,12 @@ const InviteUserForm = ({
     const [errors, setErrors] = useState({});
 
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     // Set theme radius on mount
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            setThemeRadius(getThemeRadius());
+            setThemeRadius(themeRadius);
         }
     }, []);
 

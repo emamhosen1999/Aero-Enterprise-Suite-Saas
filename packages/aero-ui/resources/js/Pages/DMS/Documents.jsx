@@ -327,7 +327,7 @@ const Documents = ({ documents = { data: [], total: 0, current_page: 1, per_page
                     applyFilters();
                 }}
                 className="sm:max-w-xs"
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 variant="bordered"
                 size="sm"
             >

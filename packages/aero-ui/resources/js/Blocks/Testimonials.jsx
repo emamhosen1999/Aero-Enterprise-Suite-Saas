@@ -47,7 +47,7 @@ const Testimonials = ({ content = {}, settings = {} }) => {
   };
 
   const TestimonialCard = ({ testimonial, index }) => (
-    <Card className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 h-full">
+    <Card className="bg-background border border-slate-200 dark:border-white/10 h-full">
       <CardBody className="gap-4 p-6">
         {/* Rating */}
         {showRating && testimonial.rating && (
@@ -55,7 +55,7 @@ const Testimonials = ({ content = {}, settings = {} }) => {
         )}
 
         {/* Quote */}
-        <blockquote className="text-lg text-slate-700 dark:text-slate-300 italic flex-grow">
+        <blockquote className="text-lg text-slate-700 dark:text-slate-300 italic grow">
           "{testimonial.quote}"
         </blockquote>
 

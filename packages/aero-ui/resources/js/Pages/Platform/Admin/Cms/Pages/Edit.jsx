@@ -153,7 +153,7 @@ const Edit = ({ title, page, blocks: initialBlocks, blockTypes, blockCategories,
 
       <div className="h-screen flex flex-col">
         {/* Top Toolbar */}
-        <header className="h-16 border-b border-slate-200 dark:border-white/10 bg-white dark:bg-slate-950 flex items-center justify-between px-4 z-40">
+        <header className="h-16 border-b border-slate-200 dark:border-white/10 bg-background flex items-center justify-between px-4 z-40">
           <div className="flex items-center gap-4">
             <Tooltip content="Back to pages">
               <Button
@@ -247,7 +247,7 @@ const Edit = ({ title, page, blocks: initialBlocks, blockTypes, blockCategories,
                 animate={{ opacity: 1, y: 0 }}
               >
                 {data.blocks.length === 0 ? (
-                  <Card className="border-2 border-dashed border-slate-300 dark:border-white/10 bg-white dark:bg-slate-950/50">
+                  <Card className="border-2 border-dashed border-slate-300 dark:border-white/10 bg-background/50">
                     <CardBody className="py-12 text-center">
                       <p className="text-slate-500 mb-4">No blocks added yet</p>
                       <p className="text-xs text-slate-400 mb-4">

@@ -5,6 +5,7 @@ import { showToast } from '@/utils/toastUtils';
 import { router } from '@inertiajs/react';
 import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import axios from 'axios';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 export default function DeliveryLogsTable({ logs = [], pagination = {}, filters: initialFilters = {} }) {
     const [filters, setFilters] = useState({
@@ -21,18 +22,8 @@ export default function DeliveryLogsTable({ logs = [], pagination = {}, filters:
     const [exporting, setExporting] = useState(false);
 
     // Get theme radius
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
-    const themeRadius = getThemeRadius();
 
     const statusColorMap = {
         sent: "success",

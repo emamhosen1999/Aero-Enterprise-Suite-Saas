@@ -19,6 +19,7 @@ import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
 import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { router } from '@inertiajs/react';
 
 const PerformanceIndex = ({ title, employees: initialEmployees, templates: initialTemplates, departments: initialDepartments }) => {
     const { auth } = usePage().props;
@@ -174,11 +175,11 @@ const PerformanceIndex = ({ title, employees: initialEmployees, templates: initi
 
     // CRUD handlers
     const handleView = (review) => {
-        window.location.href = route('hrm.performance.show', review.id);
+        router.visit(route('hrm.performance.show', review.id));
     };
     
     const handleEdit = (review) => {
-        window.location.href = route('hrm.performance.edit', review.id);
+        router.visit(route('hrm.performance.edit', review.id));
     };
     
     const handleDelete = async (review) => {

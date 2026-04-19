@@ -23,7 +23,7 @@ import {
     DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 import { showToast } from '@/utils/toastUtils';
-import { getThemeRadius } from '@/Hooks/useThemeRadius';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 import axios from 'axios';
 
 /**
@@ -37,6 +37,7 @@ const RfiFilesModal = ({
     onFilesUpdated,
 }) => {
     const [files, setFiles] = useState([]);
+    const themeRadius = useThemeRadius();
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
@@ -230,7 +231,7 @@ const RfiFilesModal = ({
                 size="2xl"
                 scrollBehavior="inside"
                 placement="bottom-center"
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 classNames={{
                     base: "max-h-[100dvh] sm:max-h-[90vh] m-0 sm:m-4 mb-0",
                     wrapper: "items-end sm:items-center",
@@ -392,7 +393,7 @@ const RfiFilesModal = ({
                     onClose={() => setPreviewFile(null)}
                     size="4xl"
                     placement="bottom-center"
-                    radius={getThemeRadius()}
+                    radius={themeRadius}
                     classNames={{
                         base: "max-h-[100dvh] sm:max-h-[90vh] m-0 sm:m-4 mb-0",
                         wrapper: "items-end sm:items-center",

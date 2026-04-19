@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Checkbox, Textarea, Card, CardBody, Chip } from '@heroui/react';
 import { showToast } from '@/utils/toastUtils';
 import { ExclamationTriangleIcon, GiftIcon, PauseIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 export default function CancellationWizard({ isOpen, onClose, currentPlan, onConfirm }) {
     const [step, setStep] = useState(1);
@@ -15,18 +16,8 @@ export default function CancellationWizard({ isOpen, onClose, currentPlan, onCon
     });
     const [isProcessing, setIsProcessing] = useState(false);
 
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'xl';
-    };
+    const themeRadius = useThemeRadius();
 
-    const themeRadius = getThemeRadius();
 
     const cancellationReasons = [
         'Too expensive',
@@ -230,7 +221,7 @@ export default function CancellationWizard({ isOpen, onClose, currentPlan, onCon
                 return (
                     <div className="space-y-4">
                         <div className="flex items-center gap-3 p-4 bg-danger-50 dark:bg-danger-900/20 rounded-lg">
-                            <ExclamationTriangleIcon className="w-6 h-6 text-danger flex-shrink-0" />
+                            <ExclamationTriangleIcon className="w-6 h-6 text-danger shrink-0" />
                             <div>
                                 <h3 className="font-semibold text-danger">Final Confirmation</h3>
                                 <p className="text-sm text-danger-700 dark:text-danger-300">

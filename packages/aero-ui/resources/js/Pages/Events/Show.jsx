@@ -91,19 +91,6 @@ const ShowEvent = ({ event, analytics }) => {
             description: event.max_participants ? 'Remaining capacity' : 'Unlimited'
         }
     ], [analytics, event.max_participants]);
-    
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     const handleTogglePublish = async () => {
         try {
             await axios.post(route('events.toggle-publish', event.id));
@@ -150,7 +137,7 @@ const ShowEvent = ({ event, analytics }) => {
                                                     variant="flat"
                                                     onPress={() => router.get(route('events.index'))}
                                                     startContent={<ArrowLeftIcon className="w-5 h-5" />}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     size={isMobile ? 'sm' : 'md'}
                                                 >
                                                     {!isMobile && 'Back'}
@@ -160,7 +147,7 @@ const ShowEvent = ({ event, analytics }) => {
                                                         color="primary"
                                                         onPress={() => router.get(route('events.edit', event.id))}
                                                         startContent={<PencilIcon className="w-5 h-5" />}
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         size={isMobile ? 'sm' : 'md'}
                                                     >
                                                         Edit
@@ -170,7 +157,7 @@ const ShowEvent = ({ event, analytics }) => {
                                                     variant="flat"
                                                     onPress={() => router.get(route('events.analytics', event.id))}
                                                     startContent={<ChartBarIcon className="w-5 h-5" />}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     size={isMobile ? 'sm' : 'md'}
                                                 >
                                                     {!isMobile && 'Analytics'}
@@ -180,7 +167,7 @@ const ShowEvent = ({ event, analytics }) => {
                                                         color="secondary"
                                                         onPress={() => router.get(route('events.registrations.index', event.id))}
                                                         startContent={<ClipboardDocumentListIcon className="w-5 h-5" />}
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         size={isMobile ? 'sm' : 'md'}
                                                     >
                                                         Registrations
@@ -220,7 +207,7 @@ const ShowEvent = ({ event, analytics }) => {
                                             {/* Tabs */}
                                             <Card className="bg-content2/50" style={{ borderRadius: 'var(--borderRadius, 12px)' }}>
                                                 <CardBody>
-                                                    <Tabs aria-label="Event details" radius={getThemeRadius()}>
+                                                    <Tabs aria-label="Event details" radius={themeRadius}>
                                                         <Tab key="details" title="Details">
                                                             <div className="py-4 space-y-4">
                                                                 <div>
@@ -269,7 +256,7 @@ const ShowEvent = ({ event, analytics }) => {
                                                                                     </div>
                                                                                     <div className="text-right">
                                                                                         {subEvent.joining_fee > 0 && (
-                                                                                            <Chip color="primary" size="sm" radius={getThemeRadius()}>৳{subEvent.joining_fee}</Chip>
+                                                                                            <Chip color="primary" size="sm" radius={themeRadius}>৳{subEvent.joining_fee}</Chip>
                                                                                         )}
                                                                                         {subEvent.max_participants && (
                                                                                             <p className="text-xs text-default-500 mt-2">
@@ -294,12 +281,12 @@ const ShowEvent = ({ event, analytics }) => {
                                                                         <div key={field.id} className="flex justify-between items-center p-3 bg-default-100 rounded-lg">
                                                                             <div>
                                                                                 <span className="font-medium">{field.field_label}</span>
-                                                                                {field.is_required && <Chip size="sm" color="danger" className="ml-2" radius={getThemeRadius()}>Required</Chip>}
+                                                                                {field.is_required && <Chip size="sm" color="danger" className="ml-2" radius={themeRadius}>Required</Chip>}
                                                                                 {field.help_text && (
                                                                                     <p className="text-xs text-default-500 mt-1">{field.help_text}</p>
                                                                                 )}
                                                                             </div>
-                                                                            <Chip size="sm" variant="flat" radius={getThemeRadius()}>{field.field_type}</Chip>
+                                                                            <Chip size="sm" variant="flat" radius={themeRadius}>{field.field_type}</Chip>
                                                                         </div>
                                                                     ))
                                                                 ) : (
@@ -369,13 +356,13 @@ const ShowEvent = ({ event, analytics }) => {
                                                         <div className="space-y-3">
                                                             <div className="flex justify-between items-center">
                                                                 <span className="text-default-600">Published</span>
-                                                                <Chip color={event.is_published ? 'success' : 'warning'} variant="flat" radius={getThemeRadius()}>
+                                                                <Chip color={event.is_published ? 'success' : 'warning'} variant="flat" radius={themeRadius}>
                                                                     {event.is_published ? 'Yes' : 'No'}
                                                                 </Chip>
                                                             </div>
                                                             <div className="flex justify-between items-center">
                                                                 <span className="text-default-600">Registration</span>
-                                                                <Chip color={event.is_registration_open ? 'primary' : 'default'} variant="flat" radius={getThemeRadius()}>
+                                                                <Chip color={event.is_registration_open ? 'primary' : 'default'} variant="flat" radius={themeRadius}>
                                                                     {event.is_registration_open ? 'Open' : 'Closed'}
                                                                 </Chip>
                                                             </div>
@@ -390,7 +377,7 @@ const ShowEvent = ({ event, analytics }) => {
                                                                             color={event.is_published ? 'warning' : 'success'}
                                                                             variant="flat"
                                                                             onPress={handleTogglePublish}
-                                                                            radius={getThemeRadius()}
+                                                                            radius={themeRadius}
                                                                         >
                                                                             {event.is_published ? 'Unpublish' : 'Publish'}
                                                                         </Button>
@@ -400,7 +387,7 @@ const ShowEvent = ({ event, analytics }) => {
                                                                             variant="flat"
                                                                             startContent={<DocumentDuplicateIcon className="w-4 h-4" />}
                                                                             onPress={handleDuplicate}
-                                                                            radius={getThemeRadius()}
+                                                                            radius={themeRadius}
                                                                         >
                                                                             Duplicate Event
                                                                         </Button>
@@ -453,7 +440,7 @@ const ShowEvent = ({ event, analytics }) => {
                                                                 value={`${window.location.origin}/events/${event.slug}`}
                                                                 readOnly
                                                                 size="sm"
-                                                                radius={getThemeRadius()}
+                                                                radius={themeRadius}
                                                             />
                                                             <Button
                                                                 size="sm"
@@ -463,7 +450,7 @@ const ShowEvent = ({ event, analytics }) => {
                                                                     navigator.clipboard.writeText(`${window.location.origin}/events/${event.slug}`);
                                                                     showToast.success('Link copied!');
                                                                 }}
-                                                                radius={getThemeRadius()}
+                                                                radius={themeRadius}
                                                             >
                                                                 Copy
                                                             </Button>

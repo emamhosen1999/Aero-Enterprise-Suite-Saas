@@ -100,7 +100,7 @@ const LayerDependencyIndicator = ({ layer, projectId, chainageStart, chainageEnd
                                 <React.Fragment key={dep.id}>
                                     <div className="flex items-center gap-3">
                                         {/* Status Icon */}
-                                        <div className="flex-shrink-0">
+                                        <div className="shrink-0">
                                             {isComplete ? (
                                                 <CheckCircleIcon className="w-5 h-5 text-success" />
                                             ) : (
@@ -149,7 +149,7 @@ const LayerDependencyIndicator = ({ layer, projectId, chainageStart, chainageEnd
                             </div>
                         )}
                         <div className="flex items-center gap-3 bg-primary/10 rounded-lg p-2">
-                            <div className="flex-shrink-0">
+                            <div className="shrink-0">
                                 <ExclamationTriangleIcon className="w-5 h-5 text-primary" />
                             </div>
                             <div className="flex-1">
@@ -176,7 +176,7 @@ const LayerDependencyIndicator = ({ layer, projectId, chainageStart, chainageEnd
                     {dependencies.some(dep => (coverage[dep.id] || 0) < 95) && (
                         <div className="mt-3 p-3 bg-danger/10 rounded-lg border border-danger/20">
                             <div className="flex items-start gap-2">
-                                <ExclamationTriangleIcon className="w-5 h-5 text-danger flex-shrink-0 mt-0.5" />
+                                <ExclamationTriangleIcon className="w-5 h-5 text-danger shrink-0 mt-0.5" />
                                 <div className="flex-1">
                                     <p className="text-sm font-semibold text-danger">
                                         Prerequisites Not Met

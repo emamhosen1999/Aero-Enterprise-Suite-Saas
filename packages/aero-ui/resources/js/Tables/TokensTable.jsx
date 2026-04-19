@@ -18,6 +18,7 @@ import {
   Avatar,
   Progress
 } from "@heroui/react";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 import {
   EyeIcon,
   ArrowsRightLeftIcon,
@@ -46,19 +47,8 @@ const TokensTable = ({
   const [favorites, setFavorites] = useState(new Set(watchlist || []));
 
   // Theme radius helper
-  const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 16) return 'lg';
-    return 'full';
-  };
-
-  // Format price
+  const themeRadius = useThemeRadius();
+// Format price
   const formatPrice = useCallback((price) => {
     if (!price || isNaN(price)) return '$0.00';
     const num = parseFloat(price);
@@ -164,7 +154,7 @@ const TokensTable = ({
               src={token.logo}
               name={token.symbol}
               size="sm"
-              className="flex-shrink-0"
+              className="shrink-0"
               fallback={
                 <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
                   <span className="text-xs font-bold text-primary">
@@ -361,7 +351,7 @@ const TokensTable = ({
           page={pagination.currentPage}
           total={Math.ceil(pagination.total / pagination.perPage)}
           onChange={onPageChange}
-          radius={getThemeRadius()}
+          radius={themeRadius}
         />
         <div className="hidden sm:flex w-[30%] justify-end gap-2">
           {/* Rows per page selector could go here */}

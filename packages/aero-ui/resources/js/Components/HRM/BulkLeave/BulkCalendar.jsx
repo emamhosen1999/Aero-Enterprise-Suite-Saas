@@ -15,21 +15,10 @@ import {
 
 import { Calendar } from 'lucide-react';
 import axios from 'axios';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 // Theme utility function
-const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 12) return 'lg';
-    return 'xl';
-};
+const themeRadius = useThemeRadius();
 
 const BulkCalendar = ({ 
     selectedDates = [], 
@@ -258,7 +247,7 @@ const BulkCalendar = ({
 
     return (
         <Card 
-            radius={getThemeRadius()}
+            radius={themeRadius}
             className="w-full shadow-sm border border-divider/50"
             style={{
                 borderRadius: `var(--borderRadius, 12px)`,
@@ -286,7 +275,7 @@ const BulkCalendar = ({
                                 variant="bordered" 
                                 color="primary" 
                                 className="ml-2 text-xs hidden sm:flex"
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 style={{
                                     borderColor: `var(--theme-primary)`,
                                     color: `var(--theme-primary)`,
@@ -304,7 +293,7 @@ const BulkCalendar = ({
                             variant="light"
                             onClick={goToPreviousMonth}
                             isDisabled={loading}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             className="min-w-8 h-8"
                             style={{
                                 fontFamily: `var(--fontFamily, "Inter")`,
@@ -317,7 +306,7 @@ const BulkCalendar = ({
                             variant="light"
                             onClick={goToToday}
                             isDisabled={loading}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             className="px-2 py-1 text-xs hidden sm:flex"
                             style={{
                                 fontFamily: `var(--fontFamily, "Inter")`,
@@ -331,7 +320,7 @@ const BulkCalendar = ({
                             variant="light"
                             onClick={goToNextMonth}
                             isDisabled={loading}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             className="min-w-8 h-8"
                             style={{
                                 fontFamily: `var(--fontFamily, "Inter")`,
@@ -366,7 +355,7 @@ const BulkCalendar = ({
                         size="sm" 
                         color="primary" 
                         variant="solid"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         className="text-xs font-medium"
                         style={{
                             fontFamily: `var(--fontFamily, "Inter")`,
@@ -378,7 +367,7 @@ const BulkCalendar = ({
                         size="sm" 
                         color="danger" 
                         variant="solid"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         className="text-xs"
                         style={{
                             fontFamily: `var(--fontFamily, "Inter")`,
@@ -390,7 +379,7 @@ const BulkCalendar = ({
                         size="sm" 
                         color="warning" 
                         variant="solid"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         className="text-xs"
                         style={{
                             fontFamily: `var(--fontFamily, "Inter")`,
@@ -402,7 +391,7 @@ const BulkCalendar = ({
                         size="sm" 
                         color="secondary" 
                         variant="solid"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         className="text-xs font-medium hidden sm:flex"
                         style={{
                             fontFamily: `var(--fontFamily, "Inter")`,
@@ -414,7 +403,7 @@ const BulkCalendar = ({
                         size="sm" 
                         color="default" 
                         variant="bordered"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         className="text-xs hidden sm:flex"
                         style={{
                             fontFamily: `var(--fontFamily, "Inter")`,
@@ -554,7 +543,7 @@ const BulkCalendar = ({
                                         size="sm" 
                                         color="primary"
                                         variant="solid"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         className="text-xs font-medium"
                                         style={{
                                             fontFamily: `var(--fontFamily, "Inter")`,
@@ -571,7 +560,7 @@ const BulkCalendar = ({
                                         size="sm" 
                                         color="primary"
                                         variant="bordered"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         className="text-xs font-medium"
                                         style={{
                                             borderColor: `var(--theme-primary)`,

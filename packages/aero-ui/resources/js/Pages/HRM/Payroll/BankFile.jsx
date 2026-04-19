@@ -27,19 +27,6 @@ const BankFile = ({ title, employees: initialEmployees = [] }) => {
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -429,7 +416,7 @@ const BankFile = ({ title, employees: initialEmployees = [] }) => {
                                     selectedKeys={formData.payroll_run_id ? [formData.payroll_run_id] : []}
                                     onSelectionChange={(keys) => setFormData(prev => ({ ...prev, payroll_run_id: Array.from(keys)[0] || '' }))}
                                     isRequired
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 >
                                     {payrollRuns.map(run => (
                                         <SelectItem key={run.id} value={run.id}>
@@ -445,7 +432,7 @@ const BankFile = ({ title, employees: initialEmployees = [] }) => {
                                         selectedKeys={formData.bank_format ? [formData.bank_format] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, bank_format: Array.from(keys)[0] || 'ACH' }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {bankFormats.map(format => (
                                             <SelectItem key={format.key}>{format.label}</SelectItem>
@@ -457,7 +444,7 @@ const BankFile = ({ title, employees: initialEmployees = [] }) => {
                                         placeholder="Auto-generated"
                                         value={formData.file_name}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, file_name: value }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                 </div>
 
@@ -467,7 +454,7 @@ const BankFile = ({ title, employees: initialEmployees = [] }) => {
                                     value={formData.description}
                                     onValueChange={(value) => setFormData(prev => ({ ...prev, description: value }))}
                                     rows={2}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
 
                                 <div>
@@ -707,7 +694,7 @@ const BankFile = ({ title, employees: initialEmployees = [] }) => {
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select

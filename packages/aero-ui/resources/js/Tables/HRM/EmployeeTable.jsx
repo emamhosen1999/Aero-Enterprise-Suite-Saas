@@ -43,6 +43,7 @@ import DeleteEmployeeModal from '@/Components/DeleteEmployeeModal';
 import ProfilePictureModal from '@/Components/ProfilePictureModal';
 import EmployeeImageModal from '@/Components/HRM/EmployeeImageModal';
 import ProfileAvatar, {getProfileAvatarTokens} from '@/Components/ProfileAvatar';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const EmployeeTable = ({ 
   allUsers, 
@@ -85,21 +86,8 @@ const EmployeeTable = ({
   });
 
   // Helper function to convert theme borderRadius to HeroUI radius values
-  const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 16) return 'lg';
-    return 'full';
-  };
-
-  // Helper to extract base slug (removes _2, _3, etc. suffixes)
+  const themeRadius = useThemeRadius();
+// Helper to extract base slug (removes _2, _3, etc. suffixes)
   const getBaseSlug = (slug) => {
     if (!slug) return '';
     return slug.replace(/_\d+$/, '');
@@ -906,7 +894,7 @@ const EmployeeTable = ({
                     <ProfileAvatar
                       src={currentReportsTo.profile_image_url}
                       size="sm"
-                      className="w-6 h-6 flex-shrink-0"
+                      className="w-6 h-6 shrink-0"
                       name={currentReportsTo.name}
                       showBorder
                     />
@@ -1091,7 +1079,7 @@ const EmployeeTable = ({
         background: `color-mix(in srgb, var(--theme-content1) 85%, transparent)`,
         backdropFilter: 'blur(16px)',
         border: `1px solid color-mix(in srgb, var(--theme-content2) 50%, transparent)`,
-        borderRadius: getThemeRadius(),
+        borderRadius: themeRadius,
       }}
     >
       {/* Global loading overlay */}
@@ -1101,7 +1089,7 @@ const EmployeeTable = ({
           style={{
             background: 'color-mix(in srgb, var(--theme-content1) 20%, transparent)',
             backdropFilter: 'blur(8px)',
-            borderRadius: getThemeRadius(),
+            borderRadius: themeRadius,
           }}
         >
           <div 
@@ -1109,7 +1097,7 @@ const EmployeeTable = ({
             style={{
               background: `color-mix(in srgb, var(--theme-content2) 50%, transparent)`,
               border: `1px solid color-mix(in srgb, var(--theme-content3) 50%, transparent)`,
-              borderRadius: getThemeRadius(),
+              borderRadius: themeRadius,
               backdropFilter: 'blur(16px)',
             }}
           >

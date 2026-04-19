@@ -34,19 +34,6 @@ const AttendanceRules = ({ title, departments = [], attendanceRules = [] }) => {
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete } = useHRMAC();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -519,7 +506,7 @@ const AttendanceRules = ({ title, departments = [], attendanceRules = [] }) => {
                                             value={formData.name}
                                             onValueChange={(value) => handleFormChange('name', value)}
                                             isRequired
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <Textarea
@@ -527,7 +514,7 @@ const AttendanceRules = ({ title, departments = [], attendanceRules = [] }) => {
                                             placeholder="Enter rule description"
                                             value={formData.description}
                                             onValueChange={(value) => handleFormChange('description', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -535,7 +522,7 @@ const AttendanceRules = ({ title, departments = [], attendanceRules = [] }) => {
                                                 label="Rule Type"
                                                 selectedKeys={[formData.rule_type]}
                                                 onSelectionChange={(keys) => handleFormChange('rule_type', Array.from(keys)[0])}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {ruleTypes.map(type => (
                                                     <SelectItem key={type.key}>{type.label}</SelectItem>
@@ -546,7 +533,7 @@ const AttendanceRules = ({ title, departments = [], attendanceRules = [] }) => {
                                                 label="Status"
                                                 selectedKeys={[formData.status]}
                                                 onSelectionChange={(keys) => handleFormChange('status', Array.from(keys)[0])}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {ruleStatuses.map(status => (
                                                     <SelectItem key={status.key}>{status.label}</SelectItem>
@@ -569,7 +556,7 @@ const AttendanceRules = ({ title, departments = [], attendanceRules = [] }) => {
                                                     selectionMode="multiple"
                                                     selectedKeys={formData.department_ids}
                                                     onSelectionChange={(keys) => handleFormChange('department_ids', Array.from(keys))}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 >
                                                     {departments.map(dept => (
                                                         <SelectItem key={dept.id}>{dept.name}</SelectItem>
@@ -588,7 +575,7 @@ const AttendanceRules = ({ title, departments = [], attendanceRules = [] }) => {
                                             selectionMode="multiple"
                                             selectedKeys={formData.enforce_during}
                                             onSelectionChange={(keys) => handleFormChange('enforce_during', Array.from(keys))}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         >
                                             <SelectItem key="clock_in">Clock In</SelectItem>
                                             <SelectItem key="clock_out">Clock Out</SelectItem>
@@ -599,7 +586,7 @@ const AttendanceRules = ({ title, departments = [], attendanceRules = [] }) => {
                                             label="Violation Action"
                                             selectedKeys={[formData.violation_action]}
                                             onSelectionChange={(keys) => handleFormChange('violation_action', Array.from(keys)[0])}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         >
                                             {violationActions.map(action => (
                                                 <SelectItem key={action.key}>{action.label}</SelectItem>
@@ -631,7 +618,7 @@ const AttendanceRules = ({ title, departments = [], attendanceRules = [] }) => {
                                                 label="Device Type"
                                                 selectedKeys={[formData.device_type]}
                                                 onSelectionChange={(keys) => handleFormChange('device_type', Array.from(keys)[0])}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {deviceTypes.map(type => (
                                                     <SelectItem key={type.key}>{type.label}</SelectItem>
@@ -644,7 +631,7 @@ const AttendanceRules = ({ title, departments = [], attendanceRules = [] }) => {
                                                     placeholder="Enter device IDs (one per line)"
                                                     value={formData.allowed_devices.join('\n')}
                                                     onValueChange={(value) => handleFormChange('allowed_devices', value.split('\n').filter(id => id.trim()))}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 />
                                             )}
 
@@ -654,7 +641,7 @@ const AttendanceRules = ({ title, departments = [], attendanceRules = [] }) => {
                                                 placeholder="Enter max devices"
                                                 value={formData.max_devices}
                                                 onValueChange={(value) => handleFormChange('max_devices', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Switch
@@ -674,7 +661,7 @@ const AttendanceRules = ({ title, departments = [], attendanceRules = [] }) => {
                                                 label="IP Restriction Type"
                                                 selectedKeys={[formData.ip_restriction_type]}
                                                 onSelectionChange={(keys) => handleFormChange('ip_restriction_type', Array.from(keys)[0])}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 <SelectItem key="whitelist">Whitelist (Allow Only)</SelectItem>
                                                 <SelectItem key="blacklist">Blacklist (Block Only)</SelectItem>
@@ -685,7 +672,7 @@ const AttendanceRules = ({ title, departments = [], attendanceRules = [] }) => {
                                                 placeholder="Enter IP addresses (one per line)"
                                                 value={formData.allowed_ip_addresses.join('\n')}
                                                 onValueChange={(value) => handleFormChange('allowed_ip_addresses', value.split('\n').filter(ip => ip.trim()))}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Switch
@@ -706,7 +693,7 @@ const AttendanceRules = ({ title, departments = [], attendanceRules = [] }) => {
                                                 placeholder="Enter location coordinates (lat,lng) one per line"
                                                 value={formData.allowed_locations.join('\n')}
                                                 onValueChange={(value) => handleFormChange('allowed_locations', value.split('\n').filter(loc => loc.trim()))}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -715,7 +702,7 @@ const AttendanceRules = ({ title, departments = [], attendanceRules = [] }) => {
                                                     type="number"
                                                     value={formData.geo_radius}
                                                     onValueChange={(value) => handleFormChange('geo_radius', value)}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 />
 
                                                 <Input
@@ -723,7 +710,7 @@ const AttendanceRules = ({ title, departments = [], attendanceRules = [] }) => {
                                                     type="number"
                                                     value={formData.location_accuracy_threshold}
                                                     onValueChange={(value) => handleFormChange('location_accuracy_threshold', value)}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 />
                                             </div>
 
@@ -851,7 +838,7 @@ const AttendanceRules = ({ title, departments = [], attendanceRules = [] }) => {
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select

@@ -36,19 +36,6 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete } = useHRMAC();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -739,7 +726,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                                 selectedKeys={formData.employee_id ? [formData.employee_id] : []}
                                                 onSelectionChange={(keys) => handleFormChange('employee_id', Array.from(keys)[0] || '')}
                                                 isRequired
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {employees.map(employee => (
                                                     <SelectItem key={employee.id}>
@@ -754,7 +741,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                                 selectedKeys={formData.recommended_position_id ? [formData.recommended_position_id] : []}
                                                 onSelectionChange={(keys) => handleFormChange('recommended_position_id', Array.from(keys)[0] || '')}
                                                 isRequired
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {positions.map(position => (
                                                     <SelectItem key={position.id}>{position.title}</SelectItem>
@@ -767,7 +754,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                                 label="Recommendation Type"
                                                 selectedKeys={[formData.recommendation_type]}
                                                 onSelectionChange={(keys) => handleFormChange('recommendation_type', Array.from(keys)[0])}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {recommendationTypes.map(type => (
                                                     <SelectItem key={type.key} description={type.description}>
@@ -780,7 +767,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                                 label="Priority Level"
                                                 selectedKeys={[formData.priority_level]}
                                                 onSelectionChange={(keys) => handleFormChange('priority_level', Array.from(keys)[0])}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {priorityLevels.map(priority => (
                                                     <SelectItem key={priority.key}>{priority.label}</SelectItem>
@@ -791,7 +778,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                                 label="Timeline"
                                                 selectedKeys={[formData.timeline]}
                                                 onSelectionChange={(keys) => handleFormChange('timeline', Array.from(keys)[0])}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {timelines.map(timeline => (
                                                     <SelectItem key={timeline.key}>{timeline.label}</SelectItem>
@@ -806,7 +793,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                                 placeholder="50000"
                                                 value={formData.current_salary}
                                                 onValueChange={(value) => handleFormChange('current_salary', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 startContent={<span className="text-default-400 text-small">$</span>}
                                             />
 
@@ -816,7 +803,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                                 placeholder="65000"
                                                 value={formData.recommended_salary}
                                                 onValueChange={(value) => handleFormChange('recommended_salary', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 startContent={<span className="text-default-400 text-small">$</span>}
                                             />
 
@@ -824,7 +811,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                                 label="Increase Percentage"
                                                 value={formData.salary_increase_percentage}
                                                 isReadOnly
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 endContent={<span className="text-default-400 text-small">%</span>}
                                                 color={parseFloat(formData.salary_increase_percentage) > 0 ? 'success' : 'default'}
                                             />
@@ -844,7 +831,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                                 max="10"
                                                 value={formData.technical_competency}
                                                 onValueChange={(value) => handleFormChange('technical_competency', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 color={getReadinessColor(parseFloat(formData.technical_competency))}
                                             />
 
@@ -855,7 +842,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                                 max="10"
                                                 value={formData.leadership_potential}
                                                 onValueChange={(value) => handleFormChange('leadership_potential', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 color={getReadinessColor(parseFloat(formData.leadership_potential))}
                                             />
 
@@ -866,7 +853,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                                 max="10"
                                                 value={formData.culture_fit}
                                                 onValueChange={(value) => handleFormChange('culture_fit', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 color={getReadinessColor(parseFloat(formData.culture_fit))}
                                             />
                                         </div>
@@ -890,7 +877,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                                 placeholder="List employee's current skills and competencies..."
                                                 value={formData.current_skills}
                                                 onValueChange={(value) => handleFormChange('current_skills', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Textarea
@@ -898,7 +885,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                                 placeholder="Skills required for the recommended position..."
                                                 value={formData.required_skills}
                                                 onValueChange={(value) => handleFormChange('required_skills', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Textarea
@@ -906,7 +893,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                                 placeholder="Identify gaps and development plan to bridge them..."
                                                 value={formData.skill_gaps}
                                                 onValueChange={(value) => handleFormChange('skill_gaps', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                         </div>
                                     </div>
@@ -919,7 +906,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                             placeholder="Describe the business need for this promotion..."
                                             value={formData.business_need}
                                             onValueChange={(value) => handleFormChange('business_need', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             isRequired
                                         />
 
@@ -928,7 +915,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                             placeholder="Expected impact of this promotion on team/department..."
                                             value={formData.impact_assessment}
                                             onValueChange={(value) => handleFormChange('impact_assessment', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <Textarea
@@ -936,7 +923,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                             placeholder="Potential risks and mitigation strategies..."
                                             value={formData.risk_factors}
                                             onValueChange={(value) => handleFormChange('risk_factors', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <Textarea
@@ -944,7 +931,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                             placeholder="How will you measure success of this promotion..."
                                             value={formData.success_metrics}
                                             onValueChange={(value) => handleFormChange('success_metrics', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <Input
@@ -952,7 +939,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                             placeholder="Annual budget impact"
                                             value={formData.budget_impact}
                                             onValueChange={(value) => handleFormChange('budget_impact', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             startContent={<span className="text-default-400 text-small">$</span>}
                                         />
                                     </div>
@@ -965,7 +952,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                             type="date"
                                             value={formData.proposed_start_date}
                                             onValueChange={(value) => handleFormChange('proposed_start_date', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <Textarea
@@ -973,7 +960,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                             placeholder="Detailed transition plan and timeline..."
                                             value={formData.transition_plan}
                                             onValueChange={(value) => handleFormChange('transition_plan', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <Textarea
@@ -981,7 +968,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                             placeholder="Required training and development programs..."
                                             value={formData.training_requirements}
                                             onValueChange={(value) => handleFormChange('training_requirements', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <Textarea
@@ -989,7 +976,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                             placeholder="Manager's endorsement and comments..."
                                             value={formData.manager_endorsement}
                                             onValueChange={(value) => handleFormChange('manager_endorsement', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <Textarea
@@ -997,7 +984,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                             placeholder="Any additional notes or considerations..."
                                             value={formData.notes}
                                             onValueChange={(value) => handleFormChange('notes', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                     </div>
                                 </Tab>
@@ -1037,7 +1024,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                     placeholder="Add your review comments..."
                                     value={formData.hr_comments}
                                     onValueChange={(value) => handleFormChange('hr_comments', value)}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
                             </div>
                         </ModalBody>
@@ -1064,7 +1051,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                     placeholder="Select department for analysis"
                                     selectedKeys={formData.department_id ? [formData.department_id] : []}
                                     onSelectionChange={(keys) => handleFormChange('department_id', Array.from(keys)[0] || '')}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 >
                                     <SelectItem key="all">All Departments</SelectItem>
                                     {departments.map(department => (
@@ -1203,7 +1190,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select

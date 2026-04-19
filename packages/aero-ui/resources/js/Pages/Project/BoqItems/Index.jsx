@@ -466,7 +466,7 @@ const BoqItemsIndex = ({ title }) => {
                             isInvalid={!!formErrors.item_code}
                             errorMessage={formErrors.item_code?.[0]}
                             isRequired
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         />
                         <Input
                             label="Unit"
@@ -476,7 +476,7 @@ const BoqItemsIndex = ({ title }) => {
                             isInvalid={!!formErrors.unit}
                             errorMessage={formErrors.unit?.[0]}
                             isRequired
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         />
                         <div className="md:col-span-2">
                             <Textarea
@@ -487,7 +487,7 @@ const BoqItemsIndex = ({ title }) => {
                                 isInvalid={!!formErrors.description}
                                 errorMessage={formErrors.description?.[0]}
                                 isRequired
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 minRows={2}
                             />
                         </div>
@@ -500,7 +500,7 @@ const BoqItemsIndex = ({ title }) => {
                             isInvalid={!!formErrors.unit_rate}
                             errorMessage={formErrors.unit_rate?.[0]}
                             isRequired
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             startContent={<span className="text-default-400">৳</span>}
                         />
                         <Input
@@ -512,7 +512,7 @@ const BoqItemsIndex = ({ title }) => {
                             isInvalid={!!formErrors.total_quantity}
                             errorMessage={formErrors.total_quantity?.[0]}
                             isRequired
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         />
                         <Select
                             label="Work Layer"
@@ -522,7 +522,7 @@ const BoqItemsIndex = ({ title }) => {
                                 ...prev, 
                                 work_layer_id: Array.from(keys)[0] || '' 
                             }))}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         >
                             {workLayers.map(layer => (
                                 <SelectItem key={String(layer.id)}>{layer.name}</SelectItem>
@@ -541,7 +541,7 @@ const BoqItemsIndex = ({ title }) => {
                                 placeholder="Technical specification (optional)"
                                 value={formData.specification}
                                 onValueChange={(v) => setFormData(prev => ({ ...prev, specification: v }))}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 minRows={3}
                             />
                         </div>
@@ -668,14 +668,14 @@ const BoqItemsIndex = ({ title }) => {
                                             onValueChange={(v) => handleFilterChange('search', v)}
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                                             className="flex-1"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         <Select
                                             placeholder="All Work Layers"
                                             selectedKeys={filters.work_layer_id ? [filters.work_layer_id] : []}
                                             onSelectionChange={(keys) => handleFilterChange('work_layer_id', Array.from(keys)[0] || '')}
                                             className="w-full sm:w-48"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         >
                                             {workLayers.map(layer => (
                                                 <SelectItem key={String(layer.id)}>{layer.name}</SelectItem>
@@ -686,7 +686,7 @@ const BoqItemsIndex = ({ title }) => {
                                             selectedKeys={filters.unit ? [filters.unit] : []}
                                             onSelectionChange={(keys) => handleFilterChange('unit', Array.from(keys)[0] || '')}
                                             className="w-full sm:w-36"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         >
                                             {units.map(unit => (
                                                 <SelectItem key={unit}>{unit}</SelectItem>
@@ -697,7 +697,7 @@ const BoqItemsIndex = ({ title }) => {
                                             selectedKeys={filters.is_active !== '' ? [filters.is_active] : []}
                                             onSelectionChange={(keys) => handleFilterChange('is_active', Array.from(keys)[0] ?? '')}
                                             className="w-full sm:w-36"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         >
                                             <SelectItem key="true">Active</SelectItem>
                                             <SelectItem key="false">Inactive</SelectItem>

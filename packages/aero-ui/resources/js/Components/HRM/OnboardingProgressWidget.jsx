@@ -146,7 +146,7 @@ const OnboardingProgressWidget = ({ onboarding }) => {
           {/* Progress Circle and Stats */}
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
             {/* Circular Progress */}
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <div className="relative inline-flex items-center justify-center">
                 <svg className="w-24 h-24 transform -rotate-90">
                   {/* Background circle */}
@@ -259,9 +259,9 @@ const OnboardingProgressWidget = ({ onboarding }) => {
                     className="flex items-center gap-2 text-sm py-1"
                   >
                     {task.completed_at ? (
-                      <CheckIcon className="w-4 h-4 text-success flex-shrink-0" />
+                      <CheckIcon className="w-4 h-4 text-success shrink-0" />
                     ) : (
-                      <div className="w-4 h-4 rounded-full border-2 border-default-300 flex-shrink-0" />
+                      <div className="w-4 h-4 rounded-full border-2 border-default-300 shrink-0" />
                     )}
                     <span
                       className={`flex-1 ${

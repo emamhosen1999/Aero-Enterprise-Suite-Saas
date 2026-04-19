@@ -1,22 +1,11 @@
 import React from 'react';
 import {Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader,} from "@heroui/react";
 import {ExclamationTriangleIcon} from "@heroicons/react/24/outline";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const DeleteWorkLocationForm = ({ open, handleClose, handleDelete }) => {
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     const handleConfirmDelete = () => {
         handleDelete();
@@ -83,7 +72,7 @@ const DeleteWorkLocationForm = ({ open, handleClose, handleDelete }) => {
                                 color="default"
                                 variant="light"
                                 onPress={handleClose}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 style={{
                                     fontFamily: `var(--fontFamily, "Inter")`,
                                 }}
@@ -93,7 +82,7 @@ const DeleteWorkLocationForm = ({ open, handleClose, handleDelete }) => {
                             <Button
                                 color="danger"
                                 onPress={handleConfirmDelete}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 style={{
                                     fontFamily: `var(--fontFamily, "Inter")`,
                                 }}

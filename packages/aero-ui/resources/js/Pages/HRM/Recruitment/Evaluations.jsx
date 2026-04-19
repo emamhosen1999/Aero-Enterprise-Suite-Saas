@@ -33,19 +33,6 @@ const EvaluationScores = ({ title, interviews = [], evaluationCriteria = [], int
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete } = useHRMAC();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -538,7 +525,7 @@ const EvaluationScores = ({ title, interviews = [], evaluationCriteria = [], int
                                                 selectedKeys={formData.interview_id ? [formData.interview_id] : []}
                                                 onSelectionChange={(keys) => handleFormChange('interview_id', Array.from(keys)[0] || '')}
                                                 isRequired
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {interviews.map(interview => (
                                                     <SelectItem key={interview.id}>
@@ -553,7 +540,7 @@ const EvaluationScores = ({ title, interviews = [], evaluationCriteria = [], int
                                                 selectedKeys={formData.interviewer_id ? [formData.interviewer_id] : []}
                                                 onSelectionChange={(keys) => handleFormChange('interviewer_id', Array.from(keys)[0] || '')}
                                                 isRequired
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {interviewers.map(interviewer => (
                                                     <SelectItem key={interviewer.id}>{interviewer.name}</SelectItem>
@@ -567,7 +554,7 @@ const EvaluationScores = ({ title, interviews = [], evaluationCriteria = [], int
                                                 type="date"
                                                 value={formData.interview_date}
                                                 onValueChange={(value) => handleFormChange('interview_date', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Input
@@ -576,7 +563,7 @@ const EvaluationScores = ({ title, interviews = [], evaluationCriteria = [], int
                                                 placeholder="60"
                                                 value={formData.duration_minutes}
                                                 onValueChange={(value) => handleFormChange('duration_minutes', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                         </div>
                                     </div>
@@ -595,7 +582,7 @@ const EvaluationScores = ({ title, interviews = [], evaluationCriteria = [], int
                                                 placeholder="1-10"
                                                 value={formData.technical_skills}
                                                 onValueChange={(value) => handleFormChange('technical_skills', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Input
@@ -606,7 +593,7 @@ const EvaluationScores = ({ title, interviews = [], evaluationCriteria = [], int
                                                 placeholder="1-10"
                                                 value={formData.communication}
                                                 onValueChange={(value) => handleFormChange('communication', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Input
@@ -617,7 +604,7 @@ const EvaluationScores = ({ title, interviews = [], evaluationCriteria = [], int
                                                 placeholder="1-10"
                                                 value={formData.problem_solving}
                                                 onValueChange={(value) => handleFormChange('problem_solving', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Input
@@ -628,7 +615,7 @@ const EvaluationScores = ({ title, interviews = [], evaluationCriteria = [], int
                                                 placeholder="1-10"
                                                 value={formData.cultural_fit}
                                                 onValueChange={(value) => handleFormChange('cultural_fit', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Input
@@ -639,7 +626,7 @@ const EvaluationScores = ({ title, interviews = [], evaluationCriteria = [], int
                                                 placeholder="1-10"
                                                 value={formData.experience}
                                                 onValueChange={(value) => handleFormChange('experience', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Input
@@ -650,7 +637,7 @@ const EvaluationScores = ({ title, interviews = [], evaluationCriteria = [], int
                                                 placeholder="1-10"
                                                 value={formData.leadership}
                                                 onValueChange={(value) => handleFormChange('leadership', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                         </div>
 
@@ -679,7 +666,7 @@ const EvaluationScores = ({ title, interviews = [], evaluationCriteria = [], int
                                             label="Recommendation"
                                             selectedKeys={[formData.recommendation]}
                                             onSelectionChange={(keys) => handleFormChange('recommendation', Array.from(keys)[0])}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         >
                                             {recommendations.map(rec => (
                                                 <SelectItem key={rec.key}>{rec.label}</SelectItem>
@@ -691,7 +678,7 @@ const EvaluationScores = ({ title, interviews = [], evaluationCriteria = [], int
                                             placeholder="List candidate's key strengths..."
                                             value={formData.strengths}
                                             onValueChange={(value) => handleFormChange('strengths', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <Textarea
@@ -699,7 +686,7 @@ const EvaluationScores = ({ title, interviews = [], evaluationCriteria = [], int
                                             placeholder="List areas where candidate can improve..."
                                             value={formData.weaknesses}
                                             onValueChange={(value) => handleFormChange('weaknesses', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <Textarea
@@ -707,7 +694,7 @@ const EvaluationScores = ({ title, interviews = [], evaluationCriteria = [], int
                                             placeholder="Any additional observations or feedback..."
                                             value={formData.comments}
                                             onValueChange={(value) => handleFormChange('comments', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <div className="space-y-3">
@@ -855,7 +842,7 @@ const EvaluationScores = ({ title, interviews = [], evaluationCriteria = [], int
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select

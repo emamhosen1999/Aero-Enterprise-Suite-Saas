@@ -25,15 +25,10 @@ import {
 } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
 import { showToast } from '@/utils/toastUtils';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 // Helper function to get theme radius from CSS variable
-const getThemeRadius = () => {
-    const borderRadius = getComputedStyle(document.documentElement)
-        .getPropertyValue('--borderRadius')
-        .trim();
-    return borderRadius || 'md';
-};
-
+const themeRadius = useThemeRadius();
 const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlots }) => {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
@@ -112,7 +107,7 @@ const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlot
                                 startContent={<ArrowLeftIcon className="w-4 h-4" />}
                                 onPress={() => router.get(route('public.events.index'))}
                                 className="mb-4"
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                             >
                                 Return to Events
                             </Button>
@@ -142,7 +137,7 @@ const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlot
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-8">
                         {/* Description */}
-                        <Card radius={getThemeRadius()}>
+                        <Card radius={themeRadius}>
                             <CardBody>
                                 <h2 className="text-2xl font-bold mb-4">About This Event</h2>
                                 <p className="text-default-700 whitespace-pre-line">{event.description}</p>
@@ -151,7 +146,7 @@ const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlot
                         
                         {/* Sub-Events */}
                         {event.sub_events && event.sub_events.length > 0 && (
-                            <Card radius={getThemeRadius()}>
+                            <Card radius={themeRadius}>
                                 <CardBody>
                                     <h2 className="text-2xl font-bold mb-4">Sub-Events</h2>
                                     <div className="space-y-4">
@@ -174,7 +169,7 @@ const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlot
                                                     </div>
                                                     <div className="text-right ml-4">
                                                         {parseFloat(subEvent.joining_fee) > 0 && (
-                                                            <Chip color="primary" variant="flat" radius={getThemeRadius()}>৳{subEvent.joining_fee}</Chip>
+                                                            <Chip color="primary" variant="flat" radius={themeRadius}>৳{subEvent.joining_fee}</Chip>
                                                         )}
                                                         {subEvent.max_participants && (
                                                             <p className="text-xs text-default-500 mt-2">
@@ -192,7 +187,7 @@ const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlot
                         
                         {/* Additional Info */}
                         {(event.food_details || event.rules) && (
-                            <Card radius={getThemeRadius()}>
+                            <Card radius={themeRadius}>
                                 <CardBody>
                                     {event.food_details && (
                                         <div className="mb-6">
@@ -213,7 +208,7 @@ const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlot
                         
                         {/* Registration Form */}
                         {showRegistrationForm && canRegister && (
-                            <Card radius={getThemeRadius()}>
+                            <Card radius={themeRadius}>
                                 <CardHeader>
                                     <h2 className="text-2xl font-bold">Register for Event</h2>
                                 </CardHeader>
@@ -228,7 +223,7 @@ const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlot
                                                 errorMessage={errors.name}
                                                 isInvalid={!!errors.name}
                                                 isRequired
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                             
                                             <Input
@@ -240,7 +235,7 @@ const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlot
                                                 errorMessage={errors.email}
                                                 isInvalid={!!errors.email}
                                                 isRequired
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                             
                                             <Input
@@ -251,7 +246,7 @@ const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlot
                                                 errorMessage={errors.phone}
                                                 isInvalid={!!errors.phone}
                                                 isRequired
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                             
                                             <Select
@@ -259,7 +254,7 @@ const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlot
                                                 selectedKeys={[data.gender]}
                                                 onChange={(e) => setData('gender', e.target.value)}
                                                 isRequired
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 <SelectItem key="male" value="male">Male</SelectItem>
                                                 <SelectItem key="female" value="female">Female</SelectItem>
@@ -277,7 +272,7 @@ const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlot
                                             isInvalid={!!errors.address}
                                             rows={2}
                                             isRequired
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Input
@@ -285,7 +280,7 @@ const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlot
                                             placeholder="Your organization or department"
                                             value={data.organization_or_department}
                                             onChange={(e) => setData('organization_or_department', e.target.value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         {event.sub_events && event.sub_events.length > 0 && (
@@ -298,7 +293,7 @@ const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlot
                                                     onValueChange={(value) => setData('sub_event_ids', value)}
                                                     errorMessage={errors.sub_event_ids}
                                                     isInvalid={!!errors.sub_event_ids}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 >
                                                     {event.sub_events.map((subEvent) => (
                                                         <Checkbox key={subEvent.id} value={subEvent.id.toString()}>
@@ -328,7 +323,7 @@ const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlot
                                                             ...data.custom_fields,
                                                             [field.field_name]: e.target.value
                                                         })}
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                     />
                                                 ))}
                                             </div>
@@ -358,7 +353,7 @@ const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlot
                                             <Button
                                                 variant="flat"
                                                 onPress={() => setShowRegistrationForm(false)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 Cancel
                                             </Button>
@@ -366,7 +361,7 @@ const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlot
                                                 type="submit"
                                                 color="primary"
                                                 isLoading={processing}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 Submit Registration
                                             </Button>
@@ -380,7 +375,7 @@ const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlot
                     {/* Sidebar */}
                     <div className="space-y-6">
                         {/* Quick Info */}
-                        <Card radius={getThemeRadius()}>
+                        <Card radius={themeRadius}>
                             <CardBody>
                                 <h3 className="text-lg font-bold mb-4">Event Details</h3>
                                 <div className="space-y-3 text-sm">
@@ -417,11 +412,11 @@ const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlot
                         </Card>
                         
                         {/* Registration CTA */}
-                        <Card radius={getThemeRadius()}>
+                        <Card radius={themeRadius}>
                             <CardBody>
                                 {canRegister ? (
                                     <>
-                                        <Chip color="success" variant="flat" className="mb-4" radius={getThemeRadius()}>
+                                        <Chip color="success" variant="flat" className="mb-4" radius={themeRadius}>
                                             <CheckCircleIcon className="w-4 h-4 mr-1" />
                                             Registration Open
                                         </Chip>
@@ -431,7 +426,7 @@ const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlot
                                                 size="lg"
                                                 fullWidth
                                                 onPress={() => setShowRegistrationForm(true)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 Register Now
                                             </Button>
@@ -439,7 +434,7 @@ const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlot
                                     </>
                                 ) : (
                                     <div>
-                                        <Chip color="default" variant="flat" className="mb-2" radius={getThemeRadius()}>
+                                        <Chip color="default" variant="flat" className="mb-2" radius={themeRadius}>
                                             Registration Closed
                                         </Chip>
                                         <p className="text-sm text-default-500">{registrationStatus}</p>
@@ -450,7 +445,7 @@ const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlot
                         
                         {/* Organizer */}
                         {(event.organizer_name || event.organizer_email || event.organizer_phone) && (
-                            <Card radius={getThemeRadius()}>
+                            <Card radius={themeRadius}>
                                 <CardBody>
                                     <h3 className="text-lg font-bold mb-3">Contact Organizer</h3>
                                     <div className="space-y-2 text-sm">

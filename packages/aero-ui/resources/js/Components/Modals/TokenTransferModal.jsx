@@ -13,7 +13,8 @@ import {
   CardBody,
   Divider
 } from "@heroui/react";
-import { 
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import {
   ArrowsRightLeftIcon,
   WalletIcon,
   ExclamationTriangleIcon
@@ -39,17 +40,7 @@ const TokenTransferModal = ({
   const [estimatedFee, setEstimatedFee] = useState(null);
 
   // Theme radius helper
-  const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 16) return 'lg';
-    return 'full';
-  };
+  const themeRadius = useThemeRadius();
 
   // Get selected wallet details
   const selectedWallet = useMemo(() => {
@@ -205,7 +196,7 @@ const TokenTransferModal = ({
               isInvalid={!!errors.fromWallet}
               errorMessage={errors.fromWallet}
               isRequired
-              radius={getThemeRadius()}
+              radius={themeRadius}
               classNames={{ trigger: "bg-default-100" }}
               startContent={<WalletIcon className="w-4 h-4 text-default-400" />}
             >
@@ -232,7 +223,7 @@ const TokenTransferModal = ({
               isInvalid={!!errors.toAddress}
               errorMessage={errors.toAddress}
               isRequired
-              radius={getThemeRadius()}
+              radius={themeRadius}
               classNames={{ inputWrapper: "bg-default-100" }}
             />
 
@@ -246,7 +237,7 @@ const TokenTransferModal = ({
               isInvalid={!!errors.amount}
               errorMessage={errors.amount}
               isRequired
-              radius={getThemeRadius()}
+              radius={themeRadius}
               classNames={{ inputWrapper: "bg-default-100" }}
               endContent={
                 <div className="flex items-center gap-2">
@@ -273,7 +264,7 @@ const TokenTransferModal = ({
                 placeholder="65000"
                 value={formData.gasLimit}
                 onValueChange={(value) => handleInputChange('gasLimit', value)}
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 classNames={{ inputWrapper: "bg-default-100" }}
               />
               <Input
@@ -281,7 +272,7 @@ const TokenTransferModal = ({
                 placeholder="20"
                 value={formData.gasPrice}
                 onValueChange={(value) => handleInputChange('gasPrice', value)}
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 classNames={{ inputWrapper: "bg-default-100" }}
               />
             </div>
@@ -315,7 +306,7 @@ const TokenTransferModal = ({
             {/* Warning */}
             <div className="p-4 bg-warning-50 border-l-4 border-warning rounded-r-lg">
               <div className="flex gap-3">
-                <ExclamationTriangleIcon className="w-5 h-5 text-warning-600 flex-shrink-0" />
+                <ExclamationTriangleIcon className="w-5 h-5 text-warning-600 shrink-0" />
                 <div>
                   <p className="text-sm text-warning-800 font-medium">Important</p>
                   <p className="text-sm text-warning-700 mt-1">
@@ -328,14 +319,14 @@ const TokenTransferModal = ({
         </ModalBody>
         
         <ModalFooter>
-          <Button variant="flat" onPress={handleClose} isDisabled={loading} radius={getThemeRadius()}>
+          <Button variant="flat" onPress={handleClose} isDisabled={loading} radius={themeRadius}>
             Cancel
           </Button>
           <Button 
             color="primary" 
             onPress={handleTransfer}
             isLoading={loading}
-            radius={getThemeRadius()}
+            radius={themeRadius}
             startContent={!loading ? <ArrowsRightLeftIcon className="w-4 h-4" /> : null}
           >
             {loading ? 'Transferring...' : 'Transfer'}

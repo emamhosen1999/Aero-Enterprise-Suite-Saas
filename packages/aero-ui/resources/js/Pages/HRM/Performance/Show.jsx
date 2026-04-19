@@ -12,6 +12,7 @@ import {
 } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
 import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { router } from '@inertiajs/react';
 
 const ShowPerformanceReview = ({ review }) => {
     const themeRadius = useThemeRadius();
@@ -35,7 +36,7 @@ const ShowPerformanceReview = ({ review }) => {
     };
 
     const handleEdit = () => {
-        window.location.href = route('hrm.performance.edit', review.id);
+        router.visit(route('hrm.performance.edit', review.id));
     };
 
     const getStatusColor = (status) => {

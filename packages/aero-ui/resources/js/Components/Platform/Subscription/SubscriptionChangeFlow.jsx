@@ -2,24 +2,15 @@ import React, { useState } from 'react';
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Card, CardBody, Divider, Checkbox } from '@heroui/react';
 import { showToast } from '@/utils/toastUtils';
 import { ArrowRightIcon, CreditCardIcon } from '@heroicons/react/24/outline';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 export default function SubscriptionChangeFlow({ isOpen, onClose, currentPlan, newPlan, onConfirm }) {
     const [step, setStep] = useState(1);
     const [acceptTerms, setAcceptTerms] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
 
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'xl';
-    };
+    const themeRadius = useThemeRadius();
 
-    const themeRadius = getThemeRadius();
 
     const planPrices = {
         free: 0,

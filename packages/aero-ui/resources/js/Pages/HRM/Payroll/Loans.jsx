@@ -26,19 +26,6 @@ const Loans = ({ title, employees: initialEmployees = [] }) => {
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -428,7 +415,7 @@ const Loans = ({ title, employees: initialEmployees = [] }) => {
                                         selectedKeys={formData.employee_id ? [formData.employee_id] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, employee_id: Array.from(keys)[0] || '' }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {employees.map(employee => (
                                             <SelectItem key={employee.id} value={employee.id}>
@@ -443,7 +430,7 @@ const Loans = ({ title, employees: initialEmployees = [] }) => {
                                         selectedKeys={formData.loan_type ? [formData.loan_type] : []}
                                         onSelectionChange={(keys) => setFormData(prev => ({ ...prev, loan_type: Array.from(keys)[0] || 'advance_salary' }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         {loanTypes.map(type => (
                                             <SelectItem key={type.key}>{type.label}</SelectItem>
@@ -460,7 +447,7 @@ const Loans = ({ title, employees: initialEmployees = [] }) => {
                                         startContent="$"
                                         type="number"
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
 
                                     <Input
@@ -470,7 +457,7 @@ const Loans = ({ title, employees: initialEmployees = [] }) => {
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, interest_rate: value }))}
                                         endContent="%"
                                         type="number"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
 
                                     <Input
@@ -480,7 +467,7 @@ const Loans = ({ title, employees: initialEmployees = [] }) => {
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, tenure_months: value }))}
                                         type="number"
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                 </div>
 
@@ -491,7 +478,7 @@ const Loans = ({ title, employees: initialEmployees = [] }) => {
                                         value={formData.start_date}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, start_date: value }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
 
                                     <Input
@@ -500,7 +487,7 @@ const Loans = ({ title, employees: initialEmployees = [] }) => {
                                         startContent="$"
                                         isReadOnly
                                         description="Auto-calculated based on amount and tenure"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                 </div>
 
@@ -510,7 +497,7 @@ const Loans = ({ title, employees: initialEmployees = [] }) => {
                                         placeholder="Enter guarantor name"
                                         value={formData.guarantor_name}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, guarantor_name: value }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
 
                                     <Input
@@ -518,7 +505,7 @@ const Loans = ({ title, employees: initialEmployees = [] }) => {
                                         placeholder="Enter phone/email"
                                         value={formData.guarantor_contact}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, guarantor_contact: value }))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                 </div>
 
@@ -528,7 +515,7 @@ const Loans = ({ title, employees: initialEmployees = [] }) => {
                                     value={formData.reason}
                                     onValueChange={(value) => setFormData(prev => ({ ...prev, reason: value }))}
                                     isRequired
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
 
                                 <Select
@@ -536,7 +523,7 @@ const Loans = ({ title, employees: initialEmployees = [] }) => {
                                     placeholder="Select status"
                                     selectedKeys={formData.status ? [formData.status] : []}
                                     onSelectionChange={(keys) => setFormData(prev => ({ ...prev, status: Array.from(keys)[0] || 'pending' }))}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 >
                                     {loanStatuses.map(status => (
                                         <SelectItem key={status.key}>{status.label}</SelectItem>
@@ -758,7 +745,7 @@ const Loans = ({ title, employees: initialEmployees = [] }) => {
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select

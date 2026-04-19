@@ -13,22 +13,11 @@ import React, {useEffect, useState} from "react";
 import {User} from 'lucide-react';
 import {showToast} from "@/utils/toastUtils";
 import { safeRoute } from "@/utils/routeUtils";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const PersonalInformationForm = ({user,setUser, open, closeModal }) => {
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     const [initialUserData, setInitialUserData] = useState({
         id: user.id,
@@ -193,7 +182,7 @@ const PersonalInformationForm = ({user,setUser, open, closeModal }) => {
             isOpen={open}
             onOpenChange={processing ? undefined : closeModal}
             size="2xl"
-            radius={getThemeRadius()}
+            radius={themeRadius}
             scrollBehavior="inside"
             classNames={{
                 base: "bg-content1",
@@ -234,7 +223,7 @@ const PersonalInformationForm = ({user,setUser, open, closeModal }) => {
                                 errorMessage={errors.passport_no}
                                 variant="bordered"
                                 size="sm"
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 classNames={{
                                     input: "text-small",
                                     inputWrapper: "min-h-unit-10"
@@ -254,7 +243,7 @@ const PersonalInformationForm = ({user,setUser, open, closeModal }) => {
                                 errorMessage={errors.passport_exp_date}
                                 variant="bordered"
                                 size="sm"
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 classNames={{
                                     input: "text-small",
                                     inputWrapper: "min-h-unit-10"
@@ -273,7 +262,7 @@ const PersonalInformationForm = ({user,setUser, open, closeModal }) => {
                                 errorMessage={errors.nid}
                                 variant="bordered"
                                 size="sm"
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 classNames={{
                                     input: "text-small",
                                     inputWrapper: "min-h-unit-10"
@@ -292,7 +281,7 @@ const PersonalInformationForm = ({user,setUser, open, closeModal }) => {
                                 errorMessage={errors.nationality}
                                 variant="bordered"
                                 size="sm"
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 classNames={{
                                     input: "text-small",
                                     inputWrapper: "min-h-unit-10"
@@ -311,7 +300,7 @@ const PersonalInformationForm = ({user,setUser, open, closeModal }) => {
                                 errorMessage={errors.religion}
                                 variant="bordered"
                                 size="sm"
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 classNames={{
                                     input: "text-small",
                                     inputWrapper: "min-h-unit-10"
@@ -330,7 +319,7 @@ const PersonalInformationForm = ({user,setUser, open, closeModal }) => {
                                 errorMessage={errors.marital_status}
                                 variant="bordered"
                                 size="sm"
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 classNames={{
                                     trigger: "min-h-unit-10",
                                     value: "text-small"
@@ -354,7 +343,7 @@ const PersonalInformationForm = ({user,setUser, open, closeModal }) => {
                                 isDisabled={changedUserData.marital_status === 'Single' || initialUserData.marital_status === 'Single'}
                                 variant="bordered"
                                 size="sm"
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 classNames={{
                                     input: "text-small",
                                     inputWrapper: "min-h-unit-10"
@@ -375,7 +364,7 @@ const PersonalInformationForm = ({user,setUser, open, closeModal }) => {
                                 isDisabled={changedUserData.marital_status === 'Single' || initialUserData.marital_status === 'Single'}
                                 variant="bordered"
                                 size="sm"
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 classNames={{
                                     input: "text-small",
                                     inputWrapper: "min-h-unit-10"
@@ -395,7 +384,7 @@ const PersonalInformationForm = ({user,setUser, open, closeModal }) => {
                         onPress={closeModal}
                         isDisabled={processing}
                         variant="light"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         style={{
                             fontFamily: `var(--fontFamily, "Inter")`,
                         }}
@@ -408,7 +397,7 @@ const PersonalInformationForm = ({user,setUser, open, closeModal }) => {
                         color="primary"
                         type="submit"
                         isLoading={processing}
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         style={{
                             fontFamily: `var(--fontFamily, "Inter")`,
                         }}

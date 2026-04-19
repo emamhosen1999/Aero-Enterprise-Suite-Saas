@@ -5,6 +5,7 @@ import { CircleStackIcon, TrashIcon } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
 import PageHeader from "@/Components/PageHeader.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const Cache = ({ auth }) => {
     const [isMobile, setIsMobile] = useState(false);
@@ -18,16 +19,7 @@ const Cache = ({ auth }) => {
         return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
 
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     const getCardStyle = () => ({
         border: `var(--borderWidth, 2px) solid transparent`,
@@ -103,7 +95,7 @@ const Cache = ({ auth }) => {
                                 color="danger" 
                                 variant="flat"
                                 startContent={<TrashIcon className="w-4 h-4" />}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                             >
                                 Clear All
                             </Button>

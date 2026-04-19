@@ -24,6 +24,7 @@ import {
 import App from "@/Layouts/App.jsx";
 import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const Settings = ({ settings: initialSettings, plans, auth }) => {
     const [isMobile, setIsMobile] = useState(false);
@@ -52,17 +53,7 @@ const Settings = ({ settings: initialSettings, plans, auth }) => {
         return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
 
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'xl';
-    };
+    const themeRadius = useThemeRadius();
 
     const canUpdateSettings = auth?.permissions?.includes('platform-onboarding.onboarding_settings.update')
         || auth?.permissions?.includes('*');
@@ -173,7 +164,7 @@ const Settings = ({ settings: initialSettings, plans, auth }) => {
                                                 placeholder="14"
                                                 value={String(settings.default_trial_days)}
                                                 onValueChange={(value) => handleChange('default_trial_days', parseInt(value) || 14)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 min={1}
                                                 max={90}
                                             />
@@ -182,7 +173,7 @@ const Settings = ({ settings: initialSettings, plans, auth }) => {
                                                 placeholder="Select default plan"
                                                 selectedKeys={settings.default_plan_id ? [String(settings.default_plan_id)] : []}
                                                 onSelectionChange={(keys) => handleChange('default_plan_id', Array.from(keys)[0])}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {availablePlans.map((plan) => (
                                                     <SelectItem key={String(plan.id)}>{plan.name}</SelectItem>
@@ -194,7 +185,7 @@ const Settings = ({ settings: initialSettings, plans, auth }) => {
                                                 value={settings.trial_reminder_days}
                                                 onValueChange={(value) => handleChange('trial_reminder_days', value)}
                                                 description="Comma-separated days before expiry to send reminders"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                         </CardBody>
                                     </Card>
@@ -272,7 +263,7 @@ const Settings = ({ settings: initialSettings, plans, auth }) => {
                                                 placeholder="3"
                                                 value={String(settings.max_tenants_per_user)}
                                                 onValueChange={(value) => handleChange('max_tenants_per_user', parseInt(value) || 3)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 min={1}
                                                 max={10}
                                             />
@@ -331,5 +322,4 @@ const Settings = ({ settings: initialSettings, plans, auth }) => {
 Settings.layout = (page) => <App children={page} />;
 
 export default Settings;
-
 

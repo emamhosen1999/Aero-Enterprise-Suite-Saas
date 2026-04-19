@@ -12,6 +12,7 @@ import {
 import { Input, Button, Card } from '@heroui/react';
 import { useTheme } from '@/Context/ThemeContext';
 import { useBranding } from '@/Hooks/useBranding';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 /**
  * Forgot Password Component
@@ -67,18 +68,8 @@ export default function ForgotPassword({ status }) {
         }
     }, [status]);
 
-    const getThemeRadius = () => {
-        const borderRadius = themeSettings?.layout?.borderRadius;
-        if (!borderRadius) return 'lg';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-
-    const submit = (e) => {
+    const themeRadius = useThemeRadius();
+const submit = (e) => {
         e.preventDefault();
         post(route('password.email'));
     };
@@ -260,7 +251,7 @@ export default function ForgotPassword({ status }) {
                                             <div className="p-4">
                                                 <div className="flex items-center gap-3">
                                                     <CheckCircleIcon 
-                                                        className="w-5 h-5 flex-shrink-0"
+                                                        className="w-5 h-5 shrink-0"
                                                         style={{ color: 'var(--theme-success, #22C55E)' }}
                                                     />
                                                     <p 
@@ -301,7 +292,7 @@ export default function ForgotPassword({ status }) {
                                         autoFocus
                                         isRequired
                                         size="lg"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         variant="bordered"
                                         color={errors.email ? "danger" : "primary"}
                                         startContent={
@@ -319,7 +310,7 @@ export default function ForgotPassword({ status }) {
                                         type="submit"
                                         color="primary"
                                         size="lg"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         className="w-full font-semibold"
                                         isLoading={processing}
                                         endContent={!processing && <ArrowRightIcon className="w-4 h-4" />}
@@ -353,7 +344,7 @@ export default function ForgotPassword({ status }) {
                                         <div className="p-4">
                                             <div className="flex items-start gap-3">
                                                 <InformationCircleIcon 
-                                                    className="w-5 h-5 flex-shrink-0 mt-0.5"
+                                                    className="w-5 h-5 shrink-0 mt-0.5"
                                                     style={{ color: 'var(--theme-primary, #006FEE)' }}
                                                 />
                                                 <div className="text-xs space-y-1" style={{ color: 'var(--theme-foreground, #11181C)', opacity: 0.8 }}>

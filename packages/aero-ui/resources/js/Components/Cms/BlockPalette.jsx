@@ -31,7 +31,7 @@ const BlockPalette = ({ categories, blockTypes, onAddBlock }) => {
           startContent={<MagnifyingGlassIcon className="w-4 h-4 text-slate-400" />}
           className="text-xs"
           classNames={{
-            inputWrapper: 'bg-white dark:bg-slate-950',
+            inputWrapper: 'bg-background',
             input: 'text-xs',
           }}
         />
@@ -68,7 +68,7 @@ const BlockPalette = ({ categories, blockTypes, onAddBlock }) => {
                           {block.description}
                         </p>
                       </div>
-                      <PlusIcon className="w-4 h-4 text-slate-400 dark:text-slate-600 group-hover:text-primary flex-shrink-0" />
+                      <PlusIcon className="w-4 h-4 text-slate-400 dark:text-slate-600 group-hover:text-primary shrink-0" />
                     </div>
                   </button>
                 ))}

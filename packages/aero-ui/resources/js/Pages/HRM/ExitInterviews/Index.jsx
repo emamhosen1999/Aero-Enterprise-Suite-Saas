@@ -46,6 +46,7 @@ import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
 import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { router } from '@inertiajs/react';
 
 const ExitInterviewsIndex = ({ title, stats: initialStats }) => {
     const { auth } = usePage().props;
@@ -176,7 +177,7 @@ const ExitInterviewsIndex = ({ title, stats: initialStats }) => {
                         </DropdownTrigger>
                         <DropdownMenu>
                             <DropdownItem key="view" startContent={<EyeIcon className="w-4 h-4" />}
-                                onPress={() => window.location.href = route('hrm.exit-interviews.show', item.id)}>
+                                onPress={() => router.visit(route('hrm.exit-interviews.show', item.id))}>
                                 View Details
                             </DropdownItem>
                         </DropdownMenu>

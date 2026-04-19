@@ -41,12 +41,14 @@ import {
 import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import { ThemedCard, ThemedCardHeader, ThemedCardBody } from '@/Components/UI/ThemedCard';
-import { getThemeRadius, getStatusColor, useResponsiveBreakpoints } from '@/utils/themeUtils';
+import { getStatusColor, useResponsiveBreakpoints } from '@/utils/themeUtils';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const CmsIndex = ({ title }) => {
     const { auth } = usePage().props;
+    const themeRadius = useThemeRadius();
 
     // Responsive breakpoints using centralized utility
     const { isMobile, isTablet } = useResponsiveBreakpoints();
@@ -394,7 +396,7 @@ const CmsIndex = ({ title }) => {
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                                             className="flex-1"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         <Select
                                             placeholder="All Status"
@@ -405,7 +407,7 @@ const CmsIndex = ({ title }) => {
                                             }}
                                             className="w-full sm:w-48"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         >
                                             <SelectItem key="all">All Status</SelectItem>
                                             <SelectItem key="published">Published</SelectItem>

@@ -12,6 +12,7 @@ import {
 import { Input, Button, Card, Progress } from '@heroui/react';
 import { useTheme } from '@/Context/ThemeContext';
 import { useBranding } from '@/Hooks/useBranding';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 /**
  * Reset Password Component
@@ -101,18 +102,8 @@ export default function ResetPassword({ token, email }) {
         };
     }, []);
 
-    const getThemeRadius = () => {
-        const borderRadius = themeSettings?.layout?.borderRadius;
-        if (!borderRadius) return 'lg';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-
-    const submit = (e) => {
+    const themeRadius = useThemeRadius();
+const submit = (e) => {
         e.preventDefault();
         post(route('password.store'));
     };
@@ -331,7 +322,7 @@ export default function ResetPassword({ token, email }) {
                                         autoFocus
                                         isRequired
                                         size="lg"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         variant="bordered"
                                         color={errors.password ? "danger" : "primary"}
                                         startContent={
@@ -376,7 +367,7 @@ export default function ResetPassword({ token, email }) {
                                                 value={(passwordStrength.score / 5) * 100}
                                                 color={passwordStrength.color}
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                             
                                             {/* Password Requirements */}
@@ -427,7 +418,7 @@ export default function ResetPassword({ token, email }) {
                                         autoComplete="new-password"
                                         isRequired
                                         size="lg"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         variant="bordered"
                                         color={errors.password_confirmation ? "danger" : 
                                             (data.password_confirmation && data.password === data.password_confirmation) ? "success" : "primary"}
@@ -471,7 +462,7 @@ export default function ResetPassword({ token, email }) {
                                         type="submit"
                                         color="primary"
                                         size="lg"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         className="w-full font-semibold"
                                         isLoading={processing}
                                         isDisabled={passwordStrength.score < 3 || data.password !== data.password_confirmation}

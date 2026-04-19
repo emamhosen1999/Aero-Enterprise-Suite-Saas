@@ -22,6 +22,7 @@ import {
 import ProfileAvatar from '@/Components/ProfileAvatar';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const UserRolesTable = ({ 
   users = [], 
@@ -90,19 +91,8 @@ const UserRolesTable = ({
   };
 
   // Helper function to convert theme borderRadius to HeroUI radius values
-  const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 16) return 'lg';
-    return 'full';
-  };
-
-  const getColumns = () => {
+  const themeRadius = useThemeRadius();
+const getColumns = () => {
     const baseColumns = [
       { name: "#", uid: "sl", width: 60 },
       { name: "USER", uid: "user", width: "auto", minWidth: 200 },
@@ -202,13 +192,13 @@ const UserRolesTable = ({
                   className="capitalize"
                   variant="solid"
                   size="sm"
-                  radius={getThemeRadius()}
+                  radius={themeRadius}
                   startContent={isLoadingState(user.id, 'role') ? <Spinner size="sm" /> : null}
                   style={{
                     background: `var(--theme-primary, #3B82F6)`,
                     color: 'white',
                     fontFamily: `var(--fontFamily, "Inter")`,
-                    borderRadius: getThemeRadius(),
+                    borderRadius: themeRadius,
                     cursor: 'pointer',
                   }}
                 >
@@ -297,7 +287,7 @@ const UserRolesTable = ({
         background: `color-mix(in srgb, var(--theme-content1) 85%, transparent)`,
         backdropFilter: 'blur(16px)',
         border: `1px solid color-mix(in srgb, var(--theme-content2) 50%, transparent)`,
-        borderRadius: getThemeRadius(),
+        borderRadius: themeRadius,
       }}
     >
       {loading && (
@@ -306,7 +296,7 @@ const UserRolesTable = ({
           style={{
             background: 'color-mix(in srgb, var(--theme-content1) 20%, transparent)',
             backdropFilter: 'blur(8px)',
-            borderRadius: getThemeRadius(),
+            borderRadius: themeRadius,
           }}
         >
           <div className="flex flex-col items-center gap-4 p-6">

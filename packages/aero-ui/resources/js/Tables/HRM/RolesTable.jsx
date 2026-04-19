@@ -16,6 +16,7 @@ import {
   Spinner,
   Pagination
 } from "@heroui/react";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 import {
   PencilSquareIcon,
   TrashIcon,
@@ -37,19 +38,8 @@ const RolesTable = ({
   loading = false
 }) => {
   // Helper function to convert theme borderRadius to HeroUI radius values
-  const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 16) return 'lg';
-    return 'full';
-  };
-
-  const getColumns = () => {
+  const themeRadius = useThemeRadius();
+const getColumns = () => {
     const baseColumns = [
       { name: "#", uid: "sl", width: 60 },
       { name: "ROLE", uid: "role", width: "auto", minWidth: 200 },
@@ -229,7 +219,7 @@ const RolesTable = ({
         background: `color-mix(in srgb, var(--theme-content1) 85%, transparent)`,
         backdropFilter: 'blur(16px)',
         border: `1px solid color-mix(in srgb, var(--theme-content2) 50%, transparent)`,
-        borderRadius: getThemeRadius(),
+        borderRadius: themeRadius,
       }}
     >
       {loading && (
@@ -238,7 +228,7 @@ const RolesTable = ({
           style={{
             background: 'color-mix(in srgb, var(--theme-content1) 20%, transparent)',
             backdropFilter: 'blur(8px)',
-            borderRadius: getThemeRadius(),
+            borderRadius: themeRadius,
           }}
         >
           <div className="flex flex-col items-center gap-4 p-6">

@@ -34,6 +34,7 @@ import {
 import App from "@/Layouts/App.jsx";
 import PageHeader from "@/Components/PageHeader.jsx";
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const StockManagement = ({ auth, items = { data: [], current_page: 1, last_page: 1, per_page: 10, total: 0 }, warehouses = [], categories = [], filters: initialFilters = {} }) => {
     // Responsive state
@@ -59,18 +60,8 @@ const StockManagement = ({ auth, items = { data: [], current_page: 1, last_page:
     });
 
     // Theme helper
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
-    const themeRadius = getThemeRadius();
 
     // HRMAC permissions
     const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();

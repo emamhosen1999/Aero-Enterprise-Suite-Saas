@@ -67,7 +67,7 @@ const Create = ({ title, layouts, parentPages }) => {
           <h1 className="text-2xl font-bold">Create New Page</h1>
         </div>
 
-        <Card className="bg-white dark:bg-slate-950/50 border border-slate-200 dark:border-white/10">
+        <Card className="bg-background/50 border border-slate-200 dark:border-white/10">
           <CardHeader className="border-b border-slate-200 dark:border-white/10 p-6">
             <h2 className="font-semibold text-lg">Page Details</h2>
           </CardHeader>

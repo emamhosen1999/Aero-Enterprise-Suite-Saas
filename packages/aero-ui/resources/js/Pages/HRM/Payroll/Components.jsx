@@ -36,6 +36,7 @@ import App from '@/Layouts/App.jsx';
 import { useThemeRadius } from '@/Hooks/useThemeRadius';
 import { showToast } from '@/utils/toastUtils';
 import StatsCards from '@/Components/StatsCards';
+import { router } from '@inertiajs/react';
 
 const Components = ({ title, allowances, deductions }) => {
     const themeRadius = useThemeRadius();
@@ -388,7 +389,7 @@ const Components = ({ title, allowances, deductions }) => {
                                         <Button
                                             variant="flat"
                                             startContent={<ArrowLeftIcon className="w-4 h-4" />}
-                                            onPress={() => window.location.href = route('hrm.payroll.index')}
+                                            onPress={() => router.visit(route('hrm.payroll.index'))}
                                         >
                                             Back to Payroll
                                         </Button>

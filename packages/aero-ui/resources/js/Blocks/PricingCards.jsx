@@ -103,7 +103,7 @@ const PricingCards = ({ content = {}, settings = {} }) => {
                     )}
                   </CardHeader>
 
-                  <CardBody className="p-6 gap-6 flex-grow">
+                  <CardBody className="p-6 gap-6 grow">
                     {/* Call-to-Action Button */}
                     {plan.button_text && (
                       <Button
@@ -119,10 +119,10 @@ const PricingCards = ({ content = {}, settings = {} }) => {
 
                     {/* Features List */}
                     {plan.features && plan.features.length > 0 && (
-                      <div className="space-y-3 flex-grow">
+                      <div className="space-y-3 grow">
                         {plan.features.map((feature, featureIndex) => (
                           <div key={featureIndex} className="flex items-start gap-3">
-                            <CheckIcon className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+                            <CheckIcon className="w-5 h-5 text-success shrink-0 mt-0.5" />
                             <span className="text-sm text-slate-700 dark:text-slate-300">
                               {feature}
                             </span>

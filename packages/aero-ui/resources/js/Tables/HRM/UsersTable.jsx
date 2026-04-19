@@ -25,6 +25,7 @@ import {
   Select,
   SelectItem,
 } from "@heroui/react";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 import {
   PencilIcon,
   TrashIcon,
@@ -50,10 +51,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 // Theme utility function (consistent with UsersList)
-const getThemeRadius = () => {
-  return 'var(--borderRadius, 12px)';
-};
-
+const themeRadius = useThemeRadius();
 /**
  * Helper to get routes based on context
  */
@@ -690,12 +688,12 @@ const UsersTable = ({
                   variant="solid"
                   size="sm"
                   isDisabled
-                  radius={getThemeRadius()}
+                  radius={themeRadius}
                   style={{
                     background: `var(--theme-default-200, #E5E7EB)`,
                     color: `var(--theme-default-500, #6B7280)`,
                     fontFamily: `var(--fontFamily, "Inter")`,
-                    borderRadius: getThemeRadius(),
+                    borderRadius: themeRadius,
                   }}
                 >
                   {selectedValue}
@@ -716,13 +714,13 @@ const UsersTable = ({
                   className="capitalize"
                   variant="solid"
                   size="sm"
-                  radius={getThemeRadius()}
+                  radius={themeRadius}
                   startContent={isLoading(user.id, 'role') ? <Spinner size="sm" /> : null}
                   style={{
                     background: `var(--theme-primary, #3B82F6)`,
                     color: 'white',
                     fontFamily: `var(--fontFamily, "Inter")`,
-                    borderRadius: getThemeRadius(),
+                    borderRadius: themeRadius,
                     cursor: 'pointer',
                   }}
                 >
@@ -953,12 +951,12 @@ const UsersTable = ({
                   isIconOnly
                   size="sm"
                   variant="solid"
-                  radius={getThemeRadius()}
+                  radius={themeRadius}
                   style={{
                     background: `var(--theme-content2, #F4F4F5)`,
                     color: `var(--theme-default-500, #6B7280)`,
                     fontFamily: `var(--fontFamily, "Inter")`,
-                    borderRadius: getThemeRadius(),
+                    borderRadius: themeRadius,
                   }}
                   className="hover:opacity-80 transition-opacity"
                 >
@@ -970,7 +968,7 @@ const UsersTable = ({
                 style={{
                   background: `var(--theme-content1, #FFFFFF)`,
                   border: `1px solid var(--theme-divider, #E5E7EB)`,
-                  borderRadius: getThemeRadius(),
+                  borderRadius: themeRadius,
                 }}
               >
                 {actionItems}
@@ -1023,7 +1021,7 @@ const UsersTable = ({
           size={isMobile ? "sm" : "md"}
           variant="flat"
           showControls
-          radius={getThemeRadius()}
+          radius={themeRadius}
           style={{
             fontFamily: `var(--fontFamily, "Inter")`,
           }}

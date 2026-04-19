@@ -33,19 +33,6 @@ const OvertimeRules = ({ title, departments = [], overtimeRules = [], employees 
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete } = useHRMAC();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -529,7 +516,7 @@ const OvertimeRules = ({ title, departments = [], overtimeRules = [], employees 
                                             value={formData.name}
                                             onValueChange={(value) => handleFormChange('name', value)}
                                             isRequired
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <Textarea
@@ -537,7 +524,7 @@ const OvertimeRules = ({ title, departments = [], overtimeRules = [], employees 
                                             placeholder="Enter rule description"
                                             value={formData.description}
                                             onValueChange={(value) => handleFormChange('description', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -545,7 +532,7 @@ const OvertimeRules = ({ title, departments = [], overtimeRules = [], employees 
                                                 label="Overtime Type"
                                                 selectedKeys={[formData.overtime_type]}
                                                 onSelectionChange={(keys) => handleFormChange('overtime_type', Array.from(keys)[0])}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {overtimeTypes.map(type => (
                                                     <SelectItem key={type.key}>{type.label}</SelectItem>
@@ -556,7 +543,7 @@ const OvertimeRules = ({ title, departments = [], overtimeRules = [], employees 
                                                 label="Status"
                                                 selectedKeys={[formData.status]}
                                                 onSelectionChange={(keys) => handleFormChange('status', Array.from(keys)[0])}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {ruleStatuses.map(status => (
                                                     <SelectItem key={status.key}>{status.label}</SelectItem>
@@ -579,7 +566,7 @@ const OvertimeRules = ({ title, departments = [], overtimeRules = [], employees 
                                                     selectionMode="multiple"
                                                     selectedKeys={formData.department_ids}
                                                     onSelectionChange={(keys) => handleFormChange('department_ids', Array.from(keys))}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 >
                                                     {departments.map(dept => (
                                                         <SelectItem key={dept.id}>{dept.name}</SelectItem>
@@ -600,7 +587,7 @@ const OvertimeRules = ({ title, departments = [], overtimeRules = [], employees 
                                                 placeholder="8"
                                                 value={formData.threshold_hours}
                                                 onValueChange={(value) => handleFormChange('threshold_hours', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Input
@@ -611,7 +598,7 @@ const OvertimeRules = ({ title, departments = [], overtimeRules = [], employees 
                                                 value={formData.multiplier_rate}
                                                 onValueChange={(value) => handleFormChange('multiplier_rate', value)}
                                                 endContent="x"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                         </div>
 
@@ -619,7 +606,7 @@ const OvertimeRules = ({ title, departments = [], overtimeRules = [], employees 
                                             label="Calculation Method"
                                             selectedKeys={[formData.calculation_method]}
                                             onSelectionChange={(keys) => handleFormChange('calculation_method', Array.from(keys)[0])}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         >
                                             {calculationMethods.map(method => (
                                                 <SelectItem key={method.key}>{method.label}</SelectItem>
@@ -634,7 +621,7 @@ const OvertimeRules = ({ title, departments = [], overtimeRules = [], employees 
                                                 value={formData.weekend_multiplier}
                                                 onValueChange={(value) => handleFormChange('weekend_multiplier', value)}
                                                 endContent="x"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Input
@@ -644,7 +631,7 @@ const OvertimeRules = ({ title, departments = [], overtimeRules = [], employees 
                                                 value={formData.holiday_multiplier}
                                                 onValueChange={(value) => handleFormChange('holiday_multiplier', value)}
                                                 endContent="x"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Input
@@ -654,7 +641,7 @@ const OvertimeRules = ({ title, departments = [], overtimeRules = [], employees 
                                                 value={formData.night_shift_multiplier}
                                                 onValueChange={(value) => handleFormChange('night_shift_multiplier', value)}
                                                 endContent="x"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                         </div>
 
@@ -664,7 +651,7 @@ const OvertimeRules = ({ title, departments = [], overtimeRules = [], employees 
                                                 type="time"
                                                 value={formData.night_shift_start}
                                                 onValueChange={(value) => handleFormChange('night_shift_start', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Input
@@ -672,7 +659,7 @@ const OvertimeRules = ({ title, departments = [], overtimeRules = [], employees 
                                                 type="time"
                                                 value={formData.night_shift_end}
                                                 onValueChange={(value) => handleFormChange('night_shift_end', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                         </div>
                                     </div>
@@ -687,7 +674,7 @@ const OvertimeRules = ({ title, departments = [], overtimeRules = [], employees 
                                                 placeholder="No limit"
                                                 value={formData.max_overtime_hours_day}
                                                 onValueChange={(value) => handleFormChange('max_overtime_hours_day', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Input
@@ -696,7 +683,7 @@ const OvertimeRules = ({ title, departments = [], overtimeRules = [], employees 
                                                 placeholder="No limit"
                                                 value={formData.max_overtime_hours_week}
                                                 onValueChange={(value) => handleFormChange('max_overtime_hours_week', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Input
@@ -705,7 +692,7 @@ const OvertimeRules = ({ title, departments = [], overtimeRules = [], employees 
                                                 placeholder="No limit"
                                                 value={formData.max_overtime_hours_month}
                                                 onValueChange={(value) => handleFormChange('max_overtime_hours_month', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                         </div>
 
@@ -715,7 +702,7 @@ const OvertimeRules = ({ title, departments = [], overtimeRules = [], employees 
                                                 type="number"
                                                 value={formData.consecutive_overtime_limit}
                                                 onValueChange={(value) => handleFormChange('consecutive_overtime_limit', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Input
@@ -724,7 +711,7 @@ const OvertimeRules = ({ title, departments = [], overtimeRules = [], employees 
                                                 value={formData.mandatory_rest_hours}
                                                 onValueChange={(value) => handleFormChange('mandatory_rest_hours', value)}
                                                 endContent="hrs"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                         </div>
                                     </div>
@@ -747,7 +734,7 @@ const OvertimeRules = ({ title, departments = [], overtimeRules = [], employees 
                                                     placeholder="Auto approve if less than"
                                                     value={formData.auto_approval_threshold}
                                                     onValueChange={(value) => handleFormChange('auto_approval_threshold', value)}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 />
                                             )}
                                         </div>
@@ -758,7 +745,7 @@ const OvertimeRules = ({ title, departments = [], overtimeRules = [], employees 
                                             selectionMode="multiple"
                                             selectedKeys={formData.eligible_employee_types}
                                             onSelectionChange={(keys) => handleFormChange('eligible_employee_types', Array.from(keys))}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         >
                                             {employeeTypes.map(type => (
                                                 <SelectItem key={type.key}>{type.label}</SelectItem>
@@ -772,7 +759,7 @@ const OvertimeRules = ({ title, departments = [], overtimeRules = [], employees 
                                                 placeholder="No minimum"
                                                 value={formData.min_service_months}
                                                 onValueChange={(value) => handleFormChange('min_service_months', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <div className="flex items-center">
@@ -901,7 +888,7 @@ const OvertimeRules = ({ title, departments = [], overtimeRules = [], employees 
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select

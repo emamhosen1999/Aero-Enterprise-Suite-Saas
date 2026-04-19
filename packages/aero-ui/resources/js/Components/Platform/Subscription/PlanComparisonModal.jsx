@@ -1,22 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Chip, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@heroui/react';
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 export default function PlanComparisonModal({ isOpen, onClose, plans, currentPlan, onSelectPlan }) {
     const [selectedCurrency, setSelectedCurrency] = useState('USD');
     
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'xl';
-    };
+    const themeRadius = useThemeRadius();
 
-    const themeRadius = getThemeRadius();
 
     const formatPrice = (price, currency = 'USD') => {
         const symbols = { USD: '$', EUR: '€', GBP: '£', CAD: 'C$', AUD: 'A$', JPY: '¥' };

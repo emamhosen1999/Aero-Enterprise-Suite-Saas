@@ -412,7 +412,7 @@ const BoqMeasurementsIndex = ({ title, measurements: initialData, filters: initi
                                 value={verifyData.verified_quantity}
                                 onValueChange={(v) => setVerifyData(prev => ({ ...prev, verified_quantity: v }))}
                                 endContent={<span className="text-default-400 text-xs">{verifyModal.measurement?.boq_item?.unit}</span>}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                             />
                             
                             <Textarea
@@ -420,7 +420,7 @@ const BoqMeasurementsIndex = ({ title, measurements: initialData, filters: initi
                                 placeholder="Optional notes about this verification..."
                                 value={verifyData.verification_notes}
                                 onValueChange={(v) => setVerifyData(prev => ({ ...prev, verification_notes: v }))}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                             />
                         </div>
                     </ModalBody>
@@ -450,7 +450,7 @@ const BoqMeasurementsIndex = ({ title, measurements: initialData, filters: initi
                             value={rejectReason}
                             onValueChange={setRejectReason}
                             isRequired
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         />
                     </ModalBody>
                     <ModalFooter>
@@ -559,7 +559,7 @@ const BoqMeasurementsIndex = ({ title, measurements: initialData, filters: initi
                                             onValueChange={(v) => setFilters(prev => ({ ...prev, search: v }))}
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                                             className="min-w-[200px]"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select
@@ -568,7 +568,7 @@ const BoqMeasurementsIndex = ({ title, measurements: initialData, filters: initi
                                             selectedKeys={filters.status !== 'all' ? [filters.status] : []}
                                             onSelectionChange={(keys) => setFilters(prev => ({ ...prev, status: Array.from(keys)[0] || 'all' }))}
                                             className="min-w-[150px]"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         >
                                             <SelectItem key="all">All Statuses</SelectItem>
                                             <SelectItem key="pending">Pending</SelectItem>
@@ -582,7 +582,7 @@ const BoqMeasurementsIndex = ({ title, measurements: initialData, filters: initi
                                             selectedKeys={filters.boq_item_id !== 'all' ? [filters.boq_item_id] : []}
                                             onSelectionChange={(keys) => setFilters(prev => ({ ...prev, boq_item_id: Array.from(keys)[0] || 'all' }))}
                                             className="min-w-[200px]"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         >
                                             <SelectItem key="all">All BOQ Items</SelectItem>
                                             {(boqItems || []).map(item => (

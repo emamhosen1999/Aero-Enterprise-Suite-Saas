@@ -52,23 +52,14 @@ import {
 import { showToast } from '@/utils/toastUtils';
 import App from '@/Layouts/App';
 import StatsCards from '@/Components/StatsCards';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 
 const TenantManagement = ({ title }) => {
     const { auth } = usePage().props;
 
     // Theme radius helper (REQUIRED)
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     // Responsive breakpoints (REQUIRED)
     const [isMobile, setIsMobile] = useState(false);
@@ -468,7 +459,7 @@ const TenantManagement = ({ title }) => {
                     <Checkbox
                         isSelected={selectedTenants.has(tenant.id)}
                         onValueChange={() => handleSelectTenant(tenant.id)}
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                     />
                 );
             case 'name':
@@ -487,7 +478,7 @@ const TenantManagement = ({ title }) => {
                         color={statusColorMap[tenant.status] || 'default'}
                         size="sm"
                         variant="flat"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                     >
                         {tenant.status}
                     </Chip>
@@ -505,7 +496,7 @@ const TenantManagement = ({ title }) => {
                 
                 if (isExpired) {
                     return (
-                        <Chip color="danger" size="sm" variant="flat" radius={getThemeRadius()}>
+                        <Chip color="danger" size="sm" variant="flat" radius={themeRadius}>
                             Expired
                         </Chip>
                     );
@@ -515,7 +506,7 @@ const TenantManagement = ({ title }) => {
                         color={daysRemaining <= 3 ? "warning" : "success"} 
                         size="sm" 
                         variant="flat" 
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                     >
                         {daysRemaining}d left
                     </Chip>
@@ -593,7 +584,7 @@ const TenantManagement = ({ title }) => {
     };
 
     const columns = [
-        { key: 'select', label: <Checkbox isSelected={selectedTenants.size === tenants.length} onValueChange={handleSelectAll} radius={getThemeRadius()} /> },
+        { key: 'select', label: <Checkbox isSelected={selectedTenants.size === tenants.length} onValueChange={handleSelectAll} radius={themeRadius} /> },
         { key: 'name', label: 'Tenant' },
         { key: 'status', label: 'Status' },
         { key: 'trial', label: 'Trial' },
@@ -829,7 +820,7 @@ const TenantManagement = ({ title }) => {
                                                 startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 className="w-full"
                                                 classNames={{
                                                     input: "text-sm",
@@ -843,7 +834,7 @@ const TenantManagement = ({ title }) => {
                                         <div className="flex gap-2 items-end">
                                             <ButtonGroup
                                                 variant="bordered"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 className="bg-white/5"
                                             >
                                                 <Button
@@ -877,7 +868,7 @@ const TenantManagement = ({ title }) => {
                                                         onSelectionChange={(keys) => handleFilterChange('status', Array.from(keys))}
                                                         variant="bordered"
                                                         size="sm"
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         className="w-full"
                                                         classNames={{
                                                             trigger: "text-sm",
@@ -901,7 +892,7 @@ const TenantManagement = ({ title }) => {
                                                         onSelectionChange={(keys) => handleFilterChange('plan', Array.from(keys)[0] || 'all')}
                                                         variant="bordered"
                                                         size="sm"
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         className="w-full"
                                                         classNames={{
                                                             trigger: "text-sm",
@@ -924,7 +915,7 @@ const TenantManagement = ({ title }) => {
                                                         onSelectionChange={(keys) => handleFilterChange('trialStatus', Array.from(keys)[0] || 'all')}
                                                         variant="bordered"
                                                         size="sm"
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         className="w-full"
                                                         classNames={{
                                                             trigger: "text-sm",
@@ -1026,7 +1017,7 @@ const TenantManagement = ({ title }) => {
                                                 showControls
                                                 showShadow
                                                 color="primary"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                         </div>
                                     )}

@@ -15,7 +15,8 @@ import {
   Card,
   CardBody
 } from "@heroui/react";
-import { 
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import {
   PaperAirplaneIcon, 
   WalletIcon,
   DocumentTextIcon,
@@ -44,17 +45,7 @@ const SendTransactionModal = ({
   const [estimatedFee, setEstimatedFee] = useState(null);
 
   // Theme radius helper
-  const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 16) return 'lg';
-    return 'full';
-  };
+  const themeRadius = useThemeRadius();
 
   // Get selected wallet details
   const selectedWallet = useMemo(() => {
@@ -243,7 +234,7 @@ const SendTransactionModal = ({
                 isInvalid={!!errors.fromWallet}
                 errorMessage={errors.fromWallet}
                 isRequired
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 classNames={{
                   trigger: "bg-default-100"
                 }}
@@ -277,7 +268,7 @@ const SendTransactionModal = ({
               isInvalid={!!errors.toAddress}
               errorMessage={errors.toAddress}
               isRequired
-              radius={getThemeRadius()}
+              radius={themeRadius}
               classNames={{
                 inputWrapper: "bg-default-100"
               }}
@@ -294,7 +285,7 @@ const SendTransactionModal = ({
                 isInvalid={!!errors.amount}
                 errorMessage={errors.amount}
                 isRequired
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 classNames={{
                   inputWrapper: "bg-default-100"
                 }}
@@ -322,7 +313,7 @@ const SendTransactionModal = ({
                 isInvalid={!!errors.currency}
                 errorMessage={errors.currency}
                 isRequired
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 classNames={{
                   trigger: "bg-default-100"
                 }}
@@ -354,7 +345,7 @@ const SendTransactionModal = ({
                   onValueChange={(value) => handleInputChange('gasLimit', value)}
                   isInvalid={!!errors.gasLimit}
                   errorMessage={errors.gasLimit}
-                  radius={getThemeRadius()}
+                  radius={themeRadius}
                   classNames={{
                     inputWrapper: "bg-default-100"
                   }}
@@ -367,7 +358,7 @@ const SendTransactionModal = ({
                   onValueChange={(value) => handleInputChange('gasPrice', value)}
                   isInvalid={!!errors.gasPrice}
                   errorMessage={errors.gasPrice}
-                  radius={getThemeRadius()}
+                  radius={themeRadius}
                   classNames={{
                     inputWrapper: "bg-default-100"
                   }}
@@ -382,7 +373,7 @@ const SendTransactionModal = ({
               placeholder="Add a note for this transaction"
               value={formData.memo}
               onValueChange={(value) => handleInputChange('memo', value)}
-              radius={getThemeRadius()}
+              radius={themeRadius}
               classNames={{
                 inputWrapper: "bg-default-100"
               }}
@@ -422,7 +413,7 @@ const SendTransactionModal = ({
             {/* Warning */}
             <div className="p-4 bg-warning-50 border-l-4 border-warning rounded-r-lg">
               <div className="flex gap-3">
-                <ExclamationTriangleIcon className="w-5 h-5 text-warning-600 flex-shrink-0 mt-0.5" />
+                <ExclamationTriangleIcon className="w-5 h-5 text-warning-600 shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm text-warning-800 font-medium">Important</p>
                   <p className="text-sm text-warning-700 mt-1">
@@ -439,7 +430,7 @@ const SendTransactionModal = ({
             variant="flat" 
             onPress={handleClose}
             isDisabled={loading}
-            radius={getThemeRadius()}
+            radius={themeRadius}
           >
             Cancel
           </Button>
@@ -447,7 +438,7 @@ const SendTransactionModal = ({
             color="primary" 
             onPress={handleSend}
             isLoading={loading}
-            radius={getThemeRadius()}
+            radius={themeRadius}
             startContent={!loading ? <PaperAirplaneIcon className="w-4 h-4" /> : null}
             isDisabled={!formData.fromWallet || !formData.toAddress || !formData.amount || !formData.currency}
           >

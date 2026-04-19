@@ -4,6 +4,7 @@ import { PaperAirplaneIcon, UsersIcon, DocumentTextIcon, ClockIcon, XMarkIcon } 
 import { showToast } from '@/utils/toastUtils';
 import { router } from '@inertiajs/react';
 import axios from 'axios';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 export default function BulkNotificationModal({ open, onClose, templates = [], users = [], roles = [], departments = [] }) {
     const [activeTab, setActiveTab] = useState('recipients');
@@ -29,18 +30,8 @@ export default function BulkNotificationModal({ open, onClose, templates = [], u
     const [scheduleTime, setScheduleTime] = useState('');
 
     // Get theme radius
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
-    const themeRadius = getThemeRadius();
 
     // Calculate total recipients
     const getTotalRecipients = () => {

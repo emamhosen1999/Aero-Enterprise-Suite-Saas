@@ -31,19 +31,6 @@ const LeavePolicies = ({ title, departments = [], leaveTypes = [], policies = []
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete } = useHRMAC();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -504,7 +491,7 @@ const LeavePolicies = ({ title, departments = [], leaveTypes = [], policies = []
                                                 value={formData.name}
                                                 onValueChange={(value) => handleFormChange('name', value)}
                                                 isRequired
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Select
@@ -513,7 +500,7 @@ const LeavePolicies = ({ title, departments = [], leaveTypes = [], policies = []
                                                 selectedKeys={formData.leave_type_id ? [formData.leave_type_id] : []}
                                                 onSelectionChange={(keys) => handleFormChange('leave_type_id', Array.from(keys)[0] || '')}
                                                 isRequired
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {leaveTypes.map(type => (
                                                     <SelectItem key={type.id}>{type.name}</SelectItem>
@@ -526,7 +513,7 @@ const LeavePolicies = ({ title, departments = [], leaveTypes = [], policies = []
                                             placeholder="Enter policy description"
                                             value={formData.description}
                                             onValueChange={(value) => handleFormChange('description', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -534,7 +521,7 @@ const LeavePolicies = ({ title, departments = [], leaveTypes = [], policies = []
                                                 label="Status"
                                                 selectedKeys={[formData.status]}
                                                 onSelectionChange={(keys) => handleFormChange('status', Array.from(keys)[0])}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {policyStatuses.map(status => (
                                                     <SelectItem key={status.key}>{status.label}</SelectItem>
@@ -545,7 +532,7 @@ const LeavePolicies = ({ title, departments = [], leaveTypes = [], policies = []
                                                 label="Gender Specific"
                                                 selectedKeys={[formData.gender_specific]}
                                                 onSelectionChange={(keys) => handleFormChange('gender_specific', Array.from(keys)[0])}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 {genderOptions.map(option => (
                                                     <SelectItem key={option.key}>{option.label}</SelectItem>
@@ -560,7 +547,7 @@ const LeavePolicies = ({ title, departments = [], leaveTypes = [], policies = []
                                                 value={formData.effective_from}
                                                 onValueChange={(value) => handleFormChange('effective_from', value)}
                                                 isRequired
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Input
@@ -568,7 +555,7 @@ const LeavePolicies = ({ title, departments = [], leaveTypes = [], policies = []
                                                 type="date"
                                                 value={formData.effective_to}
                                                 onValueChange={(value) => handleFormChange('effective_to', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                         </div>
 
@@ -587,7 +574,7 @@ const LeavePolicies = ({ title, departments = [], leaveTypes = [], policies = []
                                                     selectionMode="multiple"
                                                     selectedKeys={formData.department_ids}
                                                     onSelectionChange={(keys) => handleFormChange('department_ids', Array.from(keys))}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 >
                                                     {departments.map(dept => (
                                                         <SelectItem key={dept.id}>{dept.name}</SelectItem>
@@ -607,7 +594,7 @@ const LeavePolicies = ({ title, departments = [], leaveTypes = [], policies = []
                                                 placeholder="Enter max days"
                                                 value={formData.max_days_per_year}
                                                 onValueChange={(value) => handleFormChange('max_days_per_year', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Input
@@ -616,7 +603,7 @@ const LeavePolicies = ({ title, departments = [], leaveTypes = [], policies = []
                                                 placeholder="Enter max consecutive days"
                                                 value={formData.max_consecutive_days}
                                                 onValueChange={(value) => handleFormChange('max_consecutive_days', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                         </div>
 
@@ -627,7 +614,7 @@ const LeavePolicies = ({ title, departments = [], leaveTypes = [], policies = []
                                                 placeholder="Enter minimum notice period"
                                                 value={formData.min_notice_period}
                                                 onValueChange={(value) => handleFormChange('min_notice_period', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
 
                                             <Input
@@ -636,7 +623,7 @@ const LeavePolicies = ({ title, departments = [], leaveTypes = [], policies = []
                                                 placeholder="Enter max advance booking"
                                                 value={formData.max_advance_booking}
                                                 onValueChange={(value) => handleFormChange('max_advance_booking', value)}
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                         </div>
 
@@ -656,7 +643,7 @@ const LeavePolicies = ({ title, departments = [], leaveTypes = [], policies = []
                                                         onValueChange={(value) => handleFormChange('transfer_percentage', value)}
                                                         className="max-w-32"
                                                         endContent="%"
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                     />
                                                 )}
                                             </div>
@@ -676,7 +663,7 @@ const LeavePolicies = ({ title, departments = [], leaveTypes = [], policies = []
                                                         onValueChange={(value) => handleFormChange('encashment_percentage', value)}
                                                         className="max-w-32"
                                                         endContent="%"
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                     />
                                                 )}
                                             </div>
@@ -686,7 +673,7 @@ const LeavePolicies = ({ title, departments = [], leaveTypes = [], policies = []
                                             label="Sandwich Leave Policy"
                                             selectedKeys={[formData.sandwich_leave_policy]}
                                             onSelectionChange={(keys) => handleFormChange('sandwich_leave_policy', Array.from(keys)[0])}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         >
                                             {sandwichLeaveOptions.map(option => (
                                                 <SelectItem key={option.key}>{option.label}</SelectItem>
@@ -719,7 +706,7 @@ const LeavePolicies = ({ title, departments = [], leaveTypes = [], policies = []
                                             placeholder="Enter minimum service months"
                                             value={formData.min_service_months}
                                             onValueChange={(value) => handleFormChange('min_service_months', value)}
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
 
                                         <Switch
@@ -749,7 +736,7 @@ const LeavePolicies = ({ title, departments = [], leaveTypes = [], policies = []
                                                     max="5"
                                                     value={formData.approval_levels}
                                                     onValueChange={(value) => handleFormChange('approval_levels', value)}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 />
 
                                                 <Input
@@ -758,7 +745,7 @@ const LeavePolicies = ({ title, departments = [], leaveTypes = [], policies = []
                                                     placeholder="Auto approve if less than"
                                                     value={formData.auto_approve_threshold}
                                                     onValueChange={(value) => handleFormChange('auto_approve_threshold', value)}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 />
                                             </div>
                                         )}
@@ -879,7 +866,7 @@ const LeavePolicies = ({ title, departments = [], leaveTypes = [], policies = []
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select

@@ -182,7 +182,7 @@ export default function FileBrowser({ files = [], currentPath = '/', onUpload, o
 
     // Handle download
     const handleDownload = (fileId) => {
-        window.location.href = route('admin.files.download', fileId);
+        router.visit(route('admin.files.download', fileId));
     };
 
     // Breadcrumb navigation

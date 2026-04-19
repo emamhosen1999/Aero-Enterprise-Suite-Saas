@@ -95,7 +95,7 @@ export default function SocialLoginButtons({ providers = [], isLoading = false }
         >
             <div className="relative">
                 <Divider className="my-4" />
-                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 px-4 bg-white dark:bg-gray-900 text-sm text-gray-500 dark:text-gray-400">
+                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 px-4 bg-background text-sm text-gray-500 dark:text-gray-400">
                     Or continue with
                 </span>
             </div>

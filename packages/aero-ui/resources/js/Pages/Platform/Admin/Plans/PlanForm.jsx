@@ -6,23 +6,14 @@ import { ArrowLeftIcon, CheckIcon, CreditCardIcon } from '@heroicons/react/24/ou
 import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
 import App from '@/Layouts/App.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], title }) => {
     const { auth } = usePage().props;
     const isEdit = !!plan;
 
     // 1. Theme radius helper (REQUIRED)
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     // 2. Responsive breakpoints (REQUIRED)
     const [isMobile, setIsMobile] = useState(false);
@@ -216,7 +207,7 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                                                 <Button
                                                     isIconOnly
                                                     variant="light"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     onPress={() => router.visit(route('admin.plans.index'))}
                                                     className="shrink-0"
                                                 >
@@ -258,7 +249,7 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                                 <CardBody className="p-6">
                                     <form onSubmit={handleSubmit} className="space-y-6">
                                         {/* Basic Information */}
-                                        <Card radius={getThemeRadius()}>
+                                        <Card radius={themeRadius}>
                                             <CardHeader className="border-b border-divider p-4">
                                                 <h2 className="text-lg font-semibold text-foreground">Basic Information</h2>
                                             </CardHeader>
@@ -271,7 +262,7 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                                                     isInvalid={!!form.errors.name}
                                                     errorMessage={form.errors.name}
                                                     isRequired
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 />
                                                 <Textarea
                                                     label="Description"
@@ -280,7 +271,7 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                                                     onValueChange={(value) => form.setData('description', value)}
                                                     isInvalid={!!form.errors.description}
                                                     errorMessage={form.errors.description}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     minRows={3}
                                                 />
                                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -288,7 +279,7 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                                                         label="Plan Tier"
                                                         selectedKeys={[form.data.tier]}
                                                         onSelectionChange={(keys) => form.setData('tier', Array.from(keys)[0])}
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         isRequired
                                 >
                                     <SelectItem key="free">Free</SelectItem>
@@ -300,7 +291,7 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                                     label="Status"
                                     selectedKeys={[form.data.status]}
                                     onSelectionChange={(keys) => form.setData('status', Array.from(keys)[0])}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 >
                                     <SelectItem key="active">Active</SelectItem>
                                     <SelectItem key="archived">Archived</SelectItem>
@@ -309,7 +300,7 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                                     label="Visibility"
                                     selectedKeys={[form.data.visibility]}
                                     onSelectionChange={(keys) => form.setData('visibility', Array.from(keys)[0])}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 >
                                     <SelectItem key="public">Public</SelectItem>
                                     <SelectItem key="private">Private</SelectItem>
@@ -320,7 +311,7 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                     </Card>
 
                     {/* Pricing Configuration */}
-                    <Card radius={getThemeRadius()}>
+                    <Card radius={themeRadius}>
                         <CardHeader className="border-b border-divider p-4">
                             <h2 className="text-lg font-semibold text-foreground">Pricing Configuration</h2>
                         </CardHeader>
@@ -329,7 +320,7 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                                 label="Base Currency"
                                 selectedKeys={[form.data.currency]}
                                 onSelectionChange={(keys) => form.setData('currency', Array.from(keys)[0])}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 isRequired
                             >
                                 {currencies.map(curr => (
@@ -346,7 +337,7 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                                     startContent={<span className="text-default-400">$</span>}
                                     isInvalid={!!form.errors.monthly_price}
                                     errorMessage={form.errors.monthly_price}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     isRequired
                                 />
                                 <Input
@@ -358,7 +349,7 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                                     startContent={<span className="text-default-400">$</span>}
                                     isInvalid={!!form.errors.annual_price}
                                     errorMessage={form.errors.annual_price}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
                             </div>
                             <div>
@@ -396,7 +387,7 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                     </Card>
 
                     {/* Quota Limits */}
-                    <Card radius={getThemeRadius()}>
+                    <Card radius={themeRadius}>
                         <CardHeader className="border-b border-divider p-4">
                             <h2 className="text-lg font-semibold text-foreground">Quota Limits</h2>
                         </CardHeader>
@@ -409,7 +400,7 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                                         value={quota.limit}
                                         onValueChange={(value) => handleQuotaChange(quotaType, 'limit', parseInt(value) || 0)}
                                         isDisabled={quota.unlimited}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         className="flex-1"
                                     />
                                     <Checkbox
@@ -424,14 +415,14 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                     </Card>
 
                     {/* Product Access */}
-                    <Card radius={getThemeRadius()}>
+                    <Card radius={themeRadius}>
                         <CardHeader className="border-b border-divider p-4 flex justify-between items-center">
                             <h2 className="text-lg font-semibold text-foreground">Product Access</h2>
                             <div className="flex gap-2">
                                 <Button
                                     size="sm"
                                     variant="flat"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     onPress={() => form.setData('modules', modules.map(m => m.code))}
                                 >
                                     Select All
@@ -439,7 +430,7 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                                 <Button
                                     size="sm"
                                     variant="flat"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     onPress={() => form.setData('modules', [])}
                                 >
                                     Clear All
@@ -465,7 +456,7 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                     </Card>
 
                     {/* Feature Toggles */}
-                    <Card radius={getThemeRadius()}>
+                    <Card radius={themeRadius}>
                         <CardHeader className="border-b border-divider p-4">
                             <h2 className="text-lg font-semibold text-foreground">Feature Toggles</h2>
                         </CardHeader>
@@ -479,7 +470,7 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                                     >
                                         <div className="flex items-center gap-2">
                                             <span className="font-medium">{feature.name}</span>
-                                            <Chip size="sm" variant="flat" radius={getThemeRadius()}>
+                                            <Chip size="sm" variant="flat" radius={themeRadius}>
                                                 {feature.category}
                                             </Chip>
                                         </div>
@@ -490,7 +481,7 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                     </Card>
 
                     {/* Trial Period */}
-                    <Card radius={getThemeRadius()}>
+                    <Card radius={themeRadius}>
                         <CardHeader className="border-b border-divider p-4">
                             <h2 className="text-lg font-semibold text-foreground">Trial Period</h2>
                         </CardHeader>
@@ -507,7 +498,7 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                                         label="Trial Duration"
                                         selectedKeys={[String(form.data.trial_days)]}
                                         onSelectionChange={(keys) => form.setData('trial_days', parseInt(Array.from(keys)[0]))}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         <SelectItem key="7">7 days</SelectItem>
                                         <SelectItem key="14">14 days</SelectItem>
@@ -517,7 +508,7 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                                         label="Trial Features"
                                         selectedKeys={[form.data.trial_features]}
                                         onSelectionChange={(keys) => form.setData('trial_features', Array.from(keys)[0])}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         <SelectItem key="same">Same as paid plan</SelectItem>
                                         <SelectItem key="limited">Limited features</SelectItem>
@@ -528,7 +519,7 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                     </Card>
 
                     {/* Stripe Integration */}
-                    <Card radius={getThemeRadius()}>
+                    <Card radius={themeRadius}>
                         <CardHeader className="border-b border-divider p-4">
                             <h2 className="text-lg font-semibold text-foreground">Stripe Integration</h2>
                         </CardHeader>
@@ -538,7 +529,7 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                                 placeholder="prod_xxxxx"
                                 value={form.data.stripe_product_id}
                                 onValueChange={(value) => form.setData('stripe_product_id', value)}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                             />
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <Input
@@ -546,14 +537,14 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                                     placeholder="price_xxxxx"
                                     value={form.data.stripe_monthly_price_id}
                                     onValueChange={(value) => form.setData('stripe_monthly_price_id', value)}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
                                 <Input
                                     label="Annual Price ID"
                                     placeholder="price_xxxxx"
                                     value={form.data.stripe_annual_price_id}
                                     onValueChange={(value) => form.setData('stripe_annual_price_id', value)}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
                             </div>
                         </CardBody>
@@ -563,7 +554,7 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                                         <div className="flex justify-end gap-3">
                                             <Button
                                                 variant="flat"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 onPress={() => router.visit(route('admin.plans.index'))}
                                             >
                                                 Cancel
@@ -571,7 +562,7 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                                             <Button
                                                 type="submit"
                                                 color="primary"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 isLoading={form.processing}
                                                 startContent={!form.processing && <CheckIcon className="w-5 h-5" />}
                                             >

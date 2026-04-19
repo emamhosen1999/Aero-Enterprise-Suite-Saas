@@ -120,12 +120,12 @@ const InstallationLayout = ({ children, currentStep = 1, totalSteps = 8, install
             />
             <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800 flex flex-col">
             {/* Header */}
-            <div className="w-full bg-white dark:bg-gray-900 border-b border-divider shadow-sm">
+            <div className="w-full bg-background border-b border-divider shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 sm:gap-3">
                             {logo ? (
-                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden flex items-center justify-center bg-white dark:bg-gray-800">
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden flex items-center justify-center bg-content2">
                                     <img 
                                         src={logo} 
                                         alt={appName}
@@ -167,7 +167,7 @@ const InstallationLayout = ({ children, currentStep = 1, totalSteps = 8, install
 
             {/* Progress Bar */}
             {currentStep <= totalSteps && (
-                <div className="w-full bg-white dark:bg-gray-900 border-b border-divider">
+                <div className="w-full bg-background border-b border-divider">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
                         <div className="space-y-2">
                             <div className="flex justify-between items-center mb-2">
@@ -226,7 +226,7 @@ const InstallationLayout = ({ children, currentStep = 1, totalSteps = 8, install
             </div>
 
             {/* Footer */}
-            <div className="w-full bg-white dark:bg-gray-900 border-t border-divider">
+            <div className="w-full bg-background border-t border-divider">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
                     <div className="flex flex-col sm:flex-row justify-between items-center gap-2 text-xs sm:text-sm text-default-500">
                         <span className="text-center sm:text-left">© 2025 {appName}. All rights reserved.</span>

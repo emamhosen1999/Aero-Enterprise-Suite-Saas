@@ -59,7 +59,7 @@ const Accordion = ({ content = {}, settings = {} }) => {
               selectionMode={selectionMode}
               defaultExpandedKeys={defaultExpandedKeys}
               variant="bordered"
-              className="bg-white dark:bg-slate-950"
+              className="bg-background"
             >
               {items.map((item, index) => (
                 <AccordionItem

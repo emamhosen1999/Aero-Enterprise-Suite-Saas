@@ -97,9 +97,9 @@ const AdvancedPricingBlock = ({ data = {} }) => {
                                                     className="flex items-start gap-3"
                                                 >
                                                     {isIncluded ? (
-                                                        <CheckIcon className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+                                                        <CheckIcon className="w-5 h-5 text-success shrink-0 mt-0.5" />
                                                     ) : (
-                                                        <XMarkIcon className="w-5 h-5 text-default-300 flex-shrink-0 mt-0.5" />
+                                                        <XMarkIcon className="w-5 h-5 text-default-300 shrink-0 mt-0.5" />
                                                     )}
                                                     <span
                                                         className={`text-sm ${

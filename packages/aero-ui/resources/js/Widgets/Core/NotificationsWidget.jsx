@@ -96,7 +96,7 @@ const NotificationsWidget = ({ data = {} }) => {
                                     className={`flex items-start gap-3 p-3 rounded-lg border border-default-200 
                                         hover:bg-default-50 transition-colors ${route ? 'cursor-pointer' : ''}`}
                                 >
-                                    <div className="flex-shrink-0 mt-0.5">
+                                    <div className="shrink-0 mt-0.5">
                                         {getNotificationIcon(notification.color, notification.icon)}
                                     </div>
                                     <div className="flex-1 min-w-0">

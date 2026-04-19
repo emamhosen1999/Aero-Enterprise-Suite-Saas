@@ -38,24 +38,13 @@ import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
 import GpsMapPreview from '@/Components/RFI/GpsMapPreview.jsx';
 import LayerDependencyIndicator from '@/Components/RFI/LayerDependencyIndicator.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 
 const RfiForm = ({ open, closeModal, currentRow, setData, modalType}) => {
 
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     // Auto-generate RFI number
     const generateRFINumber = () => {
@@ -537,7 +526,7 @@ const RfiForm = ({ open, closeModal, currentRow, setData, modalType}) => {
             isOpen={open} 
             onClose={closeModal}
             size="3xl"
-            radius={getThemeRadius()}
+            radius={themeRadius}
             scrollBehavior="inside"
             classNames={{
                 base: "backdrop-blur-md mx-2 my-2 sm:mx-4 sm:my-8 max-h-[95vh]",
@@ -616,7 +605,7 @@ const RfiForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                                 : 'border border-divider hover:border-primary/50'
                                                         }`}
                                                         onPress={() => handleChange('type', key)}
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                     >
                                                         <CardBody className="p-0">
                                                             <div className="flex items-center gap-3">
@@ -649,7 +638,7 @@ const RfiForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                     errorMessage={errors.date}
                                                     variant="bordered"
                                                     size="sm"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     startContent={<CalendarIcon size={16} className="text-default-400" />}
                                                     endContent={getValidationIcon('date')}
                                                     classNames={{
@@ -672,7 +661,7 @@ const RfiForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                     errorMessage={errors.number}
                                                     variant="bordered"
                                                     size="sm"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     startContent={<Hash size={16} className="text-default-400" />}
                                                     endContent={
                                                         <div className="flex items-center gap-1">
@@ -711,7 +700,7 @@ const RfiForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                     errorMessage={errors.location}
                                                     variant="bordered"
                                                     size="sm"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     startContent={<MapPinIcon size={16} className="text-default-400" />}
                                                     endContent={getValidationIcon('location')}
                                                     classNames={{
@@ -739,7 +728,7 @@ const RfiForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                     errorMessage={errors.side}
                                                     variant="bordered"
                                                     size="sm"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     startContent={<MapPinIcon size={16} className="text-default-400" />}
                                                     classNames={{
                                                         trigger: "min-h-unit-10",
@@ -772,7 +761,7 @@ const RfiForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                     errorMessage={errors.planned_time}
                                                     variant="bordered"
                                                     size="sm"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     startContent={<ClockIcon size={16} className="text-default-400" />}
                                                     endContent={getValidationIcon('planned_time')}
                                                     classNames={{
@@ -796,7 +785,7 @@ const RfiForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                     errorMessage={errors.qty_layer}
                                                     variant="bordered"
                                                     size="sm"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     startContent={<FileTextIcon size={16} className="text-default-400" />}
                                                     classNames={{
                                                         input: "text-small",
@@ -819,7 +808,7 @@ const RfiForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                     errorMessage={errors.description}
                                                     variant="bordered"
                                                     size="sm"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     minRows={3}
                                                     maxRows={6}
                                                     endContent={
@@ -855,7 +844,7 @@ const RfiForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                     errorMessage={errors.chainage_start}
                                                     variant="bordered"
                                                     size="sm"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     classNames={{
                                                         input: "text-small",
                                                         inputWrapper: "min-h-unit-10"
@@ -874,7 +863,7 @@ const RfiForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                     errorMessage={errors.chainage_end}
                                                     variant="bordered"
                                                     size="sm"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     classNames={{
                                                         input: "text-small",
                                                         inputWrapper: "min-h-unit-10"
@@ -893,7 +882,7 @@ const RfiForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                     errorMessage={errors.work_layer_id}
                                                     variant="bordered"
                                                     size="sm"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     isLoading={loadingLayers}
                                                     classNames={{
                                                         trigger: "min-h-unit-10",
@@ -920,7 +909,7 @@ const RfiForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                             onValueChange={(value) => handleChange('gps_latitude', value)}
                                                             variant="bordered"
                                                             size="sm"
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             classNames={{
                                                                 input: "text-small",
                                                                 inputWrapper: "min-h-unit-10"
@@ -933,7 +922,7 @@ const RfiForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                             onValueChange={(value) => handleChange('gps_longitude', value)}
                                                             variant="bordered"
                                                             size="sm"
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             classNames={{
                                                                 input: "text-small",
                                                                 inputWrapper: "min-h-unit-10"
@@ -999,13 +988,13 @@ const RfiForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                             )}
                                             {continuityCheck && (
                                                 <div className="col-span-full">
-                                                    <Card className="bg-default-50" radius={getThemeRadius()}>
+                                                    <Card className="bg-default-50" radius={themeRadius}>
                                                         <CardBody className="p-3">
                                                             <div className="flex items-start gap-3">
                                                                 {continuityCheck.can_proceed ? (
-                                                                    <CheckCircleIcon className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+                                                                    <CheckCircleIcon className="w-5 h-5 text-success shrink-0 mt-0.5" />
                                                                 ) : (
-                                                                    <XCircleIcon className="w-5 h-5 text-danger flex-shrink-0 mt-0.5" />
+                                                                    <XCircleIcon className="w-5 h-5 text-danger shrink-0 mt-0.5" />
                                                                 )}
                                                                 <div className="flex-1">
                                                                     <p className={`font-semibold text-sm ${continuityCheck.can_proceed ? 'text-success' : 'text-danger'}`}>
@@ -1044,7 +1033,7 @@ const RfiForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                             {/* Smart suggestions based on work type */}
                                             {rfiData.type && workTypeConfigs[rfiData.type] && (
                                                 <div className="col-span-full">
-                                                    <Card className="bg-primary/5 border border-primary/20" radius={getThemeRadius()}>
+                                                    <Card className="bg-primary/5 border border-primary/20" radius={themeRadius}>
                                                         <CardBody className="p-3">
                                                             <div className="flex items-start gap-2">
                                                                 <Sparkles size={16} className="text-primary mt-0.5" />
@@ -1112,7 +1101,7 @@ const RfiForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                         color="default"
                                         variant="bordered"
                                         onPress={onClose}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         size="sm"
                                         isDisabled={processing}
                                         style={{
@@ -1128,7 +1117,7 @@ const RfiForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                         variant="solid"
                                         isLoading={processing}
                                         isDisabled={processing || !dataChanged || Object.keys(errors).length > 0}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         size="sm"
                                         startContent={!processing && (modalType === 'add' ? <FileTextIcon size={16} /> : <CheckCircle size={16} />)}
                                         style={{

@@ -28,6 +28,7 @@ import {
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const StockAdjustments = ({ adjustments = [], warehouses = [], auth }) => {
     // TODO: Replace with actual HRMAC module path once hierarchy is defined
@@ -54,16 +55,7 @@ const StockAdjustments = ({ adjustments = [], warehouses = [], auth }) => {
     }, []);
 
     // Theme helper
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     // Permission helper
     const hasPermission = (permission) => {
@@ -199,7 +191,7 @@ const StockAdjustments = ({ adjustments = [], warehouses = [], auth }) => {
                         <Button
                             color="primary"
                             startContent={<PlusIcon className="w-5 h-5" />}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         >
                             New Adjustment
                         </Button>
@@ -214,12 +206,12 @@ const StockAdjustments = ({ adjustments = [], warehouses = [], auth }) => {
                         onValueChange={handleSearchChange}
                         startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                         className="w-full sm:w-64"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                     />
                     <Select
                         placeholder="All Warehouses"
                         className="w-full sm:w-48"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         onChange={(e) => setWarehouseFilter(e.target.value)}
                     >
                         <SelectItem key="all" value="all">All Warehouses</SelectItem>
@@ -230,7 +222,7 @@ const StockAdjustments = ({ adjustments = [], warehouses = [], auth }) => {
                     <Select
                         placeholder="All Types"
                         className="w-full sm:w-48"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         onChange={(e) => setTypeFilter(e.target.value)}
                     >
                         <SelectItem key="all" value="all">All Types</SelectItem>
@@ -241,7 +233,7 @@ const StockAdjustments = ({ adjustments = [], warehouses = [], auth }) => {
                     <Select
                         placeholder="All Reasons"
                         className="w-full sm:w-48"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         onChange={(e) => setReasonFilter(e.target.value)}
                     >
                         <SelectItem key="all" value="all">All Reasons</SelectItem>

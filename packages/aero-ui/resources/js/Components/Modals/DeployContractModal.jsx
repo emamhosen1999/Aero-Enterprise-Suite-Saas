@@ -17,7 +17,8 @@ import {
   Card,
   CardBody
 } from "@heroui/react";
-import { 
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import {
   DocumentTextIcon,
   CubeIcon,
   CodeBracketIcon,
@@ -45,17 +46,7 @@ const DeployContractModal = ({
   const [errors, setErrors] = useState({});
 
   // Theme radius helper
-  const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 16) return 'lg';
-    return 'full';
-  };
+  const themeRadius = useThemeRadius();
 
   // Network options
   const networks = [
@@ -232,7 +223,7 @@ const DeployContractModal = ({
                 isInvalid={!!errors.name}
                 errorMessage={errors.name}
                 isRequired
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 classNames={{ inputWrapper: "bg-default-100" }}
               />
               <Select
@@ -243,7 +234,7 @@ const DeployContractModal = ({
                 isInvalid={!!errors.network}
                 errorMessage={errors.network}
                 isRequired
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 classNames={{ trigger: "bg-default-100" }}
                 startContent={<CubeIcon className="w-4 h-4 text-default-400" />}
               >
@@ -259,7 +250,7 @@ const DeployContractModal = ({
                 isInvalid={!!errors.contractType}
                 errorMessage={errors.contractType}
                 isRequired
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 classNames={{ trigger: "bg-default-100" }}
               >
                 {contractTypes.map((type) => (
@@ -279,7 +270,7 @@ const DeployContractModal = ({
               isInvalid={!!errors.bytecode}
               errorMessage={errors.bytecode}
               isRequired
-              radius={getThemeRadius()}
+              radius={themeRadius}
               classNames={{ inputWrapper: "bg-default-100" }}
               minRows={4}
               maxRows={8}
@@ -293,7 +284,7 @@ const DeployContractModal = ({
               onValueChange={(value) => handleInputChange('abi', value)}
               isInvalid={!!errors.abi}
               errorMessage={errors.abi}
-              radius={getThemeRadius()}
+              radius={themeRadius}
               classNames={{ inputWrapper: "bg-default-100" }}
               minRows={4}
               maxRows={8}
@@ -307,7 +298,7 @@ const DeployContractModal = ({
               onValueChange={(value) => handleInputChange('constructorArgs', value)}
               isInvalid={!!errors.constructorArgs}
               errorMessage={errors.constructorArgs}
-              radius={getThemeRadius()}
+              radius={themeRadius}
               classNames={{ inputWrapper: "bg-default-100" }}
               minRows={2}
               description="Constructor arguments as a JSON array"
@@ -324,7 +315,7 @@ const DeployContractModal = ({
                 onValueChange={(value) => handleInputChange('gasLimit', value)}
                 isInvalid={!!errors.gasLimit}
                 errorMessage={errors.gasLimit}
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 classNames={{ inputWrapper: "bg-default-100" }}
                 description="Maximum gas for deployment"
               />
@@ -333,7 +324,7 @@ const DeployContractModal = ({
                 placeholder="20"
                 value={formData.gasPrice}
                 onValueChange={(value) => handleInputChange('gasPrice', value)}
-                radius={getThemeRadius()}
+                radius={themeRadius}
                 classNames={{ inputWrapper: "bg-default-100" }}
                 description="Price per gas unit"
               />
@@ -370,7 +361,7 @@ const DeployContractModal = ({
             {/* Warning */}
             <div className="p-4 bg-warning-50 border-l-4 border-warning rounded-r-lg">
               <div className="flex gap-3">
-                <ExclamationTriangleIcon className="w-5 h-5 text-warning-600 flex-shrink-0" />
+                <ExclamationTriangleIcon className="w-5 h-5 text-warning-600 shrink-0" />
                 <div>
                   <p className="text-sm text-warning-800 font-medium">Deployment Warning</p>
                   <p className="text-sm text-warning-700 mt-1">
@@ -383,14 +374,14 @@ const DeployContractModal = ({
         </ModalBody>
         
         <ModalFooter>
-          <Button variant="flat" onPress={handleClose} isDisabled={loading} radius={getThemeRadius()}>
+          <Button variant="flat" onPress={handleClose} isDisabled={loading} radius={themeRadius}>
             Cancel
           </Button>
           <Button 
             color="primary" 
             onPress={handleDeploy}
             isLoading={loading}
-            radius={getThemeRadius()}
+            radius={themeRadius}
             startContent={!loading ? <DocumentTextIcon className="w-4 h-4" /> : null}
           >
             {loading ? 'Deploying...' : 'Deploy Contract'}

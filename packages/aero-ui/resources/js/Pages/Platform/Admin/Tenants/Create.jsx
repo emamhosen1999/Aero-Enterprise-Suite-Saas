@@ -25,20 +25,11 @@ import {
 } from "@heroicons/react/24/outline";
 import { showToast } from '@/utils/toastUtils';
 import App from "@/Layouts/App.jsx";
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const Create = ({ auth, title }) => {
     // 1. Theme radius helper (REQUIRED)
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     // 2. Responsive breakpoints (REQUIRED)
     const [isMobile, setIsMobile] = useState(false);
@@ -228,7 +219,7 @@ const Create = ({ auth, title }) => {
                                                 <Button
                                                     isIconOnly
                                                     variant="light"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     onPress={() => router.visit(route('admin.tenants.index'))}
                                                     className="shrink-0"
                                                 >
@@ -289,7 +280,7 @@ const Create = ({ auth, title }) => {
                                                             isInvalid={!!errors.name}
                                                             errorMessage={errors.name}
                                                             isRequired
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             classNames={{ inputWrapper: "bg-default-100" }}
                                                         />
                                                         <Input
@@ -301,7 +292,7 @@ const Create = ({ auth, title }) => {
                                                             isInvalid={!!errors.email}
                                                             errorMessage={errors.email}
                                                             isRequired
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             classNames={{ inputWrapper: "bg-default-100" }}
                                                         />
                                                         <Input
@@ -309,7 +300,7 @@ const Create = ({ auth, title }) => {
                                                             placeholder="+1 234 567 8900"
                                                             value={formData.phone}
                                                             onValueChange={(v) => handleChange('phone', v)}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             classNames={{ inputWrapper: "bg-default-100" }}
                                                         />
                                                         <Select
@@ -320,7 +311,7 @@ const Create = ({ auth, title }) => {
                                                             isInvalid={!!errors.type}
                                                             errorMessage={errors.type}
                                                             isRequired
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             classNames={{ trigger: "bg-default-100" }}
                                                         >
                                                             {tenantTypes.map(type => (
@@ -351,7 +342,7 @@ const Create = ({ auth, title }) => {
                                     isInvalid={!!errors.subdomain || subdomainAvailable === false}
                                     errorMessage={errors.subdomain || (subdomainAvailable === false ? 'Subdomain is already taken' : null)}
                                     isRequired
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     classNames={{ inputWrapper: "bg-default-100" }}
                                     description={`Your tenant will be accessible at: ${formData.subdomain || 'subdomain'}.yourdomain.com`}
                                     endContent={
@@ -391,7 +382,7 @@ const Create = ({ auth, title }) => {
                                     isInvalid={!!errors.admin_name}
                                     errorMessage={errors.admin_name}
                                     isRequired
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     classNames={{ inputWrapper: "bg-default-100" }}
                                 />
                                 <Input
@@ -403,7 +394,7 @@ const Create = ({ auth, title }) => {
                                     isInvalid={!!errors.admin_email}
                                     errorMessage={errors.admin_email}
                                     isRequired
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     classNames={{ inputWrapper: "bg-default-100" }}
                                 />
                                 <Input
@@ -413,7 +404,7 @@ const Create = ({ auth, title }) => {
                                     value={formData.admin_password}
                                     onValueChange={(v) => handleChange('admin_password', v)}
                                     description="If left empty, a secure password will be generated and emailed"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     classNames={{ inputWrapper: "bg-default-100" }}
                                 />
                             </div>
@@ -437,7 +428,7 @@ const Create = ({ auth, title }) => {
                                     isInvalid={!!errors.plan_id}
                                     errorMessage={errors.plan_id}
                                     isRequired
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     classNames={{ trigger: "bg-default-100" }}
                                 >
                                     {plans.map(plan => (
@@ -456,7 +447,7 @@ const Create = ({ auth, title }) => {
                                     min={0}
                                     max={90}
                                     description="Number of days before billing starts"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     classNames={{ inputWrapper: "bg-default-100" }}
                                 />
                             </div>
@@ -471,7 +462,7 @@ const Create = ({ auth, title }) => {
                                     color="primary"
                                     className="w-full"
                                     size="lg"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     onPress={handleSubmit}
                                     isLoading={loading}
                                     startContent={!loading && <PlusIcon className="w-5 h-5" />}
@@ -481,7 +472,7 @@ const Create = ({ auth, title }) => {
                                 <Button
                                     variant="flat"
                                     className="w-full"
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     onPress={() => router.visit(route('admin.tenants.index'))}
                                 >
                                     Cancel

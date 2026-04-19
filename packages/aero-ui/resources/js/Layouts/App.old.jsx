@@ -512,7 +512,7 @@ const App = React.memo(({ children }) => {
                       : 'relative h-full'
                     }
                     border-r border-divider
-                    flex-shrink-0
+                    shrink-0
                     overflow-hidden
                   `}
                 >

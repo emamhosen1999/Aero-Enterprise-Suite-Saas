@@ -18,7 +18,7 @@ import {
     CalendarDaysIcon,
     DocumentTextIcon,
 } from "@heroicons/react/24/outline";
-import { getThemeRadius } from '@/Hooks/useThemeRadius';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 /**
  * ObjectionWarningModal - Blocking modal that requires confirmation 
@@ -36,6 +36,7 @@ const ObjectionWarningModal = ({
 }) => {
     const [reason, setReason] = useState('');
     const [acknowledged, setAcknowledged] = useState(false);
+    const themeRadius = useThemeRadius();
 
     const handleConfirm = () => {
         if (!reason.trim()) {
@@ -72,7 +73,7 @@ const ObjectionWarningModal = ({
             placement="bottom-center"
             isDismissable={false}
             hideCloseButton={true}
-            radius={getThemeRadius()}
+            radius={themeRadius}
             classNames={{
                 base: "max-h-[100dvh] sm:max-h-[90vh] m-0 sm:m-4 mb-0",
                 wrapper: "items-end sm:items-center",
@@ -92,7 +93,7 @@ const ObjectionWarningModal = ({
                             {/* Warning Message */}
                             <div className="bg-warning-100 dark:bg-warning-900/30 border border-warning-300 dark:border-warning-700 rounded-lg p-4 mb-4">
                                 <div className="flex items-start gap-3">
-                                    <ExclamationTriangleIcon className="w-6 h-6 text-warning-600 flex-shrink-0 mt-0.5" />
+                                    <ExclamationTriangleIcon className="w-6 h-6 text-warning-600 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="font-semibold text-warning-800 dark:text-warning-300 mb-2">
                                             This RFI has {activeObjectionsCount} active objection{activeObjectionsCount !== 1 ? 's' : ''}
@@ -180,7 +181,7 @@ const ObjectionWarningModal = ({
                                     onChange={(e) => setReason(e.target.value)}
                                     minRows={3}
                                     isRequired
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     classNames={{
                                         inputWrapper: "border-warning focus-within:border-warning-500",
                                     }}

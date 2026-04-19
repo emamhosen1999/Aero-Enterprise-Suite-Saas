@@ -14,6 +14,7 @@ import {
 import {Briefcase, Building2} from 'lucide-react';
 import axios from 'axios';
 import {showToast} from '@/utils/toastUtils';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const DesignationForm = ({ 
     open, 
@@ -24,19 +25,7 @@ const DesignationForm = ({
     designations = []
 }) => {
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
@@ -172,7 +161,7 @@ const DesignationForm = ({
             isOpen={open} 
             onClose={loading ? undefined : onClose}
             size="2xl"
-            radius={getThemeRadius()}
+            radius={themeRadius}
             scrollBehavior="inside"
             classNames={{
                 base: "backdrop-blur-md mx-2 my-2 sm:mx-4 sm:my-8 max-h-[95vh]",
@@ -222,7 +211,7 @@ const DesignationForm = ({
                                             isRequired
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             startContent={<Briefcase size={16} className="text-default-400" />}
                                             classNames={{
                                                 input: "text-small",
@@ -249,7 +238,7 @@ const DesignationForm = ({
                                             isRequired
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             startContent={<Building2 size={16} className="text-default-400" />}
                                             classNames={{
                                                 trigger: "min-h-unit-10",
@@ -282,7 +271,7 @@ const DesignationForm = ({
                                             isRequired
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             description="1 = Highest (CEO/Director), 2 = Manager, 3+ = Staff levels"
                                             classNames={{
                                                 input: "text-small",
@@ -316,7 +305,7 @@ const DesignationForm = ({
                                                 isDisabled={!formData.department_id || availableParents.length === 0}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 description="Parent must be a higher-level designation in the same department"
                                                 classNames={{
                                                     trigger: "min-h-unit-10",
@@ -369,7 +358,7 @@ const DesignationForm = ({
                                     variant="light"
                                     onPress={onClose}
                                     isDisabled={loading}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     style={{
                                         borderRadius: `var(--borderRadius, 8px)`,
                                         fontFamily: `var(--fontFamily, "Inter")`,
@@ -383,7 +372,7 @@ const DesignationForm = ({
                                     color="primary"
                                     isLoading={loading}
                                     isDisabled={loading}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     style={{
                                         borderRadius: `var(--borderRadius, 8px)`,
                                         fontFamily: `var(--fontFamily, "Inter")`,

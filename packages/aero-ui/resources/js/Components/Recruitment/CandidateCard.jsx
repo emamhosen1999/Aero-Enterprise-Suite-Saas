@@ -104,13 +104,13 @@ const CandidateCard = ({ application, onView, isDragging = false, themeRadius })
                 <div className="space-y-2 mb-3">
                     {application.email && (
                         <div className="flex items-center gap-2 text-xs text-default-600">
-                            <EnvelopeIcon className="w-3.5 h-3.5 flex-shrink-0" />
+                            <EnvelopeIcon className="w-3.5 h-3.5 shrink-0" />
                             <span className="truncate">{application.email}</span>
                         </div>
                     )}
                     {application.phone && (
                         <div className="flex items-center gap-2 text-xs text-default-600">
-                            <PhoneIcon className="w-3.5 h-3.5 flex-shrink-0" />
+                            <PhoneIcon className="w-3.5 h-3.5 shrink-0" />
                             <span>{application.phone}</span>
                         </div>
                     )}
@@ -126,7 +126,7 @@ const CandidateCard = ({ application, onView, isDragging = false, themeRadius })
                             }}
                         >
                             <BriefcaseIcon
-                                className="w-3.5 h-3.5 flex-shrink-0"
+                                className="w-3.5 h-3.5 shrink-0"
                                 style={{ color: 'var(--theme-primary)' }}
                             />
                             <div>
@@ -145,7 +145,7 @@ const CandidateCard = ({ application, onView, isDragging = false, themeRadius })
                             }}
                         >
                             <CurrencyDollarIcon
-                                className="w-3.5 h-3.5 flex-shrink-0"
+                                className="w-3.5 h-3.5 shrink-0"
                                 style={{ color: 'var(--theme-success)' }}
                             />
                             <div>

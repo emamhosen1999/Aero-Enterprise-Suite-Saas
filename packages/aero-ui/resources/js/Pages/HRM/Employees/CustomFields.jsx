@@ -25,19 +25,6 @@ const CustomFields = ({ title }) => {
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -345,7 +332,7 @@ const CustomFields = ({ title }) => {
                                         value={formData.label}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, label: value }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                     <Input
                                         label="Field Name"
@@ -353,7 +340,7 @@ const CustomFields = ({ title }) => {
                                         value={formData.name}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, name: value.replace(/\s/g, '_').toLowerCase() }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                 </div>
                                 
@@ -361,7 +348,7 @@ const CustomFields = ({ title }) => {
                                     label="Field Type"
                                     selectedKeys={[formData.type]}
                                     onSelectionChange={(keys) => setFormData(prev => ({ ...prev, type: Array.from(keys)[0] }))}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 >
                                     {fieldTypes.map(type => (
                                         <SelectItem key={type.key}>{type.label}</SelectItem>
@@ -375,7 +362,7 @@ const CustomFields = ({ title }) => {
                                         value={formData.options}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, options: value }))}
                                         rows={4}
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                 )}
 
@@ -384,7 +371,7 @@ const CustomFields = ({ title }) => {
                                     placeholder="e.g., min:3|max:50"
                                     value={formData.validation_rules}
                                     onValueChange={(value) => setFormData(prev => ({ ...prev, validation_rules: value }))}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
 
                                 <Textarea
@@ -393,7 +380,7 @@ const CustomFields = ({ title }) => {
                                     value={formData.help_text}
                                     onValueChange={(value) => setFormData(prev => ({ ...prev, help_text: value }))}
                                     rows={2}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
 
                                 <div className="flex gap-4">
@@ -522,7 +509,7 @@ const CustomFields = ({ title }) => {
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select

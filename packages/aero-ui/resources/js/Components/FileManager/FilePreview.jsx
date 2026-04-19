@@ -82,7 +82,7 @@ export default function FilePreview({
         if (isAudio) {
             return (
                 <div className="flex flex-col items-center justify-center bg-gradient-to-br from-primary-100 to-secondary-100 dark:from-primary-900/30 dark:to-secondary-900/30 rounded-lg p-8 min-h-[300px]">
-                    <div className="w-32 h-32 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-lg mb-6">
+                    <div className="w-32 h-32 bg-content2 rounded-full flex items-center justify-center shadow-lg mb-6">
                         <svg className="w-16 h-16 text-primary" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
                         </svg>

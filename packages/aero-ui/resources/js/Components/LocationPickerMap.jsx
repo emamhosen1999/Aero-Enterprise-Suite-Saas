@@ -4,6 +4,7 @@ import { Button, Input, Spinner, Card, CardBody } from '@heroui/react';
 import { MapPinIcon, GlobeAltIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 // Fix Leaflet default markers
 delete L.Icon.Default.prototype._getIconUrl;
@@ -44,19 +45,7 @@ const LocationPickerMap = ({
     style = {}
 }) => {
     // Helper function to convert theme borderRadius to values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     // Location state
     const [locationState, setLocationState] = useState({
@@ -267,7 +256,7 @@ const LocationPickerMap = ({
                             background: `color-mix(in srgb, var(--theme-danger) 10%, transparent)`,
                             color: 'var(--theme-danger)',
                         }}>
-                            <ExclamationTriangleIcon className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                            <ExclamationTriangleIcon className="w-4 h-4 mt-0.5 shrink-0" />
                             <span className="text-xs">{locationState.error}</span>
                         </div>
                     )}
@@ -320,7 +309,7 @@ const LocationPickerMap = ({
                             value={manualCoords.latitude}
                             onValueChange={(value) => setManualCoords(prev => ({ ...prev, latitude: value }))}
                             variant="bordered"
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         />
                         <Input
                             size="sm"
@@ -329,7 +318,7 @@ const LocationPickerMap = ({
                             value={manualCoords.longitude}
                             onValueChange={(value) => setManualCoords(prev => ({ ...prev, longitude: value }))}
                             variant="bordered"
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         />
                         <Button
                             size="sm"

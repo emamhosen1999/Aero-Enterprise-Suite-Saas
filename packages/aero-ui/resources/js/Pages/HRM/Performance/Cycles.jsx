@@ -26,19 +26,6 @@ const AppraisalCycles = ({ title, employees: initialEmployees = [], templates: i
     const themeRadius = useThemeRadius();
     const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-    
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -434,7 +421,7 @@ const AppraisalCycles = ({ title, employees: initialEmployees = [], templates: i
                                     value={formData.name}
                                     onValueChange={(value) => setFormData(prev => ({ ...prev, name: value }))}
                                     isRequired
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
 
                                 <Textarea
@@ -443,7 +430,7 @@ const AppraisalCycles = ({ title, employees: initialEmployees = [], templates: i
                                     value={formData.description}
                                     onValueChange={(value) => setFormData(prev => ({ ...prev, description: value }))}
                                     rows={2}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
                                 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -453,7 +440,7 @@ const AppraisalCycles = ({ title, employees: initialEmployees = [], templates: i
                                         value={formData.start_date}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, start_date: value }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                     
                                     <Input
@@ -462,7 +449,7 @@ const AppraisalCycles = ({ title, employees: initialEmployees = [], templates: i
                                         value={formData.end_date}
                                         onValueChange={(value) => setFormData(prev => ({ ...prev, end_date: value }))}
                                         isRequired
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                 </div>
 
@@ -471,7 +458,7 @@ const AppraisalCycles = ({ title, employees: initialEmployees = [], templates: i
                                     placeholder="Select template"
                                     selectedKeys={formData.template_id ? [formData.template_id] : []}
                                     onSelectionChange={(keys) => setFormData(prev => ({ ...prev, template_id: Array.from(keys)[0] || '' }))}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 >
                                     {templates.map(template => (
                                         <SelectItem key={template.id}>{template.name}</SelectItem>
@@ -524,7 +511,7 @@ const AppraisalCycles = ({ title, employees: initialEmployees = [], templates: i
                                     value={formData.instructions}
                                     onValueChange={(value) => setFormData(prev => ({ ...prev, instructions: value }))}
                                     rows={4}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 />
                             </div>
                         </ModalBody>
@@ -734,7 +721,7 @@ const AppraisalCycles = ({ title, employees: initialEmployees = [], templates: i
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                         />
                                         
                                         <Select

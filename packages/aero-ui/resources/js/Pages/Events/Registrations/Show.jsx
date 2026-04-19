@@ -65,19 +65,6 @@ const Show = ({ auth, registration, event }) => {
     const [showRejectModal, setShowRejectModal] = React.useState(false);
     const [rejectReason, setRejectReason] = React.useState('');
     const [processing, setProcessing] = React.useState(false);
-
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-
     const getStatusColor = (status) => {
         switch (status) {
             case 'approved': return 'success';
@@ -231,7 +218,7 @@ const Show = ({ auth, registration, event }) => {
                                                     variant="flat"
                                                     onPress={() => router.get(route('events.registrations.index', event.id))}
                                                     startContent={<ArrowLeftIcon className="w-5 h-5" />}
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                 >
                                                     Back
                                                 </Button>
@@ -242,7 +229,7 @@ const Show = ({ auth, registration, event }) => {
                                                             onPress={handleApprove}
                                                             startContent={<CheckCircleIcon className="w-4 h-4" />}
                                                             isDisabled={processing}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         >
                                                             Approve
                                                         </Button>
@@ -251,7 +238,7 @@ const Show = ({ auth, registration, event }) => {
                                                             onPress={() => setShowRejectModal(true)}
                                                             startContent={<XCircleIcon className="w-4 h-4" />}
                                                             isDisabled={processing}
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         >
                                                             Reject
                                                         </Button>
@@ -262,7 +249,7 @@ const Show = ({ auth, registration, event }) => {
                                                         color="primary"
                                                         onPress={handleVerifyPayment}
                                                         isDisabled={processing}
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                     >
                                                         Verify Payment
                                                     </Button>
@@ -272,7 +259,7 @@ const Show = ({ auth, registration, event }) => {
                                                         color="primary"
                                                         onPress={handlePrintToken}
                                                         startContent={<PrinterIcon className="w-4 h-4" />}
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                     >
                                                         Print Token
                                                     </Button>
@@ -292,7 +279,7 @@ const Show = ({ auth, registration, event }) => {
                                                 <CardBody>
                                                     <div className="flex items-center justify-between mb-6">
                                                         <h2 className="text-xl font-semibold">Participant Information</h2>
-                                                        <Chip color={getStatusColor(registration.status)} variant="flat" size="lg" radius={getThemeRadius()}>
+                                                        <Chip color={getStatusColor(registration.status)} variant="flat" size="lg" radius={themeRadius}>
                                                             {registration.status}
                                                         </Chip>
                                                     </div>
@@ -390,7 +377,7 @@ const Show = ({ auth, registration, event }) => {
                                                 )}
                                             </div>
                                             {subEvent.joining_fee && parseFloat(subEvent.joining_fee) > 0 && (
-                                                <Chip color="primary" variant="flat" radius={getThemeRadius()}>
+                                                <Chip color="primary" variant="flat" radius={themeRadius}>
                                                     ₹{parseFloat(subEvent.joining_fee).toFixed(2)}
                                                 </Chip>
                                             )}
@@ -486,7 +473,7 @@ const Show = ({ auth, registration, event }) => {
                                                                     color={getPaymentStatusColor(registration.payment_status)} 
                                                                     variant="flat"
                                                                     className="w-full justify-center"
-                                                                    radius={getThemeRadius()}
+                                                                    radius={themeRadius}
                                                                 >
                                                                     {registration.payment_status?.replace('_', ' ')}
                                                                 </Chip>
@@ -521,7 +508,7 @@ const Show = ({ auth, registration, event }) => {
                                                                     src={`/storage/${registration.qr_code}`}
                                                                     alt="QR Code"
                                                                     className="w-48 h-48"
-                                                                    radius={getThemeRadius()}
+                                                                    radius={themeRadius}
                                                                 />
                                                             </div>
                                                             <p className="text-xs text-center text-default-500 mt-2">
@@ -541,7 +528,7 @@ const Show = ({ auth, registration, event }) => {
             </div>
 
             {/* Reject Modal */}
-            <Modal isOpen={showRejectModal} onClose={() => setShowRejectModal(false)} radius={getThemeRadius()}>
+            <Modal isOpen={showRejectModal} onClose={() => setShowRejectModal(false)} radius={themeRadius}>
                 <ModalContent>
                     <ModalHeader>Reject Registration</ModalHeader>
                     <ModalBody>
@@ -554,14 +541,14 @@ const Show = ({ auth, registration, event }) => {
                             value={rejectReason}
                             onChange={(e) => setRejectReason(e.target.value)}
                             rows={4}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         />
                     </ModalBody>
                     <ModalFooter>
-                        <Button variant="light" onPress={() => setShowRejectModal(false)} radius={getThemeRadius()}>
+                        <Button variant="light" onPress={() => setShowRejectModal(false)} radius={themeRadius}>
                             Cancel
                         </Button>
-                        <Button color="danger" onPress={handleReject} isLoading={processing} radius={getThemeRadius()}>
+                        <Button color="danger" onPress={handleReject} isLoading={processing} radius={themeRadius}>
                             Reject
                         </Button>
                     </ModalFooter>

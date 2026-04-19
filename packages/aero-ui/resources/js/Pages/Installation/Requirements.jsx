@@ -256,7 +256,7 @@ export default function Requirements() {
                             {!canProceed && (
                                 <div className="bg-danger-50 dark:bg-danger-900/20 rounded-lg p-4 border border-danger-200 dark:border-danger-800">
                                     <div className="flex items-start gap-3">
-                                        <XCircleIcon className="w-6 h-6 text-danger flex-shrink-0 mt-0.5" />
+                                        <XCircleIcon className="w-6 h-6 text-danger shrink-0 mt-0.5" />
                                         <div>
                                             <h4 className="font-semibold text-danger-700 dark:text-danger-300">
                                                 Requirements Not Met
@@ -273,7 +273,7 @@ export default function Requirements() {
                             {canProceed && (
                                 <div className="bg-success-50 dark:bg-success-900/20 rounded-lg p-4 border border-success-200 dark:border-success-800">
                                     <div className="flex items-start gap-3">
-                                        <CheckCircleIcon className="w-6 h-6 text-success flex-shrink-0 mt-0.5" />
+                                        <CheckCircleIcon className="w-6 h-6 text-success shrink-0 mt-0.5" />
                                         <div>
                                             <h4 className="font-semibold text-success-700 dark:text-success-300">
                                                 All Requirements Met

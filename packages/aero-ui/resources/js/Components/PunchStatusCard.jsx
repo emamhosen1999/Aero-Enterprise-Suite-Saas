@@ -1271,7 +1271,7 @@ const PunchStatusCard = React.memo(() => {
                             >
                                 <div className="flex items-start gap-2">
                                     <ExclamationTriangleIcon 
-                                        className="w-4 h-4 mt-0.5 flex-shrink-0"
+                                        className="w-4 h-4 mt-0.5 shrink-0"
                                         style={{ color: 'var(--theme-danger)' }}
                                     />
                                     <div className="text-xs" style={{ color: 'var(--theme-danger-foreground)' }}>
@@ -1382,7 +1382,7 @@ const PunchStatusCard = React.memo(() => {
                                                                         </div>
                                                                         <div className="flex items-start gap-1">
                                                                             <MapPinIcon 
-                                                                                className="w-3 h-3 mt-0.5 flex-shrink-0"
+                                                                                className="w-3 h-3 mt-0.5 shrink-0"
                                                                                 style={{ color: 'var(--theme-foreground-500)' }}
                                                                             />
                                                                             <span 
@@ -1419,7 +1419,7 @@ const PunchStatusCard = React.memo(() => {
                                                                             </div>
                                                                             <div className="flex items-start gap-1">
                                                                                 <MapPinIcon 
-                                                                                    className="w-3 h-3 mt-0.5 flex-shrink-0"
+                                                                                    className="w-3 h-3 mt-0.5 shrink-0"
                                                                                     style={{ color: 'var(--theme-foreground-500)' }}
                                                                                 />
                                                                                 <span 
@@ -1454,7 +1454,7 @@ const PunchStatusCard = React.memo(() => {
                                                                             </div>
                                                                             <div className="flex items-start gap-1">
                                                                                 <ClockIcon 
-                                                                                    className="w-3 h-3 mt-0.5 flex-shrink-0"
+                                                                                    className="w-3 h-3 mt-0.5 shrink-0"
                                                                                     style={{ color: 'var(--theme-warning)' }}
                                                                                 />
                                                                                 <span 

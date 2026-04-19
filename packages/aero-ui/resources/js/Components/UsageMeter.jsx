@@ -143,7 +143,7 @@ export default function UsageMeter({
                                 animate={{ opacity: 1, height: 'auto' }}
                                 className="flex items-start gap-2 p-2 rounded-lg bg-danger-50 dark:bg-danger-900/20 border border-danger-200 dark:border-danger-800"
                             >
-                                <ExclamationTriangleIcon className="w-4 h-4 text-danger flex-shrink-0 mt-0.5" />
+                                <ExclamationTriangleIcon className="w-4 h-4 text-danger shrink-0 mt-0.5" />
                                 <p className="text-xs text-danger-800 dark:text-danger-400">
                                     <strong>Limit Exceeded:</strong> Your {label.toLowerCase()} limit has been exceeded. Please upgrade your plan.
                                 </p>
@@ -156,7 +156,7 @@ export default function UsageMeter({
                                 animate={{ opacity: 1, height: 'auto' }}
                                 className="flex items-start gap-2 p-2 rounded-lg bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-800"
                             >
-                                <ExclamationTriangleIcon className="w-4 h-4 text-warning flex-shrink-0 mt-0.5" />
+                                <ExclamationTriangleIcon className="w-4 h-4 text-warning shrink-0 mt-0.5" />
                                 <p className="text-xs text-warning-800 dark:text-warning-400">
                                     <strong>Approaching Limit:</strong> {percentage.toFixed(0)}% of your {label.toLowerCase()} allocation is in use. Consider upgrading your plan.
                                 </p>
@@ -169,7 +169,7 @@ export default function UsageMeter({
                                 animate={{ opacity: 1, height: 'auto' }}
                                 className="flex items-start gap-2 p-2 rounded-lg bg-success-50 dark:bg-success-900/20"
                             >
-                                <CheckCircleIcon className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
+                                <CheckCircleIcon className="w-4 h-4 text-success shrink-0 mt-0.5" />
                                 <p className="text-xs text-success-800 dark:text-success-400">
                                     {percentage.toFixed(0)}% of your {label.toLowerCase()} allocation is in use. Capacity is within acceptable range.
                                 </p>
@@ -184,7 +184,7 @@ export default function UsageMeter({
                         animate={{ opacity: 1, height: 'auto' }}
                         className="flex items-start gap-2 p-2 rounded-lg bg-primary-50 dark:bg-primary-900/20"
                     >
-                        <InformationCircleIcon className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                        <InformationCircleIcon className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                         <p className="text-xs text-primary-800 dark:text-primary-400">
                             Your plan includes unlimited {label.toLowerCase()}.
                         </p>

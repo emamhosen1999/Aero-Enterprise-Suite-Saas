@@ -39,6 +39,7 @@ import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import { useThemeRadius } from '@/Hooks/useThemeRadius';
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { router } from '@inertiajs/react';
 
 const PayrollIndex = ({ title, payrolls, stats }) => {
     const { auth } = usePage().props;
@@ -109,7 +110,7 @@ const PayrollIndex = ({ title, payrolls, stats }) => {
                     variant="shadow"
                     startContent={<PlusIcon className="w-4 h-4" />}
                     size={isMobile ? "sm" : "md"}
-                    onPress={() => window.location.href = route('payroll.create')}
+                    onPress={() => router.visit(route('payroll.create'))}
                 >
                     Create Payroll
                 </Button>

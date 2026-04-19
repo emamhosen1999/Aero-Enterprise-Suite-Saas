@@ -27,6 +27,7 @@ import axios from 'axios';
 import DepartmentEmployeeSelector from "@/Components/DepartmentEmployeeSelector.jsx";
 import BulkCalendar from './BulkCalendar';
 import BulkValidationPreview from './BulkValidationPreview';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const BulkLeaveModal = ({ 
     open, 
@@ -42,19 +43,7 @@ const BulkLeaveModal = ({
     const { auth } = usePage().props;
 
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     
     // Form state
@@ -375,14 +364,14 @@ const BulkLeaveModal = ({
             isOpen={open} 
             onClose={onClose}
             size="5xl"
-            radius={getThemeRadius()}
+            radius={themeRadius}
             scrollBehavior="inside"
             classNames={{
                 base: "backdrop-blur-md max-h-[95vh] my-2",
                 backdrop: "bg-black/50 backdrop-blur-sm",
-                header: "border-b border-divider flex-shrink-0",
+                header: "border-b border-divider shrink-0",
                 body: "overflow-y-auto max-h-[calc(95vh-160px)]",
-                footer: "border-t border-divider flex-shrink-0",
+                footer: "border-t border-divider shrink-0",
                 closeButton: "hover:bg-white/5 active:bg-white/10"
             }}
             style={{
@@ -495,7 +484,7 @@ const BulkLeaveModal = ({
                                             errorMessage={errors.leave_type_id}
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             classNames={{
                                                 trigger: "min-h-unit-10",
                                                 value: "text-small"
@@ -571,7 +560,7 @@ const BulkLeaveModal = ({
                                             isReadOnly
                                             variant="bordered"
                                             size="sm"
-                                            radius={getThemeRadius()}
+                                            radius={themeRadius}
                                             classNames={{
                                                 input: "text-small",
                                                 inputWrapper: "min-h-unit-10"
@@ -602,7 +591,7 @@ const BulkLeaveModal = ({
                                         isDisabled={isSubmitting || isValidating}
                                         variant="bordered"
                                         size="sm"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         classNames={{
                                             input: "text-small",
                                             inputWrapper: "min-h-unit-10"
@@ -684,7 +673,7 @@ const BulkLeaveModal = ({
                                 variant="light" 
                                 onPress={onClose}
                                 isDisabled={isSubmitting}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                                 className="w-full sm:w-auto order-2 sm:order-1"
                                 style={{
                                     borderRadius: `var(--borderRadius, 8px)`,
@@ -702,7 +691,7 @@ const BulkLeaveModal = ({
                                     isLoading={isValidating}
                                     isDisabled={!canValidate || isSubmitting}
                                     startContent={!isValidating && <ExclamationTriangleIcon className="w-4 h-4" />}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     className="w-full sm:w-auto"
                                     style={{
                                         borderRadius: `var(--borderRadius, 8px)`,
@@ -721,7 +710,7 @@ const BulkLeaveModal = ({
                                     isLoading={isSubmitting}
                                     isDisabled={!canSubmit || isValidating}
                                     startContent={!isSubmitting && <CheckCircleIcon className="w-4 h-4" />}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                     className="w-full sm:w-auto"
                                     style={{
                                         borderRadius: `var(--borderRadius, 8px)`,

@@ -3,22 +3,11 @@ import axios from 'axios';
 import {Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Spinner} from '@heroui/react';
 import {GraduationCap, Plus, X} from 'lucide-react';
 import {showToast} from '@/utils/toastUtils';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const EducationInformationDialog = ({ user, open, closeModal, setUser }) => {
     // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     const [updatedUser, setUpdatedUser] = useState({
         id: user.id
@@ -163,7 +152,7 @@ const EducationInformationDialog = ({ user, open, closeModal, setUser }) => {
             isOpen={open}
             onOpenChange={processing ? undefined : closeModal}
             size="3xl"
-            radius={getThemeRadius()}
+            radius={themeRadius}
             scrollBehavior="inside"
             classNames={{
                 base: "bg-content1",
@@ -209,7 +198,7 @@ const EducationInformationDialog = ({ user, open, closeModal, setUser }) => {
                                                 onPress={() => handleEducationRemove(index)}
                                                 className="text-red-500 hover:text-red-700"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             >
                                                 <X size={16} />
                                             </Button>
@@ -224,7 +213,7 @@ const EducationInformationDialog = ({ user, open, closeModal, setUser }) => {
                                                     errorMessage={errors[`educations.${index}.institution`] ? errors[`educations.${index}.institution`][0] : ''}
                                                     variant="bordered"
                                                     size="sm"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     classNames={{
                                                         input: "text-small",
                                                         inputWrapper: "min-h-unit-10"
@@ -243,7 +232,7 @@ const EducationInformationDialog = ({ user, open, closeModal, setUser }) => {
                                                     errorMessage={errors[`educations.${index}.degree`] ? errors[`educations.${index}.degree`][0] : ''}
                                                     variant="bordered"
                                                     size="sm"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     classNames={{
                                                         input: "text-small",
                                                         inputWrapper: "min-h-unit-10"
@@ -262,7 +251,7 @@ const EducationInformationDialog = ({ user, open, closeModal, setUser }) => {
                                                     errorMessage={errors[`educations.${index}.subject`] ? errors[`educations.${index}.subject`][0] : ''}
                                                     variant="bordered"
                                                     size="sm"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     classNames={{
                                                         input: "text-small",
                                                         inputWrapper: "min-h-unit-10"
@@ -282,7 +271,7 @@ const EducationInformationDialog = ({ user, open, closeModal, setUser }) => {
                                                     errorMessage={errors[`educations.${index}.starting_date`] ? errors[`educations.${index}.starting_date`][0] : ''}
                                                     variant="bordered"
                                                     size="sm"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     classNames={{
                                                         input: "text-small",
                                                         inputWrapper: "min-h-unit-10"
@@ -302,7 +291,7 @@ const EducationInformationDialog = ({ user, open, closeModal, setUser }) => {
                                                     errorMessage={errors[`educations.${index}.complete_date`] ? errors[`educations.${index}.complete_date`][0] : ''}
                                                     variant="bordered"
                                                     size="sm"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     classNames={{
                                                         input: "text-small",
                                                         inputWrapper: "min-h-unit-10"
@@ -321,7 +310,7 @@ const EducationInformationDialog = ({ user, open, closeModal, setUser }) => {
                                                     errorMessage={errors[`educations.${index}.grade`] ? errors[`educations.${index}.grade`][0] : ''}
                                                     variant="bordered"
                                                     size="sm"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     classNames={{
                                                         input: "text-small",
                                                         inputWrapper: "min-h-unit-10"
@@ -343,7 +332,7 @@ const EducationInformationDialog = ({ user, open, closeModal, setUser }) => {
                                 variant="bordered"
                                 onPress={handleAddMore}
                                 startContent={<Plus size={16} />}
-                                radius={getThemeRadius()}
+                                radius={themeRadius}
                             >
                                 Add More
                             </Button>
@@ -358,7 +347,7 @@ const EducationInformationDialog = ({ user, open, closeModal, setUser }) => {
                         onPress={closeModal}
                         isDisabled={processing}
                         variant="light"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         style={{
                             fontFamily: `var(--fontFamily, "Inter")`,
                         }}
@@ -371,7 +360,7 @@ const EducationInformationDialog = ({ user, open, closeModal, setUser }) => {
                         color="primary"
                         type="submit"
                         isLoading={processing}
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         style={{
                             fontFamily: `var(--fontFamily, "Inter")`,
                         }}

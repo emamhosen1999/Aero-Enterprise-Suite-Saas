@@ -8,21 +8,13 @@ import StatsCards from '@/Components/StatsCards.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { router } from '@inertiajs/react';
 
 const CmsPagesList = ({ title, categories = [], templates = [] }) => {
     const { auth } = usePage().props;
 
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
     const [isMobile, setIsMobile] = useState(false);
     const [pages, setPages] = useState([]);
@@ -199,7 +191,7 @@ const CmsPagesList = ({ title, categories = [], templates = [] }) => {
                         <Button variant="flat" onPress={() => onCreateChange(false)}>Cancel</Button>
                         <Button color="primary" onPress={() => {
                             showToast.promise(Promise.resolve(['Page created']), { success: 'Page created - redirecting...' });
-                            setTimeout(() => window.location.href = route('admin.cms.pages.create'), 500);
+                            setTimeout(() => router.visit(route('admin.cms.pages.create')), 500);
                         }}>Create</Button>
                     </ModalFooter>
                 </ModalContent>
@@ -246,7 +238,7 @@ const CmsPagesList = ({ title, categories = [], templates = [] }) => {
                                         startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
                                         variant="bordered"
                                         size="sm"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     />
                                     <Select
                                         label="Status"
@@ -254,7 +246,7 @@ const CmsPagesList = ({ title, categories = [], templates = [] }) => {
                                         selectedKeys={filters.status !== 'all' ? [filters.status] : []}
                                         onSelectionChange={(keys) => setFilters({ ...filters, status: Array.from(keys)[0] || 'all' })}
                                         size="sm"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                     >
                                         <SelectItem key="all">All Statuses</SelectItem>
                                         <SelectItem key="published">Published</SelectItem>

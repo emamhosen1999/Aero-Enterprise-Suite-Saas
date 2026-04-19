@@ -34,6 +34,7 @@ import {
     DocumentDuplicateIcon,
 } from "@heroicons/react/24/outline";
 import { showToast } from '@/utils/toastUtils';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const NotificationTemplates = ({ templates: initialTemplates = [], channels = [] }) => {
     const [templates, setTemplates] = useState(initialTemplates);
@@ -48,18 +49,8 @@ const NotificationTemplates = ({ templates: initialTemplates = [], channels = []
         is_active: true
     });
 
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
 
-    const themeRadius = getThemeRadius();
 
     const getCardStyle = () => ({
         border: `var(--borderWidth, 2px) solid transparent`,

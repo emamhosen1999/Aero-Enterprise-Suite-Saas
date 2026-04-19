@@ -111,7 +111,7 @@ const Divider = ({ content = {} }) => {
                             style={{ height: thickness, backgroundColor: color }}
                         />
                         <div
-                            className="flex-shrink-0 text-2xl"
+                            className="shrink-0 text-2xl"
                             style={{ color }}
                         >
                             {icon || '✦'}
@@ -137,7 +137,7 @@ const Divider = ({ content = {} }) => {
                             style={{ height: thickness, backgroundColor: color }}
                         />
                         <span
-                            className="flex-shrink-0 px-4 text-sm font-medium uppercase tracking-wider"
+                            className="shrink-0 px-4 text-sm font-medium uppercase tracking-wider"
                             style={{ color }}
                         >
                             {text || 'Section'}

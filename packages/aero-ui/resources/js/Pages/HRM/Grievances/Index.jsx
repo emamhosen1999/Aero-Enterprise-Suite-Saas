@@ -46,6 +46,7 @@ import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
 import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { router } from '@inertiajs/react';
 
 const GrievancesIndex = ({ title, stats: initialStats, categories, departments }) => {
     const { auth } = usePage().props;
@@ -202,7 +203,7 @@ const GrievancesIndex = ({ title, stats: initialStats, categories, departments }
                         </DropdownTrigger>
                         <DropdownMenu>
                             <DropdownItem key="view" startContent={<EyeIcon className="w-4 h-4" />}
-                                onPress={() => window.location.href = route('hrm.grievances.show', item.id)}>
+                                onPress={() => router.visit(route('hrm.grievances.show', item.id))}>
                                 View Details
                             </DropdownItem>
                         </DropdownMenu>

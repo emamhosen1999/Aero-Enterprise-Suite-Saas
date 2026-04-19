@@ -38,6 +38,7 @@ import App from '@/Layouts/App.jsx';
 import BlockTypeSelector from '@/Components/Cms/BlockTypeSelector.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 /**
  * CMS Page Builder Admin Component
@@ -49,17 +50,7 @@ const CmsPageBuilder = ({ page = null, blocks = [] }) => {
   const { auth } = usePage().props;
 
   // Theme radius helper (REQUIRED - matches LeavesAdmin.jsx pattern)
-  const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 16) return 'lg';
-    return 'full';
-  };
+  const themeRadius = useThemeRadius();
 
   // Responsive breakpoints (REQUIRED)
   const [isMobile, setIsMobile] = useState(false);
@@ -300,7 +291,7 @@ const CmsPageBuilder = ({ page = null, blocks = [] }) => {
                       }
                     }}
                     minRows={6}
-                    radius={getThemeRadius()}
+                    radius={themeRadius}
                   />
                   <p className="text-xs text-default-500">
                     Enter configuration data as JSON format
@@ -421,7 +412,7 @@ const CmsPageBuilder = ({ page = null, blocks = [] }) => {
                         placeholder="Enter page title"
                         value={pageTitle}
                         onValueChange={setPageTitle}
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         classNames={{ inputWrapper: 'bg-default-100' }}
                       />
                       <Input
@@ -429,7 +420,7 @@ const CmsPageBuilder = ({ page = null, blocks = [] }) => {
                         placeholder="Enter meta title for SEO"
                         value={metaTitle}
                         onValueChange={setMetaTitle}
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         classNames={{ inputWrapper: 'bg-default-100' }}
                       />
                     </div>
@@ -439,7 +430,7 @@ const CmsPageBuilder = ({ page = null, blocks = [] }) => {
                       value={metaDescription}
                       onValueChange={setMetaDescription}
                       minRows={2}
-                      radius={getThemeRadius()}
+                      radius={themeRadius}
                       classNames={{ inputWrapper: 'bg-default-100' }}
                     />
                   </div>
