@@ -492,7 +492,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/employees/list', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'list'])->name('employees.list');
         Route::get('/employees/pending-onboarding', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'getPendingOnboarding'])->name('employees.pending-onboarding');
         Route::get('/employees/onboarding-analytics', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'getOnboardingAnalytics'])->name('employees.onboarding-analytics');
-        Route::post('/employees', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'store'])->name('employees.store');
+        Route::post('/employees', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'store'])->middleware('quota:employees')->name('employees.store');
         Route::post('/employees/onboard', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'onboard'])->name('employees.onboard');
         Route::post('/employees/onboard-bulk', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'bulkOnboard'])->name('employees.onboard-bulk');
         Route::get('/employees/{id}', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'show'])->name('employees.show');

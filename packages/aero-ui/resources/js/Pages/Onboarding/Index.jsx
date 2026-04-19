@@ -69,7 +69,6 @@ export default function OnboardingWizard({
 }) {
     const [activeStep, setActiveStep] = useState(currentStep || 'welcome');
     const [teamInvites, setTeamInvites] = useState([{ email: '', role: roles[0]?.name || 'employee' }]);
-    const [themeRadius, setThemeRadius] = useState('lg');
     
     // Theme context for dark mode toggle
     const { themeSettings, toggleMode } = useTheme();

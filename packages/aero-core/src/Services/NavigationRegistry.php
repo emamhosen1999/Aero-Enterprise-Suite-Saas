@@ -199,21 +199,38 @@ class NavigationRegistry
      *
      * @param  string|null  $scope  Filter by scope: 'platform' for admin, 'tenant' for tenant users, null for all
      * @param  \Aero\Core\Models\User|null  $user  Optional user to filter dashboards by permissions
+     * @param  array|null  $subscribedModules  Array of subscribed module codes (e.g., ['core', 'hrm']). Null = no filtering.
      */
-    public function toFrontend(?string $scope = null, $user = null): array
+    public function toFrontend(?string $scope = null, $user = null, ?array $subscribedModules = null): array
     {
         $navigationItems = [];
 
         // 1. Add dynamic dashboard navigation first (priority 1)
         $dashboardNav = $this->getDashboardNavigation($user);
         if ($dashboardNav) {
+            // Filter dashboard children by subscription
+            if ($subscribedModules !== null && ! empty($dashboardNav['children'])) {
+                $dashboardNav['children'] = array_values(array_filter(
+                    $dashboardNav['children'],
+                    fn ($child) => ! isset($child['module']) || in_array($child['module'], array_merge(['core', 'platform'], $subscribedModules), true)
+                ));
+            }
             $navigationItems[] = $dashboardNav;
         }
 
         // 2. Add self-service navigation (priority 2) - "My Workspace" menu
         $selfServiceNav = $this->getSelfServiceNavigation();
         if ($selfServiceNav) {
-            $navigationItems[] = $selfServiceNav;
+            // Filter self-service children by subscription
+            if ($subscribedModules !== null && ! empty($selfServiceNav['children'])) {
+                $selfServiceNav['children'] = array_values(array_filter(
+                    $selfServiceNav['children'],
+                    fn ($child) => ! isset($child['module']) || in_array($child['module'], array_merge(['core', 'platform'], $subscribedModules), true)
+                ));
+            }
+            if (! empty($selfServiceNav['children'])) {
+                $navigationItems[] = $selfServiceNav;
+            }
         }
 
         $sortedModules = collect($this->navigationItems)->sortBy('priority');
@@ -225,9 +242,16 @@ class NavigationRegistry
                 continue;
             }
 
+            // Filter by subscription: core/platform always allowed, others must be subscribed
+            if ($subscribedModules !== null && $moduleCode !== 'core' && $moduleCode !== 'platform') {
+                if (! in_array($moduleCode, $subscribedModules, true)) {
+                    continue;
+                }
+            }
+
             foreach ($moduleData['items'] as $item) {
                 // Core/Platform modules: flatten children (submodules) to top level
-                // BUT skip Dashboard submodule - it's handled dynamically above
+                // BUT skip Dashboard and Self-Service submodules - they are handled separately
                 if ($moduleCode === 'core' || $moduleCode === 'platform') {
                     if (! empty($item['children'])) {
                         foreach ($item['children'] as $child) {
@@ -235,11 +259,19 @@ class NavigationRegistry
                             if ($this->isDashboardItem($child)) {
                                 continue;
                             }
+                            // Skip self-service items - they appear under My Workspace
+                            if ($this->isSelfServiceItem($child)) {
+                                continue;
+                            }
                             $navigationItems[] = $child;
                         }
                     } else {
                         // Skip dashboard items
                         if ($this->isDashboardItem($item)) {
+                            continue;
+                        }
+                        // Skip self-service items
+                        if ($this->isSelfServiceItem($item)) {
                             continue;
                         }
                         $navigationItems[] = $item;
@@ -286,6 +318,20 @@ class NavigationRegistry
         }
 
         return false;
+    }
+
+    /**
+     * Check if a navigation item is a self-service item.
+     *
+     * Self-service items are excluded from regular navigation
+     * as they are aggregated under "My Workspace" via getSelfServiceNavigation().
+     */
+    protected function isSelfServiceItem(array $item): bool
+    {
+        $access = strtolower($item['access'] ?? '');
+
+        // Match access codes like core.self_service, hrm.employee-self-service
+        return str_contains($access, 'self_service') || str_contains($access, 'self-service');
     }
 
     /**

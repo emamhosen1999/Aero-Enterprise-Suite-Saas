@@ -40,7 +40,6 @@ const AddEditUserForm = ({user, roles, setUsers, open, closeModal, editMode = fa
     const [hover, setHover] = useState(false);
     const [selectedImage, setSelectedImage] = useState(user?.profile_image_url || user?.profile_image || null);
     const [selectedImageFile, setSelectedImageFile] = useState(null);
-    const [themeRadius, setThemeRadius] = useState('lg');
 
     // Helper function to convert theme borderRadius to HeroUI radius values
     const themeRadius = useThemeRadius();

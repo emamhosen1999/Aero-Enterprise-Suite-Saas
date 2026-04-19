@@ -461,21 +461,50 @@ class RoleModuleAccessService implements RoleModuleAccessInterface
 
     /**
      * Get the full access tree for a role.
+     *
+     * Explicit module-level grants take priority. When only sub_module-level
+     * grants exist (no explicit module_id rows), parent module IDs are derived
+     * from the sub_modules table so that `accessible_modules` is populated
+     * correctly for navigation and access checks.
      */
     public function getRoleAccessTree(mixed $role): array
     {
         $roleId = is_object($role) ? $role->id : $role;
         $access = RoleModuleAccess::where('role_id', $roleId)->get();
 
+        // Explicit module-level grants (module_id set, no sub_module_id).
+        $explicitModuleIds = $access->whereNotNull('module_id')
+            ->whereNull('sub_module_id')
+            ->pluck('module_id')
+            ->toArray();
+
+        $subModuleIds = $access->whereNotNull('sub_module_id')
+            ->whereNull('component_id')
+            ->pluck('sub_module_id')
+            ->toArray();
+
+        // When there are no explicit module grants but sub_module grants exist,
+        // derive the parent module IDs so navigation and access checks work.
+        if (empty($explicitModuleIds) && ! empty($subModuleIds)) {
+            try {
+                $derivedModuleIds = SubModule::whereIn('id', $subModuleIds)
+                    ->whereNotNull('module_id')
+                    ->pluck('module_id')
+                    ->unique()
+                    ->values()
+                    ->toArray();
+            } catch (\Throwable) {
+                $derivedModuleIds = [];
+            }
+        } else {
+            $derivedModuleIds = [];
+        }
+
+        $moduleIds = array_values(array_unique(array_merge($explicitModuleIds, $derivedModuleIds)));
+
         return [
-            'modules' => $access->whereNotNull('module_id')
-                ->whereNull('sub_module_id')
-                ->pluck('module_id')
-                ->toArray(),
-            'sub_modules' => $access->whereNotNull('sub_module_id')
-                ->whereNull('component_id')
-                ->pluck('sub_module_id')
-                ->toArray(),
+            'modules' => $moduleIds,
+            'sub_modules' => $subModuleIds,
             'components' => $access->whereNotNull('component_id')
                 ->whereNull('action_id')
                 ->pluck('component_id')

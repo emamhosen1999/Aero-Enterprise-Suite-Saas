@@ -7,6 +7,7 @@ namespace Aero\Platform\Services\Quotas;
 use Aero\Core\Support\TenantCache;
 use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\Tenant;
+use Aero\Platform\Models\TenantStat;
 use Aero\Platform\Models\UsageRecord;
 use Illuminate\Support\Facades\Storage;
 
@@ -94,8 +95,10 @@ class QuotaEnforcementService
 
     /**
      * Cache TTL for quota checks (in seconds).
+     * Kept short because model observers proactively bust the cache on every
+     * create / delete / restore, so TTL is only a safety-net for edge cases.
      */
-    protected int $cacheTtl = 300; // 5 minutes
+    protected int $cacheTtl = 60; // 1 minute (observers handle proactive busting)
 
     /**
      * Check if tenant can create a new resource of the given type.
@@ -173,7 +176,13 @@ class QuotaEnforcementService
     /**
      * Get quota limit for a tenant and type.
      *
-     * @return int -1 for unlimited
+     * Resolution order (highest priority first):
+     *   1. Tenant-level admin override stored in tenant.data['quota_overrides']
+     *   2. Plan.limits JSON array (e.g. {"max_users": 50, "max_storage_gb": 20})
+     *   3. Plan dedicated integer columns (max_users, max_storage_gb)
+     *   4. Hardcoded tier defaults keyed by plan.slug
+     *
+     * @return int -1 for unlimited, 0 if not found
      */
     public function getQuotaLimit(Tenant|string $tenant, string $quotaType): int
     {
@@ -185,39 +194,89 @@ class QuotaEnforcementService
             return $this->defaultQuotas['free']["max_{$quotaType}"] ?? 0;
         }
 
-        $plan = $tenant->plan;
+        // 1. Admin-set per-tenant override (stored in tenant.data['quota_overrides'])
+        $tenantData = $tenant->data instanceof \ArrayObject ? $tenant->data->getArrayCopy() : (array) ($tenant->data ?? []);
+        $overrideValue = $tenantData['quota_overrides']["max_{$quotaType}"] ?? null;
+        if ($overrideValue !== null) {
+            return (int) $overrideValue;
+        }
+
+        $plan = $tenant->plan ?? $tenant->subscription?->plan;
 
         if (! $plan) {
             return $this->defaultQuotas['free']["max_{$quotaType}"] ?? 0;
         }
 
-        // Check plan metadata for custom quota
-        $customQuota = $plan->metadata["max_{$quotaType}"] ?? null;
-        if ($customQuota !== null) {
-            return (int) $customQuota;
+        // 2. Plan.limits JSON array (flexible per-plan overrides)
+        $planLimits = is_array($plan->limits) ? $plan->limits : [];
+        $limitsValue = $planLimits["max_{$quotaType}"] ?? null;
+        if ($limitsValue !== null) {
+            return (int) $limitsValue === 0 ? -1 : (int) $limitsValue;
         }
 
-        // Check tenant metadata for custom quota (overrides plan)
-        $tenantQuota = $tenant->metadata["max_{$quotaType}"] ?? null;
-        if ($tenantQuota !== null) {
-            return (int) $tenantQuota;
+        // 3. Plan dedicated columns (max_users, max_storage_gb)
+        $columnMap = [
+            'users'      => 'max_users',
+            'storage_gb' => 'max_storage_gb',
+        ];
+        if (isset($columnMap[$quotaType]) && $plan->{$columnMap[$quotaType]} !== null) {
+            $colValue = (int) $plan->{$columnMap[$quotaType]};
+
+            // 0 on these columns means unlimited
+            return $colValue === 0 ? -1 : $colValue;
         }
 
-        // Fall back to default quotas
-        $planCode = strtolower($plan->code ?? 'free');
+        // 4. Hardcoded tier defaults keyed by plan slug
+        $planSlug = strtolower($plan->slug ?? 'free');
 
-        return $this->defaultQuotas[$planCode]["max_{$quotaType}"] ?? 0;
+        return $this->defaultQuotas[$planSlug]["max_{$quotaType}"]
+            ?? $this->defaultQuotas['free']["max_{$quotaType}"]
+            ?? 0;
     }
 
     /**
+     * Mapping of quota types to their TenantStat columns for fast central-DB reads.
+     * These are populated daily by the CollectTenantStats scheduled job.
+     */
+    protected array $statColumns = [
+        'users'      => 'total_users',
+        'employees'  => 'total_employees',
+        'projects'   => 'active_projects',
+        'storage_gb' => null, // derived from storage_used_mb
+    ];
+
+    /**
      * Get current usage for a quota type.
+     *
+     * Resolution order (fastest → most accurate):
+     * 1. TenantCache — busted by model observers on every create/delete/restore.
+     * 2. TenantStat (today's row on the central DB) — avoids tenant DB query when
+     *    cache is warm from a recent stats collection run.
+     * 3. Live $modelClass::count() in the tenant DB — always accurate, used as
+     *    ultimate fallback and to warm TenantStat-less cache entries.
      */
     public function getCurrentUsage(Tenant|string $tenant, string $quotaType): int
     {
         $tenantId = $tenant instanceof Tenant ? $tenant->id : $tenant;
         $cacheKey = "quota:usage:{$tenantId}:{$quotaType}";
 
-        return TenantCache::remember($cacheKey, $this->cacheTtl, function () use ($quotaType) {
+        return TenantCache::remember($cacheKey, $this->cacheTtl, function () use ($tenantId, $quotaType) {
+            // --- Try TenantStat (central DB, no tenant connection required) ---
+            $statColumn = $this->statColumns[$quotaType] ?? null;
+
+            if ($statColumn !== null) {
+                /** @var TenantStat|null $stat */
+                $stat = TenantStat::query()
+                    ->where('tenant_id', $tenantId)
+                    ->whereDate('date', today())
+                    ->first();
+
+                if ($stat !== null) {
+                    return (int) $stat->{$statColumn};
+                }
+            }
+
+            // --- Fallback: live count from tenant DB ---
             $modelClass = $this->quotaModels[$quotaType] ?? null;
 
             if (! $modelClass || ! class_exists($modelClass)) {
@@ -270,13 +329,15 @@ class QuotaEnforcementService
         foreach (['users', 'employees', 'projects', 'customers', 'rfis'] as $type) {
             $limit = $this->getQuotaLimit($tenant, $type);
             $usage = $this->getCurrentUsage($tenant, $type);
+            $percentage = $limit === -1 ? 0 : ($limit > 0 ? round(($usage / $limit) * 100, 2) : 100);
 
             $summary[$type] = [
                 'limit' => $limit,
                 'used' => $usage,
                 'remaining' => $limit === -1 ? -1 : max(0, $limit - $usage),
-                'percentage' => $limit === -1 ? 0 : ($limit > 0 ? round(($usage / $limit) * 100, 2) : 100),
+                'percentage' => $percentage,
                 'unlimited' => $limit === -1,
+                'status' => $this->resolveStatus($percentage, $limit),
             ];
         }
 
@@ -285,12 +346,15 @@ class QuotaEnforcementService
         $storageUsed = $this->getStorageUsage($tenant);
         $storageUsedGb = round($storageUsed / (1024 * 1024 * 1024), 2);
 
+        $storagePercentage = $storageLimit === -1 ? 0 : ($storageLimit > 0 ? round(($storageUsedGb / $storageLimit) * 100, 2) : 100);
+
         $summary['storage_gb'] = [
             'limit' => $storageLimit,
             'used' => $storageUsedGb,
             'remaining' => $storageLimit === -1 ? -1 : max(0, $storageLimit - $storageUsedGb),
-            'percentage' => $storageLimit === -1 ? 0 : ($storageLimit > 0 ? round(($storageUsedGb / $storageLimit) * 100, 2) : 100),
+            'percentage' => $storagePercentage,
             'unlimited' => $storageLimit === -1,
+            'status' => $this->resolveStatus($storagePercentage, $storageLimit),
         ];
 
         // Monthly API calls
@@ -331,13 +395,31 @@ class QuotaEnforcementService
     /**
      * Set custom quota for a tenant (overrides plan limits).
      *
-     * @param  int  $limit  -1 for unlimited
+     * Stored in tenant.data['quota_overrides'] so it takes priority over
+     * plan limits without needing a separate DB column.
+     *
+     * @param  int  $limit  -1 for unlimited, 0 to remove override
      */
     public function setCustomQuota(Tenant $tenant, string $quotaType, int $limit): void
     {
-        $metadata = $tenant->metadata ?? [];
-        $metadata["max_{$quotaType}"] = $limit;
-        $tenant->update(['metadata' => $metadata]);
+        $tenantData = $tenant->data instanceof \ArrayObject
+            ? $tenant->data->getArrayCopy()
+            : (array) ($tenant->data ?? []);
+
+        $overrides = $tenantData['quota_overrides'] ?? [];
+
+        if ($limit === 0) {
+            // 0 means "remove override" — fall back to plan default
+            unset($overrides["max_{$quotaType}"]);
+        } else {
+            $overrides["max_{$quotaType}"] = $limit;
+        }
+
+        $tenantData['quota_overrides'] = $overrides;
+        $tenant->data = $tenantData;
+        $tenant->save();
+
+        $this->clearCache($tenant, $quotaType);
     }
 
     /**
@@ -357,6 +439,32 @@ class QuotaEnforcementService
 
         // Clear cache so next check gets fresh data
         $this->clearCache($tenant, $quotaType);
+    }
+
+    /**
+     * Resolve a human-readable status from a usage percentage.
+     *
+     * @return string 'ok' | 'warning' | 'critical' | 'exceeded' | 'unlimited'
+     */
+    protected function resolveStatus(float $percentage, int $limit): string
+    {
+        if ($limit === -1) {
+            return 'unlimited';
+        }
+
+        if ($percentage >= 100) {
+            return 'exceeded';
+        }
+
+        if ($percentage >= 90) {
+            return 'critical';
+        }
+
+        if ($percentage >= 80) {
+            return 'warning';
+        }
+
+        return 'ok';
     }
 
     /**

@@ -124,6 +124,9 @@ class HRMServiceProvider extends AbstractModuleProvider
         // Register policies
         $this->registerPolicies();
 
+        // Register model observers
+        \Aero\HRM\Models\Employee::observe(\Aero\HRM\Observers\EmployeeQuotaObserver::class);
+
         // Register User model relationships dynamically
         $this->registerUserRelationships();
 

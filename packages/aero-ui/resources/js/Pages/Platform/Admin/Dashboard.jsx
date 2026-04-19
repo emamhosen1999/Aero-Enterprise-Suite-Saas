@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import axios from 'axios';
 import App from '@/Layouts/App';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import { motion, AnimatePresence } from 'framer-motion';
 import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
 import { 
@@ -274,7 +275,7 @@ const KeyMetricsGrid = ({ stats, loading, canViewBilling = true }) => {
     { label: 'Avg Revenue/Tenant', value: canViewBilling ? `$${stats.avgRevenuePerTenant}` : '—', icon: ChartPieIcon, color: '#8b5cf6', suffix: '', change: canViewBilling ? '+5.2%' : '', trend: 'up', requiresBilling: true },
     { label: 'API Calls (30d)', value: stats.apiCalls, icon: BoltIcon, color: '#f59e0b', suffix: '', change: '+22.1%', trend: 'up', requiresBilling: false },
     { label: 'Storage Used', value: stats.totalStorage, icon: CircleStackIcon, color: '#06b6d4', suffix: '', change: '+8.4%', trend: 'up', requiresBilling: false },
-    { label: 'Active Sessions', value: '2,847', icon: SignalIcon, color: '#ec4899', suffix: '', change: '+3.1%', trend: 'up', requiresBilling: false },
+    { label: 'Active Sessions', value: stats.activeSessions ?? '—', icon: SignalIcon, color: '#ec4899', suffix: '', change: '', trend: 'up', requiresBilling: false },
   ];
 
   return (
@@ -774,15 +775,13 @@ const BillingOverviewCard = ({ billing, loading, themeRadius }) => (
 // MAIN DASHBOARD COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const Dashboard = ({ stats = {}, dynamicWidgets = {}, title = 'Admin Dashboard' }) => {
+const Dashboard = ({ stats = {}, dynamicWidgets = {}, recentTenants: controllerTenants = [], systemHealth: controllerHealth = {}, title = 'Admin Dashboard' }) => {
   const { auth } = usePage().props;
+  const { hasAccess } = useHRMAC();
   
-  // Role-based visibility checks
-  const isSuperAdmin = auth?.user?.roles?.some(role => 
-    role.name === 'super-admin' || role.name === 'Super Administrator'
-  ) ?? false;
-  const canViewBilling = isSuperAdmin || (auth?.permissions?.includes('platform.view_billing') ?? false);
-  const canViewSystemHealth = isSuperAdmin || (auth?.permissions?.includes('platform.view_system_health') ?? false);
+  // Role-based visibility checks via HRMAC
+  const canViewBilling = hasAccess('subscriptions', 'billing', 'invoices', 'view');
+  const canViewSystemHealth = hasAccess('platform-dashboard', 'system-health');
   
   // Extract widget data from dynamicWidgets (following Core Dashboard pattern)
   // Keys use dots to match widget getKey() format (e.g., 'platform.stats')
@@ -812,11 +811,11 @@ const Dashboard = ({ stats = {}, dynamicWidgets = {}, title = 'Admin Dashboard' 
     uptime: stats?.uptime ?? 100,
   };
 
-  // Extract widget data directly - widgets provide all data, no hardcoded fallbacks
+  // Extract widget data — prefer controller props over widget fallbacks
   const modules = moduleUsageWidget.data?.modules ?? [];
   const subscriptionPlans = subscriptionWidget.data?.plans ?? [];
-  const recentTenants = recentTenantsWidget.data?.tenants ?? [];
-  const systemHealth = systemHealthWidget.data ?? {};
+  const recentTenants = controllerTenants.length > 0 ? controllerTenants : (recentTenantsWidget.data?.tenants ?? []);
+  const systemHealth = Object.keys(controllerHealth).length > 0 ? controllerHealth : (systemHealthWidget.data ?? {});
   const recentActivity = recentActivityWidget.data?.activities ?? [];
   const alerts = systemAlertsWidget.data?.alerts ?? [];
   const billingOverview = billingOverviewWidget.data ?? {};
@@ -880,6 +879,10 @@ const Dashboard = ({ stats = {}, dynamicWidgets = {}, title = 'Admin Dashboard' 
       {/* Platform Status Hero */}
       <motion.div variants={itemVariants}>
         <PlatformStatusHero 
+            stats={platformStats}
+            loading={loading}
+            themeRadius={themeRadius}
+            onRefresh={handleRefresh}
             refreshing={refreshing}
             systemStatus={systemStatus}
           />

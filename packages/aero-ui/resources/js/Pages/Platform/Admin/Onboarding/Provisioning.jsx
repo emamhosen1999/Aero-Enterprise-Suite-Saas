@@ -39,8 +39,9 @@ import StatsCards from "@/Components/StatsCards.jsx";
 import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
 import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
-const Provisioning = ({ queue: initialQueue, stats: initialStats, stepProgress: initialStepProgress, filters: initialFilters, auth }) => {
+const Provisioning = ({ queue: initialQueue, stats: initialStats, stepProgress: initialStepProgress, filters: initialFilters }) => {
     const [isMobile, setIsMobile] = useState(false);
     const [loading, setLoading] = useState(false);
     const [queue, setQueue] = useState(initialQueue?.data || []);
@@ -65,10 +66,8 @@ const Provisioning = ({ queue: initialQueue, stats: initialStats, stepProgress: 
     }, []);
 
     const themeRadius = useThemeRadius();
-
-    const hasPermission = (permission) => {
-        return auth?.permissions?.includes(permission) || auth?.permissions?.includes('*');
-    };
+    const { hasAccess } = useHRMAC();
+    const canRetry = hasAccess('platform', 'onboarding_management', 'provisioning', 'retry');
 
     const statsData = useMemo(() => [
         {
@@ -238,7 +237,7 @@ const Provisioning = ({ queue: initialQueue, stats: initialStats, stepProgress: 
             case 'actions':
                 return (
                     <div className="flex items-center gap-2">
-                        {item.status === 'failed' && hasPermission('platform-onboarding.provisioning.retry') && (
+                        {item.status === 'failed' && canRetry && (
                             <Button
                                 size="sm"
                                 color="primary"

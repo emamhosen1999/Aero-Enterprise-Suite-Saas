@@ -42,7 +42,6 @@ const PendingInvitationsPanel = ({ onInvitationChange }) => {
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(null);
     const [deleteModal, setDeleteModal] = useState({ open: false, invitation: null });
-    const [themeRadius, setThemeRadius] = useState('lg');
 
     // Theme utility
     const themeRadius = useThemeRadius();

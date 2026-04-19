@@ -59,7 +59,6 @@ export default function TenantQuotaWidget({ tenantId, initialQuotas, collapsible
   const [quotas, setQuotas] = useState(initialQuotas || []);
   const [loading, setLoading] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const [themeRadius, setThemeRadius] = useState('lg');
 
   useEffect(() => {
     setThemeRadius(themeRadius);

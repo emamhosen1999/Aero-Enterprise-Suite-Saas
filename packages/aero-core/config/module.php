@@ -74,6 +74,7 @@ return [
             'icon' => 'UserCircleIcon',
             'route' => '/profile',
             'priority' => 0,
+            'show_in_nav' => false, // Handled by NavigationRegistry::getSelfServiceNavigation() → My Workspace
 
             'components' => [
                 [

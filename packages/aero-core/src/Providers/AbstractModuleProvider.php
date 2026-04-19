@@ -355,6 +355,11 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
         // Build navigation children from config submodules
         $submoduleNav = [];
         foreach ($config['submodules'] ?? [] as $submodule) {
+            // Skip submodules explicitly excluded from nav (e.g. self-service items handled by My Workspace)
+            if (($submodule['show_in_nav'] ?? true) === false) {
+                continue;
+            }
+
             $submoduleCode = $submodule['code'] ?? '';
             $submoduleIcon = $submodule['icon'] ?? null;
 

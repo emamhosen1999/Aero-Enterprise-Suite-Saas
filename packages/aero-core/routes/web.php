@@ -315,7 +315,7 @@ Route::middleware('auth:web')->group(function () {
 
         // Create
         Route::post('/', [CoreUserController::class, 'store'])
-            ->middleware(['precognitive'])
+            ->middleware(['precognitive', 'quota:users'])
             ->name('store');
 
         // Update

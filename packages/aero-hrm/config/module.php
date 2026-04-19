@@ -129,6 +129,7 @@ return [
             'icon' => 'UserCircleIcon',
             'route' => '/hrm/employee/dashboard',
             'priority' => 0,
+            'show_in_nav' => false, // Handled by NavigationRegistry::getSelfServiceNavigation() → My Workspace
             'components' => [
                 [
                     'code' => 'my-dashboard',

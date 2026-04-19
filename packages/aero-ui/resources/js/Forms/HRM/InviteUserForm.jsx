@@ -31,7 +31,6 @@ const InviteUserForm = ({
     onInviteSent
 }) => {
     const [loading, setLoading] = useState(false);
-    const [themeRadius, setThemeRadius] = useState('lg');
     
     // Form state
     const [formData, setFormData] = useState({

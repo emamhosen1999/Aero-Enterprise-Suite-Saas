@@ -25,7 +25,7 @@ const PROVISIONING_STEPS = {
     description: 'Running database migrations and preparing tables...',
     progress: 50,
   },
-  seeding_roles: {
+  seeding: {
     label: 'Setting up roles',
     description: 'Configuring default roles for your workspace...',
     progress: 75,
@@ -94,7 +94,7 @@ export default function Provisioning({
   };
 
   // Animation sequence for sync queue (when provisioning already completed)
-  const stepSequence = ['creating_db', 'migrating', 'seeding_roles', 'completed'];
+  const stepSequence = ['creating_db', 'migrating', 'seeding', 'completed'];
 
   useEffect(() => {
     if (!isAnimating) return;

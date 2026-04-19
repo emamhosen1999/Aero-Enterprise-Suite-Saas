@@ -245,76 +245,103 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
                 {viewMode === 'cards' ? (
                   <>
                     <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
-                  {planList.map((plan) => {
-                    const selected = data.plan_id === plan.id;
-                    const planPrice = isAnnual ? plan.yearly_price : plan.monthly_price;
-                    return (
-                      <Card
-                        key={plan.id}
-                        isPressable
-                        onPress={() => selectPlan(plan.id)}
-                        className={selected ? palette.selectedCard : palette.card}
-                      >
-                        <CardHeader className="flex-col items-start pb-2">
-                          <div className="flex items-start justify-between w-full">
-                            <div className="flex-1">
-                              <h2 className={`text-lg sm:text-xl font-bold ${palette.heading}`}>{plan.name}</h2>
-                              {plan.badge && (
-                                <Chip size="sm" color="primary" variant="flat" className="mt-1">
-                                  {plan.badge}
+                  {(() => {
+                    // Derive the "recommended" plan: the one with the most included modules
+                    const maxModuleCount = Math.max(...planList.map((p) => p.modules?.length ?? 0));
+                    const recommendedId = planList.find((p) => (p.modules?.length ?? 0) === maxModuleCount)?.id;
+                    return planList.map((plan) => {
+                      const selected = data.plan_id === plan.id;
+                      const planPrice = isAnnual ? plan.yearly_price : plan.monthly_price;
+                      const isRecommended = plan.id === recommendedId;
+                      return (
+                        <Card
+                          key={plan.id}
+                          isPressable
+                          onPress={() => selectPlan(plan.id)}
+                          className={`relative transition-all duration-200 hover:scale-[1.02] hover:shadow-xl ${selected ? palette.selectedCard : palette.card}`}
+                        >
+                          {/* Recommended badge */}
+                          {isRecommended && (
+                            <div className="absolute top-3 right-3 z-10">
+                              <Chip size="sm" color="secondary" variant="solid" className="text-[10px] font-semibold">
+                                Recommended
+                              </Chip>
+                            </div>
+                          )}
+
+                          <CardHeader className="flex-col items-start pb-2">
+                            <div className="flex items-start justify-between w-full">
+                              <div className="flex-1">
+                                <h2 className={`text-lg sm:text-xl font-bold ${palette.heading}`}>{plan.name}</h2>
+                                {plan.badge && (
+                                  <Chip size="sm" color="primary" variant="flat" className="mt-1">
+                                    {plan.badge}
+                                  </Chip>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                <p className={`text-xl sm:text-2xl font-bold ${palette.heading}`}>${planPrice}</p>
+                                <p className={`text-xs ${palette.muted}`}>/{isAnnual ? 'year' : 'month'}</p>
+                              </div>
+                            </div>
+                            <p className={`text-xs sm:text-sm ${palette.copy} mt-2`}>{plan.description}</p>
+
+                            {/* Quota chips: Users & Storage */}
+                            <div className="flex flex-wrap gap-1.5 mt-2">
+                              <Chip size="sm" variant="flat" color="default" className="text-[10px]">
+                                {plan.max_users > 0 ? `Up to ${plan.max_users} users` : 'Unlimited users'}
+                              </Chip>
+                              {plan.max_storage_gb > 0 && (
+                                <Chip size="sm" variant="flat" color="default" className="text-[10px]">
+                                  {plan.max_storage_gb} GB storage
                                 </Chip>
                               )}
                             </div>
-                            <div className="text-right">
-                              <p className={`text-xl sm:text-2xl font-bold ${palette.heading}`}>${planPrice}</p>
-                              <p className={`text-xs ${palette.muted}`}>/{isAnnual ? 'year' : 'month'}</p>
-                            </div>
-                          </div>
-                          <p className={`text-xs sm:text-sm ${palette.copy} mt-2`}>{plan.description}</p>
-                        </CardHeader>
-                        <CardBody className="text-xs sm:text-sm space-y-3 pt-2">
-                          {/* Included Products */}
-                          {plan.modules && plan.modules.length > 0 && (
-                            <div>
-                              <p className={`text-xs font-semibold ${palette.muted} mb-2`}>INCLUDED PRODUCTS:</p>
-                              <div className="space-y-2">
-                                {plan.modules.map((module) => (
-                                  <div key={module.id} className="flex items-start gap-2">
-                                    <CheckCircleIcon className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                                    <div className="flex-1 min-w-0">
-                                      <p className={`font-medium ${palette.heading} text-sm`}>{module.name}</p>
-                                      {module.description && (
-                                        <p className={`text-xs ${palette.muted} line-clamp-2`}>{module.description}</p>
-                                      )}
+                          </CardHeader>
+                          <CardBody className="text-xs sm:text-sm space-y-3 pt-2">
+                            {/* Included Products */}
+                            {plan.modules && plan.modules.length > 0 && (
+                              <div>
+                                <p className={`text-xs font-semibold ${palette.muted} mb-2`}>INCLUDED PRODUCTS:</p>
+                                <div className="space-y-2">
+                                  {plan.modules.map((module) => (
+                                    <div key={module.id} className="flex items-start gap-2">
+                                      <CheckCircleIcon className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                                      <div className="flex-1 min-w-0">
+                                        <p className={`font-medium ${palette.heading} text-sm`}>{module.name}</p>
+                                        {module.description && (
+                                          <p className={`text-xs ${palette.muted} line-clamp-2`}>{module.description}</p>
+                                        )}
+                                      </div>
                                     </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Features */}
+                            {plan.features && plan.features.length > 0 && (
+                              <div className="space-y-1">
+                                {plan.features.slice(0, 3).map((feature, idx) => (
+                                  <div key={idx} className="flex items-start gap-2">
+                                    <CheckCircleIcon className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                                    <span className={palette.copy}>{feature}</span>
                                   </div>
                                 ))}
                               </div>
+                            )}
+
+                            {/* Selection indicator */}
+                            <div className="pt-2">
+                              <Chip size="sm" color={selected ? 'success' : 'default'} variant={selected ? 'solid' : 'flat'}>
+                                {selected ? '✓ Selected' : 'Select Plan'}
+                              </Chip>
                             </div>
-                          )}
-                          
-                          {/* Features */}
-                          {plan.features && plan.features.length > 0 && (
-                            <div className="space-y-1">
-                              {plan.features.slice(0, 3).map((feature, idx) => (
-                                <div key={idx} className="flex items-start gap-2">
-                                  <CheckCircleIcon className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                                  <span className={palette.copy}>{feature}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          
-                          {/* Selection indicator */}
-                          <div className="pt-2">
-                            <Chip size="sm" color={selected ? 'success' : 'default'} variant={selected ? 'solid' : 'flat'}>
-                              {selected ? '✓ Selected' : 'Select Plan'}
-                            </Chip>
-                          </div>
-                        </CardBody>
-                      </Card>
-                    );
-                  })}
+                          </CardBody>
+                        </Card>
+                      );
+                    });
+                  })()}
                 </div>
                 
                 {/* Enterprise Plan Card */}

@@ -41,7 +41,6 @@ export default function Admin() {
     // Current step depends on mode
     const currentStep = mode === 'saas' ? 5 : 6;
 
-    const [themeRadius, setThemeRadius] = useState('lg');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [errors, setErrors] = useState({});

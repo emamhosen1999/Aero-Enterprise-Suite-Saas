@@ -43,7 +43,6 @@ export default function Review() {
     // Current step depends on mode
     const currentStep = mode === 'saas' ? 6 : 7;
 
-    const [themeRadius, setThemeRadius] = useState('lg');
     const [installing, setInstalling] = useState(false);
 
     // Extract data from summary

@@ -57,7 +57,7 @@ class EnforceTenantQuotas
         };
 
         if (! $allowed) {
-            return $this->buildQuotaExceededResponse($quotaType);
+            return $this->buildQuotaExceededResponse($quotaType, $request);
         }
 
         // Track API calls
@@ -109,8 +109,11 @@ class EnforceTenantQuotas
 
     /**
      * Build quota exceeded response.
+     *
+     * Returns an Inertia-compatible redirect with flash error for browser requests,
+     * or a JSON 402 response for API/AJAX requests.
      */
-    protected function buildQuotaExceededResponse(string $quotaType): Response
+    protected function buildQuotaExceededResponse(string $quotaType, Request $request): Response
     {
         $messages = [
             'users' => 'User quota exceeded. Please upgrade your plan to add more users.',
@@ -124,6 +127,12 @@ class EnforceTenantQuotas
 
         $message = $messages[$quotaType] ?? 'Quota exceeded. Please upgrade your plan.';
 
+        // Inertia requests — redirect back with a flash error the frontend can display
+        if ($request->header('X-Inertia')) {
+            return back()->withErrors(['quota' => $message]);
+        }
+
+        // AJAX/API requests — return JSON
         return response()->json([
             'error' => 'Quota Exceeded',
             'message' => $message,

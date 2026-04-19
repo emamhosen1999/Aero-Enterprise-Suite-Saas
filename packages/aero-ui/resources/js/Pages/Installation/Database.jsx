@@ -44,7 +44,6 @@ export default function Database() {
     // Current step depends on mode
     const currentStep = mode === 'saas' ? 3 : 4;
 
-    const [themeRadius, setThemeRadius] = useState('lg');
     const [formData, setFormData] = useState({
         driver: savedDatabase?.driver || 'mysql',
         host: savedDatabase?.host || '127.0.0.1',

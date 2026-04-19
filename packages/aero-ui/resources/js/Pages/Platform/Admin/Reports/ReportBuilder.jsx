@@ -66,7 +66,6 @@ const getCardStyle = () => ({
 });
 
 const ReportBuilder = ({ savedReports: initialReports = [], templates: initialTemplates = [] }) => {
-    const [themeRadius, setThemeRadius] = useState('lg');
     const [activeTab, setActiveTab] = useState('builder');
     const [loading, setLoading] = useState(false);
     const [previewLoading, setPreviewLoading] = useState(false);

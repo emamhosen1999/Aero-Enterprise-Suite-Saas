@@ -42,7 +42,6 @@ export default function Welcome() {
 
     const firstLetter = appName ? appName.charAt(0).toUpperCase() : 'A';
 
-    const [themeRadius, setThemeRadius] = useState('lg');
 
     useEffect(() => {
         const themeRadius = useThemeRadius();

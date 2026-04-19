@@ -42,7 +42,6 @@ export default function License() {
         product
     } = usePage().props;
 
-    const [themeRadius, setThemeRadius] = useState('lg');
     const [licenseKey, setLicenseKey] = useState(savedLicense?.key || '');
     const [email, setEmail] = useState(savedLicense?.email || '');
     const [provider, setProvider] = useState(savedLicense?.provider || '');

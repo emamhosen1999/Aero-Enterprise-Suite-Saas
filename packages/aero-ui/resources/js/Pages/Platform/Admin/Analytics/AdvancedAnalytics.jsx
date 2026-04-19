@@ -54,7 +54,6 @@ const getCardStyle = () => ({
 
 const AdvancedAnalytics = () => {
     const [loading, setLoading] = useState(true);
-    const [themeRadius, setThemeRadius] = useState('lg');
     const [autoRefresh, setAutoRefresh] = useState(false);
     const [lastUpdated, setLastUpdated] = useState(new Date());
 

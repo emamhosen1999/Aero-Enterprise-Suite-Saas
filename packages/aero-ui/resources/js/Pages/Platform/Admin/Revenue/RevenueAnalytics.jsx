@@ -52,7 +52,6 @@ const RevenueAnalytics = () => {
   const [dateRange, setDateRange] = useState('30');
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
-  const [themeRadius, setThemeRadius] = useState('lg');
 
   // Analytics data state
   const [metrics, setMetrics] = useState({

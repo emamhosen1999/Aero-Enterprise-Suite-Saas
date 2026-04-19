@@ -48,7 +48,6 @@ export default function Settings() {
     // Current step depends on mode
     const currentStep = mode === 'saas' ? 4 : 5;
 
-    const [themeRadius, setThemeRadius] = useState('lg');
     const [activeTab, setActiveTab] = useState('basic');
     const [testingEmail, setTestingEmail] = useState(false);
     const [emailTested, setEmailTested] = useState(false);

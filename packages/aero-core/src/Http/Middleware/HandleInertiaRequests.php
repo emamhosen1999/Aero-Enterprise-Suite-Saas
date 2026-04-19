@@ -269,8 +269,16 @@ class HandleInertiaRequests extends Middleware
             if (app()->bound(NavigationRegistry::class)) {
                 $registry = app(NavigationRegistry::class);
 
-                // Tenant context: only return tenant-scoped navigation
-                $navigation = $registry->toFrontend('tenant');
+                // Determine subscribed modules for plan-based filtering
+                $subscribedModules = null;
+                $isSaaSMode = function_exists('aero_mode') && aero_mode() === 'saas';
+
+                if ($isSaaSMode && function_exists('tenant') && tenant()) {
+                    $subscribedModules = $this->getSubscribedModuleCodes();
+                }
+
+                // Tenant context: only return tenant-scoped navigation filtered by subscription
+                $navigation = $registry->toFrontend('tenant', $user, $subscribedModules);
 
                 // Debug: Log navigation data
                 \Log::debug('Navigation data:', [
@@ -445,5 +453,63 @@ class HandleInertiaRequests extends Middleware
                 return [];
             }
         });
+    }
+
+    /**
+     * Get subscribed module codes for the current tenant.
+     * Core modules are always included. Plan modules and tenant-level modules are merged.
+     *
+     * @return array<string>
+     */
+    protected function getSubscribedModuleCodes(): array
+    {
+        try {
+            // Always include core modules
+            $modules = ['core', 'platform'];
+
+            // Add core DB modules
+            if (class_exists(Module::class)) {
+                $coreModules = Module::where('is_core', true)->where('is_active', true)->pluck('code')->toArray();
+                $modules = array_merge($modules, $coreModules);
+            }
+
+            // Add plan-based modules from subscription
+            $tenant = tenant();
+            if ($tenant) {
+                // Check currentSubscription → plan → modules
+                $subscription = $tenant->currentSubscription ?? null;
+                if ($subscription && $subscription->plan) {
+                    $planModules = $subscription->plan->modules()->where('is_active', true)->pluck('modules.code')->toArray();
+                    $modules = array_merge($modules, $planModules);
+                }
+
+                // Legacy/Direct plan check
+                if ($tenant->plan) {
+                    $directPlanModules = $tenant->plan->modules()->where('is_active', true)->pluck('modules.code')->toArray();
+                    $modules = array_merge($modules, $directPlanModules);
+                }
+
+                // Tenant-level module overrides (stored on tenant record)
+                // modules may be a JSON string, PHP array, or ArrayObject depending on the tenant model casting
+                $tenantModules = $tenant->modules;
+                if ($tenantModules instanceof \ArrayObject) {
+                    $tenantModules = $tenantModules->getArrayCopy();
+                } elseif (is_string($tenantModules)) {
+                    $tenantModules = json_decode($tenantModules, true) ?? [];
+                }
+                if (! empty($tenantModules) && is_array($tenantModules)) {
+                    $modules = array_merge($modules, $tenantModules);
+                }
+            }
+
+            $result = array_values(array_unique($modules));
+            Log::debug('Subscribed module codes resolved', ['modules' => $result]);
+
+            return $result;
+        } catch (Throwable $e) {
+            Log::warning('Failed to get subscribed module codes', ['error' => $e->getMessage()]);
+
+            return [];
+        }
     }
 }

@@ -249,11 +249,12 @@ class SubscriptionLifecycleService
     /**
      * Calculate next billing date based on plan duration.
      */
-    protected function calculateNextBillingDate(Plan $plan): Carbon
+    protected function calculateNextBillingDate(Plan $plan, ?Carbon $from = null): Carbon
     {
         $months = $plan->duration_in_months ?? 1;
+        $base   = $from ?? now();
 
-        return now()->addMonths($months);
+        return $base->copy()->addMonths($months);
     }
 
     /**
@@ -336,5 +337,120 @@ class SubscriptionLifecycleService
         }
 
         return array_values(array_filter($modules));
+    }
+
+    /**
+     * Process subscription renewals (run daily via scheduled job).
+     *
+     * Finds active/trialing subscriptions whose `ends_at` has passed and
+     * advances their billing period. Subscriptions without auto-renewal
+     * (i.e. `cancelled_at` is set) are expired instead of renewed.
+     *
+     * @return array{renewed: int, expired: int, skipped: int}
+     */
+    public function processRenewals(): array
+    {
+        $counts = ['renewed' => 0, 'expired' => 0, 'skipped' => 0];
+
+        $due = Subscription::query()
+            ->whereIn('status', [Subscription::STATUS_ACTIVE, Subscription::STATUS_TRIALING])
+            ->whereNotNull('ends_at')
+            ->where('ends_at', '<=', now())
+            ->with('plan')
+            ->get();
+
+        foreach ($due as $subscription) {
+            try {
+                $plan = $subscription->plan;
+
+                if (! $plan) {
+                    Log::warning('ProcessRenewals: no plan found for subscription', [
+                        'subscription_id' => $subscription->id,
+                    ]);
+                    $counts['skipped']++;
+
+                    continue;
+                }
+
+                // Subscriptions with a cancellation date should expire, not renew.
+                if ($subscription->cancelled_at !== null) {
+                    $subscription->update(['status' => Subscription::STATUS_EXPIRED]);
+                    $counts['expired']++;
+
+                    Log::info('ProcessRenewals: subscription expired (cancelled)', [
+                        'subscription_id' => $subscription->id,
+                        'tenant_id'       => $subscription->tenant_id,
+                    ]);
+
+                    continue;
+                }
+
+                // Advance billing period.
+                $periodStart = $subscription->ends_at;
+                $periodEnd   = $this->calculateNextBillingDate($plan, $periodStart);
+
+                $subscription->update([
+                    'status'               => Subscription::STATUS_ACTIVE,
+                    'current_period_start' => $periodStart,
+                    'ends_at'              => $periodEnd,
+                    'grace_period_ends_at' => null,
+                ]);
+
+                $counts['renewed']++;
+
+                Log::info('ProcessRenewals: subscription renewed', [
+                    'subscription_id' => $subscription->id,
+                    'tenant_id'       => $subscription->tenant_id,
+                    'new_period_end'  => $periodEnd->toDateString(),
+                ]);
+            } catch (\Exception $e) {
+                Log::error('ProcessRenewals: failed to process subscription', [
+                    'subscription_id' => $subscription->id,
+                    'error'           => $e->getMessage(),
+                ]);
+                $counts['skipped']++;
+            }
+        }
+
+        return $counts;
+    }
+
+    /**
+     * Expire subscriptions whose grace period has ended (run daily via scheduled job).
+     *
+     * Finds subscriptions in a grace period (status = past_due or cancelled) where
+     * `grace_period_ends_at` has passed and transitions them to `expired`.
+     *
+     * @return int Number of subscriptions expired.
+     */
+    public function expireGracePeriods(): int
+    {
+        $expired = 0;
+
+        $overdue = Subscription::query()
+            ->whereIn('status', [Subscription::STATUS_PAST_DUE, Subscription::STATUS_CANCELLED])
+            ->whereNotNull('grace_period_ends_at')
+            ->where('grace_period_ends_at', '<', now())
+            ->get();
+
+        foreach ($overdue as $subscription) {
+            try {
+                $subscription->update(['status' => Subscription::STATUS_EXPIRED]);
+                $expired++;
+
+                Log::info('ExpireGracePeriods: subscription expired', [
+                    'subscription_id'     => $subscription->id,
+                    'tenant_id'           => $subscription->tenant_id,
+                    'grace_period_ended'  => $subscription->grace_period_ends_at,
+                ]);
+            } catch (\Exception $e) {
+                Log::error('ExpireGracePeriods: failed to expire subscription', [
+                    'subscription_id' => $subscription->id,
+                    'error'           => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return $expired;
     }
 }

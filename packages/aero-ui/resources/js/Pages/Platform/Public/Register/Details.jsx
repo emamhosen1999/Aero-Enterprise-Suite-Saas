@@ -14,14 +14,27 @@ import ProgressSteps from './components/ProgressSteps.jsx';
 
 export default function Details({ steps = [], currentStep, savedData = {}, accountType = 'company', baseDomain = 'platform.test', existingSubdomain = null }) {
   const details = savedData?.details ?? {};
-  const { data, setData, processing, errors, setError, clearErrors } = useForm({
+  const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
     name: details.name ?? '',
     email: details.email ?? '',
     phone: details.phone ?? '',
     subdomain: details.subdomain ?? '',
     team_size: details.team_size ?? '',
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Track whether the user has manually edited the subdomain field
+  const [subdomainManuallyEdited, setSubdomainManuallyEdited] = useState(
+    Boolean(details.subdomain)
+  );
+
+  // Auto-fill subdomain from company name unless user has already typed one manually
+  useEffect(() => {
+    if (subdomainManuallyEdited) return;
+    const slug = slugify(data.name);
+    if (slug) {
+      setData('subdomain', slug);
+    }
+  }, [data.name]);
 
   // Subdomain availability check state
   const [subdomainStatus, setSubdomainStatus] = useState({ checking: false, available: null, message: '' });
@@ -30,6 +43,16 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
   const { themeSettings } = useTheme();
   const isDarkMode = themeSettings?.mode === 'dark';
   const { siteName } = useBranding();
+
+  // Slugify helper: lowercases, replaces spaces/special chars with hyphens, strips leading/trailing hyphens
+  const slugify = (value) =>
+    value
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/[\s_]+/g, '-')
+      .replace(/-{2,}/g, '-')
+      .replace(/^-+|-+$/g, '');
   const palette = {
     heading: isDarkMode ? 'text-white' : 'text-slate-900',
     copy: isDarkMode ? 'text-slate-300' : 'text-slate-600',
@@ -92,46 +115,14 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    
-    // Validate route exists before submitting
+
     if (!hasRoute('platform.register.details.store')) {
       showToast.error('Registration route not available');
       return;
     }
 
     clearErrors();
-    setIsSubmitting(true);
-
-    const promise = new Promise(async (resolve, reject) => {
-      try {
-        const response = await axios.post(safeRoute('platform.register.details.store'), data);
-        if (response.status === 200 || response.status === 201) {
-          resolve([response.data.message || 'Details saved successfully']);
-          // Navigate to next step
-          if (response.data.redirect) {
-            router.visit(response.data.redirect);
-          } else {
-            router.visit(safeRoute('platform.register.modules'));
-          }
-        }
-      } catch (error) {
-        if (error.response?.status === 422) {
-          const validationErrors = error.response.data.errors || {};
-          Object.keys(validationErrors).forEach(key => {
-            setError(key, validationErrors[key][0] || validationErrors[key]);
-          });
-        }
-        reject([error.response?.data?.message || 'Failed to save details']);
-      } finally {
-        setIsSubmitting(false);
-      }
-    });
-
-    showToast.promise(promise, {
-      loading: 'Saving details...',
-      success: (data) => data[0],
-      error: (data) => data[0],
-    });
+    post(route('platform.register.details.store'));
   };
 
   const personaLabel = accountType === 'individual' ? 'Your name' : 'Organization name';
@@ -201,7 +192,10 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
                 label="Preferred subdomain"
                 placeholder="acme"
                 value={data.subdomain}
-                onChange={(event) => setData('subdomain', event.target.value.toLowerCase())}
+                onChange={(event) => {
+                setSubdomainManuallyEdited(true);
+                setData('subdomain', event.target.value.toLowerCase());
+              }}
                 isInvalid={Boolean(errors.subdomain) || subdomainStatus.available === false}
                 errorMessage={errors.subdomain || (subdomainStatus.available === false ? subdomainStatus.message : '')}
                 description={`Your workspace URL will be https://${data.subdomain || 'team'}.${baseDomain}`}
@@ -241,7 +235,7 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
               >
                 ← Back to Account Type
               </SafeLink>
-              <Button color="primary" className="bg-gradient-to-r from-blue-500 to-purple-600 w-full sm:w-auto" type="submit" isLoading={isSubmitting}>
+              <Button color="primary" className="bg-gradient-to-r from-blue-500 to-purple-600 w-full sm:w-auto" type="submit" isLoading={processing}>
                 Continue to Module Selection
               </Button>
             </div>

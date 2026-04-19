@@ -209,6 +209,9 @@ class CoreModuleProvider extends AbstractModuleProvider
         // Register middleware
         $this->registerMiddleware();
 
+        // Register model observers
+        \Aero\Core\Models\User::observe(\Aero\Core\Observers\UserQuotaObserver::class);
+
         // Register policies
         $this->registerPolicies();
 
