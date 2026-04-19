@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware(['web', 'auth'])->prefix('assistant')->name('assistant.')->group(function () {
+Route::middleware(['auth', 'hrmac:assistant'])->group(function () {
     // Main assistant page
     Route::get('/', [AssistantPageController::class, 'index'])->name('index');
 });

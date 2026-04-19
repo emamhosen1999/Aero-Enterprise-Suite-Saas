@@ -178,6 +178,31 @@ class CoreModuleProvider extends AbstractModuleProvider
     }
 
     /**
+     * Load core routes without a module prefix.
+     *
+     * Core routes live at the root path (e.g. /dashboard, /login) rather
+     * than under a /core/ prefix. Auth middleware is declared inside web.php.
+     */
+    protected function loadRoutes(): void
+    {
+        $routesPath = $this->getModulePath('routes');
+
+        if (! file_exists($routesPath.'/web.php')) {
+            return;
+        }
+
+        if ($this->isPlatformActive()) {
+            Route::middleware([
+                'web',
+                \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
+                'tenant',
+            ])->group($routesPath.'/web.php');
+        } else {
+            Route::middleware(['web'])->group($routesPath.'/web.php');
+        }
+    }
+
+    /**
      * Boot the core module.
      */
     protected function bootModule(): void

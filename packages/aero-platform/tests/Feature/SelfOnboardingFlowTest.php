@@ -9,9 +9,10 @@ use Aero\Platform\Models\Domain;
 use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\Tenant;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Routing\Middleware\ThrottleRequestsWithRedis;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 /**
@@ -56,8 +57,8 @@ class SelfOnboardingFlowTest extends TestCase
 
         // Disable rate limiting for all tests — registration routes have strict throttling
         // that interferes with rapid sequential test requests.
-        $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
-        $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequestsWithRedis::class);
+        $this->withoutMiddleware(ThrottleRequests::class);
+        $this->withoutMiddleware(ThrottleRequestsWithRedis::class);
 
         // Platform models hardcode $connection = 'mysql' or 'central'.
         // The SetDatabaseConnectionFromDomain middleware switches default to 'central'.
@@ -165,7 +166,7 @@ class SelfOnboardingFlowTest extends TestCase
         ]);
 
         // Should redirect to provisioning page
-        $response->assertRedirectContains('/signup/provisioning/');
+        $this->assertRedirectContains($response, '/signup/provisioning/');
 
         // Verify ProvisionTenant job was dispatched
         Queue::assertPushed(ProvisionTenant::class, function ($job) {
@@ -588,7 +589,7 @@ class SelfOnboardingFlowTest extends TestCase
             'accept_terms' => true,
         ]);
 
-        $response->assertRedirectContains('/signup/provisioning/');
+        $this->assertRedirectContains($response, '/signup/provisioning/');
 
         Queue::assertPushed(ProvisionTenant::class, 1);
     }
@@ -639,7 +640,7 @@ class SelfOnboardingFlowTest extends TestCase
             'accept_terms' => true,
         ]);
 
-        $response1->assertRedirectContains('/signup/provisioning/');
+        $this->assertRedirectContains($response1, '/signup/provisioning/');
         $tenantCount = Tenant::where('subdomain', 'flow-test')->count();
         $this->assertEquals(1, $tenantCount);
 
@@ -651,7 +652,7 @@ class SelfOnboardingFlowTest extends TestCase
         ]);
 
         // Should redirect to existing provisioning (idempotent)
-        $response2->assertRedirectContains('/signup/provisioning/');
+        $this->assertRedirectContains($response2, '/signup/provisioning/');
 
         // Should NOT create duplicate tenant
         $tenantCount = Tenant::where('subdomain', 'flow-test')->count();
@@ -821,7 +822,7 @@ class SelfOnboardingFlowTest extends TestCase
 
         $response = $this->post(route('platform.register.provisioning.retry', ['tenant' => $tenant->id]));
 
-        $response->assertRedirectContains('/signup/provisioning/');
+        $this->assertRedirectContains($response, '/signup/provisioning/');
 
         // Tenant should be reset to pending
         $tenant->refresh();
@@ -837,20 +838,23 @@ class SelfOnboardingFlowTest extends TestCase
 
     public function test_cancel_registration_removes_pending_tenant(): void
     {
-        $tenant = Tenant::factory()->pending()->create();
+        // Complete steps up to verification which creates a pending tenant
+        $this->completeStepsUpToVerification();
 
-        $this->withSession([
-            'tenant_registration' => [
-                'verification' => ['tenant_id' => $tenant->id],
-            ],
-        ]);
+        // The storeDetails step created a pending tenant — find it
+        $tenant = Tenant::where('subdomain', 'flow-test')->first();
+        $this->assertNotNull($tenant, 'Tenant should have been created during registration');
+        $this->assertEquals(Tenant::STATUS_PENDING, $tenant->status);
 
         $response = $this->postJson(route('platform.register.cancel'));
 
         $response->assertOk();
 
-        // Controller deletes pending tenants with no domains
-        $this->assertDatabaseMissing('tenants', ['id' => $tenant->id]);
+        // Tenant model uses SoftDeletes — record stays in DB but is soft-deleted.
+        $this->assertNull(
+            Tenant::where('subdomain', 'flow-test')->first(),
+            'Tenant should be soft-deleted after cancellation'
+        );
     }
 
     // =========================================================================
@@ -963,5 +967,15 @@ class SelfOnboardingFlowTest extends TestCase
             'plan_id' => $this->plan->id,
             'modules' => ['core', 'hrm'],
         ]);
+    }
+
+    /**
+     * Assert that a response redirects to a URL containing the given string.
+     */
+    private function assertRedirectContains(TestResponse $response, string $needle): void
+    {
+        $response->assertRedirect();
+        $location = $response->headers->get('Location');
+        $this->assertStringContainsString($needle, $location, "Redirect URL [{$location}] does not contain [{$needle}]");
     }
 }

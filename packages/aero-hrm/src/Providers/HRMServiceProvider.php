@@ -49,12 +49,14 @@ class HRMServiceProvider extends AbstractModuleProvider
     }
 
     /**
-     * Override parent loadRoutes to prevent duplicate route registration.
-     * Routes are registered by AeroHrmServiceProvider with proper middleware.
+     * Load HRM routes via parent (AbstractModuleProvider).
+     *
+     * Routes live in routes/web.php and are loaded with the correct SaaS or
+     * standalone outer middleware wrapper by the base class.
      */
     protected function loadRoutes(): void
     {
-        // Do nothing - routes handled by AeroHrmServiceProvider
+        parent::loadRoutes();
     }
 
     /**

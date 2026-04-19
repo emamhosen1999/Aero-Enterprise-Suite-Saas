@@ -290,103 +290,40 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
     /**
      * Load module routes with proper domain isolation.
      *
-     * In SaaS mode (aero-platform active):
-     * - Tenant routes use InitializeTenancyIfNotCentral middleware
-     * - Admin routes use domain constraints for central domains
+     * Each module has a single web.php that contains all its routes.
+     * The route file uses inner Route::middleware() groups for auth/HRMAC guards.
+     * This provider only applies the environmental outer wrapper:
      *
-     * In Standalone mode:
-     * - All routes use standard web middleware
+     * - SaaS mode:  web + InitializeTenancyIfNotCentral + tenant (+ module prefix/name)
+     * - Standalone: web only (+ module prefix/name)
      *
      * Override in child class if custom route handling is needed.
      */
     protected function loadRoutes(): void
     {
         $routesPath = $this->getModulePath('routes');
-        $isSaaSMode = $this->isPlatformActive();
 
-        // Load tenant routes (tenant.php takes priority over web.php for tenant-scoped routes)
-        if (file_exists($routesPath.'/tenant.php')) {
-            if ($isSaaSMode) {
-                // SaaS: InitializeTenancyIfNotCentral MUST come BEFORE 'tenant'
-                // to gracefully return 404 on central domains instead of crashing
-                Route::middleware([
-                    'web',
-                    \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
-                    'tenant',
-                ])
-                    ->prefix($this->moduleCode)
-                    ->name($this->moduleCode.'.')
-                    ->group($routesPath.'/tenant.php');
-            } else {
-                // Standalone: Standard web middleware
-                Route::middleware(['web'])
-                    ->prefix($this->moduleCode)
-                    ->name($this->moduleCode.'.')
-                    ->group($routesPath.'/tenant.php');
-            }
+        if (! file_exists($routesPath.'/web.php')) {
+            return;
         }
 
-        // Load web routes (public routes without auth)
-        if (file_exists($routesPath.'/web.php')) {
-            if ($isSaaSMode) {
-                // SaaS: InitializeTenancyIfNotCentral MUST come BEFORE 'tenant'
-                // to gracefully return 404 on central domains instead of crashing
-                Route::middleware([
-                    'web',
-                    \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
-                    'tenant',
-                ])
-                    ->prefix($this->moduleCode)
-                    ->name($this->moduleCode.'.')
-                    ->group($routesPath.'/web.php');
-            } else {
-                // Standalone: Standard web middleware
-                Route::middleware(['web'])
-                    ->prefix($this->moduleCode)
-                    ->name($this->moduleCode.'.')
-                    ->group($routesPath.'/web.php');
-            }
-        }
-
-        // Load admin routes (landlord/platform routes - only for central domains)
-        if (file_exists($routesPath.'/admin.php')) {
-            if ($isSaaSMode) {
-                // SaaS: Restrict to admin domain
-                $adminDomain = env('ADMIN_DOMAIN', 'admin.'.env('PLATFORM_DOMAIN', 'localhost'));
-                Route::middleware(['web'])
-                    ->domain($adminDomain)
-                    ->prefix('admin/'.$this->moduleCode)
-                    ->name('admin.'.$this->moduleCode.'.')
-                    ->group($routesPath.'/admin.php');
-            } else {
-                // Standalone: No domain constraint
-                Route::middleware(['web'])
-                    ->prefix('admin/'.$this->moduleCode)
-                    ->name('admin.'.$this->moduleCode.'.')
-                    ->group($routesPath.'/admin.php');
-            }
-        }
-
-        // Load API routes
-        if (file_exists($routesPath.'/api.php')) {
-            if ($isSaaSMode) {
-                // SaaS: InitializeTenancyIfNotCentral MUST come BEFORE 'tenant'
-                // to gracefully return 404 on central domains instead of crashing
-                Route::middleware([
-                    'api',
-                    \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
-                    'tenant',
-                ])
-                    ->prefix('api/'.$this->moduleCode)
-                    ->name('api.'.$this->moduleCode.'.')
-                    ->group($routesPath.'/api.php');
-            } else {
-                // Standalone: Standard API middleware
-                Route::middleware(['api'])
-                    ->prefix('api/'.$this->moduleCode)
-                    ->name('api.'.$this->moduleCode.'.')
-                    ->group($routesPath.'/api.php');
-            }
+        if ($this->isPlatformActive()) {
+            // SaaS: InitializeTenancyIfNotCentral MUST come BEFORE 'tenant'
+            // to gracefully return 404 on central domains instead of crashing
+            Route::middleware([
+                'web',
+                \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
+                'tenant',
+            ])
+                ->prefix($this->moduleCode)
+                ->name($this->moduleCode.'.')
+                ->group($routesPath.'/web.php');
+        } else {
+            // Standalone: Standard web middleware only
+            Route::middleware(['web'])
+                ->prefix($this->moduleCode)
+                ->name($this->moduleCode.'.')
+                ->group($routesPath.'/web.php');
         }
     }
 

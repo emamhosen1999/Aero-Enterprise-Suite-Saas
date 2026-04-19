@@ -121,12 +121,6 @@ class ModuleRouteServiceProvider extends ServiceProvider
      */
     protected function registerRoutesForModule(string $moduleName, array $moduleData): void
     {
-        // Skip HRM module auto-registration to prevent duplicate /dashboard without web middleware;
-        // HRM handles its own routing via AeroHrmServiceProvider.
-        if ($moduleName === 'aero-hrm') {
-            return;
-        }
-
         // If the module already registers its own routes via a dedicated provider,
         // skip auto-registration to avoid duplicate/unprefixed routes that miss the
         // expected middleware (e.g., /dashboard without the web group).
@@ -276,10 +270,10 @@ class ModuleRouteServiceProvider extends ServiceProvider
     }
 
     /**
-     * Determine if a module already registers its own routes via a provider.
+     * Determine if a module already registers its own routes via a dedicated provider.
      *
-     * This prevents duplicate routes (e.g., /dashboard without the web middleware)
-     * when a module-specific service provider handles prefixes and middleware.
+     * This prevents duplicate routes when a module-specific service provider
+     * (extending AbstractModuleProvider) handles its own route loading.
      */
     protected function isModuleProviderRegistered(string $moduleName): bool
     {
@@ -290,14 +284,17 @@ class ModuleRouteServiceProvider extends ServiceProvider
         $candidateProviders = [
             "Aero\\{$studly}\\Aero{$studly}ServiceProvider",
             "Aero\\{$studly}\\Providers\\{$studly}ServiceProvider",
+            "Aero\\{$studly}\\Providers\\{$studly}ModuleProvider",
             "Aero\\{$upper}\\Aero{$upper}ServiceProvider",
             "Aero\\{$upper}\\Providers\\{$upper}ServiceProvider",
-            "Aero\\{$upper}\\Aero{$studly}ServiceProvider", // e.g. Aero\\HRM\\AeroHrmServiceProvider
-            "Aero\\{$upper}\\Providers\\{$upper}ServiceProvider", // e.g. Aero\\HRM\\Providers\\HRMServiceProvider
+            "Aero\\{$upper}\\Aero{$studly}ServiceProvider",
+            "Aero\\{$upper}\\Providers\\{$studly}ModuleProvider",
+            // Special-case namespaces that differ from standard patterns
+            'Aero\\IoT\\Providers\\IoTServiceProvider',
         ];
 
         foreach ($candidateProviders as $providerClass) {
-            if (class_exists($providerClass) && ($this->app->getProvider($providerClass) || true)) {
+            if (class_exists($providerClass)) {
                 return true;
             }
         }
