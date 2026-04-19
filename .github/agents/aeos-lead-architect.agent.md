@@ -22,6 +22,7 @@ Enforce DSOP across all modules for architecture, HRMAC access control, UI consi
 - Package-first, modular, production-safe implementations.
 - Prevent host-app drift. aeos365 = dumb wrapper (`.env`, `composer.json`, `vite.config.js`, `bootstrap/`, `config/`, `public/`, `TenancyServiceProvider`). Zero business logic.
 - Every feature needs HRMAC authorization + module hierarchy + test coverage.
+- Every UI-impacting change must be verified in the internal browser by navigating to the affected section and taking a snapshot.
 
 ## Workspace Map
 | Priority | Path | Role |
@@ -103,6 +104,7 @@ Enforce DSOP across all modules for architecture, HRMAC access control, UI consi
 3. Implement with smallest safe diff.
 4. HRMAC checklist (only if new routes/pages/permissions were added).
 5. Run focused tests.
+6. For UI-impacting changes, navigate in internal browser to affected section(s) and capture snapshot(s).
 
 **Architecture / DSOP compliance audit:**
 1. Full inspection of target package(s).

@@ -88,9 +88,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Employee Dashboard (for regular employees - personal view)
-    Route::middleware(['hrmac:hrm.employee-self-service'])
-        ->get('/employee/dashboard', [EmployeeDashboardController::class, 'index'])
-        ->name('employee.dashboard');
+    Route::middleware(['hrmac:hrm.employee-self-service'])->group(function () {
+        Route::get('/employee/dashboard', [EmployeeDashboardController::class, 'index'])
+            ->name('employee.dashboard');
+        Route::get('/employee/dashboard/attendance-chart', [EmployeeDashboardController::class, 'attendanceChart'])
+            ->name('employee.dashboard.attendance-chart');
+    });
 
     // Performance Management
     Route::middleware(['hrmac:hrm.performance'])->group(function () {

@@ -20,13 +20,47 @@ import {
     ModalFooter,
     useDisclosure,
 } from '@heroui/react';
-import { EnvelopeIcon, DevicePhoneMobileIcon } from '@heroicons/react/24/outline';
+import { EnvelopeIcon, DevicePhoneMobileIcon, CurrencyDollarIcon, MoonIcon, SunIcon } from '@heroicons/react/24/outline';
 import { showToast } from '@/utils/toastUtils';
 import { hasRoute } from '@/utils/routeUtils';
+import { Select, SelectItem } from '@heroui/react';
 import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
 import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const fieldClass = 'grid grid-cols-1 md:grid-cols-2 gap-4';
+
+const TIMEZONE_OPTIONS = [
+    { key: 'UTC', label: 'UTC' },
+    { key: 'America/New_York', label: 'Eastern Time (US)' },
+    { key: 'America/Chicago', label: 'Central Time (US)' },
+    { key: 'America/Denver', label: 'Mountain Time (US)' },
+    { key: 'America/Los_Angeles', label: 'Pacific Time (US)' },
+    { key: 'Europe/London', label: 'London (GMT)' },
+    { key: 'Europe/Berlin', label: 'Berlin (CET)' },
+    { key: 'Europe/Paris', label: 'Paris (CET)' },
+    { key: 'Asia/Kolkata', label: 'India (IST)' },
+    { key: 'Asia/Dubai', label: 'Dubai (GST)' },
+    { key: 'Asia/Dhaka', label: 'Dhaka (BST)' },
+    { key: 'Asia/Tokyo', label: 'Tokyo (JST)' },
+    { key: 'Asia/Shanghai', label: 'Shanghai (CST)' },
+    { key: 'Asia/Singapore', label: 'Singapore (SGT)' },
+    { key: 'Australia/Sydney', label: 'Sydney (AEST)' },
+    { key: 'Pacific/Auckland', label: 'Auckland (NZST)' },
+];
+
+const CURRENCY_OPTIONS = [
+    { key: 'USD', label: 'USD — US Dollar' },
+    { key: 'EUR', label: 'EUR — Euro' },
+    { key: 'GBP', label: 'GBP — British Pound' },
+    { key: 'BDT', label: 'BDT — Bangladeshi Taka' },
+    { key: 'INR', label: 'INR — Indian Rupee' },
+    { key: 'AED', label: 'AED — UAE Dirham' },
+    { key: 'JPY', label: 'JPY — Japanese Yen' },
+    { key: 'AUD', label: 'AUD — Australian Dollar' },
+    { key: 'CAD', label: 'CAD — Canadian Dollar' },
+    { key: 'SGD', label: 'SGD — Singapore Dollar' },
+    { key: 'CNY', label: 'CNY — Chinese Yuan' },
+];
 
 const TestEmailButton = ({ emailSettings }) => {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -268,7 +302,9 @@ const SystemSettings = () => {
         support_email: organization.support_email ?? '',
         support_phone: organization.support_phone ?? '',
         website_url: organization.website_url ?? '',
-        timezone: organization.timezone ?? '',
+        timezone: organization.timezone ?? 'UTC',
+        currency: organization.currency ?? 'USD',
+        default_dark_mode: organization.default_dark_mode ?? false,
         address_line1: organization.address_line1 ?? '',
         address_line2: organization.address_line2 ?? '',
         city: organization.city ?? '',
@@ -439,13 +475,43 @@ const SystemSettings = () => {
                                     isInvalid={Boolean(errors.website_url)}
                                     errorMessage={errors.website_url}
                                 />
-                                <Input
+                                <Select
                                     label="Timezone"
-                                    value={data.timezone}
-                                    onChange={(e) => setData('timezone', e.target.value)}
+                                    selectedKeys={data.timezone ? [data.timezone] : []}
+                                    onSelectionChange={(keys) => setData('timezone', Array.from(keys)[0] || '')}
                                     isInvalid={Boolean(errors.timezone)}
                                     errorMessage={errors.timezone}
-                                />
+                                    radius={themeRadius}
+                                >
+                                    {TIMEZONE_OPTIONS.map(tz => (
+                                        <SelectItem key={tz.key}>{tz.label}</SelectItem>
+                                    ))}
+                                </Select>
+                            </div>
+                            <div className={fieldClass}>
+                                <Select
+                                    label="Currency"
+                                    selectedKeys={data.currency ? [data.currency] : []}
+                                    onSelectionChange={(keys) => setData('currency', Array.from(keys)[0] || '')}
+                                    isInvalid={Boolean(errors.currency)}
+                                    errorMessage={errors.currency}
+                                    radius={themeRadius}
+                                    startContent={<CurrencyDollarIcon className="w-4 h-4 text-default-400" />}
+                                >
+                                    {CURRENCY_OPTIONS.map(c => (
+                                        <SelectItem key={c.key}>{c.label}</SelectItem>
+                                    ))}
+                                </Select>
+                                <div className="flex items-center gap-3 h-full">
+                                    <Switch
+                                        isSelected={Boolean(data.default_dark_mode)}
+                                        onValueChange={(value) => setData('default_dark_mode', value)}
+                                        startContent={<MoonIcon className="w-4 h-4" />}
+                                        endContent={<SunIcon className="w-4 h-4" />}
+                                    >
+                                        Default dark mode
+                                    </Switch>
+                                </div>
                             </div>
                             <div className={fieldClass}>
                                 <Input

@@ -340,23 +340,8 @@ class AeroCoreServiceProvider extends ServiceProvider
 
         $registry = $this->app->make(DashboardWidgetRegistry::class);
 
-        // Register Core widgets (order matters for display)
-        $registry->registerMany([
-            // Welcome header (full width)
-            new \Aero\Core\Widgets\WelcomeWidget,
-
-            // Stats row (full width grid)
-            new \Aero\Core\Widgets\SystemStatsWidget,
-            new \Aero\Core\Widgets\QuickActionsWidget,
-
-            // Main content area (left 2/3)
-            new \Aero\Core\Widgets\RecentActivityWidget,
-            new \Aero\Core\Widgets\NotificationsWidget,
-
-            // Sidebar area (right 1/3)
-            new \Aero\Core\Widgets\SecurityOverviewWidget,
-            new \Aero\Core\Widgets\ActiveModulesWidget,
-        ]);
+        // All core dashboard widgets are now statically rendered in Dashboard.jsx
+        // No dynamic widget registrations needed for core dashboard
     }
 
     /**

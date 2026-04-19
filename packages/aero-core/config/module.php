@@ -124,6 +124,17 @@ return [
                     ],
                 ],
                 [
+                    'code' => 'announcements',
+                    'name' => 'Announcements',
+                    'type' => 'feature',
+                    'route' => '/dashboard',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Announcements'],
+                        ['code' => 'create', 'name' => 'Create Announcement'],
+                        ['code' => 'delete', 'name' => 'Delete Announcement'],
+                    ],
+                ],
+                [
                     'code' => 'hrm-dashboard',
                     'name' => 'HRM Dashboard',
                     'type' => 'page',

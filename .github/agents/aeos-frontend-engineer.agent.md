@@ -45,6 +45,7 @@ You also **evolve** your own standards: when you discover a new pattern, anti-pa
 - DO NOT use deprecated Tailwind v3 utilities (bg-opacity-*, flex-shrink-*, flex-grow-*, overflow-ellipsis, decoration-slice, decoration-clone).
 - DO NOT create full-page loading states. Apply Skeleton components only to the sections loading data.
 - DO NOT add features, refactor code, or create abstractions beyond what was requested (in Build mode).
+- ALWAYS verify UI-impacting changes in the internal browser: navigate to the affected section/page and capture a snapshot before final response.
 
 ---
 
@@ -146,6 +147,7 @@ After writing code:
 2. Verify all imports resolve to files that exist in `packages/aero-ui/resources/js/`.
 3. Confirm no vanilla HTML replaces HeroUI components.
 4. Confirm HRMAC hooks are used for all permission gates.
+5. Open internal browser, navigate to the exact affected route/section, and take a snapshot to confirm visual/functionality integrity.
 
 ---
 

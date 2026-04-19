@@ -38,6 +38,7 @@ import {
   UserIcon,
   Cog6ToothIcon,
   QuestionMarkCircleIcon,
+  ClockIcon,
 } from "@heroicons/react/24/outline";
 
 import { useNavigation, motion3DConfig } from './NavigationProvider';
@@ -348,11 +349,64 @@ const HeaderSearch = React.memo(({ searchTerm, onSearchChange }) => {
 });
 
 /**
- * HeaderNotifications - Notifications dropdown
+ * HeaderNotifications - Notifications dropdown with real subscription/quota alerts
  */
 const HeaderNotifications = React.memo(() => {
-  const notificationCount = 3; // TODO: Get from context/props
-  
+  const { subscription_alert, planLimits, tenant } = usePage().props;
+
+  // Build notifications from real data sources
+  const notifications = [];
+
+  if (subscription_alert) {
+    notifications.push({
+      key: 'sub-alert',
+      title: subscription_alert.severity === 'expired' ? 'Subscription Expired'
+           : subscription_alert.severity === 'trial_ending' ? 'Trial Ending Soon'
+           : subscription_alert.severity === 'past_due' ? 'Payment Past Due'
+           : 'Subscription Alert',
+      description: subscription_alert.message,
+      icon: (
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+          subscription_alert.type === 'danger' ? 'bg-danger-100' : 'bg-warning-100'
+        }`}>
+          <span className={`text-xs ${subscription_alert.type === 'danger' ? 'text-danger' : 'text-warning'}`}>!</span>
+        </div>
+      ),
+    });
+  }
+
+  if (tenant?.onTrial && tenant?.trialEndsAt) {
+    const daysLeft = Math.max(0, Math.ceil((new Date(tenant.trialEndsAt) - new Date()) / 86400000));
+    if (daysLeft <= 7 && !subscription_alert) {
+      notifications.push({
+        key: 'trial',
+        title: 'Trial Period',
+        description: `Your trial ends in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}. Upgrade to keep access.`,
+        icon: (
+          <div className="w-8 h-8 rounded-full bg-warning-100 flex items-center justify-center shrink-0">
+            <ClockIcon className="w-4 h-4 text-warning" />
+          </div>
+        ),
+      });
+    }
+  }
+
+  // Placeholder for dynamic notifications (leave requests, etc.) — modules can push via API
+  if (notifications.length === 0) {
+    notifications.push({
+      key: 'empty',
+      title: 'All caught up!',
+      description: 'No new notifications right now.',
+      icon: (
+        <div className="w-8 h-8 rounded-full bg-success-100 flex items-center justify-center shrink-0">
+          <span className="text-success text-xs">✓</span>
+        </div>
+      ),
+    });
+  }
+
+  const notificationCount = subscription_alert ? notifications.length : 0;
+
   return (
     <Dropdown placement="bottom-end">
       <DropdownTrigger>
@@ -373,48 +427,16 @@ const HeaderNotifications = React.memo(() => {
       </DropdownTrigger>
       <DropdownMenu aria-label="Notifications" className="w-80">
         <DropdownSection title="Notifications">
-          <DropdownItem
-            key="notif-1"
-            description="John submitted a leave request for approval"
-            startContent={
-              <Avatar 
-                size="sm" 
-                name="John Doe"
-                className="shrink-0"
-              />
-            }
-          >
-            Leave Request
-          </DropdownItem>
-          <DropdownItem
-            key="notif-2"
-            description="Your expense report has been approved"
-            startContent={
-              <div className="w-8 h-8 rounded-full bg-success-100 flex items-center justify-center shrink-0">
-                <span className="text-success text-xs">✓</span>
-              </div>
-            }
-          >
-            Expense Approved
-          </DropdownItem>
-          <DropdownItem
-            key="notif-3"
-            description="New team member joined the project"
-            startContent={
-              <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center shrink-0">
-                <UserIcon className="w-4 h-4 text-primary" />
-              </div>
-            }
-          >
-            New Team Member
-          </DropdownItem>
+          {notifications.map(notif => (
+            <DropdownItem
+              key={notif.key}
+              description={notif.description}
+              startContent={notif.icon}
+            >
+              {notif.title}
+            </DropdownItem>
+          ))}
         </DropdownSection>
-        <DropdownItem 
-          key="view-all" 
-          className="text-center text-primary"
-        >
-          View all notifications
-        </DropdownItem>
       </DropdownMenu>
     </Dropdown>
   );

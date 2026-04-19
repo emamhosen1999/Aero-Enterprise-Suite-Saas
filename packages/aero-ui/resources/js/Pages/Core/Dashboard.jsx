@@ -1,172 +1,160 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { SparklesIcon } from '@heroicons/react/24/outline';
 import { Card, CardBody } from '@heroui/react';
 import App from "@/Layouts/App.jsx";
-import DynamicWidgetRenderer from "@/Components/DynamicWidgets/DynamicWidgetRenderer.jsx";
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import ModuleSummaryWidget from "@/Components/Dashboard/ModuleSummaryWidget.jsx";
 import { useHRMAC } from '@/Hooks/useHRMAC';
 
-/**
- * Core Dashboard - Primary tenant landing page
- * 
- * DASHBOARD PATTERN:
- * - NO container Card wrapper - only dynamic widgets are shown
- * - All widgets come from packages via dynamicWidgets prop
- * - Widgets are grouped by position and rendered dynamically
- * - No hardcoded stats or content - everything is widget-based
- */
-const CoreDashboard = ({ auth, dynamicWidgets = [] }) => {
-    const { props } = usePage();
-    const themeRadius = useThemeRadius();
-    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
-    
-    // Manual responsive state management (HRMAC pattern)
+// Static dashboard widgets
+import WelcomeWidget from '@/Widgets/Core/WelcomeWidget';
+import OnboardingBanner from '@/Components/Dashboard/Admin/OnboardingBanner';
+import AnnouncementsBanner from '@/Components/Dashboard/Admin/AnnouncementsBanner';
+import AdminStatsCards from '@/Components/Dashboard/Admin/AdminStatsCards';
+import UserActivityChart from '@/Components/Dashboard/Admin/UserActivityChart';
+import AuditLogTimeline from '@/Components/Dashboard/Admin/AuditLogTimeline';
+import SubscriptionCard from '@/Components/Dashboard/Admin/SubscriptionCard';
+import QuickActionsPanel from '@/Components/Dashboard/Admin/QuickActionsPanel';
+import SecurityOverviewCard from '@/Components/Dashboard/Admin/SecurityOverviewCard';
+import StorageAnalyticsCard from '@/Components/Dashboard/Admin/StorageAnalyticsCard';
+import SystemHealthCard from '@/Components/Dashboard/Admin/SystemHealthCard';
+import PendingApprovalsCard from '@/Components/Dashboard/Admin/PendingApprovalsCard';
+import UpcomingEventsCard from '@/Components/Dashboard/Admin/UpcomingEventsCard';
+
+// Stagger animation variants
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+    },
+};
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 16 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
+};
+
+const CoreDashboard = ({
+    auth,
+    welcomeData,
+    coreStats,
+    onboardingProgress,
+    announcements,
+    subscriptionInfo,
+    quickActions,
+    // Deferred props (loaded after initial render)
+    securityOverview,
+    storageAnalytics,
+    systemHealth,
+    recentAuditLog,
+    pendingApprovals,
+    upcomingEvents,
+}) => {
+    const { tenant } = usePage().props;
+    const { isSuperAdmin } = useHRMAC();
+
     const [isMobile, setIsMobile] = useState(false);
-    const [isTablet, setIsTablet] = useState(false);
-    
+
     useEffect(() => {
-        const checkScreenSize = () => {
-            setIsMobile(window.innerWidth < 640);
-            setIsTablet(window.innerWidth < 768);
-        };
-        checkScreenSize();
-        window.addEventListener('resize', checkScreenSize);
-        return () => window.removeEventListener('resize', checkScreenSize);
+        const check = () => setIsMobile(window.innerWidth < 640);
+        check();
+        window.addEventListener('resize', check);
+        return () => window.removeEventListener('resize', check);
     }, []);
 
-    // Group widgets by position
-    const widgetsByPosition = useMemo(() => {
-        const grouped = {
-            welcome: [],
-            stats_row: [],
-            main_left: [],
-            main_right: [],
-            sidebar: [],
-            full_width: [],
-        };
-        
-        (dynamicWidgets || []).forEach(widget => {
-            const pos = widget.position || 'main_left';
-            if (grouped[pos]) {
-                grouped[pos].push(widget);
-            } else {
-                grouped.main_left.push(widget);
-            }
-        });
-
-        // Sort each group by order
-        Object.keys(grouped).forEach(pos => {
-            grouped[pos].sort((a, b) => (a.order || 0) - (b.order || 0));
-        });
-
-        return grouped;
-    }, [dynamicWidgets]);
-
-    // Check for widgets in different positions
-    const hasWelcomeWidgets = widgetsByPosition.welcome.length > 0;
-    const hasStatsWidgets = widgetsByPosition.stats_row.length > 0;
-    const hasMainContent = widgetsByPosition.main_left.length > 0;
-    const hasFullWidth = widgetsByPosition.full_width.length > 0;
-    
-    // Sidebar widgets (combine sidebar + main_right positions)
-    const sidebarWidgets = [...widgetsByPosition.sidebar, ...widgetsByPosition.main_right]
-        .sort((a, b) => (a.order || 0) - (b.order || 0));
-    const hasSidebar = sidebarWidgets.length > 0;
-    
-    // Check if there are any widgets at all
-    const hasAnyWidgets = dynamicWidgets && dynamicWidgets.length > 0;
+    const deferredLoading = (prop) => prop === undefined;
 
     return (
         <>
             <Head title="Dashboard" />
 
-            {/* Dashboard content - NO container Card, only dynamic widgets */}
-            <div className="flex flex-col w-full h-full p-4" role="main" aria-label="Dashboard">
+            <div className="flex flex-col w-full h-full p-4 sm:p-6" role="main" aria-label="Dashboard">
                 <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="space-y-6"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="space-y-6 max-w-[1600px] mx-auto w-full"
                 >
-                    {/* Welcome Section Widgets */}
-                    {hasWelcomeWidgets && (
-                        <div className="space-y-4">
-                            {widgetsByPosition.welcome.map((widget) => (
-                                <DynamicWidgetRenderer 
-                                    key={widget.key} 
-                                    widgets={[widget]} 
-                                />
-                            ))}
-                        </div>
+                    {/* ── Onboarding (conditional) ── */}
+                    {onboardingProgress && !onboardingProgress.completed && (
+                        <motion.div variants={itemVariants}>
+                            <OnboardingBanner progress={onboardingProgress} />
+                        </motion.div>
                     )}
 
-                    {/* Stats Row Widgets */}
-                    {hasStatsWidgets && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            {widgetsByPosition.stats_row.map((widget) => (
-                                <DynamicWidgetRenderer 
-                                    key={widget.key} 
-                                    widgets={[widget]} 
-                                />
-                            ))}
+                    {/* ── Announcements (conditional) ── */}
+                    <motion.div variants={itemVariants}>
+                        <AnnouncementsBanner announcements={announcements || []} />
+                    </motion.div>
+
+                    {/* ── Welcome Widget ── */}
+                    <motion.div variants={itemVariants}>
+                        <WelcomeWidget data={welcomeData || {}} />
+                    </motion.div>
+
+                    {/* ── Stats Cards ── */}
+                    <motion.div variants={itemVariants}>
+                        <AdminStatsCards stats={coreStats} loading={!coreStats} />
+                    </motion.div>
+
+                    {/* ── Main Content — 2/3 + 1/3 grid ── */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <motion.div variants={itemVariants} className="lg:col-span-2 space-y-6">
+                            <UserActivityChart />
+                            <AuditLogTimeline
+                                logs={recentAuditLog || []}
+                                loading={deferredLoading(recentAuditLog)}
+                            />
+                        </motion.div>
+
+                        <motion.div variants={itemVariants} className="space-y-6">
+                            <SubscriptionCard info={subscriptionInfo} />
+                            <QuickActionsPanel actions={quickActions || []} />
+                        </motion.div>
+                    </div>
+
+                    {/* ── System Info — 3 equal columns ── */}
+                    <motion.div variants={itemVariants}>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <SecurityOverviewCard
+                                security={securityOverview}
+                                loading={deferredLoading(securityOverview)}
+                            />
+                            <StorageAnalyticsCard
+                                storage={storageAnalytics}
+                                loading={deferredLoading(storageAnalytics)}
+                            />
+                            <SystemHealthCard
+                                health={systemHealth}
+                                loading={deferredLoading(systemHealth)}
+                            />
                         </div>
-                    )}
+                    </motion.div>
 
-                    {/* Main Content Grid - Left: main widgets, Right: sidebar widgets */}
-                    {(hasMainContent || hasSidebar) && (
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            {/* LEFT COLUMN - Main Content (2/3 width) */}
-                            <div className="lg:col-span-2 space-y-4">
-                                {widgetsByPosition.main_left.map((widget) => (
-                                    <DynamicWidgetRenderer 
-                                        key={widget.key} 
-                                        widgets={[widget]} 
-                                    />
-                                ))}
-                            </div>
+                    {/* ── Module Summary ── */}
+                    <motion.div variants={itemVariants}>
+                        <h3 className="text-lg font-semibold mb-3">Your Modules</h3>
+                        <ModuleSummaryWidget showLocked={true} maxLocked={4} />
+                    </motion.div>
 
-                            {/* RIGHT COLUMN - Sidebar (1/3 width) */}
-                            {hasSidebar && (
-                                <div className="space-y-4">
-                                    {sidebarWidgets.map((widget) => (
-                                        <DynamicWidgetRenderer 
-                                            key={widget.key} 
-                                            widgets={[widget]} 
-                                        />
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Full Width Widgets */}
-                    {hasFullWidth && (
-                        <div className="space-y-4">
-                            {widgetsByPosition.full_width.map((widget) => (
-                                <DynamicWidgetRenderer 
-                                    key={widget.key} 
-                                    widgets={[widget]} 
-                                />
-                            ))}
-                        </div>
-                    )}
-
-                    {/* Empty state - only show if NO widgets at all */}
-                    {!hasAnyWidgets && (
-                        <Card className="border border-divider border-dashed bg-default-50/50">
-                            <CardBody className="p-12 text-center">
-                                <SparklesIcon className="w-16 h-16 text-default-300 mx-auto mb-4" />
-                                <h3 className="text-lg font-semibold text-default-600 mb-2">
-                                    Welcome to your Dashboard
-                                </h3>
-                                <p className="text-sm text-default-500 max-w-md mx-auto">
-                                    Widgets will appear here based on your active modules and permissions.
-                                    Enable modules to see relevant dashboard widgets.
-                                </p>
-                            </CardBody>
-                        </Card>
+                    {/* ── Empty state ── */}
+                    {!coreStats && (
+                        <motion.div variants={itemVariants}>
+                            <Card className="border border-divider border-dashed bg-default-50/50">
+                                <CardBody className="p-12 text-center">
+                                    <SparklesIcon className="w-16 h-16 text-default-300 mx-auto mb-4" />
+                                    <h3 className="text-lg font-semibold text-default-600 mb-2">
+                                        Welcome to your Dashboard
+                                    </h3>
+                                    <p className="text-sm text-default-500 max-w-md mx-auto">
+                                        Widgets will appear here based on your active modules and permissions.
+                                        Enable modules to see relevant dashboard widgets.
+                                    </p>
+                                </CardBody>
+                            </Card>
+                        </motion.div>
                     )}
                 </motion.div>
             </div>
@@ -174,7 +162,6 @@ const CoreDashboard = ({ auth, dynamicWidgets = [] }) => {
     );
 };
 
-// REQUIRED: Use App layout wrapper
 CoreDashboard.layout = (page) => <App>{page}</App>;
 
 export default CoreDashboard;

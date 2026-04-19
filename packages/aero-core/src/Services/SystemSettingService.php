@@ -26,6 +26,8 @@ class SystemSettingService
             'support_phone',
             'website_url',
             'timezone',
+            'currency',
+            'default_dark_mode',
             'address_line1',
             'address_line2',
             'city',

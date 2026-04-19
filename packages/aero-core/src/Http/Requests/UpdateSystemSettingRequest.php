@@ -31,6 +31,8 @@ class UpdateSystemSettingRequest extends FormRequest
             'support_phone' => ['nullable', 'string', 'max:40'],
             'website_url' => ['nullable', 'url', 'max:255'],
             'timezone' => ['nullable', 'timezone'],
+            'currency' => ['nullable', 'string', 'max:10'],
+            'default_dark_mode' => ['nullable', 'boolean'],
             'address_line1' => ['nullable', 'string', 'max:255'],
             'address_line2' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:120'],

@@ -780,8 +780,8 @@ const Dashboard = ({ stats = {}, dynamicWidgets = {}, recentTenants: controllerT
   const { hasAccess } = useHRMAC();
   
   // Role-based visibility checks via HRMAC
-  const canViewBilling = hasAccess('subscriptions', 'billing', 'invoices', 'view');
-  const canViewSystemHealth = hasAccess('platform-dashboard', 'system-health');
+  const canViewBilling = hasAccess('platform.billing');
+  const canViewSystemHealth = hasAccess('platform.system-health');
   
   // Extract widget data from dynamicWidgets (following Core Dashboard pattern)
   // Keys use dots to match widget getKey() format (e.g., 'platform.stats')

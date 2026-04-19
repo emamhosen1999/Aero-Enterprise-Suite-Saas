@@ -2,10 +2,12 @@
 
 namespace Aero\Core\Http\Controllers;
 
-use Aero\Core\Models\User;
-use Aero\Core\Services\DashboardWidgetRegistry;
-use Aero\HRMAC\Models\Role;
+use Aero\Core\Http\Requests\StoreAnnouncementRequest;
+use Aero\Core\Models\Announcement;
+use Aero\Core\Services\Dashboard\AdminDashboardService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -18,7 +20,7 @@ use Inertia\Response;
 class DashboardController extends Controller
 {
     public function __construct(
-        protected DashboardWidgetRegistry $widgetRegistry
+        protected AdminDashboardService $dashboardService,
     ) {}
 
     /**
@@ -26,58 +28,101 @@ class DashboardController extends Controller
      */
     public function index(Request $request): Response
     {
-        $user = $request->user();
-
-        // Basic stats with null safety
-        $stats = [
-            'totalUsers' => User::count(),
-            'activeUsers' => User::where('active', true)->count(),
-            'inactiveUsers' => User::where('active', false)->count(),
-            'totalRoles' => Role::count(),
-            'usersThisMonth' => User::whereMonth('created_at', now()->month)->count(),
-        ];
-
-        // Safely get user roles
-        $userRoles = [];
-        if ($user && method_exists($user, 'roles')) {
-            try {
-                $userRoles = $user->roles?->pluck('name') ?? collect([]);
-            } catch (\Throwable $e) {
-                $userRoles = collect([]);
-            }
-        }
-
-        // Get dynamic widgets from registry for Core dashboard only
-        // The registry handles lazy loading and permission checks
-        $dynamicWidgets = $this->widgetRegistry->getWidgetsForFrontend('core');
-
-        // Note: Navigation is provided by HandleInertiaRequests middleware
-        // Do NOT pass 'navigation' here as it would override the middleware's prop
         return Inertia::render('Core/Dashboard', [
             'title' => 'Dashboard',
-            'stats' => $stats,
-            'dynamicWidgets' => $dynamicWidgets,
+
+            // Immediate props (small, fast)
+            'welcomeData' => $this->dashboardService->getWelcomeData(),
+            'coreStats' => $this->dashboardService->getCoreStats(),
+            'subscriptionInfo' => $this->dashboardService->getSubscriptionInfo(),
+            'quickActions' => $this->dashboardService->getQuickActions(),
+            'announcements' => $this->dashboardService->getAnnouncements(),
+
+            // Deferred props (loaded async after page render)
+            'securityOverview' => Inertia::defer(fn () => $this->dashboardService->getSecurityOverview()),
+            'recentAuditLog' => Inertia::defer(fn () => $this->dashboardService->getRecentAuditLog()),
+            'storageAnalytics' => Inertia::defer(fn () => $this->dashboardService->getStorageAnalytics()),
+            'systemHealth' => Inertia::defer(fn () => $this->dashboardService->getSystemHealth()),
+            'onboardingProgress' => Inertia::defer(fn () => $this->dashboardService->getOnboardingProgress()),
+            'pendingApprovals' => Inertia::defer(fn () => $this->dashboardService->getPendingApprovals()),
+            'upcomingEvents' => Inertia::defer(fn () => $this->dashboardService->getUpcomingEvents()),
         ]);
     }
 
     /**
      * Get dashboard stats (for async loading).
      */
-    public function stats(Request $request)
+    public function stats(Request $request): JsonResponse
     {
-        return response()->json([
-            'totalUsers' => User::count(),
-            'activeUsers' => User::where('active', true)->count(),
-            'inactiveUsers' => User::where('active', false)->count(),
-            'totalRoles' => Role::count(),
-            'usersThisMonth' => User::whereMonth('created_at', now()->month)->count(),
+        return response()->json($this->dashboardService->getCoreStats());
+    }
+
+    /**
+     * User activity chart data.
+     */
+    public function userActivity(Request $request): JsonResponse
+    {
+        $period = $request->input('period', 'week');
+
+        return response()->json(
+            $this->dashboardService->getUserActivity($period)
+        );
+    }
+
+    /**
+     * Store a new announcement.
+     */
+    public function storeAnnouncement(StoreAnnouncementRequest $request): JsonResponse
+    {
+        $announcement = Announcement::create([
+            ...$request->validated(),
+            'author_id' => $request->user()->id,
         ]);
+
+        Cache::forget('admin_dashboard.announcements');
+
+        return response()->json([
+            'message' => 'Announcement created successfully.',
+            'data' => $announcement,
+        ]);
+    }
+
+    /**
+     * Delete an announcement.
+     */
+    public function destroyAnnouncement(Announcement $announcement): JsonResponse
+    {
+        $announcement->delete();
+
+        Cache::forget('admin_dashboard.announcements');
+
+        return response()->json([
+            'message' => 'Announcement deleted successfully.',
+        ]);
+    }
+
+    /**
+     * Dismiss an announcement for the current user.
+     */
+    public function dismissAnnouncement(Announcement $announcement, Request $request): JsonResponse
+    {
+        $userId = $request->user()->id;
+        $dismissed = $announcement->dismissed_by ?? [];
+
+        if (! in_array($userId, $dismissed)) {
+            $dismissed[] = $userId;
+            $announcement->update(['dismissed_by' => $dismissed]);
+        }
+
+        Cache::forget('admin_dashboard.announcements');
+
+        return response()->json(['message' => 'Announcement dismissed.']);
     }
 
     /**
      * Get widget data for a specific widget (for lazy loading).
      */
-    public function widgetData(Request $request, string $widgetKey)
+    public function widgetData(Request $request, string $widgetKey): JsonResponse
     {
         $user = $request->user();
         $widgets = $this->widgetRegistry->getWidgets($user);
