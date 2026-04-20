@@ -35,8 +35,7 @@ export default function ProvisioningTimer({
   const [notifyRequested, setNotifyRequested] = useState(false);
   const [notifyLoading, setNotifyLoading] = useState(false);
 
-  const { themeSettings } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode } = useTheme();
 
   // Calculate progress based on current step
   const stepProgress = useMemo(() => {

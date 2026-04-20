@@ -508,4 +508,54 @@ class NavigationRegistry
         $this->selfServiceItems = [];
         $this->clearCache();
     }
+
+    /**
+     * Get user-specific navigation metadata (usage stats, preferences) for the frontend.
+     *
+     * Returns the lightweight metadata payload injected into every Inertia page
+     * so the sidebar can show usage badges and quick-access items without a
+     * separate API call.
+     *
+     * @param  \Aero\Core\Models\User  $user
+     * @return array<string, mixed>
+     */
+    public function getUserNavigationMetadata($user): array
+    {
+        try {
+            /** @var \Aero\Core\Services\AINavigationSuggestionService $service */
+            $service = app(AINavigationSuggestionService::class);
+
+            return $service->getUserMetadata($user->id);
+        } catch (\Throwable $e) {
+            return [
+                'topPaths' => [],
+                'recentPaths' => [],
+                'quickActions' => [],
+                'pinnedItems' => [],
+                'hiddenItems' => [],
+                'compactMode' => false,
+                'showLabels' => true,
+            ];
+        }
+    }
+
+    /**
+     * Get context-aware navigation suggestions for the current page.
+     *
+     * @param  \Aero\Core\Models\User  $user
+     * @param  string|null  $currentPath
+     * @return array{pinned: array, frequent: array, recent: array, contextual: array}
+     */
+    public function getContextAwareSuggestions($user, ?string $currentPath = null): array
+    {
+        try {
+            /** @var \Aero\Core\Services\AINavigationSuggestionService $service */
+            $service = app(AINavigationSuggestionService::class);
+            $allNav = $this->toFrontend(null, $user);
+
+            return $service->getSuggestions($user->id, $currentPath, $allNav);
+        } catch (\Throwable $e) {
+            return ['pinned' => [], 'frequent' => [], 'recent' => [], 'contextual' => []];
+        }
+    }
 }

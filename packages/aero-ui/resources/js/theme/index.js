@@ -34,16 +34,61 @@ export const getThemePrimaryColor = () => {
 };
 
 /**
- * Dark mode color overrides
+ * Dark mode color palettes — graduated darkness levels
+ * 
+ * dim:      Soft dark with blue-gray undertones (like Twitter/X "Dim")
+ * dark:     Standard dark surfaces (zinc-based)
+ * midnight: True black AMOLED-friendly surfaces
  */
-const darkModeColors = {
-  background: '#18181B',
-  foreground: '#FAFAFA',
-  divider: '#27272A',
-  content1: '#1C1C1E',
-  content2: '#27272A',
-  content3: '#3F3F46',
-  content4: '#52525B',
+const DARK_PALETTES = {
+  dim: {
+    background: '#15202B',
+    foreground: '#E7E9EA',
+    divider: '#38444D',
+    content1: '#1A2733',
+    content2: '#22303C',
+    content3: '#2C3E50',
+    content4: '#3D5468',
+  },
+  dark: {
+    background: '#18181B',
+    foreground: '#FAFAFA',
+    divider: '#27272A',
+    content1: '#1C1C1E',
+    content2: '#27272A',
+    content3: '#3F3F46',
+    content4: '#52525B',
+  },
+  midnight: {
+    background: '#000000',
+    foreground: '#FAFAFA',
+    divider: '#1A1A1A',
+    content1: '#0A0A0A',
+    content2: '#141414',
+    content3: '#1E1E1E',
+    content4: '#282828',
+  },
+};
+
+/**
+ * Valid mode values for the theme system
+ */
+export const VALID_MODES = ['light', 'dim', 'dark', 'midnight', 'system'];
+
+/**
+ * Resolve the effective dark palette key from a mode value.
+ * Returns null for light mode (no dark overrides needed).
+ */
+export const resolveEffectiveMode = (mode) => {
+  if (mode === 'light') return null;
+  if (mode === 'dim' || mode === 'dark' || mode === 'midnight') return mode;
+  if (mode === 'system') {
+    if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)')?.matches) {
+      return 'dark';
+    }
+    return null;
+  }
+  return null;
 };
 
 /**
@@ -51,7 +96,7 @@ const darkModeColors = {
  * 
  * @param {Object} theme - Theme settings object with shape:
  *   {
- *     mode: 'light' | 'dark' | 'system',
+ *     mode: 'light' | 'dim' | 'dark' | 'midnight' | 'system',
  *     cardStyle: string,
  *     typography: { fontFamily: string, fontSize: string },
  *     background: { type: 'color', value: string }
@@ -64,17 +109,17 @@ export const applyThemeToDocument = (theme) => {
 
   const root = document.documentElement;
   
-  // Determine dark mode
-  const isDark = theme.mode === 'dark' || 
-    (theme.mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  // Resolve the effective dark palette (null = light mode)
+  const effectiveMode = resolveEffectiveMode(theme.mode);
+  const isDark = effectiveMode !== null;
 
   // Get colors from card style
   const cardStyle = getCardStyle(theme.cardStyle || 'modern');
   let themeColors = cardStyle.theme.colors;
   
-  // Override with dark mode colors if needed
-  if (isDark) {
-    themeColors = { ...themeColors, ...darkModeColors };
+  // Override with the appropriate dark palette if needed
+  if (isDark && DARK_PALETTES[effectiveMode]) {
+    themeColors = { ...themeColors, ...DARK_PALETTES[effectiveMode] };
   }
   
   // Apply semantic color CSS variables (--theme- prefix for consistency)
@@ -117,15 +162,26 @@ export const applyThemeToDocument = (theme) => {
   }
   
   // Toggle dark class for HeroUI components
+  // All dark variants (dim, dark, midnight) need the .dark class for HeroUI
   if (isDark) {
     root.classList.add('dark');
   } else {
     root.classList.remove('dark');
+  }
+
+  // Set data attribute for dark variant so CSS can differentiate
+  // Enables selectors like [data-dark-variant="dim"], [data-dark-variant="midnight"]
+  if (isDark) {
+    root.setAttribute('data-dark-variant', effectiveMode);
+  } else {
+    root.removeAttribute('data-dark-variant');
   }
 };
 
 export default {
   applyThemeToDocument,
   getThemePrimaryColor,
-  getStandardCardStyle
+  getStandardCardStyle,
+  VALID_MODES,
+  resolveEffectiveMode,
 };

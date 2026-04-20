@@ -9,7 +9,6 @@ import {
     CardBody,
     Select,
     SelectItem,
-    Switch,
     Divider,
     Tooltip,
 } from '@heroui/react';
@@ -19,8 +18,9 @@ import {
     MoonIcon,
     SunIcon,
     SwatchIcon,
-    Cog6ToothIcon,
     ArrowPathIcon,
+    ComputerDesktopIcon,
+    EyeIcon,
 } from '@heroicons/react/24/outline';
 
 /**
@@ -40,10 +40,49 @@ import {
  * - Redundant theme tabs
  */
 const ThemeSettingDrawer = ({ isOpen, onClose }) => {
-    const { themeSettings, updateTheme, toggleMode, resetTheme } = useTheme();
+    const { themeSettings, updateTheme, setMode, resetTheme } = useTheme();
     
     const [selectedTab, setSelectedTab] = useState('styles');
     const cardStyleOptions = getCardStyleOptions();
+    
+    // Appearance mode options with metadata
+    const appearanceModes = [
+        { 
+            key: 'light', 
+            name: 'Light', 
+            description: 'Clean white backgrounds',
+            icon: <SunIcon className="w-5 h-5" />,
+            preview: { bg: '#FFFFFF', surface: '#F4F4F5', text: '#18181B' }
+        },
+        { 
+            key: 'dim', 
+            name: 'Dim', 
+            description: 'Soft dark with blue tones',
+            icon: <EyeIcon className="w-5 h-5" />,
+            preview: { bg: '#15202B', surface: '#1A2733', text: '#E7E9EA' }
+        },
+        { 
+            key: 'dark', 
+            name: 'Dark', 
+            description: 'Standard dark surfaces',
+            icon: <MoonIcon className="w-5 h-5" />,
+            preview: { bg: '#18181B', surface: '#1C1C1E', text: '#FAFAFA' }
+        },
+        { 
+            key: 'midnight', 
+            name: 'Midnight', 
+            description: 'True black AMOLED',
+            icon: <MoonIcon className="w-5 h-5" />,
+            preview: { bg: '#000000', surface: '#0A0A0A', text: '#FAFAFA' }
+        },
+        { 
+            key: 'system', 
+            name: 'System', 
+            description: 'Follow device settings',
+            icon: <ComputerDesktopIcon className="w-5 h-5" />,
+            preview: { bg: '#F4F4F5', surface: '#E4E4E7', text: '#18181B' }
+        },
+    ];
     
     // Font family options
     const fontFamilies = [
@@ -133,9 +172,11 @@ const ThemeSettingDrawer = ({ isOpen, onClose }) => {
     const currentFont = themeSettings?.typography?.fontFamily || 'Inter';
     const currentBg = themeSettings?.background?.value || '';
     
+    const currentMode = themeSettings?.mode || 'system';
+    
     // Calculate actual visual dark state (accounting for system preference)
-    const isDark = themeSettings?.mode === 'dark' || 
-        (themeSettings?.mode === 'system' && 
+    const isDark = currentMode === 'dark' || currentMode === 'dim' || currentMode === 'midnight' ||
+        (currentMode === 'system' && 
          typeof window !== 'undefined' && 
          window.matchMedia?.('(prefers-color-scheme: dark)')?.matches);
     
@@ -432,33 +473,64 @@ const ThemeSettingDrawer = ({ isOpen, onClose }) => {
                     {/* Preferences Tab */}
                     {selectedTab === 'preferences' && (
                         <div className="space-y-6">
-                            {/* Dark Mode Toggle */}
-                            <Card>
-                                <CardBody className="p-4">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            {isDark ? (
-                                                <MoonIcon className="w-6 h-6 text-primary" />
-                                            ) : (
-                                                <SunIcon className="w-6 h-6 text-warning" />
-                                            )}
-                                            <div>
-                                                <h4 className="font-semibold">Dark Mode</h4>
-                                                <p className="text-xs text-default-500">
-                                                    Toggle between light and dark themes
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <Switch
-                                            isSelected={isDark}
-                                            onValueChange={toggleMode}
-                                            size="lg"
-                                        />
-                                    </div>
-                                </CardBody>
-                            </Card>
+                            {/* Appearance Mode Selector */}
+                            <div>
+                                <h3 className="text-lg font-semibold mb-2">Appearance</h3>
+                                <p className="text-sm text-default-500 mb-4">
+                                    Choose how the interface looks — from bright to true black.
+                                </p>
+                                
+                                <div className="grid grid-cols-5 gap-3">
+                                    {appearanceModes.map((mode) => {
+                                        const isSelected = currentMode === mode.key;
+                                        return (
+                                            <Tooltip
+                                                key={mode.key}
+                                                content={mode.description}
+                                                placement="bottom"
+                                                delay={300}
+                                            >
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setMode(mode.key)}
+                                                    className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all duration-200 cursor-pointer ${
+                                                        isSelected
+                                                            ? 'border-primary ring-2 ring-primary/30 shadow-lg scale-[1.04]'
+                                                            : 'border-divider hover:border-default-400 hover:shadow-md hover:scale-[1.02]'
+                                                    }`}
+                                                    style={{ background: mode.preview.bg }}
+                                                >
+                                                    {/* Preview circle with surface and icon */}
+                                                    <div
+                                                        className="w-10 h-10 rounded-full flex items-center justify-center shadow-inner"
+                                                        style={{ 
+                                                            background: mode.preview.surface,
+                                                            color: mode.preview.text 
+                                                        }}
+                                                    >
+                                                        {mode.icon}
+                                                    </div>
+                                                    
+                                                    {/* Mode name */}
+                                                    <span 
+                                                        className="text-xs font-semibold"
+                                                        style={{ color: mode.preview.text }}
+                                                    >
+                                                        {mode.name}
+                                                    </span>
+                                                    
+                                                    {/* Active indicator */}
+                                                    {isSelected && (
+                                                        <div className="w-2 h-2 rounded-full bg-primary" />
+                                                    )}
+                                                </button>
+                                            </Tooltip>
+                                        );
+                                    })}
+                                </div>
+                            </div>
                             
-                            {/* Font Family */}
+                            <Divider />
                             <div>
                                 <h3 className="text-lg font-semibold mb-3">Font Family</h3>
                                 <Select

@@ -21,8 +21,7 @@ export default function VerifyEmail({ steps = [], currentStep, savedData = {}, e
   const inputRefs = useRef([]);
   const hasAutoSentRef = useRef(false);
 
-  const { themeSettings } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode } = useTheme();
   const { siteName } = useBranding();
   
   const palette = {

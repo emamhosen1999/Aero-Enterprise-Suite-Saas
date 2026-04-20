@@ -159,19 +159,11 @@ export {
     MODULE_METADATA,
 } from '@/Context/ModuleContext';
 
-// Navigation Utilities (Legacy Compatibility)
-// Note: navigationConfig is now provided by backend via NavigationRegistry
+// Navigation Utilities
+// Note: navigationConfig is provided by backend via NavigationRegistry
 export {
     getIcon,
     convertToLegacyFormat,
     convertNavigationToPages,
-    useLegacyPages,
     ICON_MAP,
 } from '@/Configs/navigationUtils';
-
-// Navigation Components
-export {
-    default as ModuleAwareSidebar,
-    ModuleNavLink,
-    ModuleNavSection,
-} from '@/Components/Navigation/ModuleAwareSidebar';

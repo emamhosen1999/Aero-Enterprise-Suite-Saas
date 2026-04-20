@@ -58,8 +58,7 @@ export default function SocialAuthButtons({
   const [loading, setLoading] = useState(true);
   const [clickedProvider, setClickedProvider] = useState(null);
 
-  const { themeSettings } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode } = useTheme();
 
   useEffect(() => {
     const fetchProviders = async () => {

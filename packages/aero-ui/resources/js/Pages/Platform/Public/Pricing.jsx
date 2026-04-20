@@ -98,8 +98,7 @@ const deploymentOptions = [
 export default function Pricing() {
   const [annual, setAnnual] = useState(true);
   const multiplier = annual ? 10 : 12; // 2 months free yearly
-  const { themeSettings } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode } = useTheme();
   const { siteName } = useBranding();
 
   const palette = useMemo(() => ({

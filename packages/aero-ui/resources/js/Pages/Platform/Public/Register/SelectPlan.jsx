@@ -93,8 +93,7 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
     post(url);
   };
 
-  const { themeSettings } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode } = useTheme();
   const palette = useMemo(() => ({
     heading: isDarkMode ? 'text-white' : 'text-slate-900',
     copy: isDarkMode ? 'text-slate-300' : 'text-slate-600',

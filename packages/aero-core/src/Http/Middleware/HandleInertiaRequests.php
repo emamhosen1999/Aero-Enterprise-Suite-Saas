@@ -167,6 +167,7 @@ class HandleInertiaRequests extends Middleware
             'locale' => App::getLocale(),
             'translations' => fn () => $this->getTranslations(),
             'navigation' => fn () => $this->getNavigationProps($user),
+            'userNavMetadata' => fn () => $user ? app(NavigationRegistry::class)->getUserNavigationMetadata($user) : null,
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),

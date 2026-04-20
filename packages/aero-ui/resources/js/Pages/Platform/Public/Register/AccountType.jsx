@@ -32,8 +32,7 @@ export default function AccountType({ steps = [], currentStep, savedData = {}, t
     utm: getUtmParams(), // Include UTM tracking data
   });
 
-  const { themeSettings } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode } = useTheme();
   const { siteName } = useBranding();
 
   const description = useMemo(

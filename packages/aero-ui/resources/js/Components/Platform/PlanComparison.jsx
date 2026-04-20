@@ -18,8 +18,7 @@ export default function PlanComparison({
 }) {
   const [viewMode, setViewMode] = useState('table'); // 'table' | 'list'
 
-  const { themeSettings } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode } = useTheme();
 
   // Generate feature list from plan module_codes if features not provided
   const featureList = useMemo(() => {

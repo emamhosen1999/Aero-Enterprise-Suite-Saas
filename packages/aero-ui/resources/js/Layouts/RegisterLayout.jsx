@@ -53,8 +53,7 @@ export const getUtmParams = () => {
 };
 
 export default function RegisterLayout({ children, mainClassName = 'py-8 sm:py-16' }) {
-  const { themeSettings } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode } = useTheme();
   const { logo, squareLogo, siteName } = useBranding();
   
   // Capture UTM params on first render

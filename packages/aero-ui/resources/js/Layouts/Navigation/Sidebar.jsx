@@ -21,6 +21,10 @@ import {
   Tooltip,
   Kbd,
   ScrollShadow,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
 } from "@heroui/react";
 import {
   MagnifyingGlassIcon,
@@ -46,6 +50,7 @@ import {
 } from './navigationUtils.jsx';
 import { useBranding } from '@/Hooks/useBranding';
 import ProfileAvatar from '@/Components/ProfileAvatar';
+import { useNavigationPersonalization } from '@/Hooks/useNavigationPersonalization.js';
 
 // Safe route helper that returns fallback if route doesn't exist
 const safeRoute = (routeName, fallback = '#') => {
@@ -57,7 +62,7 @@ const safeRoute = (routeName, fallback = '#') => {
 };
 
 /**
- * SidebarHeader - Branding section at top
+ * SidebarHeader - Premium branding section with animated effects
  */
 const SidebarHeader = React.memo(({ collapsed, onClose, isMobile }) => {
   const { squareLogo, siteName } = useBranding();
@@ -65,69 +70,96 @@ const SidebarHeader = React.memo(({ collapsed, onClose, isMobile }) => {
   
   return (
     <motion.div 
-      className="shrink-0 relative"
+      className="shrink-0 relative overflow-hidden"
       style={{
-        background: `linear-gradient(135deg, 
-          color-mix(in srgb, var(--theme-primary, #006FEE) 10%, var(--theme-content1, #FAFAFA)) 0%, 
-          var(--theme-content1, #FAFAFA) 100%)`,
-        borderBottom: `var(--borderWidth, 2px) solid var(--theme-divider, #E4E4E7)`,
+        background: `linear-gradient(160deg, 
+          color-mix(in srgb, var(--theme-primary, #006FEE) 8%, var(--theme-content1, #FAFAFA)) 0%, 
+          var(--theme-content1, #FAFAFA) 60%,
+          color-mix(in srgb, var(--theme-primary, #006FEE) 4%, var(--theme-content1, #FAFAFA)) 100%)`,
+        borderBottom: `1px solid color-mix(in srgb, var(--theme-divider, #E4E4E7) 60%, transparent)`,
       }}
     >
-      <div className={`flex items-center gap-3 ${collapsed ? 'p-3 justify-center' : 'p-4'}`}>
-        {/* Logo */}
-        <motion.div
-          className={`shrink-0 ${collapsed ? '' : ''}`}
-          whileHover={{ scale: 1.05, rotate: 2 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-          style={{
-            perspective: '500px',
-            transformStyle: 'preserve-3d',
-          }}
-        >
-          <div 
-            className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center"
-            style={{
-              background: `linear-gradient(135deg, var(--theme-primary, #006FEE), var(--theme-primary-600, #0050B3))`,
-              boxShadow: `0 4px 15px -3px var(--theme-primary, #006FEE)40`,
-            }}
+      {/* Subtle animated shimmer across header */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.3) 50%, transparent 60%)',
+          backgroundSize: '250% 100%',
+        }}
+        animate={{ backgroundPosition: ['200% 0', '-200% 0'] }}
+        transition={{ duration: 4, repeat: Infinity, ease: 'linear', repeatDelay: 3 }}
+      />
+
+      <div className={`relative flex items-center gap-3 ${collapsed ? 'p-3 justify-center' : 'px-4 py-3.5'}`}>
+        {/* Animated Logo — hidden when collapsed since main header shows branding */}
+        {!collapsed && (
+          <motion.div
+            className="shrink-0 relative"
+            whileHover={{ scale: 1.06 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
           >
-            {squareLogo ? (
-              <img 
-                src={squareLogo} 
-                alt={siteName} 
-                className="w-8 h-8 object-contain"
-                onError={(e) => { e.target.style.display = 'none'; }}
-              />
-            ) : (
-              <span className="text-white font-bold text-lg">{firstLetter}</span>
-            )}
-          </div>
-        </motion.div>
+            <div 
+              className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center relative"
+              style={{
+                background: `linear-gradient(135deg, var(--theme-primary, #006FEE), var(--theme-primary-600, #0050B3))`,
+                boxShadow: `0 4px 20px -4px var(--theme-primary, #006FEE)50`,
+              }}
+            >
+              {squareLogo ? (
+                <img 
+                  src={squareLogo} 
+                  alt={siteName} 
+                  className="w-8 h-8 object-contain relative z-[1]"
+                  onError={(e) => { e.target.style.display = 'none'; }}
+                />
+              ) : (
+                <span className="text-white font-bold text-lg relative z-[1]">{firstLetter}</span>
+              )}
+            </div>
+            {/* Glow ring */}
+            <motion.div
+              className="absolute -inset-0.5 rounded-xl pointer-events-none"
+              style={{
+                background: `linear-gradient(135deg, var(--theme-primary, #006FEE)30, transparent, var(--theme-primary, #006FEE)20)`,
+                filter: 'blur(2px)',
+              }}
+              animate={{ opacity: [0.4, 0.7, 0.4] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          </motion.div>
+        )}
         
-        {/* Brand name - hidden when collapsed */}
+        {/* Brand name */}
         {!collapsed && (
           <motion.div 
             className="flex-1 min-w-0"
-            initial={{ opacity: 0, x: -10 }}
+            initial={{ opacity: 0, x: -8 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
+            transition={{ delay: 0.1, duration: 0.3 }}
           >
             <h1 
-              className="font-bold text-lg truncate"
+              className="font-bold text-base truncate tracking-tight"
               style={{ color: 'var(--theme-foreground, #11181C)' }}
             >
               {siteName}
             </h1>
-            <p 
-              className="text-xs truncate"
-              style={{ color: 'var(--theme-foreground-500, #71717A)' }}
-            >
-              Enterprise Suite
-            </p>
+            <div className="flex items-center gap-1.5">
+              <motion.div
+                className="w-1.5 h-1.5 rounded-full"
+                style={{ background: 'var(--theme-success, #17C964)' }}
+                animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              />
+              <p 
+                className="text-[11px] truncate font-medium"
+                style={{ color: 'var(--theme-foreground-400, #A1A1AA)' }}
+              >
+                Enterprise Suite
+              </p>
+            </div>
           </motion.div>
         )}
         
-        {/* Close button for mobile */}
         {isMobile && (
           <Button
             isIconOnly
@@ -135,9 +167,7 @@ const SidebarHeader = React.memo(({ collapsed, onClose, isMobile }) => {
             variant="light"
             onPress={onClose}
             className="shrink-0"
-            style={{
-              color: 'var(--theme-foreground, #11181C)',
-            }}
+            style={{ color: 'var(--theme-foreground, #11181C)' }}
           >
             <XMarkIcon className="w-5 h-5" />
           </Button>
@@ -150,26 +180,9 @@ const SidebarHeader = React.memo(({ collapsed, onClose, isMobile }) => {
 /**
  * SidebarSearch - Search bar component
  */
-const SidebarSearch = React.memo(({ collapsed, searchTerm, onSearchChange }) => {
+const SidebarSearch = React.memo(({ collapsed, searchTerm, onSearchChange, onExpandAndSearch }) => {
   if (collapsed) {
-    return (
-      <div className="p-2">
-        <Tooltip content="Search (⌘K)" placement="right">
-          <Button
-            isIconOnly
-            variant="flat"
-            size="sm"
-            className="w-full"
-            style={{
-              backgroundColor: 'color-mix(in srgb, var(--theme-content2, #F4F4F5) 50%, transparent)',
-              borderRadius: 'var(--borderRadius, 8px)',
-            }}
-          >
-            <MagnifyingGlassIcon className="w-4 h-4" />
-          </Button>
-        </Tooltip>
-      </div>
-    );
+    return null;
   }
   
   return (
@@ -227,6 +240,23 @@ const SidebarContent = React.memo(({
   const { mainItems, settingsItems } = useMemo(() => 
     groupMenuItems(menuItems), [menuItems]
   );
+  const { preferences } = useNavigationPersonalization();
+
+  // Resolve pinned nav items from flat paths -> nav tree
+  const pinnedItems = useMemo(() => {
+    const paths = preferences?.pinned_items ?? [];
+    if (!paths.length) return [];
+    const flattenItems = (items) => {
+      const result = [];
+      items.forEach(item => {
+        result.push(item);
+        if (item.subMenu) result.push(...flattenItems(item.subMenu));
+      });
+      return result;
+    };
+    const flat = flattenItems(menuItems);
+    return paths.map(p => flat.find(i => getMenuItemUrl(i) === p)).filter(Boolean);
+  }, [preferences?.pinned_items, menuItems]);
   
   const filteredMainItems = useMemo(() => 
     filterMenuItems(mainItems, searchTerm), [mainItems, searchTerm]
@@ -316,14 +346,64 @@ const SidebarContent = React.memo(({
   
   return (
     <ScrollShadow className="flex-1 py-2 px-3 overflow-y-auto">
+      {/* Pinned Items */}
+      {!searchTerm && pinnedItems.length > 0 && (
+        <div className="mb-3">
+          <div className="flex items-center gap-2 px-2 py-1.5 mb-2">
+            <motion.div
+              className="w-4 h-[2px] rounded-full"
+              style={{ background: 'linear-gradient(90deg, var(--theme-primary, #006FEE), var(--theme-primary-400, #338EF7))' }}
+              animate={{ scaleX: [0.6, 1, 0.6] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            />
+            <span className="text-[10px] font-bold uppercase tracking-[0.12em]"
+              style={{ color: 'var(--theme-primary, #006FEE)' }}
+            >
+              Pinned
+            </span>
+          </div>
+          <div className="space-y-0.5">
+            {pinnedItems.map((item) => {
+              const itemId = getMenuItemId(item, 'pinned');
+              const itemUrl = getMenuItemUrl(item);
+              const active = itemUrl && activePath === itemUrl;
+              return (
+                <MenuItem3D
+                  key={itemId}
+                  item={item}
+                  level={0}
+                  isActive={active}
+                  hasActiveChild={false}
+                  isExpanded={false}
+                  onToggle={() => {}}
+                  onNavigate={onNavigate}
+                  searchTerm=""
+                  variant="sidebar"
+                  collapsed={collapsed}
+                  parentId="pinned"
+                  expandedMenus={expandedMenus}
+                  activePath={activePath}
+                />
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Main Navigation */}
       {filteredMainItems.length > 0 && (
-        <div className="mb-4">
-          <div 
-            className="px-2 py-1.5 text-xs font-semibold uppercase tracking-wider mb-2"
-            style={{ color: 'var(--theme-foreground-400, #A1A1AA)' }}
-          >
-            Navigation
+        <div className="mb-3">
+          <div className="flex items-center gap-2 px-2 py-1.5 mb-2">
+            <motion.div
+              className="w-4 h-[2px] rounded-full"
+              style={{ background: 'linear-gradient(90deg, var(--theme-foreground-400, #A1A1AA), var(--theme-foreground-300, #D4D4D8))' }}
+            />
+            <span className="text-[10px] font-bold uppercase tracking-[0.12em]"
+              style={{ color: 'var(--theme-foreground-400, #A1A1AA)' }}
+            >
+              Navigation
+            </span>
+            <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg, var(--theme-divider, #E4E4E7)40, transparent)' }} />
           </div>
           <div className="space-y-0.5">
             {renderMenuItems(filteredMainItems, 'main')}
@@ -333,12 +413,18 @@ const SidebarContent = React.memo(({
       
       {/* Settings Group */}
       {filteredSettingsItems.length > 0 && (
-        <div className="mb-4">
-          <div 
-            className="px-2 py-1.5 text-xs font-semibold uppercase tracking-wider mb-2"
-            style={{ color: 'var(--theme-foreground-400, #A1A1AA)' }}
-          >
-            Settings
+        <div className="mb-3">
+          <div className="flex items-center gap-2 px-2 py-1.5 mb-2">
+            <motion.div
+              className="w-4 h-[2px] rounded-full"
+              style={{ background: 'linear-gradient(90deg, var(--theme-foreground-400, #A1A1AA), var(--theme-foreground-300, #D4D4D8))' }}
+            />
+            <span className="text-[10px] font-bold uppercase tracking-[0.12em]"
+              style={{ color: 'var(--theme-foreground-400, #A1A1AA)' }}
+            >
+              Settings
+            </span>
+            <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg, var(--theme-divider, #E4E4E7)40, transparent)' }} />
           </div>
           <div className="space-y-0.5">
             {renderMenuItems(filteredSettingsItems, 'settings')}
@@ -369,29 +455,14 @@ const SidebarContent = React.memo(({
  * SidebarFooter - User info and actions
  */
 const SidebarFooter = React.memo(({ collapsed, user, onCollapse }) => {
-  const handleLogout = useCallback(() => {
-    const logoutUrl = safeRoute('logout', '/logout');
-    router.post(logoutUrl);
-  }, []);
-  
   if (collapsed) {
     return (
       <div 
         className="shrink-0 p-2 space-y-1"
         style={{
-          borderTop: `var(--borderWidth, 2px) solid var(--theme-divider, #E4E4E7)`,
+          borderTop: `1px solid color-mix(in srgb, var(--theme-divider, #E4E4E7) 50%, transparent)`,
         }}
       >
-        <Tooltip content={user?.name || 'User'} placement="right">
-          <Button isIconOnly variant="light" size="sm" className="w-full">
-            <ProfileAvatar 
-              size="sm"
-              src={user?.profile_image_url || user?.profile_image}
-              name={user?.name}
-            />
-          </Button>
-        </Tooltip>
-        
         <Tooltip content="Expand sidebar" placement="right">
           <Button 
             isIconOnly 
@@ -408,108 +479,46 @@ const SidebarFooter = React.memo(({ collapsed, user, onCollapse }) => {
   }
   
   return (
-    <motion.div 
-      className="shrink-0"
+    <div 
+      className="shrink-0 px-3 py-2.5 flex items-center gap-1"
       style={{
-        borderTop: `var(--borderWidth, 2px) solid var(--theme-divider, #E4E4E7)`,
-        background: `linear-gradient(135deg, 
-          var(--theme-content1, #FAFAFA) 0%, 
-          color-mix(in srgb, var(--theme-primary, #006FEE) 5%, var(--theme-content1, #FAFAFA)) 100%)`,
+        borderTop: `1px solid color-mix(in srgb, var(--theme-divider, #E4E4E7) 50%, transparent)`,
       }}
     >
-      {/* User info */}
-      <div className="p-3 flex items-center gap-3">
-        <div className="relative">
-          <ProfileAvatar 
-            size="sm"
-            src={user?.profile_image_url || user?.profile_image}
-            name={user?.name}
-            className="ring-2 ring-white shadow-md"
-          />
-          <div 
-            className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2"
-            style={{
-              backgroundColor: 'var(--theme-success, #17C964)',
-              borderColor: 'var(--theme-background, #FFFFFF)',
-            }}
-          />
-        </div>
-        
-        <div className="flex-1 min-w-0">
-          <p 
-            className="font-semibold text-sm truncate"
-            style={{ color: 'var(--theme-foreground, #11181C)' }}
-          >
-            {user?.name || 'User'}
-          </p>
-          <p 
-            className="text-xs truncate"
-            style={{ color: 'var(--theme-foreground-500, #71717A)' }}
-          >
-            {user?.role?.name || user?.designation?.title || 'Team Member'}
-          </p>
-        </div>
-      </div>
+      <Tooltip content="Collapse sidebar">
+        <Button 
+          isIconOnly 
+          variant="light" 
+          size="sm"
+          onPress={onCollapse}
+          style={{ borderRadius: 'var(--borderRadius, 8px)' }}
+        >
+          <ChevronDoubleLeftIcon className="w-4 h-4" />
+        </Button>
+      </Tooltip>
       
-      {/* Actions */}
-      <div 
-        className="px-3 pb-3 flex items-center gap-1"
-      >
-        <Tooltip content="Collapse sidebar">
-          <Button 
-            isIconOnly 
-            variant="light" 
-            size="sm"
-            onPress={onCollapse}
-            style={{
-              borderRadius: 'var(--borderRadius, 8px)',
-            }}
-          >
-            <ChevronDoubleLeftIcon className="w-4 h-4" />
-          </Button>
-        </Tooltip>
-        
-        <Tooltip content="Settings">
-          <Button 
-            isIconOnly 
-            variant="light" 
-            size="sm"
-            as={Link}
-            href={safeRoute('settings', '/settings')}
-            style={{
-              borderRadius: 'var(--borderRadius, 8px)',
-            }}
-          >
-            <Cog6ToothIcon className="w-4 h-4" />
-          </Button>
-        </Tooltip>
-        
-        <div className="flex-1" />
-        
-        <Tooltip content="Logout">
-          <Button 
-            isIconOnly 
-            variant="light" 
-            size="sm"
-            color="danger"
-            onPress={handleLogout}
-            style={{
-              borderRadius: 'var(--borderRadius, 8px)',
-            }}
-          >
-            <ArrowRightOnRectangleIcon className="w-4 h-4" />
-          </Button>
-        </Tooltip>
-      </div>
-    </motion.div>
+      <Tooltip content="Settings">
+        <Button 
+          isIconOnly 
+          variant="light" 
+          size="sm"
+          as={Link}
+          href={safeRoute('settings', '/settings')}
+          style={{ borderRadius: 'var(--borderRadius, 8px)' }}
+        >
+          <Cog6ToothIcon className="w-4 h-4" />
+        </Button>
+      </Tooltip>
+    </div>
   );
 });
 
 /**
  * Main Sidebar Component
  */
-const Sidebar = React.memo(({ pages = [], className = '' }) => {
+const Sidebar = React.memo(({ className = '' }) => {
   const {
+    navItems,
     sidebarOpen,
     sidebarCollapsed,
     mobileDrawerOpen,
@@ -530,10 +539,10 @@ const Sidebar = React.memo(({ pages = [], className = '' }) => {
   
   // Auto-expand parent menus for active item
   useEffect(() => {
-    if (activePath && pages.length > 0) {
-      expandParentMenus(activePath, pages);
+    if (activePath && navItems.length > 0) {
+      expandParentMenus(activePath, navItems);
     }
-  }, [activePath, pages]);
+  }, [activePath, navItems]);
   
   // Handle navigation
   const handleNavigate = useCallback((item) => {
@@ -575,8 +584,13 @@ const Sidebar = React.memo(({ pages = [], className = '' }) => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/50 z-40"
+              transition={{ duration: 0.25 }}
+              className="fixed inset-0 z-40"
+              style={{
+                background: 'rgba(0,0,0,0.3)',
+                backdropFilter: 'blur(4px)',
+                WebkitBackdropFilter: 'blur(4px)',
+              }}
               onClick={() => setMobileDrawerOpen(false)}
             />
             
@@ -596,9 +610,12 @@ const Sidebar = React.memo(({ pages = [], className = '' }) => {
                 style={{
                   borderRadius: 0,
                   background: `linear-gradient(180deg, 
-                    var(--theme-content1, #FAFAFA) 0%, 
-                    var(--theme-content2, #F4F4F5) 100%)`,
-                  borderRight: `var(--borderWidth, 2px) solid var(--theme-divider, #E4E4E7)`,
+                    color-mix(in srgb, var(--theme-content1, #FAFAFA) 92%, transparent) 0%, 
+                    color-mix(in srgb, var(--theme-content2, #F4F4F5) 90%, transparent) 100%)`,
+                  backdropFilter: 'blur(20px) saturate(1.4)',
+                  WebkitBackdropFilter: 'blur(20px) saturate(1.4)',
+                  borderRight: `1px solid color-mix(in srgb, var(--theme-divider, #E4E4E7) 50%, transparent)`,
+                  boxShadow: '4px 0 30px -5px rgba(0,0,0,0.1)',
                 }}
               >
                 <SidebarHeader 
@@ -612,7 +629,7 @@ const Sidebar = React.memo(({ pages = [], className = '' }) => {
                   onSearchChange={setSearchTerm}
                 />
                 <SidebarContent 
-                  menuItems={pages}
+                  menuItems={navItems}
                   collapsed={false}
                   searchTerm={searchTerm}
                   expandedMenus={expandedMenus}
@@ -651,20 +668,42 @@ const Sidebar = React.memo(({ pages = [], className = '' }) => {
       }}
     >
       <Card
-        className="h-full flex flex-col m-3 mr-0 overflow-hidden"
+        className="h-full flex flex-col m-3 mr-0 overflow-hidden relative"
         style={{
           background: `linear-gradient(180deg, 
-            var(--theme-content1, #FAFAFA) 0%, 
-            var(--theme-content2, #F4F4F5) 100%)`,
-          border: `var(--borderWidth, 2px) solid var(--theme-divider, #E4E4E7)`,
+            color-mix(in srgb, var(--theme-content1, #FAFAFA) 92%, transparent) 0%, 
+            color-mix(in srgb, var(--theme-content2, #F4F4F5) 90%, transparent) 100%)`,
+          backdropFilter: 'blur(20px) saturate(1.4)',
+          WebkitBackdropFilter: 'blur(20px) saturate(1.4)',
+          border: `1px solid color-mix(in srgb, var(--theme-divider, #E4E4E7) 50%, transparent)`,
           borderRadius: `var(--borderRadius, 12px)`,
           boxShadow: `
-            0 10px 40px -10px rgba(0,0,0,0.1),
-            0 0 0 1px var(--theme-divider, #E4E4E7),
-            inset 0 1px 0 0 rgba(255,255,255,0.5)
+            0 20px 60px -15px rgba(0,0,0,0.08),
+            0 0 0 1px color-mix(in srgb, var(--theme-divider, #E4E4E7) 30%, transparent),
+            inset 0 1px 0 0 rgba(255,255,255,0.6)
           `,
         }}
       >
+        {/* Animated accent strip on left edge */}
+        <motion.div
+          className="absolute left-0 top-0 bottom-0 w-[2px] z-10"
+          style={{
+            background: `linear-gradient(180deg, 
+              var(--theme-primary, #006FEE)60, 
+              var(--theme-primary, #006FEE)20, 
+              var(--theme-primary, #006FEE)05,
+              transparent)`,
+            borderRadius: 'var(--borderRadius, 12px) 0 0 var(--borderRadius, 12px)',
+          }}
+          animate={{ 
+            background: [
+              'linear-gradient(180deg, var(--theme-primary, #006FEE)60, var(--theme-primary, #006FEE)20, transparent)',
+              'linear-gradient(180deg, var(--theme-primary, #006FEE)30, var(--theme-primary, #006FEE)50, var(--theme-primary, #006FEE)20)',
+              'linear-gradient(180deg, var(--theme-primary, #006FEE)60, var(--theme-primary, #006FEE)20, transparent)',
+            ],
+          }}
+          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+        />
         <SidebarHeader 
           collapsed={sidebarCollapsed} 
           onClose={toggleSidebar}
@@ -674,9 +713,10 @@ const Sidebar = React.memo(({ pages = [], className = '' }) => {
           collapsed={sidebarCollapsed}
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
+          onExpandAndSearch={toggleCollapsed}
         />
         <SidebarContent 
-          menuItems={pages}
+          menuItems={navItems}
           collapsed={sidebarCollapsed}
           searchTerm={searchTerm}
           expandedMenus={expandedMenus}

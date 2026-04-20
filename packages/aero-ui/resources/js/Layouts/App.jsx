@@ -28,11 +28,12 @@ import CommandPalette from '@/Components/Navigation/CommandPalette.jsx';
 import MaintenanceModeBanner from '@/Components/Platform/MaintenanceModeBanner.jsx';
 import { useVersionManager } from '@/Hooks/useVersionManager.js';
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
+import { useKeyboardNavigation } from '@/Hooks/useKeyboardNavigation.js';
+import { useAINavigation } from '@/Hooks/useAINavigation.js';
 import { TranslationProvider } from '@/Context/TranslationContext';
 import { GlobalAutoTranslator } from '@/Context/GlobalAutoTranslator';
 import { AppStateProvider } from '@/Context/AppStateContext';
 import { useBranding } from '@/Hooks/useBranding';
-import { useLegacyPages } from '@/Configs/navigationUtils.jsx';
 
 import '@/utils/serviceWorkerManager.js';
 
@@ -71,7 +72,6 @@ PageContent.displayName = 'PageContent';
 const MainContentArea = React.memo(({ 
   children, 
   url, 
-  pages,
   onToggleThemeDrawer,
   auth 
 }) => {
@@ -111,7 +111,7 @@ const MainContentArea = React.memo(({
       <header className="sticky top-0 z-[30] w-full overflow-hidden print:hidden">
         <ImpersonationBanner />
         <SubscriptionAlertBanner />
-        <Header pages={pages} showNav={!sidebarOpen} />
+        <Header showNav={!sidebarOpen} />
       </header>
       
       {/* Breadcrumb */}
@@ -164,9 +164,6 @@ const App = React.memo(({ children }) => {
   // Get domain-aware branding
   const { favicon, siteName } = useBranding();
 
-  // Get navigation pages (from config-driven navigation system)
-  const pages = useLegacyPages();
-
   // Version manager for update notifications
   const {
     currentVersion,
@@ -175,6 +172,9 @@ const App = React.memo(({ children }) => {
     forceUpdate,
     dismissUpdate
   } = useVersionManager();
+
+  // Auto-track page visits for AI navigation personalization
+  useAINavigation();
 
   // Responsive breakpoints
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -260,16 +260,7 @@ const App = React.memo(({ children }) => {
   }, []);
 
   // Command Palette keyboard shortcut (⌘K / Ctrl+K)
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        staticToggleCommandPalette();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [staticToggleCommandPalette]);
+  useKeyboardNavigation({ onCommandPalette: staticToggleCommandPalette });
 
   // Inertia loading state
   useEffect(() => {
@@ -315,9 +306,8 @@ const App = React.memo(({ children }) => {
     <CommandPalette
       isOpen={commandPaletteOpen}
       onClose={staticCloseCommandPalette}
-      pages={pages}
     />
-  ), [commandPaletteOpen, staticCloseCommandPalette, pages]);
+  ), [commandPaletteOpen, staticCloseCommandPalette]);
 
   // ===== RENDER =====
   return (
@@ -397,13 +387,12 @@ const App = React.memo(({ children }) => {
                 >
                   {/* Sidebar - Desktop visible, Mobile drawer */}
                   <div className="print:hidden">
-                    <Sidebar pages={pages} />
+                    <Sidebar />
                   </div>
 
                   {/* Main Content Area */}
                   <MainContentArea
                     url={url}
-                    pages={pages}
                     onToggleThemeDrawer={staticToggleThemeDrawer}
                     auth={authData}
                   >

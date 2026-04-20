@@ -20,8 +20,7 @@ export default function AdminDetails({ steps = [], currentStep, savedData = {}, 
     password_confirmation: admin.password_confirmation ?? '',
   });
 
-  const { themeSettings } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode } = useTheme();
   const { siteName } = useBranding();
   
   const palette = {

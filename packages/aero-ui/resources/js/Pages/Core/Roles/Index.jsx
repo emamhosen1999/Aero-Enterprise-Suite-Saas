@@ -117,8 +117,7 @@ const RoleManagement = (props) => {
     const lastUpdateRef = useRef(Date.now());
     
     // Theme and responsive hooks
-    const { themeSettings } = useTheme();
-    const isDark = themeSettings?.mode === 'dark';
+    const { isDark } = useTheme();
     const themeRadius = useThemeRadius();
     
     // Manual responsive state management (HRMAC pattern)

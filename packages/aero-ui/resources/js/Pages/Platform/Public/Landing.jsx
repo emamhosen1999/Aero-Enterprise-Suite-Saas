@@ -179,8 +179,7 @@ const deploymentModels = [
 ];
 
 export default function Landing() {
-  const { themeSettings } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode } = useTheme();
   
   // Get platform settings from Inertia props
   const { platformSettings } = usePage().props;

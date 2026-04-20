@@ -64,8 +64,7 @@ export default function SocialProof({
   variant = 'compact', // 'compact' | 'full' | 'minimal'
   className = '',
 }) {
-  const { themeSettings } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode } = useTheme();
 
   const palette = {
     surface: isDarkMode

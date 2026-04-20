@@ -72,8 +72,7 @@ export default function OnboardingChecklist({
   onDismiss,
   className = '',
 }) {
-  const { themeSettings } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode } = useTheme();
 
   // Calculate completion status
   const { completedCount, totalCount, progressPercent, tasksWithStatus } = useMemo(() => {

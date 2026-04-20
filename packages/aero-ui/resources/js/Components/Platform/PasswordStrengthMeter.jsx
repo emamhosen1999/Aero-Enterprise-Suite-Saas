@@ -75,8 +75,7 @@ export default function PasswordStrengthMeter({
   showRequirements = true,
   className = '',
 }) {
-  const { themeSettings } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode } = useTheme();
 
   const strength = useMemo(() => calculateStrength(password), [password]);
   const strengthInfo = strengthLevels[strength];

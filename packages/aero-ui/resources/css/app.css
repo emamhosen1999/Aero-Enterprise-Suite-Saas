@@ -12,6 +12,11 @@
    Central configuration for consistent depth effects
    ============================================ */
 :root {
+    /* Extended chart palette (beyond semantic theme colors) */
+    --chart-color-6: #0EA5E9;
+    --chart-color-7: #EC4899;
+    --chart-color-8: #F97316;
+
     /* Perspective values */
     --perspective-subtle: 1000px;
     --perspective-moderate: 800px;
@@ -692,6 +697,96 @@ button .text-3d-float,
 [data-slot="header"] h4 {
     display: inline-block;
     transform-style: preserve-3d;
+}
+
+/* ============================================
+   DARK MODE CHART COLORS
+   ============================================ */
+.dark {
+    --chart-color-6: #38BDF8;
+    --chart-color-7: #F472B6;
+    --chart-color-8: #FB923C;
+}
+
+/* ============================================
+   THEME-AWARE SEMANTIC UTILITY CLASSES
+   ============================================ */
+
+/* Text color utilities that respond to theme */
+.aero-text-primary { color: var(--theme-foreground) !important; }
+.aero-text-secondary { color: var(--theme-foreground-secondary, var(--theme-foreground)) !important; }
+.aero-text-muted { color: color-mix(in srgb, var(--theme-foreground) 60%, transparent) !important; }
+
+/* Surface utilities */
+.aero-surface { background: var(--theme-content1) !important; }
+.aero-surface-raised { background: var(--theme-content2) !important; }
+.aero-surface-sunken { background: var(--theme-background) !important; }
+
+/* Dark mode card header override */
+.dark .aero-card-header {
+    border-color: var(--theme-divider, #27272A) !important;
+}
+
+/* Reduce motion support (data attribute set by accessibility setting) */
+[data-reduce-motion] * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+}
+
+/* ============================================
+   DARK MODE VARIANT OVERRIDES
+   data-dark-variant is set by applyThemeToDocument()
+   All variants add .dark for HeroUI, but have different surface colors
+   ============================================ */
+
+/* Dim variant — softer dark with blue-gray undertones */
+[data-dark-variant="dim"] .aero-card {
+    background: linear-gradient(135deg,
+        var(--theme-content1, #1A2733) 20%,
+        var(--theme-content2, #22303C) 10%,
+        var(--theme-content3, #2C3E50) 20%) !important;
+    border-color: var(--theme-divider, #38444D) !important;
+}
+
+[data-dark-variant="dim"] .aero-card:hover {
+    box-shadow: 0 4px 24px -2px color-mix(in srgb, var(--theme-primary) 12%, transparent),
+                0 2px 8px -2px rgba(0, 0, 0, 0.2) !important;
+}
+
+[data-dark-variant="dim"] .aero-card-header {
+    border-color: var(--theme-divider, #38444D) !important;
+}
+
+/* Midnight variant — true black AMOLED surfaces */
+[data-dark-variant="midnight"] .aero-card {
+    background: linear-gradient(135deg,
+        var(--theme-content1, #0A0A0A) 20%,
+        var(--theme-content2, #141414) 10%,
+        var(--theme-content3, #1E1E1E) 20%) !important;
+    border-color: var(--theme-divider, #1A1A1A) !important;
+}
+
+[data-dark-variant="midnight"] .aero-card:hover {
+    box-shadow: 0 4px 24px -2px color-mix(in srgb, var(--theme-primary) 10%, transparent),
+                0 2px 8px -2px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-dark-variant="midnight"] .aero-card-header {
+    border-color: var(--theme-divider, #1A1A1A) !important;
+}
+
+/* Dim variant — chart colors with slightly warmer tones */
+[data-dark-variant="dim"] {
+    --chart-color-6: #60A5FA;
+    --chart-color-7: #F9A8D4;
+    --chart-color-8: #FDBA74;
+}
+
+/* Midnight variant — higher-contrast chart colors for pure black bg */
+[data-dark-variant="midnight"] {
+    --chart-color-6: #7DD3FC;
+    --chart-color-7: #F9A8D4;
+    --chart-color-8: #FCD34D;
 }
 
 /* ============================================

@@ -29,8 +29,7 @@ export default function VerifyPhone({ steps = [], currentStep, savedData = {}, p
   const hasAutoSentRef = useRef(false);
   const { isOpen: isSkipOpen, onOpen: onSkipOpen, onClose: onSkipClose } = useDisclosure();
 
-  const { themeSettings } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode } = useTheme();
   const { siteName } = useBranding();
   
   const palette = {

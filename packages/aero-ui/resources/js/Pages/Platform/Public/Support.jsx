@@ -20,8 +20,7 @@ import PublicLayout from '@/Layouts/PublicLayout';
 import { useTheme } from '@/Context/ThemeContext.jsx';
 
 const Support = () => {
-  const { themeSettings } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode } = useTheme();
   const { siteName } = useBranding();
 
   const palette = useMemo(() => ({

@@ -81,8 +81,7 @@ export default function Provisioning({
   const [loginUrl, setLoginUrl] = useState(null);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
-  const { themeSettings } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode } = useTheme();
 
   const palette = {
     heading: isDarkMode ? 'text-white' : 'text-slate-900',

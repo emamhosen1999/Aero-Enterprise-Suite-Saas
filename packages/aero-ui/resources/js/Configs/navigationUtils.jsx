@@ -414,41 +414,9 @@ export function convertNavigationToPages(navigation) {
     return navigation.map(convertToLegacyFormat);
 }
 
-/**
- * Hook to get pages in legacy format
- * 
- * This is a drop-in replacement for the getPages function that uses
- * the new configuration-driven navigation system.
- * 
- * @example
- * // Instead of:
- * const pages = getPages(roles, permissions, auth);
- * 
- * // Use:
- * const pages = useLegacyPages();
- */
-import { useMemo } from 'react';
-import { useNavigation } from '@/Hooks/useNavigation';
-
-export function useLegacyPages() {
-    const { navigation, rawNavigation } = useNavigation();
-
-    return useMemo(() => {
-        const pages = convertNavigationToPages(navigation);
-        
-        // Debug logging - remove in production
-        if (typeof window !== 'undefined' && window.DEBUG_NAV) {
-            
-        }
-        
-        return pages;
-    }, [navigation, rawNavigation]);
-}
-
 export default {
     getIcon,
     convertToLegacyFormat,
     convertNavigationToPages,
-    useLegacyPages,
     ICON_MAP,
 };

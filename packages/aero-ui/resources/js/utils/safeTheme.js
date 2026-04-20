@@ -1,5 +1,5 @@
 /**
- * Safe Theme Utilities - v2.0
+ * Safe Theme Utilities - v2.1
  * Migration, validation, and normalization for unified theme storage
  * 
  * KEY CHANGES:
@@ -7,11 +7,12 @@
  * - Consolidated from 5 conflicting legacy keys
  * - Automatic migration from v1 to v2 shape
  * - Validation and normalization layer
+ * - v2.1: Added dim/midnight dark mode variants
  * 
- * THEME SHAPE v2.0:
+ * THEME SHAPE v2.1:
  * {
- *   version: '2.0',
- *   mode: 'light' | 'dark' | 'system',
+ *   version: '2.1',
+ *   mode: 'light' | 'dim' | 'dark' | 'midnight' | 'system',
  *   cardStyle: string,
  *   typography: {
  *     fontFamily: string,
@@ -36,10 +37,15 @@ const LEGACY_KEYS = [
 ];
 
 /**
+ * Valid appearance mode values
+ */
+export const VALID_MODES = ['light', 'dim', 'dark', 'midnight', 'system'];
+
+/**
  * Get default theme settings
  */
 export const getDefaultTheme = () => ({
-  version: '2.0',
+  version: '2.1',
   mode: 'system',
   cardStyle: 'modern',
   typography: {
@@ -59,9 +65,15 @@ export const getDefaultTheme = () => ({
 export const normalizeTheme = (theme) => {
   const defaults = getDefaultTheme();
   
+  // Normalize mode — accept new modes, keep backward-compat
+  let mode = theme?.mode || defaults.mode;
+  if (!VALID_MODES.includes(mode)) {
+    mode = defaults.mode;
+  }
+
   return {
-    version: '2.0',
-    mode: theme?.mode || defaults.mode,
+    version: '2.1',
+    mode,
     cardStyle: theme?.cardStyle || defaults.cardStyle,
     typography: {
       fontFamily: theme?.typography?.fontFamily || theme?.layout?.fontFamily || defaults.typography.fontFamily,
@@ -84,6 +96,11 @@ export const validateTheme = (theme) => {
   
   // Check required top-level fields
   if (!theme.mode || !theme.cardStyle) {
+    return false;
+  }
+  
+  // Validate mode is one of the accepted values
+  if (!VALID_MODES.includes(theme.mode)) {
     return false;
   }
   
@@ -114,7 +131,7 @@ export const migrateTheme = () => {
   if (existingV2) {
     try {
       const parsed = JSON.parse(existingV2);
-      if (parsed.version === '2.0') {
+      if (parsed.version === '2.0' || parsed.version === '2.1') {
         return parsed;
       }
     } catch (e) {

@@ -7,6 +7,26 @@ import { router } from '@inertiajs/react';
 import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 /**
+ * Normalize any URL or path to a clean pathname.
+ * Strips query strings, hash fragments, and extracts pathname from full URLs.
+ * e.g.  "http://host.test/dashboard?_t=123" → "/dashboard"
+ *       "/hrm/leaves?page=2"                → "/hrm/leaves"
+ *       "/dashboard"                         → "/dashboard"
+ */
+export const normalizePath = (raw) => {
+  if (!raw) return '';
+  try {
+    // Full URL → extract pathname
+    if (raw.startsWith('http://') || raw.startsWith('https://')) {
+      return new URL(raw).pathname.replace(/\/+$/, '') || '/';
+    }
+  } catch { /* ignore parse errors */ }
+  // Relative path — strip query string and hash
+  const clean = raw.split('?')[0].split('#')[0].replace(/\/+$/, '');
+  return clean || '/';
+};
+
+/**
  * Check if a route name exists (Ziggy)
  */
 export const hasRoute = (routeName) => {
@@ -18,24 +38,24 @@ export const hasRoute = (routeName) => {
 };
 
 /**
- * Get the URL for a menu item
- * Handles both named routes and URL paths
+ * Get the URL for a menu item — always returns a clean pathname (no host, no query).
  */
 export const getMenuItemUrl = (item) => {
   // Explicit path takes priority
-  if (item.path) return item.path;
+  if (item.path) return normalizePath(item.path);
   
   // Check if route is a named route
   if (item.route) {
     if (hasRoute(item.route)) {
       try {
-        return route(item.route);
+        return normalizePath(route(item.route));
       } catch {
         // Fall through to path handling
       }
     }
     // Treat as URL path
-    return item.route.startsWith('/') ? item.route : `/${item.route}`;
+    const raw = item.route.startsWith('/') ? item.route : `/${item.route}`;
+    return normalizePath(raw);
   }
   
   return null;
@@ -67,19 +87,26 @@ export const navigateToItem = (item, options = {}) => {
 };
 
 /**
- * Check if a menu item or its children are active
+ * Check if a menu item or its children are active.
+ * Both sides are normalized so full-URLs, query-strings, and trailing slashes never break matching.
  */
 export const isItemActive = (item, currentPath) => {
-  const itemUrl = getMenuItemUrl(item);
+  const itemUrl = getMenuItemUrl(item); // already normalized
+  const current = normalizePath(currentPath);
   
   // Direct match
-  if (itemUrl && currentPath === itemUrl) {
+  if (itemUrl && current === itemUrl) {
+    return true;
+  }
+  
+  // Prefix match — /hrm/employees should match /hrm/employees/123
+  if (itemUrl && itemUrl !== '/' && current.startsWith(itemUrl + '/')) {
     return true;
   }
   
   // Check children
   if (item.subMenu || item.children) {
-    return (item.subMenu || item.children).some(child => isItemActive(child, currentPath));
+    return (item.subMenu || item.children).some(child => isItemActive(child, current));
   }
   
   return false;

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useLayoutEffect } from 'react';
-import { applyThemeToDocument } from '../theme/index';
+import { applyThemeToDocument, resolveEffectiveMode, VALID_MODES } from '../theme/index';
 import { getCardStyle, getCardStyleOptions, CARD_STYLES, validateThemeContrast } from '../theme/cardStyles';
 import { getThemePresetOptions, applyThemePreset } from '../theme/themePresets';
 import { BACKGROUND_PRESETS } from '../theme/backgroundPresets';
@@ -10,7 +10,8 @@ import {
   migrateTheme, 
   cleanupLegacyKeys,
   getDefaultTheme,
-  THEME_STORAGE_KEY
+  THEME_STORAGE_KEY,
+  VALID_MODES as SAFE_THEME_MODES
 } from '../utils/safeTheme';
 
 const ThemeContext = createContext();
@@ -39,7 +40,7 @@ export const FONT_OPTIONS = [
   { key: 'georgia', name: 'Georgia', value: 'Georgia' },
 ];
 
-export const MODE_OPTIONS = ['light', 'dark', 'system'];
+export const MODE_OPTIONS = VALID_MODES; // ['light', 'dim', 'dark', 'midnight', 'system']
 
 export const FONT_SIZE_OPTIONS = [
   { key: 'sm', name: 'Small', value: 'sm' },
@@ -157,29 +158,34 @@ export const ThemeProvider = ({ children }) => {
   };
 
   /**
-   * Toggle between light and dark mode
-   * Handles 'system' mode by checking actual visual state
+   * Toggle through appearance modes: light → dim → dark → midnight → light
+   * If currently on 'system', resolves to the next mode after the effective appearance.
    */
   const toggleMode = () => {
     setThemeSettings(prev => {
-      // Determine current visual dark state (same logic as applyThemeToDocument)
-      const isCurrentlyDark = prev.mode === 'dark' || 
-        (prev.mode === 'system' && 
-         typeof window !== 'undefined' && 
-         window.matchMedia?.('(prefers-color-scheme: dark)')?.matches);
+      const cycle = ['light', 'dim', 'dark', 'midnight'];
       
-      return {
-        ...prev,
-        mode: isCurrentlyDark ? 'light' : 'dark'
-      };
+      // Determine which position in the cycle we're at
+      let currentIdx;
+      if (prev.mode === 'system') {
+        // Resolve system to its effective mode, then advance
+        const effective = resolveEffectiveMode('system');
+        currentIdx = cycle.indexOf(effective || 'light');
+      } else {
+        currentIdx = cycle.indexOf(prev.mode);
+        if (currentIdx === -1) currentIdx = 0;
+      }
+      
+      const nextIdx = (currentIdx + 1) % cycle.length;
+      return { ...prev, mode: cycle[nextIdx] };
     });
   };
 
   /**
-   * Set specific mode (light, dark, or system)
+   * Set specific mode (light, dim, dark, midnight, or system)
    */
   const setMode = (mode) => {
-    if (['light', 'dark', 'system'].includes(mode)) {
+    if (VALID_MODES.includes(mode)) {
       setThemeSettings(prev => ({
         ...prev,
         mode
@@ -225,6 +231,7 @@ export const ThemeProvider = ({ children }) => {
       <ThemeContext.Provider value={{
         themeSettings: getDefaultTheme(),
         mode: 'light',
+        isDark: false,
         cardStyle: 'modern',
         typography: { fontFamily: 'Inter', fontSize: 'base' },
         background: { type: 'color', value: '' },
@@ -257,6 +264,8 @@ export const ThemeProvider = ({ children }) => {
   // CONTEXT VALUE
   // ====================
 
+  const isDark = resolveEffectiveMode(themeSettings.mode) !== null;
+
   const value = {
     // Current settings (mutable)
     themeSettings,
@@ -264,6 +273,7 @@ export const ThemeProvider = ({ children }) => {
     
     // Shorthand accessors (read-only)
     mode: themeSettings.mode,
+    isDark,
     cardStyle: themeSettings.cardStyle,
     typography: themeSettings.typography,
     background: themeSettings.background,

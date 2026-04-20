@@ -6,8 +6,7 @@ import { CheckIcon } from '@heroicons/react/24/solid';
 
 export default function ProgressSteps({ steps = [], currentStep }) {
   const currentIndex = steps.findIndex((step) => step.key === currentStep);
-  const { themeSettings } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode } = useTheme();
   const palette = {
     complete: isDarkMode
       ? 'border-emerald-400/60 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20'

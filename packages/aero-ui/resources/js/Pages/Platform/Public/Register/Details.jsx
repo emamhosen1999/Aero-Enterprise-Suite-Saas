@@ -40,8 +40,7 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
   const [subdomainStatus, setSubdomainStatus] = useState({ checking: false, available: null, message: '' });
   const [subdomainCheckTimer, setSubdomainCheckTimer] = useState(null);
 
-  const { themeSettings } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode } = useTheme();
   const { siteName } = useBranding();
 
   // Slugify helper: lowercases, replaces spaces/special chars with hyphens, strips leading/trailing hyphens

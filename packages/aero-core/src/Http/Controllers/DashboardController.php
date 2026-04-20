@@ -44,8 +44,8 @@ class DashboardController extends Controller
             'storageAnalytics' => Inertia::defer(fn () => $this->dashboardService->getStorageAnalytics()),
             'systemHealth' => Inertia::defer(fn () => $this->dashboardService->getSystemHealth()),
             'onboardingProgress' => Inertia::defer(fn () => $this->dashboardService->getOnboardingProgress()),
-            'pendingApprovals' => Inertia::defer(fn () => $this->dashboardService->getPendingApprovals()),
-            'upcomingEvents' => Inertia::defer(fn () => $this->dashboardService->getUpcomingEvents()),
+            'recentNotifications' => Inertia::defer(fn () => $this->dashboardService->getRecentNotifications()),
+            'activeSessionsData' => Inertia::defer(fn () => $this->dashboardService->getActiveSessionsData()),
         ]);
     }
 

@@ -13,8 +13,7 @@ import { trackPublicCtaFromDataset } from '@/utils/publicAnalytics';
 export default function PublicLayout({ children, extraNavLinks = [], mainClassName = 'pt-24', title }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { themeSettings, toggleMode } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode, toggleMode } = useTheme();
   const { logo, favicon, siteName } = useBranding();
 
   useEffect(() => {

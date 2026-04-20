@@ -19,8 +19,8 @@ import QuickActionsPanel from '@/Components/Dashboard/Admin/QuickActionsPanel';
 import SecurityOverviewCard from '@/Components/Dashboard/Admin/SecurityOverviewCard';
 import StorageAnalyticsCard from '@/Components/Dashboard/Admin/StorageAnalyticsCard';
 import SystemHealthCard from '@/Components/Dashboard/Admin/SystemHealthCard';
-import PendingApprovalsCard from '@/Components/Dashboard/Admin/PendingApprovalsCard';
-import UpcomingEventsCard from '@/Components/Dashboard/Admin/UpcomingEventsCard';
+import RecentNotificationsCard from '@/Components/Dashboard/Admin/RecentNotificationsCard';
+import UserSessionsCard from '@/Components/Dashboard/Admin/UserSessionsCard';
 
 // Stagger animation variants
 const containerVariants = {
@@ -49,8 +49,8 @@ const CoreDashboard = ({
     storageAnalytics,
     systemHealth,
     recentAuditLog,
-    pendingApprovals,
-    upcomingEvents,
+    recentNotifications,
+    activeSessionsData,
 }) => {
     const { tenant } = usePage().props;
     const { isSuperAdmin } = useHRMAC();
@@ -129,6 +129,20 @@ const CoreDashboard = ({
                             <SystemHealthCard
                                 health={systemHealth}
                                 loading={deferredLoading(systemHealth)}
+                            />
+                        </div>
+                    </motion.div>
+
+                    {/* ── Notifications + Sessions ── */}
+                    <motion.div variants={itemVariants}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <RecentNotificationsCard
+                                notifications={recentNotifications}
+                                loading={deferredLoading(recentNotifications)}
+                            />
+                            <UserSessionsCard
+                                sessions={activeSessionsData}
+                                loading={deferredLoading(activeSessionsData)}
                             />
                         </div>
                     </motion.div>

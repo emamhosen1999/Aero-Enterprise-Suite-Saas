@@ -71,8 +71,7 @@ export default function OnboardingWizard({
     const [teamInvites, setTeamInvites] = useState([{ email: '', role: roles[0]?.name || 'employee' }]);
     
     // Theme context for dark mode toggle
-    const { themeSettings, toggleMode } = useTheme();
-    const isDarkMode = themeSettings?.mode === 'dark';
+    const { isDark: isDarkMode, toggleMode } = useTheme();
 
     // Set theme radius on mount (client-side only)
     useEffect(() => {

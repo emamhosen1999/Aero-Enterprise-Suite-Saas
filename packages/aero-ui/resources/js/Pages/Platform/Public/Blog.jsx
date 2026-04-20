@@ -27,8 +27,7 @@ const posts = [
 ];
 
 export default function Blog() {
-  const { themeSettings } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode } = useTheme();
   const { siteName } = useBranding();
 
   const palette = useMemo(() => ({

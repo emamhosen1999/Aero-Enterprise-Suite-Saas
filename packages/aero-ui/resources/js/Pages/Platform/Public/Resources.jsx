@@ -20,8 +20,7 @@ import { useTheme } from '@/Context/ThemeContext.jsx';
 const Resources = () => {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('All');
-  const { themeSettings } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode } = useTheme();
   const { siteName } = useBranding();
 
   const palette = useMemo(() => ({

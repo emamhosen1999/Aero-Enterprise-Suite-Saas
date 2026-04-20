@@ -12,8 +12,7 @@ const Checkbox = forwardRef(({
     className = '',
     ...props 
 }, ref) => {
-    const { themeSettings } = useTheme();
-    const isDarkMode = themeSettings?.mode === 'dark';
+    const { isDark: isDarkMode } = useTheme();
 
     const glassTheme = {
         palette: {

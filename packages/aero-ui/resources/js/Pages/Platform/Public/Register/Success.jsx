@@ -9,8 +9,7 @@ import ProgressSteps from './components/ProgressSteps.jsx';
 
 export default function Success({ steps = [], currentStep, result = {}, baseDomain = 'platform.test' }) {
   const workspaceUrl = result.subdomain ? `https://${result.subdomain}.${baseDomain}` : null;
-  const { themeSettings } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode } = useTheme();
   const { siteName } = useBranding();
   const palette = {
     heading: isDarkMode ? 'text-white' : 'text-slate-900',

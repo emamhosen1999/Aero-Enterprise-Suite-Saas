@@ -95,8 +95,7 @@ const iconMap = {
 };
 
 export default function Features() {
-  const { themeSettings } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode } = useTheme();
   const [activeModule, setActiveModule] = useState('hrm');
   const { siteName } = useBranding();
 

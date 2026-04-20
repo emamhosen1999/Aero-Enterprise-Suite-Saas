@@ -14,8 +14,7 @@ export default function EnterprisePlanCard({
   className = '',
   onContactSales,
 }) {
-  const { themeSettings } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode } = useTheme();
 
   const palette = {
     surface: isDarkMode

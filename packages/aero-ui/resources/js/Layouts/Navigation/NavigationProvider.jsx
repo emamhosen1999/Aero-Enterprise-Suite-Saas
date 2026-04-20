@@ -11,6 +11,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import { usePage } from '@inertiajs/react';
+import { getIcon } from '@/Configs/navigationUtils.jsx';
 import { getMenuItemId } from './navigationUtils.jsx';
 
 // Navigation Context
@@ -99,13 +100,34 @@ export const motion3DConfig = {
 /**
  * NavigationProvider Component
  */
+/**
+ * Convert backend nav item (from NavigationRegistry) to the format
+ * consumed by Sidebar/Header/MenuItem3D (which use `subMenu` and `icon` element).
+ */
+const convertNavItem = (item) => {
+  const converted = {
+    ...item,
+    icon: item.icon ? getIcon(item.icon) : null,
+    path: item.path ?? null,
+    subMenu: (item.children ?? []).map(convertNavItem),
+  };
+  delete converted.children;
+  return converted;
+};
+
 export const NavigationProvider = ({ 
   children,
   defaultSidebarOpen = true,
   defaultCollapsed = false,
 }) => {
   const { url, props } = usePage();
-  const { auth } = props;
+  const { auth, navigation: rawNavigation, userNavMetadata } = props;
+
+  // Convert backend nav tree → sidebar format (icon strings → React elements, children → subMenu)
+  const navItems = useMemo(() => {
+    if (!rawNavigation || !Array.isArray(rawNavigation)) return [];
+    return rawNavigation.map(convertNavItem);
+  }, [rawNavigation]);
   
   // ===== CORE STATE =====
   
@@ -145,8 +167,11 @@ export const NavigationProvider = ({
     }
   });
   
-  // Active page path
-  const [activePath, setActivePath] = useState(url);
+  // Active page path — always normalized (no query string, no host)
+  const [activePath, setActivePath] = useState(() => {
+    if (!url) return '/';
+    return url.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
+  });
   
   // Search term for filtering menus
   const [searchTerm, setSearchTerm] = useState('');
@@ -194,9 +219,10 @@ export const NavigationProvider = ({
   
   // ===== URL SYNC =====
   
-  // Update active path when URL changes
+  // Update active path when URL changes — strip query string
   useEffect(() => {
-    setActivePath(url);
+    const clean = (url || '/').split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
+    setActivePath(clean);
   }, [url]);
   
   // ===== ACTIONS =====
@@ -298,7 +324,9 @@ export const NavigationProvider = ({
   
   // ===== CONTEXT VALUE =====
   
-  const value = useMemo(() => ({
+  const value = useMemo(() => ({  
+    // Navigation data (from backend NavigationRegistry via Inertia shared props)
+    navItems,
     // State
     sidebarOpen,
     sidebarCollapsed,
@@ -315,6 +343,7 @@ export const NavigationProvider = ({
     // Auth
     user: auth?.user,
     permissions: auth?.permissions,
+    userNavMetadata: userNavMetadata ?? null,
     
     // Actions
     toggleSidebar,

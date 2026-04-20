@@ -1,30 +1,40 @@
 /**
- * MenuItem3D - Reusable 3D-styled menu item component
- * Used by both Sidebar and Header navigation
+ * MenuItem3D - Premium navigation menu item with advanced effects
+ *
+ * Visual Features:
+ * - Magnetic hover with spotlight parallax
+ * - Active indicator pill with spring animation
+ * - Gradient icon containers with module accent colors
+ * - Shimmer highlight sweep on hover
+ * - Staggered submenu reveal with blur cascade
+ * - Animated connection lines for hierarchy depth
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { Link } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button, Chip } from "@heroui/react";
-import { ChevronRightIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
+import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import { getMenuItemUrl, highlightMatch, getMenuItemId, isItemActive } from './navigationUtils.jsx';
 
-/**
- * MenuItem3D Component
- * 
- * @param {Object} item - Menu item data
- * @param {number} level - Nesting level (0 = root)
- * @param {boolean} isActive - Whether this item is active
- * @param {boolean} isExpanded - Whether submenu is expanded
- * @param {function} onToggle - Toggle submenu callback
- * @param {function} onNavigate - Navigation callback
- * @param {string} searchTerm - Current search term for highlighting
- * @param {string} variant - 'sidebar' | 'header'
- * @param {boolean} collapsed - Sidebar collapsed mode
- * @param {Set} expandedMenus - Set of expanded menu IDs (for nested items)
- * @param {string} activePath - Current active path (for nested items)
- */
+// Module accent palette — each module gets its own color identity
+const MODULE_ACCENTS = {
+  dashboard: { from: '#6366F1', to: '#818CF8' },
+  hrm:       { from: '#F59E0B', to: '#FBBF24' },
+  crm:       { from: '#10B981', to: '#34D399' },
+  finance:   { from: '#3B82F6', to: '#60A5FA' },
+  project:   { from: '#8B5CF6', to: '#A78BFA' },
+  settings:  { from: '#6B7280', to: '#9CA3AF' },
+  default:   { from: 'var(--theme-primary, #006FEE)', to: 'var(--theme-primary-400, #338EF7)' },
+};
+
+const getModuleAccent = (item) => {
+  const name = (item?.module || item?.category || item?.name || '').toLowerCase();
+  for (const [key, val] of Object.entries(MODULE_ACCENTS)) {
+    if (name.includes(key)) return val;
+  }
+  return MODULE_ACCENTS.default;
+};
+
 const MenuItem3D = React.memo(({
   item,
   level = 0,
@@ -41,92 +51,34 @@ const MenuItem3D = React.memo(({
   activePath = '',
 }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [isPressed, setIsPressed] = useState(false);
-  
+  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
+  const itemRef = useRef(null);
+
   const hasSubMenu = item.subMenu?.length > 0 || item.children?.length > 0;
   const subItems = item.subMenu || item.children || [];
   const itemUrl = getMenuItemUrl(item);
   const itemId = getMenuItemId(item, parentId);
-  
-  // Styling based on level and state
-  const styles = useMemo(() => {
-    const isHighlighted = isActive || hasActiveChild || isExpanded;
-    
-    // Size and spacing based on level - supports infinite nesting
-    const getSizeConfig = (lvl) => {
-      if (lvl === 0) return { height: 'h-11', padding: 'px-3', icon: 'w-5 h-5', text: 'text-sm', indent: 0 };
-      if (lvl === 1) return { height: 'h-10', padding: 'px-3', icon: 'w-4 h-4', text: 'text-sm', indent: 12 };
-      // For level 2+, decrease height slightly and increase indent progressively
-      return { 
-        height: 'h-9', 
-        padding: 'px-3', 
-        icon: 'w-4 h-4', 
-        text: 'text-xs', 
-        indent: 12 + ((lvl - 1) * 8) // Progressive indentation for deep nesting
-      };
-    };
-    const sizeConfig = getSizeConfig(level);
-    
-    return {
-      container: `
-        relative w-full mb-1
-        ${variant === 'header' ? 'min-w-[180px]' : ''}
-      `,
-      button: `
-        w-full flex items-center gap-2 justify-start
-        ${sizeConfig.height} ${sizeConfig.padding}
-        transition-all duration-200 ease-out
-        cursor-pointer select-none
-        focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50
-      `,
-      text: `${sizeConfig.text} font-medium flex-1 whitespace-nowrap`,
-      icon: sizeConfig.icon,
-      indent: sizeConfig.indent,
-      
-      // 3D styles
-      idle: {
-        backgroundColor: `color-mix(in srgb, var(--theme-content2, #F4F4F5) 50%, transparent)`,
-        border: `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-divider, #E4E4E7) 60%, transparent)`,
-        borderRadius: `var(--borderRadius, 8px)`,
-        boxShadow: '0 2px 8px -2px rgba(0,0,0,0.05)',
-        color: `var(--theme-foreground, #11181C)`,
-      },
-      hover: {
-        backgroundColor: `color-mix(in srgb, var(--theme-content3, #E4E4E7) 60%, transparent)`,
-        border: `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-divider, #E4E4E7) 80%, transparent)`,
-        borderRadius: `var(--borderRadius, 8px)`,
-        boxShadow: '0 8px 25px -5px rgba(0,0,0,0.12)',
-        transform: 'perspective(1000px) rotateX(-2deg) translateZ(8px) translateY(-2px)',
-        color: `var(--theme-foreground, #11181C)`,
-      },
-      active: {
-        backgroundColor: isActive 
-          ? `color-mix(in srgb, var(--theme-primary, #006FEE) 85%, transparent)`
-          : `color-mix(in srgb, var(--theme-primary, #006FEE) 15%, transparent)`,
-        border: `var(--borderWidth, 2px) solid var(--theme-primary, #006FEE)`,
-        borderRadius: `var(--borderRadius, 8px)`,
-        boxShadow: '0 4px 15px -3px var(--theme-primary, #006FEE)40',
-        transform: 'perspective(1000px) translateZ(4px)',
-        color: isActive ? '#FFFFFF' : `var(--theme-primary, #006FEE)`,
-      },
-      pressed: {
-        transform: 'perspective(1000px) translateZ(2px) scale(0.98)',
-      },
-    };
-  }, [level, isActive, hasActiveChild, isExpanded, variant]);
-  
-  // Get current style based on state
-  const getCurrentStyle = useCallback(() => {
-    if (isPressed) {
-      return { ...styles.active, ...styles.pressed };
-    }
-    if (isActive || hasActiveChild || isExpanded) {
-      return isHovered ? { ...styles.active, ...styles.hover } : styles.active;
-    }
-    return isHovered ? styles.hover : styles.idle;
-  }, [isPressed, isActive, hasActiveChild, isExpanded, isHovered, styles]);
-  
-  // Handle click
+  const accent = useMemo(() => getModuleAccent(item), [item]);
+
+  // Track mouse for spotlight parallax
+  const handleMouseMove = useCallback((e) => {
+    if (!itemRef.current) return;
+    const rect = itemRef.current.getBoundingClientRect();
+    setMousePos({
+      x: (e.clientX - rect.left) / rect.width,
+      y: (e.clientY - rect.top) / rect.height,
+    });
+  }, []);
+
+  // Level-based sizing
+  const cfg = useMemo(() => {
+    if (level === 0) return { h: 42, px: 10, iconBox: 32, iconSize: 20, textSize: '0.875rem', weight: 500 };
+    if (level === 1) return { h: 38, px: 10, iconBox: 28, iconSize: 18, textSize: '0.8125rem', weight: 450 };
+    return { h: 34, px: 10, iconBox: 24, iconSize: 16, textSize: '0.75rem', weight: 400 };
+  }, [level]);
+
+  const isHighlighted = isActive || hasActiveChild;
+
   const handleClick = useCallback((e) => {
     if (hasSubMenu) {
       e.preventDefault();
@@ -135,209 +87,231 @@ const MenuItem3D = React.memo(({
       onNavigate?.(item);
     }
   }, [hasSubMenu, itemId, itemUrl, item, onToggle, onNavigate]);
-  
-  // Render icon
+
+  // Icon with gradient container
   const renderIcon = () => {
     if (!item.icon) return null;
-    
-    const iconColor = (isActive || isHovered) 
-      ? (isActive ? '#FFFFFF' : 'var(--theme-primary, #006FEE)')
-      : 'var(--theme-foreground, #11181C)';
-    
-    return (
-      <motion.span
-        className={styles.icon}
-        style={{ color: iconColor }}
-        animate={isHovered ? { scale: 1.1, rotate: 3 } : { scale: 1, rotate: 0 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-      >
-        {React.isValidElement(item.icon) 
-          ? React.cloneElement(item.icon, { className: styles.icon })
-          : item.icon
-        }
-      </motion.span>
-    );
-  };
-  
-  // Render chevron for items with submenus
-  const renderChevron = () => {
-    if (!hasSubMenu) return null;
-    
-    const ChevronIcon = variant === 'header' ? ChevronRightIcon : ChevronDownIcon;
-    const rotation = variant === 'header' 
-      ? (isExpanded ? 0 : 0) 
-      : (isExpanded ? 180 : 0);
-    
+    const showAccent = isActive || isHovered;
     return (
       <motion.div
-        animate={{ rotate: rotation }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="shrink-0"
+        className="relative shrink-0 flex items-center justify-center rounded-lg"
+        style={{
+          width: cfg.iconBox,
+          height: cfg.iconBox,
+          background: showAccent
+            ? `linear-gradient(135deg, ${accent.from}20, ${accent.to}15)`
+            : 'color-mix(in srgb, var(--theme-content3, #E4E4E7) 40%, transparent)',
+          transition: 'background 0.3s ease',
+        }}
+        animate={isHovered ? { scale: 1.08 } : { scale: 1 }}
+        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
       >
-        <ChevronIcon 
-          className="w-4 h-4"
-          style={{ 
-            color: isActive ? '#FFFFFF' : (isExpanded ? 'var(--theme-primary, #006FEE)' : 'var(--theme-foreground-500, #71717A)') 
+        <span
+          style={{
+            color: isActive ? accent.from : (isHovered ? accent.from : 'var(--theme-foreground-600, #52525B)'),
+            width: cfg.iconSize,
+            height: cfg.iconSize,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'color 0.2s ease',
+          }}
+        >
+          {React.isValidElement(item.icon)
+            ? React.cloneElement(item.icon, { style: { width: cfg.iconSize, height: cfg.iconSize } })
+            : item.icon
+          }
+        </span>
+      </motion.div>
+    );
+  };
+
+  const renderChevron = () => {
+    if (!hasSubMenu) return null;
+    return (
+      <motion.div
+        animate={{ rotate: isExpanded ? 180 : 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        className="shrink-0 ml-auto"
+      >
+        <ChevronDownIcon
+          className="w-3.5 h-3.5"
+          style={{
+            color: isActive ? accent.from : 'var(--theme-foreground-400, #A1A1AA)',
+            transition: 'color 0.2s ease',
           }}
         />
       </motion.div>
     );
   };
-  
-  // Render count badge
+
   const renderBadge = () => {
-    if (!hasSubMenu) return null;
-    
+    if (!hasSubMenu || collapsed) return null;
     return (
-      <Chip
-        size="sm"
-        variant="flat"
-        color={(isActive || hasActiveChild || isExpanded) ? "primary" : "default"}
-        className="h-5 min-w-5 px-1.5 text-xs"
+      <span
+        className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full leading-none"
+        style={{
+          background: isHighlighted
+            ? `${accent.from}18`
+            : 'color-mix(in srgb, var(--theme-content3, #E4E4E7) 60%, transparent)',
+          color: isHighlighted ? accent.from : 'var(--theme-foreground-500, #71717A)',
+          transition: 'all 0.2s ease',
+        }}
       >
         {subItems.length}
-      </Chip>
+      </span>
     );
   };
-  
-  // Main button content
+
   const ButtonContent = (
-    <>
-      {/* Left side: icon + text */}
-      <div className="flex items-center gap-2 flex-1 min-w-0" style={{ paddingLeft: styles.indent }}>
-        {renderIcon()}
-        <span 
-          className={styles.text}
-          style={{ color: 'inherit' }}
-        >
-          {highlightMatch(item.name, searchTerm)}
-        </span>
-      </div>
-      
-      {/* Right side: badge + chevron */}
-      <div className="flex items-center gap-1.5 shrink-0">
-        {renderBadge()}
-        {renderChevron()}
-      </div>
-      
-      {/* Active glow effect */}
-      {isActive && (
-        <motion.div
-          className="absolute inset-0 rounded-lg pointer-events-none"
-          style={{
-            background: `radial-gradient(circle at center, var(--theme-primary, #006FEE)15, transparent 70%)`,
-            borderRadius: 'inherit',
-          }}
-          animate={{ opacity: [0.3, 0.5, 0.3] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-        />
+    <div className="flex items-center gap-2.5 w-full min-w-0">
+      {renderIcon()}
+      {!collapsed && (
+        <>
+          <span
+            className="flex-1 truncate"
+            style={{
+              fontSize: cfg.textSize,
+              fontWeight: isActive ? 600 : cfg.weight,
+              color: isActive ? accent.from : 'var(--theme-foreground, #11181C)',
+              letterSpacing: isActive ? '-0.01em' : '0',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            {highlightMatch(item.name, searchTerm)}
+          </span>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {renderBadge()}
+            {renderChevron()}
+          </div>
+        </>
       )}
-      
-      {/* Bottom light beam for active items */}
-      {isActive && (
-        <motion.div
-          className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full pointer-events-none"
-          style={{
-            background: `linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent)`,
-          }}
-          animate={{ opacity: [0.5, 1, 0.5], scaleX: [0.8, 1, 0.8] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-        />
-      )}
-    </>
+    </div>
   );
-  
-  // Render as link or button
-  const renderButton = () => {
-    const buttonProps = {
-      className: styles.button,
-      style: getCurrentStyle(),
-      onMouseEnter: () => setIsHovered(true),
-      onMouseLeave: () => setIsHovered(false),
-      onMouseDown: () => setIsPressed(true),
-      onMouseUp: () => setIsPressed(false),
-      onClick: handleClick,
-      'aria-expanded': hasSubMenu ? isExpanded : undefined,
-      'aria-haspopup': hasSubMenu ? 'true' : undefined,
-    };
-    
-    if (hasSubMenu) {
-      return (
-        <button type="button" {...buttonProps}>
-          {ButtonContent}
-        </button>
-      );
-    }
-    
-    if (itemUrl) {
-      return (
-        <Link 
-          href={itemUrl}
-          method={item.method || 'get'}
-          preserveState
-          preserveScroll
-          {...buttonProps}
-        >
-          {ButtonContent}
-        </Link>
-      );
-    }
-    
-    return (
-      <button type="button" {...buttonProps} disabled>
-        {ButtonContent}
-      </button>
-    );
+
+  const sharedProps = {
+    ref: itemRef,
+    className: 'relative w-full flex items-center cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+    style: {
+      height: cfg.h,
+      padding: `0 ${cfg.px}px`,
+      borderRadius: 'var(--borderRadius, 10px)',
+    },
+    onMouseEnter: () => setIsHovered(true),
+    onMouseLeave: () => { setIsHovered(false); setMousePos({ x: 0.5, y: 0.5 }); },
+    onMouseMove: handleMouseMove,
+    onClick: handleClick,
+    'aria-expanded': hasSubMenu ? isExpanded : undefined,
   };
-  
+
+  const renderButton = () => {
+    if (hasSubMenu) return <button type="button" {...sharedProps}>{ButtonContent}</button>;
+    if (itemUrl) return <Link href={itemUrl} method={item.method || 'get'} preserveState preserveScroll {...sharedProps}>{ButtonContent}</Link>;
+    return <button type="button" {...sharedProps} disabled>{ButtonContent}</button>;
+  };
+
   return (
     <motion.div
-      className={styles.container}
-      style={{ perspective: '1000px', transformStyle: 'preserve-3d' }}
+      className="relative w-full"
+      style={{ marginBottom: level === 0 ? 2 : 1 }}
       initial={false}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.2 }}
     >
-      {/* Main Item */}
+      {/* Active indicator pill — animated left edge */}
+      <AnimatePresence>
+        {isActive && (
+          <motion.div
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-full z-10"
+            style={{
+              height: cfg.h - 14,
+              background: `linear-gradient(180deg, ${accent.from}, ${accent.to})`,
+              boxShadow: `0 0 8px ${accent.from}50`,
+            }}
+            initial={{ scaleY: 0, opacity: 0 }}
+            animate={{ scaleY: 1, opacity: 1 }}
+            exit={{ scaleY: 0, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+            layoutId="navActiveIndicator"
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Hover spotlight + active background layer */}
       <motion.div
-        whileHover={{ z: 10 }}
-        whileTap={{ scale: 0.98 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+        className="absolute inset-0 pointer-events-none overflow-hidden"
+        style={{ borderRadius: 'var(--borderRadius, 10px)' }}
+      >
+        {/* Background fill */}
+        <motion.div
+          className="absolute inset-0"
+          animate={{
+            opacity: isActive ? 1 : (isHovered ? 1 : 0),
+            background: isActive
+              ? `linear-gradient(135deg, ${accent.from}12, ${accent.to}08)`
+              : `radial-gradient(circle at ${mousePos.x * 100}% ${mousePos.y * 100}%, var(--theme-content3, #E4E4E7)50, transparent 70%)`,
+          }}
+          transition={{ duration: 0.2 }}
+        />
+        {/* Shimmer sweep on hover */}
+        {isHovered && !isActive && (
+          <motion.div
+            className="absolute inset-0"
+            style={{
+              background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.35) 50%, transparent 60%)',
+              backgroundSize: '200% 100%',
+            }}
+            animate={{ backgroundPosition: ['200% 0', '-200% 0'] }}
+            transition={{ duration: 1.2, ease: 'easeInOut' }}
+          />
+        )}
+      </motion.div>
+
+      {/* Button with magnetic slide */}
+      <motion.div
+        className="relative z-[1]"
+        animate={isHovered ? { x: 3 } : { x: 0 }}
+        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
       >
         {renderButton()}
       </motion.div>
-      
-      {/* Submenu */}
-      <AnimatePresence>
+
+      {/* Submenu with cascade reveal */}
+      <AnimatePresence initial={false}>
         {hasSubMenu && isExpanded && (
           <motion.div
-            initial={{ opacity: 0, height: 0, rotateX: -10 }}
-            animate={{ opacity: 1, height: 'auto', rotateX: 0 }}
-            exit={{ opacity: 0, height: 0, rotateX: -10 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
-            style={{ transformOrigin: 'top', overflow: 'hidden' }}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+            style={{ overflow: 'hidden' }}
           >
-            <div 
-              className="mt-1 space-y-0.5"
-              style={{
-                marginLeft: level === 0 ? '12px' : '8px',
-                paddingLeft: '12px',
-                borderLeft: `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) ${30 - Math.min(level * 5, 20)}%, transparent)`,
-              }}
+            <div
+              className="relative mt-1 space-y-0.5"
+              style={{ marginLeft: level === 0 ? 16 : 12, paddingLeft: 14 }}
             >
+              {/* Animated gradient connection line */}
+              <motion.div
+                className="absolute left-0 top-0 bottom-2 w-[2px] rounded-full"
+                style={{ background: `linear-gradient(180deg, ${accent.from}35, ${accent.from}08)` }}
+                initial={{ scaleY: 0, originY: 0 }}
+                animate={{ scaleY: 1 }}
+                exit={{ scaleY: 0 }}
+                transition={{ duration: 0.35, ease: 'easeOut' }}
+              />
+
               {subItems.map((subItem, index) => {
                 const subItemId = getMenuItemId(subItem, itemId);
                 const subItemUrl = getMenuItemUrl(subItem);
                 const subItemActive = subItemUrl && activePath === subItemUrl;
                 const subItemHasActiveChild = isItemActive(subItem, activePath) && !subItemActive;
                 const subItemExpanded = expandedMenus?.has(subItemId) || (searchTerm && (subItem.subMenu?.length > 0 || subItem.children?.length > 0));
-                
+
                 return (
                   <motion.div
                     key={subItemId}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.03, duration: 0.2 }}
+                    initial={{ opacity: 0, x: -8, filter: 'blur(4px)' }}
+                    animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+                    exit={{ opacity: 0, x: -8, filter: 'blur(4px)' }}
+                    transition={{ delay: index * 0.04, duration: 0.25, ease: 'easeOut' }}
                   >
                     <MenuItem3D
                       item={subItem}

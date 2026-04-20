@@ -7,6 +7,7 @@ namespace Aero\Core\Services\Dashboard;
 use Aero\Core\Contracts\ModuleSummaryProvider;
 use Aero\Core\Models\AuditLog;
 use Aero\Core\Models\CompanySetting;
+use Aero\Core\Models\NotificationLog;
 use Aero\Core\Models\User;
 use Aero\Core\Models\UserDevice;
 use Aero\Core\Models\UserSession;
@@ -771,6 +772,108 @@ class AdminDashboardService
             usort($events, fn ($a, $b) => strcmp($a['date'], $b['date']));
 
             return $events;
+        });
+    }
+
+    /**
+     * Recent notification log entries for the dashboard.
+     *
+     * @return array<string, mixed>
+     */
+    public function getRecentNotifications(): array
+    {
+        return Cache::remember('admin_dashboard.recent_notifications', 120, function () {
+            try {
+                $items = NotificationLog::latest()
+                    ->limit(8)
+                    ->get(['id', 'user_id', 'channel', 'notification_type', 'subject', 'status', 'sent_at', 'read_at', 'created_at'])
+                    ->map(fn ($n) => [
+                        'id' => $n->id,
+                        'channel' => $n->channel,
+                        'type' => class_basename($n->notification_type ?? 'Notification'),
+                        'subject' => $n->subject ?? 'Notification',
+                        'status' => $n->status,
+                        'isRead' => ! is_null($n->read_at),
+                        'timeAgo' => $n->created_at->diffForHumans(),
+                    ])
+                    ->toArray();
+
+                $total = NotificationLog::count();
+                $unread = NotificationLog::whereNull('read_at')->count();
+                $failedToday = NotificationLog::where('status', 'failed')
+                    ->whereDate('created_at', today())
+                    ->count();
+
+                return [
+                    'items' => $items,
+                    'total' => $total,
+                    'unread' => $unread,
+                    'failedToday' => $failedToday,
+                ];
+            } catch (\Throwable $e) {
+                report($e);
+
+                return ['items' => [], 'total' => 0, 'unread' => 0, 'failedToday' => 0];
+            }
+        });
+    }
+
+    /**
+     * Active sessions and device data for the dashboard.
+     *
+     * @return array<string, mixed>
+     */
+    public function getActiveSessionsData(): array
+    {
+        return Cache::remember('admin_dashboard.active_sessions', 60, function () {
+            try {
+                $onlineNow = UserSession::where('last_activity', '>=', now()->subMinutes(5))->count();
+                $activeToday = UserSession::whereDate('last_activity', today())->count();
+                $activeThisWeek = UserSession::where('last_activity', '>=', now()->startOfWeek())->count();
+
+                // Recent sessions
+                $recentSessions = UserSession::with('user:id,name')
+                    ->orderByDesc('last_activity')
+                    ->limit(6)
+                    ->get(['id', 'user_id', 'ip_address', 'last_activity', 'user_agent'])
+                    ->map(fn ($s) => [
+                        'user' => $s->user?->name ?? 'Unknown',
+                        'ip' => $s->ip_address ?? '—',
+                        'timeAgo' => \Carbon\Carbon::createFromTimestamp($s->last_activity)->diffForHumans(),
+                        'isOnline' => $s->last_activity >= now()->subMinutes(5)->timestamp,
+                    ])
+                    ->toArray();
+
+                // Device type breakdown from UserDevice
+                $devices = [];
+                try {
+                    $deviceCounts = UserDevice::where('is_active', true)
+                        ->selectRaw('device_type, count(*) as total')
+                        ->groupBy('device_type')
+                        ->pluck('total', 'device_type')
+                        ->toArray();
+                    $devices = $deviceCounts;
+                } catch (\Throwable) {
+                }
+
+                return [
+                    'onlineNow' => $onlineNow,
+                    'activeToday' => $activeToday,
+                    'activeThisWeek' => $activeThisWeek,
+                    'recentSessions' => $recentSessions,
+                    'deviceBreakdown' => $devices,
+                ];
+            } catch (\Throwable $e) {
+                report($e);
+
+                return [
+                    'onlineNow' => 0,
+                    'activeToday' => 0,
+                    'activeThisWeek' => 0,
+                    'recentSessions' => [],
+                    'deviceBreakdown' => [],
+                ];
+            }
         });
     }
 

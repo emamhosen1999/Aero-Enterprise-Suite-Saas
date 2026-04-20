@@ -15,6 +15,7 @@ use Aero\Core\Http\Controllers\Auth\PasswordResetLinkController;
 use Aero\Core\Http\Controllers\Auth\TwoFactorController;
 use Aero\Core\Http\Controllers\DashboardController;
 use Aero\Core\Http\Controllers\Notification\NotificationController;
+use Aero\Core\Http\Controllers\Navigation\UserNavigationController;
 use Aero\Core\Http\Controllers\Profile\NotificationPreferenceController;
 use Aero\Core\Http\Controllers\Profile\UserProfileImageController;
 use Aero\Core\Http\Controllers\Settings\NotificationSettingController;
@@ -570,6 +571,19 @@ Route::middleware('auth:web')->group(function () {
             Route::post('/upload', [UserProfileImageController::class, 'upload'])->name('upload');
             Route::delete('/remove', [UserProfileImageController::class, 'remove'])->name('remove');
         });
+    });
+
+    // ========================================================================
+    // NAVIGATION PREFERENCES & ANALYTICS
+    // ========================================================================
+    Route::prefix('user/navigation')->name('core.user.navigation.')->group(function () {
+        Route::get('/preferences', [UserNavigationController::class, 'getPreferences'])->name('preferences.get');
+        Route::patch('/preferences', [UserNavigationController::class, 'updatePreferences'])->name('preferences.update');
+        Route::post('/track', [UserNavigationController::class, 'track'])->name('track');
+    });
+
+    Route::prefix('api/navigation')->name('core.api.navigation.')->group(function () {
+        Route::get('/suggestions', [UserNavigationController::class, 'getSuggestions'])->name('suggestions');
     });
 
     // ========================================================================

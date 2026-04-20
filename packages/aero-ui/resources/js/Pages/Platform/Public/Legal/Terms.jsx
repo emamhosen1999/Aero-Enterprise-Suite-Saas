@@ -6,8 +6,7 @@ import PublicLayout from '@/Layouts/PublicLayout';
 import { useTheme } from '@/Context/ThemeContext.jsx';
 
 const Terms = () => {
-  const { themeSettings } = useTheme();
-  const isDarkMode = themeSettings?.mode === 'dark';
+  const { isDark: isDarkMode } = useTheme();
 
   const palette = useMemo(() => ({
     baseText: isDarkMode ? 'text-white' : 'text-slate-900',
