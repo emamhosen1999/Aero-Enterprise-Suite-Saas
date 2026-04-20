@@ -77,7 +77,7 @@ const RequireModule = ({
         
         return (
             <Card 
-                className={`border-2 border-dashed border-default-200 bg-default-50 ${className}`}
+                className={`border-2 border-dashed border-default-200 bg-content2 ${className}`}
                 shadow="none"
             >
                 <CardBody className="flex flex-col items-center justify-center py-12 text-center">

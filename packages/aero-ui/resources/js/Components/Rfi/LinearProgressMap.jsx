@@ -310,7 +310,7 @@ const LinearProgressMap = ({
                             </div>
 
                             {/* Legend */}
-                            <div className="flex flex-wrap items-center gap-4 mt-4 p-3 rounded-lg bg-default-50">
+                            <div className="flex flex-wrap items-center gap-4 mt-4 p-3 rounded-lg bg-content2">
                                 <div className="flex items-center gap-2">
                                     <div className="w-4 h-4 rounded bg-success" />
                                     <span className="text-xs text-default-600">Complete (100%)</span>

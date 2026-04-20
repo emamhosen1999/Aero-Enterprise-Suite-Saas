@@ -385,7 +385,7 @@ const Edit = ({ auth, tenantId, title }) => {
                                     isReadOnly
                                     description="Subdomain cannot be changed after creation"
                                     radius={themeRadius}
-                                    classNames={{ inputWrapper: "bg-default-50" }}
+                                    classNames={{ inputWrapper: "bg-content2" }}
                                 />
                                 <div className="flex flex-wrap gap-2">
                                     <span className="text-sm text-default-500">Domains:</span>

@@ -265,7 +265,7 @@ const EnhancedRfisExportForm = ({
                     <div className="space-y-6">
                         {/* Export Format */}
                         <Card 
-                            className="bg-default-50"
+                            className="bg-content2"
                             radius={themeRadius}
                             style={{
                                 borderRadius: `var(--borderRadius, 12px)`,

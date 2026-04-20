@@ -96,7 +96,7 @@ const ActivityDetailModal = ({ activity, isOpen, onClose }) => {
                         {/* Causer Info */}
                         <div>
                             <label className="text-xs text-default-500 uppercase mb-2 block">Performed By</label>
-                            <div className="flex items-center gap-3 p-3 bg-default-50 rounded-lg">
+                            <div className="flex items-center gap-3 p-3 bg-content2 rounded-lg">
                                 <UserCircleIcon className="w-8 h-8 text-default-400" />
                                 <div>
                                     <p className="font-medium">{causer.name || 'System'}</p>

@@ -142,7 +142,7 @@ export default function SkillForm({
                         description="Example: python, backend, api, rest"
                     />
 
-                    <div className="flex items-center gap-3 p-4 bg-default-50 rounded-lg">
+                    <div className="flex items-center gap-3 p-4 bg-content2 rounded-lg">
                         <Switch
                             isSelected={formData.is_required}
                             onValueChange={(value) => handleChange('is_required', value)}
@@ -328,7 +328,7 @@ export default function SkillForm({
                     minRows={2}
                 />
 
-                <div className="flex items-center gap-3 p-4 bg-default-50 rounded-lg">
+                <div className="flex items-center gap-3 p-4 bg-content2 rounded-lg">
                     <Switch
                         isSelected={formData.is_verified}
                         onValueChange={(value) => handleChange('is_verified', value)}

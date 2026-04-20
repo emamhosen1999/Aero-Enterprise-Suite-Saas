@@ -896,7 +896,7 @@ const ScoreAggregation = ({ title, performanceCycles = [], employees = [], depar
                                         />
 
                                         {/* Score Preview */}
-                                        <Card className="bg-default-50">
+                                        <Card className="bg-content2">
                                             <CardBody className="text-center py-6">
                                                 <p className="text-sm text-default-600 mb-4">Score Preview</p>
                                                 <div className="space-y-2">

@@ -74,7 +74,7 @@ const ActiveModules = ({ data = [], isRefreshing = false }) => {
                             className={`flex items-center gap-2 p-1.5 sm:p-2 rounded-lg border ${
                                 product.enabled 
                                     ? 'border-success/30 bg-success/5' 
-                                    : 'border-default-200 bg-default-50 opacity-60'
+                                    : 'border-default-200 bg-content2 opacity-60'
                             }`}
                         >
                             <div className={`p-1.5 rounded-lg ${

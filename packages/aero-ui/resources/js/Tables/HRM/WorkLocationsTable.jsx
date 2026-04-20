@@ -366,7 +366,7 @@ const WorkLocationsTable = ({
                         table: "min-h-[300px]",
                         thead: "[&>tr]:first:shadow-small bg-default-100/80",
                         tbody: "divide-y divide-default-200/50",
-                        tr: "group hover:bg-default-50/50 transition-colors h-12",
+                        tr: "group hover:bg-content2/50 transition-colors h-12",
                         td: "py-2 px-3 text-sm",
                         th: "py-2 px-3 text-xs font-semibold"
                     }}

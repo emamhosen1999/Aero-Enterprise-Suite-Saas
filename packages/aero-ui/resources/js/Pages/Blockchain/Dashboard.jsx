@@ -319,7 +319,7 @@ const BlockchainDashboard = ({ title }) => {
                                                 ) : recentActivity.length > 0 ? (
                                                     <div className="space-y-3">
                                                         {recentActivity.map((activity, index) => (
-                                                            <div key={index} className="flex gap-3 p-2 rounded-lg hover:bg-default-50">
+                                                            <div key={index} className="flex gap-3 p-2 rounded-lg hover:bg-content2">
                                                                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                                                                     <ArrowsRightLeftIcon className="w-5 h-5 text-primary" />
                                                                 </div>
@@ -363,7 +363,7 @@ const BlockchainDashboard = ({ title }) => {
                                                 ) : portfolioData.length > 0 ? (
                                                     <div className="space-y-3">
                                                         {portfolioData.map((token, index) => (
-                                                            <div key={index} className="flex justify-between items-center p-2 rounded-lg hover:bg-default-50">
+                                                            <div key={index} className="flex justify-between items-center p-2 rounded-lg hover:bg-content2">
                                                                 <div className="flex gap-3">
                                                                     <div className="w-8 h-8 rounded-full bg-warning/10 flex items-center justify-center">
                                                                         <CurrencyDollarIcon className="w-4 h-4 text-warning" />

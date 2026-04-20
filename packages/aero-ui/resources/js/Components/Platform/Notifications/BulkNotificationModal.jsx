@@ -467,7 +467,7 @@ export default function BulkNotificationModal({ open, onClose, templates = [], u
                                 )}
 
                                 {/* Summary */}
-                                <div className="border border-divider rounded-lg p-4 bg-default-50">
+                                <div className="border border-divider rounded-lg p-4 bg-content2">
                                     <h4 className="text-sm font-semibold mb-3">Notification Summary</h4>
                                     <div className="space-y-2 text-sm">
                                         <div className="flex justify-between">

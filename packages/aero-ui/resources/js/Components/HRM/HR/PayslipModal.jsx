@@ -285,7 +285,7 @@ const PayslipModal = ({ isOpen, onClose, payroll, organization }) => {
 
                         {/* Attendance Summary */}
                         {(payroll.working_days || payroll.present_days) && (
-                            <div className="attendance-grid bg-default-50 dark:bg-default-100 rounded-lg p-4 mb-6 grid grid-cols-5 gap-4 text-center">
+                            <div className="attendance-grid bg-content2 dark:bg-content3 rounded-lg p-4 mb-6 grid grid-cols-5 gap-4 text-center">
                                 <div>
                                     <div className="attendance-value text-2xl font-bold">{payroll.working_days || 0}</div>
                                     <div className="attendance-label text-xs text-default-500">Working Days</div>

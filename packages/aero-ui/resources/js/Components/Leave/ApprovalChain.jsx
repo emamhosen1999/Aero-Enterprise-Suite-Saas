@@ -68,7 +68,7 @@ export default function ApprovalChain({ approvalChain, currentLevel, status }) {
                                         ? 'bg-success-50 dark:bg-success-900/20'
                                         : level.status === 'rejected'
                                         ? 'bg-danger-50 dark:bg-danger-900/20'
-                                        : 'bg-default-100 dark:bg-default-50'
+                                        : 'bg-content2 dark:bg-content3'
                                 }`}
                             >
                                 <div className="shrink-0 mt-0.5">

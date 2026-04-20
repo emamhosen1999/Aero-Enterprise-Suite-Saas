@@ -113,7 +113,7 @@ export default function FilePreview({
 
         // Non-previewable file
         return (
-            <div className="flex flex-col items-center justify-center bg-default-50 dark:bg-default-100 rounded-lg p-12 min-h-[300px]">
+            <div className="flex flex-col items-center justify-center bg-content2 dark:bg-content3 rounded-lg p-12 min-h-[300px]">
                 <DocumentIcon className="w-24 h-24 text-default-300 mb-4" />
                 <p className="text-lg font-medium text-default-700 mb-2">
                     Preview not available

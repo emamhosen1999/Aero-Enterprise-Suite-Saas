@@ -329,28 +329,28 @@ const Provisioning = ({ queue: initialQueue, stats: initialStats, stepProgress: 
 
                                 {/* Step Progress Overview */}
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                                    <div className="p-4 bg-default-50 dark:bg-default-100/50 rounded-lg">
+                                    <div className="p-4 bg-content2 dark:bg-default-100/50 rounded-lg">
                                         <div className="flex items-center gap-2 mb-2">
                                             <CircleStackIcon className="w-5 h-5 text-blue-500" />
                                             <span className="text-sm font-medium">Creating DB</span>
                                         </div>
                                         <p className="text-2xl font-bold">{stepProgress?.creating_db || 0}</p>
                                     </div>
-                                    <div className="p-4 bg-default-50 dark:bg-default-100/50 rounded-lg">
+                                    <div className="p-4 bg-content2 dark:bg-default-100/50 rounded-lg">
                                         <div className="flex items-center gap-2 mb-2">
                                             <CpuChipIcon className="w-5 h-5 text-purple-500" />
                                             <span className="text-sm font-medium">Migrating</span>
                                         </div>
                                         <p className="text-2xl font-bold">{stepProgress?.migrating || 0}</p>
                                     </div>
-                                    <div className="p-4 bg-default-50 dark:bg-default-100/50 rounded-lg">
+                                    <div className="p-4 bg-content2 dark:bg-default-100/50 rounded-lg">
                                         <div className="flex items-center gap-2 mb-2">
                                             <ServerStackIcon className="w-5 h-5 text-orange-500" />
                                             <span className="text-sm font-medium">Seeding</span>
                                         </div>
                                         <p className="text-2xl font-bold">{stepProgress?.seeding || 0}</p>
                                     </div>
-                                    <div className="p-4 bg-default-50 dark:bg-default-100/50 rounded-lg">
+                                    <div className="p-4 bg-content2 dark:bg-default-100/50 rounded-lg">
                                         <div className="flex items-center gap-2 mb-2">
                                             <CheckCircleIcon className="w-5 h-5 text-green-500" />
                                             <span className="text-sm font-medium">Creating Admin</span>

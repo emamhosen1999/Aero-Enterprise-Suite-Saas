@@ -253,7 +253,7 @@ const ShowPerformanceReview = ({ review }) => {
                                                     <DocumentTextIcon className="w-5 h-5 text-primary" />
                                                     <h5 className="text-lg font-semibold">Notes</h5>
                                                 </div>
-                                                <Card className="bg-default-50 border-none">
+                                                <Card className="bg-content2 border-none">
                                                     <CardBody className="p-4">
                                                         <p className="text-sm whitespace-pre-wrap">
                                                             {review.notes}

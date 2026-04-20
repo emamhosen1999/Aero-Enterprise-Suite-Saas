@@ -152,7 +152,7 @@ const ObjectionWarningModal = ({
                                         {activeObjections.map((obj) => (
                                             <div 
                                                 key={obj.id} 
-                                                className="flex items-center justify-between p-2 bg-default-100 dark:bg-default-50/10 rounded text-sm"
+                                                className="flex items-center justify-between p-2 bg-default-100 dark:bg-content2/10 rounded text-sm"
                                             >
                                                 <div className="flex items-center gap-2">
                                                     <ExclamationTriangleIcon className="w-4 h-4 text-warning" />
@@ -192,7 +192,7 @@ const ObjectionWarningModal = ({
                             </div>
                         </ModalBody>
 
-                        <ModalFooter className="bg-default-50 dark:bg-default-100/5">
+                        <ModalFooter className="bg-content2 dark:bg-default-100/5">
                             <Button
                                 variant="light"
                                 onPress={handleClose}

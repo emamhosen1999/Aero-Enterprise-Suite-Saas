@@ -168,7 +168,7 @@ const HRMDashboard = ({ title, dynamicWidgets = [] }) => {
 
                     {/* Empty state - only show if NO widgets at all */}
                     {!hasAnyWidgets && (
-                        <Card className="border border-divider border-dashed bg-default-50/50">
+                        <Card className="border border-divider border-dashed bg-content2/50">
                             <CardBody className="p-12 text-center">
                                 <SparklesIcon className="w-16 h-16 text-default-300 mx-auto mb-4" />
                                 <h3 className="text-lg font-semibold text-default-600 mb-2">

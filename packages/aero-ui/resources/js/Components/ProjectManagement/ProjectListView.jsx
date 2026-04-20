@@ -201,7 +201,7 @@ const ProjectListView = ({
                         return (
                             <TableRow
                                 key={project.id}
-                                className={`hover:bg-default-50 ${isSelected ? 'bg-primary-50' : ''}`}
+                                className={`hover:bg-content2 ${isSelected ? 'bg-primary-50' : ''}`}
                             >
                                 {/* Selection Checkbox */}
                                 <TableCell>

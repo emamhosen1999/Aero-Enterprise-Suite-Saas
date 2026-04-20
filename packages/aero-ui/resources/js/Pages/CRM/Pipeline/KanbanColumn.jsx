@@ -145,7 +145,7 @@ const KanbanColumn = memo(function KanbanColumn({
                     transition-all duration-200 min-h-[200px]
                     ${isOver 
                         ? 'bg-primary-100/50 dark:bg-primary-900/20 ring-2 ring-dashed ring-primary-400' 
-                        : 'bg-default-100/50 dark:bg-default-50/5'
+                        : 'bg-default-100/50 dark:bg-content2/5'
                     }
                 `}
             >

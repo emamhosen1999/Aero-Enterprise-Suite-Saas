@@ -353,7 +353,7 @@ const ChainageProgressMap = ({
                 
                 {/* Legend */}
                 {showLegend && (
-                    <div className="p-4 bg-default-50 border-t border-divider">
+                    <div className="p-4 bg-content2 border-t border-divider">
                         <h4 className="text-sm font-semibold mb-2">Status Legend:</h4>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                             {Object.entries(STATUS_COLORS).map(([status, color]) => (

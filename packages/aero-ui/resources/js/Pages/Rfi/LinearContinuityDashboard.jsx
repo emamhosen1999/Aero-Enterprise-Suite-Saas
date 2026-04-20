@@ -378,7 +378,7 @@ const LinearContinuityDashboard = ({ title, projects }) => {
                                                 </div>
                                             }
                                         >
-                                            <Card className="bg-default-50">
+                                            <Card className="bg-content2">
                                                 <CardBody className="p-8">
                                                     <div className="text-center text-default-500">
                                                         <ChartBarIcon className="w-16 h-16 mx-auto mb-4 text-default-300" />
@@ -417,7 +417,7 @@ const LinearContinuityDashboard = ({ title, projects }) => {
                                                 </div>
                                             }
                                         >
-                                            <Card className="bg-default-50">
+                                            <Card className="bg-content2">
                                                 <CardBody className="p-8">
                                                     <div className="text-center text-default-500">
                                                         <ClipboardDocumentCheckIcon className="w-16 h-16 mx-auto mb-4 text-default-300" />

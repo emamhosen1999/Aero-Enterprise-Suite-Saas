@@ -616,7 +616,7 @@ const RoleManagement = (props) => {
                             variant="bordered"
                             radius={themeRadius}
                             classNames={{
-                                inputWrapper: "bg-default-100/50 dark:bg-default-50/10 border-default-200/20 hover:border-default-300/30 focus-within:!border-primary/50",
+                                inputWrapper: "bg-default-100/50 dark:bg-content2/10 border-default-200/20 hover:border-default-300/30 focus-within:!border-primary/50",
                                 input: "text-foreground placeholder:text-default-400",
                                 label: "text-default-500",
                                 description: "text-default-400",
@@ -635,7 +635,7 @@ const RoleManagement = (props) => {
                             minRows={2}
                             radius={themeRadius}
                             classNames={{
-                                inputWrapper: "bg-default-100/50 dark:bg-default-50/10 border-default-200/20 hover:border-default-300/30 focus-within:!border-primary/50",
+                                inputWrapper: "bg-default-100/50 dark:bg-content2/10 border-default-200/20 hover:border-default-300/30 focus-within:!border-primary/50",
                                 input: "text-foreground placeholder:text-default-400",
                                 label: "text-default-500"
                             }}
@@ -662,7 +662,7 @@ const RoleManagement = (props) => {
                             radius={themeRadius}
                             description="Users with this role will be redirected to this dashboard"
                             classNames={{
-                                trigger: "bg-default-100/50 dark:bg-default-50/10 border-default-200/20 hover:border-default-300/30 data-[focus=true]:border-primary/50",
+                                trigger: "bg-default-100/50 dark:bg-content2/10 border-default-200/20 hover:border-default-300/30 data-[focus=true]:border-primary/50",
                                 label: "text-default-500",
                                 description: "text-default-400"
                             }}
@@ -694,7 +694,7 @@ const RoleManagement = (props) => {
                             radius={themeRadius}
                             description="Higher priority role's dashboard is used for multi-role users"
                             classNames={{
-                                inputWrapper: "bg-default-100/50 dark:bg-default-50/10 border-default-200/20 hover:border-default-300/30 focus-within:!border-primary/50",
+                                inputWrapper: "bg-default-100/50 dark:bg-content2/10 border-default-200/20 hover:border-default-300/30 focus-within:!border-primary/50",
                                 input: "text-foreground",
                                 label: "text-default-500",
                                 description: "text-default-400"

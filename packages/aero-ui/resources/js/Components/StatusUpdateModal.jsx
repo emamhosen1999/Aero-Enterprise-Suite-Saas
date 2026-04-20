@@ -144,7 +144,7 @@ const StatusUpdateModal = ({
                 <form onSubmit={handleSubmit}>
                     <ModalBody className="space-y-4">
                         {/* Current Work Info */}
-                        <Card className="bg-default-50">
+                        <Card className="bg-content2">
                             <CardBody>
                                 <div className="grid grid-cols-2 gap-4 text-sm">
                                     <div>

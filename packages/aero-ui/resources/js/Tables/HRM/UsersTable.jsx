@@ -1069,7 +1069,7 @@ const UsersTable = ({
             table: "border-collapse w-full",
             thead: "sticky top-0 z-30",
             tbody: "",
-            tr: "hover:bg-default-50 transition-colors duration-150",
+            tr: "hover:bg-content2 transition-colors duration-150",
             emptyWrapper: "text-center h-32",
             loadingWrapper: "h-32",
           }}

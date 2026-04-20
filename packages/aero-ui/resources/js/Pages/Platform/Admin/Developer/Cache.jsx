@@ -109,7 +109,7 @@ const Cache = ({ auth }) => {
                                 { name: 'Config Cache', size: '512 KB', status: 'active' },
                                 { name: 'View Cache', size: '18 MB', status: 'active' },
                             ].map((store) => (
-                                <div key={store.name} className="flex items-center justify-between p-3 bg-default-50 dark:bg-default-100/50 rounded-lg">
+                                <div key={store.name} className="flex items-center justify-between p-3 bg-content2 dark:bg-default-100/50 rounded-lg">
                                     <div className="flex-1">
                                         <p className="font-medium text-sm">{store.name}</p>
                                         <p className="text-xs text-default-500">{store.size}</p>

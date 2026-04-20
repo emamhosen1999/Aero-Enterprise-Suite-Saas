@@ -209,7 +209,7 @@ const CmsPageEditor = ({ page = null, blockTypes = [] }) => {
                 </ModalContent>
             </Modal>
 
-            <div className="flex flex-col w-full h-full bg-default-50" role="main">
+            <div className="flex flex-col w-full h-full bg-content2" role="main">
                 {/* Header */}
                 <div className="border-b border-divider bg-content1 p-4">
                     <div className="flex items-center justify-between gap-4 flex-wrap">

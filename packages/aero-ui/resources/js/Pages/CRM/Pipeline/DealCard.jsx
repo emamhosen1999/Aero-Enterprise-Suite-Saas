@@ -140,7 +140,7 @@ const DealCard = memo(function DealCard({
 
                         {/* Probability Badge */}
                         <Tooltip content={`Win probability: ${deal.probability}%`}>
-                            <div className="px-1.5 py-0.5 rounded-md bg-default-100 dark:bg-default-50/10">
+                            <div className="px-1.5 py-0.5 rounded-md bg-default-100 dark:bg-content2/10">
                                 <span className="text-tiny font-medium text-default-600">
                                     {deal.probability}%
                                 </span>

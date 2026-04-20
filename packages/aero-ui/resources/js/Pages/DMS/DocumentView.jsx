@@ -300,7 +300,7 @@ const DocumentView = ({ document, versions = [] }) => {
                                 aria-label="Version history table"
                                 removeWrapper
                                 classNames={{
-                                    th: "bg-default-50 text-default-600 font-semibold",
+                                    th: "bg-content2 text-default-600 font-semibold",
                                     td: "py-3"
                                 }}
                             >
@@ -329,7 +329,7 @@ const DocumentView = ({ document, versions = [] }) => {
                                 aria-label="Sharing table"
                                 removeWrapper
                                 classNames={{
-                                    th: "bg-default-50 text-default-600 font-semibold",
+                                    th: "bg-content2 text-default-600 font-semibold",
                                     td: "py-3"
                                 }}
                             >

@@ -197,7 +197,7 @@ const ActivityItem = ({ activity, showDetails = false }) => {
                             exit={{ height: 0, opacity: 0 }}
                             className="overflow-hidden mt-3"
                         >
-                            <div className="p-3 bg-default-50 dark:bg-default-100 rounded-lg text-xs">
+                            <div className="p-3 bg-content2 dark:bg-default-100 rounded-lg text-xs">
                                 {properties.attributes && (
                                     <div className="mb-2">
                                         <span className="font-semibold text-success-600">New values:</span>

@@ -731,7 +731,7 @@ const PlatformSettings = () => {
                 </div>
 
                 {/* Usage Guidelines */}
-                <div className="p-3 bg-default-50 rounded-lg border border-default-200">
+                <div className="p-3 bg-content2 rounded-lg border border-default-200">
                   <h6 className="text-xs font-semibold text-default-700 mb-2">Asset Usage Guidelines</h6>
                   <ul className="text-xs text-default-600 space-y-1">
                     <li>• <strong>Light/Dark Mode Logos:</strong> Automatically switch based on user's theme preference. Upload both for optimal branding across all themes.</li>

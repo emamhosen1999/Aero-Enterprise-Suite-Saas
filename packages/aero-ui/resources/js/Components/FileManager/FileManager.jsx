@@ -125,7 +125,7 @@ const FileItem = ({
                     border-2 hover:shadow-md
                     ${isSelected 
                         ? 'border-primary bg-primary-50 dark:bg-primary-900/20' 
-                        : 'border-transparent hover:border-default-200 hover:bg-default-50'
+                        : 'border-transparent hover:border-default-200 hover:bg-content2'
                     }
                 `}
                 onClick={() => onSelect?.(item)}
@@ -232,7 +232,7 @@ const FileItem = ({
                 border-2 hover:shadow-sm group
                 ${isSelected 
                     ? 'border-primary bg-primary-50 dark:bg-primary-900/20' 
-                    : 'border-transparent hover:border-default-200 hover:bg-default-50'
+                    : 'border-transparent hover:border-default-200 hover:bg-content2'
                 }
             `}
             onClick={() => onSelect?.(item)}
@@ -315,7 +315,7 @@ const FileItem = ({
  * Upload Progress Item
  */
 const UploadProgressItem = ({ file, progress, status }) => (
-    <div className="flex items-center gap-3 p-2 bg-default-50 rounded-lg">
+    <div className="flex items-center gap-3 p-2 bg-content2 rounded-lg">
         {getFileIcon(file.type, "w-6 h-6")}
         <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">{file.name}</p>
@@ -653,7 +653,7 @@ export default function FileManager({
 
                 {/* Upload queue */}
                 {uploadQueue.length > 0 && (
-                    <div className="mb-4 p-4 bg-default-50 rounded-xl space-y-2">
+                    <div className="mb-4 p-4 bg-content2 rounded-xl space-y-2">
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-sm font-medium">Uploading files...</span>
                             <Button

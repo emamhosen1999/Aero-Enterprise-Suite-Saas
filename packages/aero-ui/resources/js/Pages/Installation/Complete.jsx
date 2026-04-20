@@ -240,7 +240,7 @@ export default function Complete() {
 
                         {/* Installation Key (for support) */}
                         {installationKey && (
-                            <div className="bg-default-100 dark:bg-default-50/10 rounded-xl p-4">
+                            <div className="bg-content2 rounded-xl p-4">
                                 <div className="flex items-center gap-2 mb-2">
                                     <ShieldCheckIcon className="w-4 h-4 text-default-500" />
                                     <span className="text-sm text-default-500">Installation Key (for support)</span>

@@ -215,7 +215,7 @@ const AttendanceAdminTable = ({
                                         className={`
                                         flex flex-col items-center justify-center p-1 rounded text-xs cursor-pointer
                                         transition-colors
-                                        ${isWeekend ? 'bg-default-100' : 'bg-default-50'}
+                                        ${isWeekend ? 'bg-default-100' : 'bg-content2'}
                                     `}
                                         style={{
                                             borderRadius: `var(--borderRadius, 6px)`,
@@ -568,7 +568,7 @@ const AttendanceAdminTable = ({
 
                                                 return (
                                                     <TableCell
-                                                        className={`text-center ${isWeekend ? 'bg-default-50' : ''}`}>
+                                                        className={`text-center ${isWeekend ? 'bg-content2' : ''}`}>
                                                         <Tooltip
                                                             content={
                                                                 <div className="text-sm space-y-1" style={{

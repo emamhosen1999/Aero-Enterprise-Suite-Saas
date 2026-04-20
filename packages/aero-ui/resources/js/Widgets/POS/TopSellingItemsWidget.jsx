@@ -66,7 +66,7 @@ export default function TopSellingItemsWidget({ items = [], period = 'this_month
                 ) : (
                     <div className="space-y-3">
                         {items.slice(0, 5).map((item, index) => (
-                            <div key={index} className="flex items-center gap-3 p-2 bg-default-50 rounded-lg hover:bg-default-100 transition-colors">
+                            <div key={index} className="flex items-center gap-3 p-2 bg-content2 rounded-lg hover:bg-content3 transition-colors">
                                 <span className="text-lg w-8 text-center">{getRankBadge(index)}</span>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium truncate">{item.name}</p>

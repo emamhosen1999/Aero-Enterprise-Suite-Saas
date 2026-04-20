@@ -706,7 +706,7 @@ const Pipeline = ({ title, jobOpenings: initialJobOpenings = [], departments: in
                                     </label>
                                     <div className="space-y-2">
                                         {selectedPipeline.stages?.map((stage, index) => (
-                                            <div key={index} className="flex items-center justify-between p-3 bg-default-50 rounded-lg">
+                                            <div key={index} className="flex items-center justify-between p-3 bg-content2 rounded-lg">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-xs font-bold">
                                                         {index + 1}

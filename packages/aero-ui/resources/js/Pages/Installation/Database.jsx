@@ -240,7 +240,7 @@ export default function Database() {
                 <CardBody className="px-8 pb-6">
                     <div className="space-y-6">
                         {/* Server Connection Section */}
-                        <div className="bg-default-50 dark:bg-default-100/10 rounded-lg p-4">
+                        <div className="bg-content2 rounded-lg p-4">
                             <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                                 <ServerIcon className="w-5 h-5" />
                                 Server Connection
@@ -318,7 +318,7 @@ export default function Database() {
 
                         {/* Database Selection Section */}
                         {serverConnected && (
-                            <div className="bg-default-50 dark:bg-default-100/10 rounded-lg p-4">
+                            <div className="bg-content2 rounded-lg p-4">
                                 <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                                     <CircleStackIcon className="w-5 h-5" />
                                     Database Selection

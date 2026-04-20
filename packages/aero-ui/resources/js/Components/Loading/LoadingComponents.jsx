@@ -70,7 +70,7 @@ const SkeletonCard = React.memo(({
     animated = true 
 }) => (
     <div
-        className={`${className} bg-default-100 dark:bg-default-50 rounded-xl border border-divider`}
+        className={`${className} bg-default-100 dark:bg-content2 rounded-xl border border-divider`}
         style={{ 
             height: `${height}px`,
             animation: animated ? 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' : 'none'
@@ -93,7 +93,7 @@ const SkeletonTable = React.memo(({
     columns = 4,
     className = '' 
 }) => (
-    <div className={`${className} bg-default-100 dark:bg-default-50 rounded-xl border border-divider overflow-hidden`}>
+    <div className={`${className} bg-default-100 dark:bg-content2 rounded-xl border border-divider overflow-hidden`}>
         {/* Header */}
         <div className="p-4 border-b border-divider">
             <div className={`grid gap-4 grid-cols-${columns}`}>

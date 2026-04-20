@@ -270,7 +270,7 @@ const LeaveSummary = ({ title, summaryData }) => {
                 {/* Table body skeleton */}
                 <div className="divide-y divide-divider border rounded-b-lg">
                     {Array.from({ length: rows }).map((_, index) => (
-                        <div key={index} className="flex hover:bg-default-50/50 transition-colors p-3">
+                        <div key={index} className="flex hover:bg-content2/50 transition-colors p-3">
                             {Array.from({ length: columns }).map((_, colIndex) => (
                                 <div key={colIndex} className="flex-1 px-3">
                                     <Skeleton className="w-full h-4 rounded" />
@@ -456,7 +456,7 @@ const LeaveSummary = ({ title, summaryData }) => {
                                                         base: "max-w-full",
                                                         mainWrapper: "h-full",
                                                         input: "text-xs",
-                                                        inputWrapper: "h-10 font-normal text-default-500 bg-default-50/50 border-default-200 hover:border-default-300 focus-within:border-primary-500 transition-colors",
+                                                        inputWrapper: "h-10 font-normal text-default-500 bg-content2/50 border-default-200 hover:border-default-300 focus-within:border-primary-500 transition-colors",
                                                         label: "text-xs text-default-600 font-medium",
                                                     }}
                                                     style={{
@@ -479,7 +479,7 @@ const LeaveSummary = ({ title, summaryData }) => {
                                                     aria-label={showFilters ? 'Hide filters panel' : 'Show filters panel'}
                                                     className={showFilters 
                                                         ? 'bg-primary-50 border-primary-200 text-primary-700 font-medium h-10 text-xs' 
-                                                        : 'bg-default-50 border-default-200 text-default-600 hover:bg-default-100 font-medium h-10 text-xs'
+                                                        : 'bg-content2 border-default-200 text-default-600 hover:bg-content3 font-medium h-10 text-xs'
                                                     }
                                                     style={{
                                                         fontFamily: `var(--fontFamily, "Inter")`,
@@ -499,7 +499,7 @@ const LeaveSummary = ({ title, summaryData }) => {
                                                 transition={{ duration: 0.2, ease: "easeInOut" }}
                                                 className="overflow-hidden"
                                             >
-                                                <div className="bg-default-50/50 backdrop-blur-sm border border-default-200 p-4 space-y-4" 
+                                                <div className="bg-content2/50 backdrop-blur-sm border border-default-200 p-4 space-y-4" 
                                                      style={{ borderRadius: `var(--borderRadius, 8px)` }}>
                                                     {/* Filter Grid */}
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -519,7 +519,7 @@ const LeaveSummary = ({ title, summaryData }) => {
                                                             aria-label="Filter by year"
                                                             classNames={{
                                                                 base: "max-w-full",
-                                                                trigger: "h-9 bg-default-50/50 border-default-200 hover:border-default-300 focus:border-primary-500 transition-colors",
+                                                                trigger: "h-9 bg-content2/50 border-default-200 hover:border-default-300 focus:border-primary-500 transition-colors",
                                                                 label: "text-xs text-default-600 font-medium",
                                                                 value: "text-xs text-default-700 font-medium",
                                                                 popoverContent: "bg-background/95 backdrop-blur-lg border-default-200 shadow-sm",
@@ -550,7 +550,7 @@ const LeaveSummary = ({ title, summaryData }) => {
                                                             aria-label="Filter by department"
                                                             classNames={{
                                                                 base: "max-w-full",
-                                                                trigger: "h-9 bg-default-50/50 border-default-200 hover:border-default-300 focus:border-primary-500 transition-colors",
+                                                                trigger: "h-9 bg-content2/50 border-default-200 hover:border-default-300 focus:border-primary-500 transition-colors",
                                                                 label: "text-xs text-default-600 font-medium",
                                                                 value: "text-xs text-default-700 font-medium",
                                                                 popoverContent: "bg-background/95 backdrop-blur-lg border-default-200 shadow-sm",
@@ -584,7 +584,7 @@ const LeaveSummary = ({ title, summaryData }) => {
                                                             aria-label="Filter by leave status"
                                                             classNames={{
                                                                 base: "max-w-full",
-                                                                trigger: "h-9 bg-default-50/50 border-default-200 hover:border-default-300 focus:border-primary-500 transition-colors",
+                                                                trigger: "h-9 bg-content2/50 border-default-200 hover:border-default-300 focus:border-primary-500 transition-colors",
                                                                 label: "text-xs text-default-600 font-medium",
                                                                 value: "text-xs text-default-700 font-medium",
                                                                 popoverContent: "bg-background/95 backdrop-blur-lg border-default-200 shadow-sm",
@@ -743,7 +743,7 @@ const LeaveSummary = ({ title, summaryData }) => {
                                                                 tbody: "overflow-y-auto",
                                                                 th: "bg-default-100 text-default-700 font-semibold text-xs whitespace-nowrap border-b border-r border-default-200",
                                                                 td: "text-default-600 text-xs whitespace-nowrap px-2 py-1 border-b border-r border-default-200",
-                                                                tr: "hover:bg-default-50/50 transition-colors h-10",
+                                                                tr: "hover:bg-content2/50 transition-colors h-10",
                                                             }}
                                                             style={{
                                                                 borderRadius: `var(--borderRadius, 12px)`,
@@ -939,7 +939,7 @@ const LeaveSummary = ({ title, summaryData }) => {
                                                             tbody: "overflow-y-auto",
                                                             th: "bg-default-100 text-default-700 font-semibold text-xs whitespace-nowrap border-b border-r border-default-200",
                                                             td: "text-default-600 text-xs whitespace-nowrap px-2 py-1 border-b border-r border-default-200",
-                                                            tr: "hover:bg-default-50/50 transition-colors h-10",
+                                                            tr: "hover:bg-content2/50 transition-colors h-10",
                                                         }}
                                                         style={{
                                                             borderRadius: `var(--borderRadius, 12px)`,

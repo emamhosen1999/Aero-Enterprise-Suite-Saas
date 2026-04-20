@@ -248,7 +248,7 @@ const PendingInvitationsPanel = ({ onInvitationChange }) => {
                         {invitations.map((invitation) => (
                             <div
                                 key={invitation.id}
-                                className="p-4 hover:bg-default-50 transition-colors"
+                                className="p-4 hover:bg-content2 transition-colors"
                             >
                                 <div className="flex items-start justify-between gap-4">
                                     {/* Left: Invitation Details */}

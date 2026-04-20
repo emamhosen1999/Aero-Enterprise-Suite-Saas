@@ -1461,7 +1461,7 @@ const RfisTable = ({
                             className={`flex items-center gap-2 px-3 py-2.5 min-w-fit whitespace-nowrap border-b-2 transition-all duration-200 ${
                                 selectedTab === type.key
                                     ? 'border-primary text-primary font-semibold bg-primary/5'
-                                    : 'border-transparent text-default-500 hover:text-default-700 hover:bg-default-50/50'
+                                    : 'border-transparent text-default-500 hover:text-default-700 hover:bg-content2/50'
                             }`}
                         >
                             <span className="text-base">{type.icon}</span>

@@ -343,7 +343,7 @@ const TimeOffCalendar = ({ title, events: initialEvents, employees: initialEmplo
                                                     <div 
                                                         key={index} 
                                                         className={`min-h-[100px] p-2 ${
-                                                            !dayData ? 'bg-default-50' : 
+                                                            !dayData ? 'bg-content2' : 
                                                             dayData.isToday ? 'bg-primary-50' : 'bg-content1'
                                                         }`}
                                                     >

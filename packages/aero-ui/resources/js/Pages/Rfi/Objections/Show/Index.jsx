@@ -165,7 +165,7 @@ const ObjectionsShow = ({
                                             {objection.daily_works.map((work) => (
                                                 <div
                                                     key={work.id}
-                                                    className="flex items-center justify-between p-3 bg-default-50 rounded-lg"
+                                                    className="flex items-center justify-between p-3 bg-content2 rounded-lg"
                                                 >
                                                     <div>
                                                         <p className="font-medium">RFI #{work.id}</p>

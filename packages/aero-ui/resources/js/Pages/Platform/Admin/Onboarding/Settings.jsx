@@ -197,7 +197,7 @@ const Settings = ({ settings: initialSettings, plans, auth }) => {
                                             <h3 className="text-lg font-semibold">Verification</h3>
                                         </CardHeader>
                                         <CardBody className="space-y-4">
-                                            <div className="flex items-center justify-between p-3 bg-default-50 dark:bg-default-100/50 rounded-lg">
+                                            <div className="flex items-center justify-between p-3 bg-content2 dark:bg-default-100/50 rounded-lg">
                                                 <div>
                                                     <p className="font-medium">Email Verification</p>
                                                     <p className="text-xs text-default-400">Require email verification before activation</p>
@@ -207,7 +207,7 @@ const Settings = ({ settings: initialSettings, plans, auth }) => {
                                                     onValueChange={(value) => handleChange('require_email_verification', value)}
                                                 />
                                             </div>
-                                            <div className="flex items-center justify-between p-3 bg-default-50 dark:bg-default-100/50 rounded-lg">
+                                            <div className="flex items-center justify-between p-3 bg-content2 dark:bg-default-100/50 rounded-lg">
                                                 <div>
                                                     <p className="font-medium">Phone Verification</p>
                                                     <p className="text-xs text-default-400">Require phone verification</p>
@@ -217,7 +217,7 @@ const Settings = ({ settings: initialSettings, plans, auth }) => {
                                                     onValueChange={(value) => handleChange('require_phone_verification', value)}
                                                 />
                                             </div>
-                                            <div className="flex items-center justify-between p-3 bg-default-50 dark:bg-default-100/50 rounded-lg">
+                                            <div className="flex items-center justify-between p-3 bg-content2 dark:bg-default-100/50 rounded-lg">
                                                 <div>
                                                     <p className="font-medium">Admin Approval</p>
                                                     <p className="text-xs text-default-400">Require admin approval for new registrations</p>
@@ -237,7 +237,7 @@ const Settings = ({ settings: initialSettings, plans, auth }) => {
                                             <h3 className="text-lg font-semibold">Provisioning</h3>
                                         </CardHeader>
                                         <CardBody className="space-y-4">
-                                            <div className="flex items-center justify-between p-3 bg-default-50 dark:bg-default-100/50 rounded-lg">
+                                            <div className="flex items-center justify-between p-3 bg-content2 dark:bg-default-100/50 rounded-lg">
                                                 <div>
                                                     <p className="font-medium">Auto-Provision</p>
                                                     <p className="text-xs text-default-400">Automatically provision after approval</p>
@@ -247,7 +247,7 @@ const Settings = ({ settings: initialSettings, plans, auth }) => {
                                                     onValueChange={(value) => handleChange('auto_provision_on_approval', value)}
                                                 />
                                             </div>
-                                            <div className="flex items-center justify-between p-3 bg-default-50 dark:bg-default-100/50 rounded-lg">
+                                            <div className="flex items-center justify-between p-3 bg-content2 dark:bg-default-100/50 rounded-lg">
                                                 <div>
                                                     <p className="font-medium">Allow Custom Subdomain</p>
                                                     <p className="text-xs text-default-400">Let tenants choose their subdomain</p>
@@ -277,7 +277,7 @@ const Settings = ({ settings: initialSettings, plans, auth }) => {
                                             <h3 className="text-lg font-semibold">Email Notifications</h3>
                                         </CardHeader>
                                         <CardBody className="space-y-4">
-                                            <div className="flex items-center justify-between p-3 bg-default-50 dark:bg-default-100/50 rounded-lg">
+                                            <div className="flex items-center justify-between p-3 bg-content2 dark:bg-default-100/50 rounded-lg">
                                                 <div>
                                                     <p className="font-medium">Welcome Email</p>
                                                     <p className="text-xs text-default-400">Send welcome email on registration</p>
@@ -287,7 +287,7 @@ const Settings = ({ settings: initialSettings, plans, auth }) => {
                                                     onValueChange={(value) => handleChange('welcome_email_enabled', value)}
                                                 />
                                             </div>
-                                            <div className="flex items-center justify-between p-3 bg-default-50 dark:bg-default-100/50 rounded-lg">
+                                            <div className="flex items-center justify-between p-3 bg-content2 dark:bg-default-100/50 rounded-lg">
                                                 <div>
                                                     <p className="font-medium">Require Company Info</p>
                                                     <p className="text-xs text-default-400">Make company details mandatory</p>

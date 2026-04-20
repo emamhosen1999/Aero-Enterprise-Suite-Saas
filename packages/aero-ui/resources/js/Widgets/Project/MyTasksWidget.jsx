@@ -66,7 +66,7 @@ export default function MyTasksWidget({
                                 <p className="text-2xl font-bold text-primary">{in_progress}</p>
                                 <p className="text-xs text-default-600">In Progress</p>
                             </div>
-                            <div className="text-center p-3 rounded-lg bg-default-100 dark:bg-default-50/10">
+                            <div className="text-center p-3 rounded-lg bg-content2">
                                 <p className="text-2xl font-bold text-default-700">{total}</p>
                                 <p className="text-xs text-default-600">Total</p>
                             </div>

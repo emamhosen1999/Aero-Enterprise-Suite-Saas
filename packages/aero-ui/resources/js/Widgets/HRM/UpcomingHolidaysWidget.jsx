@@ -84,7 +84,7 @@ const UpcomingHolidaysWidget = ({ data = {} }) => {
                                 className={`flex items-center justify-between p-3 rounded-lg border 
                                     ${holiday.isToday 
                                         ? 'border-success bg-success-50 dark:bg-success-900/10' 
-                                        : 'border-default-200 hover:bg-default-50 dark:hover:bg-default-900/50'
+                                        : 'border-default-200 hover:bg-content2 dark:hover:bg-content2'
                                     } transition-colors`}
                             >
                                 <div className="flex items-center gap-3">

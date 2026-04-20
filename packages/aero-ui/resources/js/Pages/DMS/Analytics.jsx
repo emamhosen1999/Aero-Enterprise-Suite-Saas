@@ -161,7 +161,7 @@ const Analytics = ({ statistics = {}, recentActivity = [] }) => {
                         aria-label="Recent activity table"
                         removeWrapper
                         classNames={{
-                            th: "bg-default-50 text-default-600 font-semibold",
+                            th: "bg-content2 text-default-600 font-semibold",
                             td: "py-3"
                         }}
                     >

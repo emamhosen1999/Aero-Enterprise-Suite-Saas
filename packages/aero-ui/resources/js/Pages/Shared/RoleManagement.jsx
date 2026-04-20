@@ -610,7 +610,7 @@ const RoleManagement = (props) => {
                             variant="bordered"
                             radius={themeRadius}
                             classNames={{
-                                inputWrapper: "bg-default-100/50 dark:bg-default-50/10 border-default-200/20 hover:border-default-300/30 focus-within:!border-primary/50",
+                                inputWrapper: "bg-default-100/50 dark:bg-content2/10 border-default-200/20 hover:border-default-300/30 focus-within:!border-primary/50",
                                 input: "text-foreground placeholder:text-default-400",
                                 label: "text-default-500",
                                 description: "text-default-400",
@@ -629,7 +629,7 @@ const RoleManagement = (props) => {
                             minRows={2}
                             radius={themeRadius}
                             classNames={{
-                                inputWrapper: "bg-default-100/50 dark:bg-default-50/10 border-default-200/20 hover:border-default-300/30 focus-within:!border-primary/50",
+                                inputWrapper: "bg-default-100/50 dark:bg-content2/10 border-default-200/20 hover:border-default-300/30 focus-within:!border-primary/50",
                                 input: "text-foreground placeholder:text-default-400",
                                 label: "text-default-500"
                             }}

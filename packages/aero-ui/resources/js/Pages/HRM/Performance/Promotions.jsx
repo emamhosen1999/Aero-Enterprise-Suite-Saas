@@ -858,7 +858,7 @@ const PromotionRecommendations = ({ title, employees = [], positions = [], depar
                                             />
                                         </div>
 
-                                        <Card className="bg-default-50">
+                                        <Card className="bg-content2">
                                             <CardBody className="text-center py-4">
                                                 <p className="text-sm text-default-600 mb-2">Overall Readiness Score</p>
                                                 <div className="text-3xl font-bold text-primary">

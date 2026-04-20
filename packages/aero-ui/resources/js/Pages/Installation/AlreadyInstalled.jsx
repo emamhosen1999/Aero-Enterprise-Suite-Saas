@@ -75,7 +75,7 @@ export default function AlreadyInstalled() {
 
                     <CardBody className="px-8 pb-6">
                         {/* Installation Info */}
-                        <div className="bg-default-100 dark:bg-default-50/10 rounded-xl p-4 space-y-3">
+                        <div className="bg-content2 rounded-xl p-4 space-y-3">
                             {version && (
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2 text-default-500">

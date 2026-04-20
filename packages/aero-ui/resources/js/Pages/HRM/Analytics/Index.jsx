@@ -450,7 +450,7 @@ const AnalyticsIndex = ({ title }) => {
                             <CardBody>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                     {departmentStats.map((dept, index) => (
-                                        <div key={index} className="p-4 rounded-lg bg-default-50 border border-divider">
+                                        <div key={index} className="p-4 rounded-lg bg-content2 border border-divider">
                                             <h4 className="font-medium text-default-700">{dept.name}</h4>
                                             <div className="mt-2 space-y-1">
                                                 <div className="flex justify-between text-sm">

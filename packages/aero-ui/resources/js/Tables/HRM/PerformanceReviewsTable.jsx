@@ -213,7 +213,7 @@ const PerformanceReviewsTable = ({ data, loading, permissions, onView, onEdit, o
                 classNames={{
                     wrapper: "glass-table",
                     th: "bg-transparent",
-                    td: "group-data-[hover=true]:bg-default-50",
+                    td: "group-data-[hover=true]:bg-content2",
                 }}
                 isStriped
                 removeWrapper

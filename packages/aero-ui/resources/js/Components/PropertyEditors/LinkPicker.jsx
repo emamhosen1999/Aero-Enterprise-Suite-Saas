@@ -307,7 +307,7 @@ const LinkPicker = ({
                                             value={localValue.url}
                                             isReadOnly
                                             size="sm"
-                                            classNames={{ inputWrapper: "bg-default-50" }}
+                                            classNames={{ inputWrapper: "bg-content2" }}
                                         />
                                     )}
                                 </div>

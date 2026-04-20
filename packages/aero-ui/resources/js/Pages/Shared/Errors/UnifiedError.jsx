@@ -786,7 +786,7 @@ function UnifiedErrorDisplay({ error = {}, onClearError = null }) {
 
                     {/* Additional Help */}
                     <motion.div variants={itemVariants} className="mt-4">
-                        <Card className="bg-default-50 dark:bg-default-900/50">
+                        <Card className="bg-content2 dark:bg-content2">
                             <CardBody className="text-center">
                                 <h3 className="font-semibold mb-2 text-foreground">Need Immediate Help?</h3>
                                 <p className="text-sm text-default-600">

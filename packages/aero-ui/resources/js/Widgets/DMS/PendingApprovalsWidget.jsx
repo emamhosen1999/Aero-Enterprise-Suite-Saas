@@ -75,7 +75,7 @@ export default function PendingApprovalsWidget({
                         {approvals.slice(0, 5).map((approval) => (
                             <div
                                 key={approval.id}
-                                className="flex items-start gap-3 p-2 rounded-lg bg-default-50"
+                                className="flex items-start gap-3 p-2 rounded-lg bg-content2"
                             >
                                 <Avatar
                                     name={approval.requester?.name || 'U'}

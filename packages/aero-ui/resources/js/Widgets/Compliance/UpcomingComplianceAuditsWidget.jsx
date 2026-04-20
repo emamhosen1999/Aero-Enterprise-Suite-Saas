@@ -67,7 +67,7 @@ export default function UpcomingComplianceAuditsWidget({ audits = [], this_week 
                             <div className="space-y-2">
                                 <p className="text-xs text-default-500 font-medium">Upcoming Audits</p>
                                 {audits.slice(0, 3).map((audit, idx) => (
-                                    <div key={idx} className="flex items-center justify-between p-2 bg-default-50 rounded-lg">
+                                    <div key={idx} className="flex items-center justify-between p-2 bg-content2 rounded-lg">
                                         <div>
                                             <p className="text-sm font-medium">{audit.name}</p>
                                             <p className="text-xs text-default-500">{audit.type}</p>

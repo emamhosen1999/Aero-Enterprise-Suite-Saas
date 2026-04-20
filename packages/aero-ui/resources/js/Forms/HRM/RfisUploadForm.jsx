@@ -479,7 +479,7 @@ import { useThemeRadius } from '@/Hooks/useThemeRadius';
                                         subtitle="Click to view the required Excel/CSV structure"
                                     >
                                         <div className="space-y-4">
-                                            <div className="p-4 rounded-lg bg-default-50">
+                                            <div className="p-4 rounded-lg bg-content2">
                                                 <h4 className="font-medium mb-2 text-foreground">Excel/CSV Column Structure:</h4>
                                                 <div className="text-sm text-default-600">
                                                     Your file should have exactly 8 columns in this order (with or without headers):

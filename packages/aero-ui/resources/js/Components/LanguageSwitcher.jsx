@@ -99,7 +99,7 @@ const LanguageItem = memo(({ code, lang, isActive, onSelect }) => (
             transition-colors duration-150
             ${isActive 
                 ? 'bg-primary-50 dark:bg-primary-900/20' 
-                : 'hover:bg-default-100 dark:hover:bg-default-50/10'
+                : 'hover:bg-default-100 dark:hover:bg-content2'
             }
         `}
     >

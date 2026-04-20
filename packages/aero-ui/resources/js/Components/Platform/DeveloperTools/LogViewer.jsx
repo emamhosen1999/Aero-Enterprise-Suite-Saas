@@ -263,7 +263,7 @@ export default function LogViewer() {
                                     className={`p-3 rounded-lg border cursor-pointer transition-all ${
                                         expandedLogs.has(index)
                                             ? 'bg-default-100 border-default-300'
-                                            : 'bg-default-50 border-default-200 hover:bg-default-100'
+                                            : 'bg-content2 border-default-200 hover:bg-default-100'
                                     }`}
                                     onClick={() => toggleExpandLog(index)}
                                 >

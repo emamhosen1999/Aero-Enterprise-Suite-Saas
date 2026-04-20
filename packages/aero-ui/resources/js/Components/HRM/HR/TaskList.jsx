@@ -49,7 +49,7 @@ const TaskList = ({ tasks, onTaskStatusChange }) => {
                   className={`flex gap-4 p-4 rounded-lg transition-colors ${
                     normalize(task.status) === 'completed' 
                       ? 'bg-success-50 dark:bg-success-50/20' 
-                      : 'hover:bg-default-50 dark:hover:bg-default-50/20'
+                      : 'hover:bg-content2 dark:hover:bg-content2'
                   }`}
                 >
                   <div className="shrink-0 pt-1">

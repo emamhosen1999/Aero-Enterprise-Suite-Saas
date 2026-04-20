@@ -279,7 +279,7 @@ export default function Processing() {
                                                     ? 'bg-success-50 dark:bg-success/10'
                                                     : status === 'failed'
                                                         ? 'bg-danger-50 dark:bg-danger/10'
-                                                        : 'bg-default-50 dark:bg-default-100/10'
+                                                        : 'bg-content2'
                                         }`}
                                     >
                                         <div className="w-6 h-6 flex items-center justify-center">

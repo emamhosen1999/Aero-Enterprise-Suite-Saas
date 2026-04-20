@@ -988,7 +988,7 @@ const RfiForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                             )}
                                             {continuityCheck && (
                                                 <div className="col-span-full">
-                                                    <Card className="bg-default-50" radius={themeRadius}>
+                                                    <Card className="bg-content2" radius={themeRadius}>
                                                         <CardBody className="p-3">
                                                             <div className="flex items-start gap-3">
                                                                 {continuityCheck.can_proceed ? (

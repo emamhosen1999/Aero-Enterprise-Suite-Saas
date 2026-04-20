@@ -204,7 +204,7 @@ const Analytics = ({
                                                         const total = planDistribution.reduce((sum, p) => sum + p.count, 0);
                                                         const percentage = ((item.count / total) * 100).toFixed(1);
                                                         return (
-                                                            <div key={index} className="flex items-center justify-between p-3 bg-default-50 dark:bg-default-100/50 rounded-lg">
+                                                            <div key={index} className="flex items-center justify-between p-3 bg-content2 dark:bg-default-100/50 rounded-lg">
                                                                 <div className="flex items-center gap-3">
                                                                     <Chip size="sm" variant="flat" color="primary">
                                                                         {item.plan}

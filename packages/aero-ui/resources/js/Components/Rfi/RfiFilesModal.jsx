@@ -308,7 +308,7 @@ const RfiFilesModal = ({
                                         {files.map((file) => (
                                             <div
                                                 key={file.id}
-                                                className="flex items-center gap-3 p-3 bg-default-50 dark:bg-default-100/10 rounded-lg hover:bg-default-100 dark:hover:bg-default-100/20 transition-colors"
+                                                className="flex items-center gap-3 p-3 bg-content2 dark:bg-default-100/10 rounded-lg hover:bg-default-100 dark:hover:bg-default-100/20 transition-colors"
                                             >
                                                 {/* File Preview */}
                                                 {renderFilePreview(file)}

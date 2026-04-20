@@ -195,7 +195,7 @@ const ExportModal = ({
                 <ModalBody>
                     <div className="space-y-6">
                         {/* Export Scope */}
-                        <Card className="bg-default-50">
+                        <Card className="bg-content2">
                             <CardBody>
                                 <h4 className="font-semibold mb-3">Export Scope</h4>
                                 <RadioGroup
@@ -226,7 +226,7 @@ const ExportModal = ({
                                         className={`cursor-pointer transition-colors ${
                                             exportSettings.format === format.key 
                                                 ? 'border-primary-500 bg-primary-50' 
-                                                : 'hover:bg-default-50'
+                                                : 'hover:bg-content2'
                                         }`}
                                         onPress={() => setExportSettings(prev => ({ ...prev, format: format.key }))}
                                     >

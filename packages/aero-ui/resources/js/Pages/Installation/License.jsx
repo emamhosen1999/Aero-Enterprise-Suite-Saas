@@ -161,7 +161,7 @@ export default function License() {
                 <CardBody className="px-8 pb-6">
                     <div className="space-y-6">
                         {/* License Provider Info */}
-                        <div className="bg-default-50 dark:bg-default-100/10 rounded-lg p-4">
+                        <div className="bg-content2 rounded-lg p-4">
                             <p className="text-sm text-default-600 mb-3">
                                 <ShieldCheckIcon className="w-4 h-4 inline mr-1" />
                                 Your license key determines which modules you can access. 

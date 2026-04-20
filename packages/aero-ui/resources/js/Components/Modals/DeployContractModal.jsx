@@ -331,7 +331,7 @@ const DeployContractModal = ({
             </div>
 
             {/* Verification Option */}
-            <div className="flex items-center justify-between p-4 bg-default-50 rounded-lg">
+            <div className="flex items-center justify-between p-4 bg-content2 rounded-lg">
               <div>
                 <p className="font-medium">Verify Contract on Explorer</p>
                 <p className="text-sm text-default-500">Automatically verify source code after deployment</p>

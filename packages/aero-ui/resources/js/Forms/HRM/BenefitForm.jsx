@@ -234,7 +234,7 @@ export default function BenefitForm({
                             min={0}
                         />
 
-                        <div className="flex items-center gap-3 p-4 bg-default-50 rounded-lg">
+                        <div className="flex items-center gap-3 p-4 bg-content2 rounded-lg">
                             <Switch
                                 isSelected={formData.is_active}
                                 onValueChange={(value) => handleChange('is_active', value)}

@@ -57,7 +57,7 @@ export default function TodaysSalesWidget({
                                 <p className="text-xl font-bold text-primary">{transaction_count}</p>
                                 <p className="text-xs text-default-600">Transactions</p>
                             </div>
-                            <div className="text-center p-3 rounded-lg bg-default-100 dark:bg-default-50/10">
+                            <div className="text-center p-3 rounded-lg bg-content2">
                                 <p className="text-xl font-bold text-default-700">{currency} {average_ticket.toLocaleString()}</p>
                                 <p className="text-xs text-default-600">Avg Ticket</p>
                             </div>

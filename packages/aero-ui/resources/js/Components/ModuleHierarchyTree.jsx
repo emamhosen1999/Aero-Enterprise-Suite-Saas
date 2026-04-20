@@ -86,7 +86,7 @@ const ModuleHierarchyTree = ({
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
-                className="flex items-center gap-3 p-3 hover:bg-default-50 rounded-lg transition-colors ml-12"
+                className="flex items-center gap-3 p-3 hover:bg-content2 rounded-lg transition-colors ml-12"
             >
                 {selectable && (
                     <Checkbox

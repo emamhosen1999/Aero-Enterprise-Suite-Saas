@@ -409,40 +409,30 @@ class AeroCoreServiceProvider extends ServiceProvider
      * Load runtime routes after installation is complete.
      * Handles both SaaS and standalone modes.
      *
-     * IMPORTANT: In SaaS mode, Core routes are ONLY for tenant subdomains.
-     * On central domains (admin.domain.com, domain.com), Platform handles all routes.
-     * We skip Core route registration entirely on central domains to prevent
-     * route matching conflicts with Platform's admin routes.
+     * In SaaS mode, aero-core serves ONLY tenant subdomains ({tenant}.domain.com).
+     * Platform handles all routes on domain.com and admin.domain.com.
+     * A Laravel domain() constraint ensures core routes never match central domains,
+     * regardless of CLI vs HTTP context.
      */
     protected function loadRuntimeRoutes(): void
     {
         $routesPath = __DIR__.'/../routes';
 
-        // Check if in SaaS mode (file-based detection)
         if ($this->isSaasMode()) {
-            // SaaS Mode: Core routes ONLY on tenant subdomains
-            // Skip registration entirely on central domains to prevent route conflicts
-            if (request() && $this->isOnCentralDomain(request()->getHost())) {
-                // On central domains (admin.domain.com, domain.com), Platform handles everything
-                // Do NOT register Core routes - this prevents route matching conflicts
-                return;
-            }
+            // SaaS Mode: Core routes are ONLY for tenant subdomains ({tenant}.domain.com).
+            // Using a domain constraint guarantees this at route-matching time, not request time,
+            // so route:list and cached routes cannot leak onto the platform domain.
+            $platformDomain = env('PLATFORM_DOMAIN', env('APP_DOMAIN', 'localhost'));
 
-            // On tenant subdomains, register Core routes with tenant middleware
-            Route::middleware([
-                'web',
-                \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
-                'tenant',
-            ])->group($routesPath.'/web.php');
+            Route::domain('{tenant}.'.$platformDomain)
+                ->middleware([
+                    'web',
+                    \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
+                    'tenant',
+                ])->group($routesPath.'/web.php');
         } else {
-            // Standalone Mode: Routes with standard web middleware on domain.com
-            // NO tenancy middleware in standalone mode
-
-            // Skip Core routes on admin subdomain to prevent conflicts with Platform's admin routes
-            if (request() && $this->isHostAdminDomain(request()->getHost())) {
-                return;
-            }
-
+            // Standalone Mode: Routes with standard web middleware.
+            // No domain constraint needed — standalone apps run on a single domain.
             Route::middleware(['web'])
                 ->group($routesPath.'/web.php');
         }

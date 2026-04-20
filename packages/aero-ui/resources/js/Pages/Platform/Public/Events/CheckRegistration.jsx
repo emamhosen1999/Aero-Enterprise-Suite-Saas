@@ -207,7 +207,7 @@ const CheckRegistration = ({ registration, event }) => {
                                     <h3 className="font-semibold mb-3">Registered Sub-Events</h3>
                                     <div className="space-y-2">
                                         {registration.sub_events.map((subEvent, index) => (
-                                            <div key={index} className="flex items-center gap-2 bg-default-50 p-3 rounded-lg">
+                                            <div key={index} className="flex items-center gap-2 bg-content2 p-3 rounded-lg">
                                                 <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">
                                                     {index + 1}
                                                 </div>
@@ -220,7 +220,7 @@ const CheckRegistration = ({ registration, event }) => {
 
                             {/* QR Code */}
                             {registration.qr_code && registration.status === 'approved' && (
-                                <div className="bg-default-50 p-6 rounded-lg mb-6">
+                                <div className="bg-content2 p-6 rounded-lg mb-6">
                                     <h3 className="font-semibold text-center mb-4">Your Registration QR Code</h3>
                                     <div className="flex justify-center">
                                         <Image

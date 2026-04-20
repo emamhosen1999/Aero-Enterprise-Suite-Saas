@@ -495,7 +495,7 @@ export default function Settings() {
                             }
                         >
                             <div className="pt-6 space-y-4">
-                                <div className="bg-default-50 dark:bg-default-100/10 rounded-lg p-4 mb-4">
+                                <div className="bg-content2 rounded-lg p-4 mb-4">
                                     <p className="text-sm text-default-600">
                                         Configure SMTP settings for sending emails (password resets, notifications, etc.)
                                     </p>
@@ -617,7 +617,7 @@ export default function Settings() {
                                 }
                             >
                                 <div className="pt-6 space-y-4">
-                                    <div className="bg-default-50 dark:bg-default-100/10 rounded-lg p-4 mb-4">
+                                    <div className="bg-content2 rounded-lg p-4 mb-4">
                                         <p className="text-sm text-default-600">
                                             Configure backend drivers for queue processing, sessions, and caching.
                                         </p>

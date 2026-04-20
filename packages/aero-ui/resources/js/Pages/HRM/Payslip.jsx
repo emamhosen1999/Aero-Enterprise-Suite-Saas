@@ -166,7 +166,7 @@ const Payslip = ({
                 }
             `}</style>
 
-            <div className="min-h-screen bg-default-100 dark:bg-default-50 p-4 md:p-8">
+            <div className="min-h-screen bg-default-100 dark:bg-content2 p-4 md:p-8">
                 {/* Action Buttons - Hidden when printing */}
                 <div className="max-w-4xl mx-auto mb-6 no-print">
                     <div className="flex items-center justify-between">
@@ -352,7 +352,7 @@ const Payslip = ({
 
                         {/* ===== ATTENDANCE SUMMARY ===== */}
                         {(attendance.working_days || attendance.present_days) && (
-                            <div className="mb-8 p-4 bg-default-50 dark:bg-default-100 rounded-lg">
+                            <div className="mb-8 p-4 bg-content2 dark:bg-default-100 rounded-lg">
                                 <h3 className="text-sm font-semibold text-default-500 uppercase tracking-wider mb-3">
                                     Attendance Summary
                                 </h3>

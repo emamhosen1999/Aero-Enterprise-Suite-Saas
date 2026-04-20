@@ -102,7 +102,7 @@ export default function TeamAttendanceWidget({
                         </div>
 
                         {/* Team Size Info */}
-                        <div className="flex items-center justify-between text-sm text-default-500 p-2 bg-default-50 rounded-lg">
+                        <div className="flex items-center justify-between text-sm text-default-500 p-2 bg-content2 rounded-lg">
                             <span>Total Team Members</span>
                             <Chip size="sm" variant="flat">{total_team}</Chip>
                         </div>

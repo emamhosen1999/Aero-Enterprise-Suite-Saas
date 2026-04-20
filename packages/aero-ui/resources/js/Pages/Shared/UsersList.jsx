@@ -1373,7 +1373,7 @@ const UsersList = ({
           {tableLoading ? (
             <div className="space-y-3">
               {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="flex gap-4 p-3 bg-default-50 rounded-lg">
+                <div key={i} className="flex gap-4 p-3 bg-content2 rounded-lg">
                   <Skeleton className="h-10 w-10 rounded-full" />
                   <div className="flex-1 space-y-2">
                     <Skeleton className="h-4 w-1/3 rounded" />
@@ -1535,7 +1535,7 @@ const DeactivatedUsersSidePanel = ({
           {deactivatedLoading ? (
             <div className="space-y-2">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-default-50">
+                <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-content2">
                   <Skeleton className="w-10 h-10 rounded-full" />
                   <div className="flex-1 space-y-1">
                     <Skeleton className="h-3 w-3/4 rounded" />

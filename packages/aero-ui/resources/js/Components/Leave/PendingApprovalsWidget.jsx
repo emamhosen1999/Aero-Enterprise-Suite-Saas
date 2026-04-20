@@ -95,7 +95,7 @@ export default function PendingApprovalsWidget() {
                         {pendingLeaves.slice(0, 5).map((leave) => (
                             <div 
                                 key={leave.id}
-                                className="p-3 border border-divider rounded-lg hover:bg-default-50 dark:hover:bg-default-100 transition-colors cursor-pointer"
+                                className="p-3 border border-divider rounded-lg hover:bg-content2 dark:hover:bg-content3 transition-colors cursor-pointer"
                                 onClick={() => safeNavigate('leaves')}
                             >
                                 <div className="flex justify-between items-start mb-1">

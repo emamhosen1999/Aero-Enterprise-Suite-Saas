@@ -391,7 +391,7 @@ export default function SubscriptionIndex({
                             <CardBody className="space-y-3">
                                 {paymentMethod ? (
                                     <>
-                                        <div className="flex items-center gap-3 p-3 bg-default-50 rounded-lg">
+                                        <div className="flex items-center gap-3 p-3 bg-content2 rounded-lg">
                                             <CreditCardIcon className="w-8 h-8 text-default-500" />
                                             <div>
                                                 <p className="font-medium">

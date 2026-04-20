@@ -443,7 +443,7 @@ const WorkforceAnalytics = ({ title, departments = [], designations = [] }) => {
                         <h3 className="text-lg font-semibold">Headcount Trend</h3>
                     </CardHeader>
                     <CardBody>
-                        <div className="h-64 flex items-center justify-center bg-default-50 rounded-lg">
+                        <div className="h-64 flex items-center justify-center bg-content2 rounded-lg">
                             <div className="text-center text-default-500">
                                 <ChartBarIcon className="w-12 h-12 mx-auto mb-2" />
                                 <p>Headcount chart would be rendered here</p>
@@ -458,7 +458,7 @@ const WorkforceAnalytics = ({ title, departments = [], designations = [] }) => {
                         <h3 className="text-lg font-semibold">Attendance Trends</h3>
                     </CardHeader>
                     <CardBody>
-                        <div className="h-64 flex items-center justify-center bg-default-50 rounded-lg">
+                        <div className="h-64 flex items-center justify-center bg-content2 rounded-lg">
                             <div className="text-center text-default-500">
                                 <ChartBarIcon className="w-12 h-12 mx-auto mb-2" />
                                 <p>Attendance trends chart would be rendered here</p>
@@ -479,7 +479,7 @@ const WorkforceAnalytics = ({ title, departments = [], designations = [] }) => {
                     <h3 className="text-lg font-semibold capitalize">{category} Analytics</h3>
                 </CardHeader>
                 <CardBody>
-                    <div className="h-96 flex items-center justify-center bg-default-50 rounded-lg">
+                    <div className="h-96 flex items-center justify-center bg-content2 rounded-lg">
                         <div className="text-center text-default-500">
                             <ChartBarIcon className="w-16 h-16 mx-auto mb-4" />
                             <h4 className="text-lg font-medium mb-2">Advanced {category} Analytics</h4>

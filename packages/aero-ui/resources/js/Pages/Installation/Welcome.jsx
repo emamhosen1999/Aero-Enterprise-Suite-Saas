@@ -187,7 +187,7 @@ export default function Welcome() {
                             {features.map((feature, index) => (
                                 <div 
                                     key={index}
-                                    className="flex gap-3 p-4 bg-default-50 dark:bg-default-100/10 rounded-lg"
+                                    className="flex gap-3 p-4 bg-content2 rounded-lg"
                                 >
                                     <div className="shrink-0">
                                         <feature.icon className="w-6 h-6 text-primary" />
@@ -218,7 +218,7 @@ export default function Welcome() {
                                             return (
                                                 <div 
                                                     key={code}
-                                                    className="p-3 rounded-lg border border-divider bg-default-50"
+                                                    className="p-3 rounded-lg border border-divider bg-content2"
                                                 >
                                                     <div className="flex items-start gap-3">
                                                         <div className="shrink-0 mt-0.5">

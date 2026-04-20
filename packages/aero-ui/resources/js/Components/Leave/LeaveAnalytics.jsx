@@ -253,7 +253,7 @@ export default function LeaveAnalytics({ year, departmentId, departments = [] })
                                 <h4 className="text-sm font-medium text-default-500 mb-3">Peak Leave Periods</h4>
                                 <div className="space-y-2">
                                     {analytics.peak_periods.slice(0, 5).map((period, idx) => (
-                                        <div key={idx} className="flex justify-between items-center p-2 bg-default-50 dark:bg-default-100 rounded">
+                                        <div key={idx} className="flex justify-between items-center p-2 bg-content2 rounded">
                                             <span className="text-sm font-medium">{period.period}</span>
                                             <span className="text-sm text-default-500">{period.count} requests</span>
                                         </div>

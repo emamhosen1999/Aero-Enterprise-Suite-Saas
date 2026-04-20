@@ -65,7 +65,7 @@ const LayerDependencyIndicator = ({ layer, projectId, chainageStart, chainageEnd
     // If no dependencies, show simple message
     if (!loading && dependencies.length === 0) {
         return (
-            <Card className="bg-default-50">
+            <Card className="bg-content2">
                 <CardBody className="p-4">
                     <div className="flex items-center gap-2">
                         <CheckCircleIcon className="w-5 h-5 text-success" />
@@ -79,7 +79,7 @@ const LayerDependencyIndicator = ({ layer, projectId, chainageStart, chainageEnd
     }
 
     return (
-        <Card className="bg-default-50">
+        <Card className="bg-content2">
             <CardBody className="p-4">
                 <div className="space-y-3">
                     <div className="flex items-center justify-between">

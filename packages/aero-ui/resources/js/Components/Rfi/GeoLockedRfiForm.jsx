@@ -318,7 +318,7 @@ const GeoLockedRfiForm = ({
                 <ModalBody>
                     <div className="space-y-4">
                         {/* GPS Capture Card */}
-                        <Card className="bg-default-50">
+                        <Card className="bg-content2">
                             <CardBody className="p-4">
                                 <div className="flex items-start justify-between">
                                     <div className="flex-1">

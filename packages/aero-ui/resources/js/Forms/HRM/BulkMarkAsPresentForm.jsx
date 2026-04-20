@@ -356,7 +356,7 @@ const BulkMarkAsPresentForm = ({
                                                         {availableUsers.map((user) => (
                                                             <div 
                                                                 key={user.id}
-                                                                className="flex items-center gap-3 p-2 rounded-lg hover:bg-default-50"
+                                                                className="flex items-center gap-3 p-2 rounded-lg hover:bg-content2"
                                                             >
                                                                 <Checkbox
                                                                     isSelected={formData.user_ids.includes(user.id.toString())}

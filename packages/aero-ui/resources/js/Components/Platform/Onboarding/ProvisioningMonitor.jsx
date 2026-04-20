@@ -203,7 +203,7 @@ export default function ProvisioningMonitor({ tenantId, status: initialStatus = 
                                         ? 'bg-primary-50' 
                                         : isFailed
                                         ? 'bg-danger-50'
-                                        : 'bg-default-50'
+                                        : 'bg-content2'
                                 }`}
                             >
                                 <div className="shrink-0">

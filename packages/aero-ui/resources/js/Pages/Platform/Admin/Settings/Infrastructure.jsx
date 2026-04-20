@@ -62,7 +62,7 @@ const HostingModeCard = ({ id, title, subtitle, icon: Icon, details, isActive, o
             'flex flex-col gap-3 rounded-xl p-5 text-left transition-all duration-200 w-full border-2 cursor-pointer',
             isActive
                 ? 'border-primary shadow-lg shadow-primary/10 bg-primary/5'
-                : 'border-divider hover:border-primary/40 hover:bg-default-50',
+                : 'border-divider hover:border-primary/40 hover:bg-content2',
         ].join(' ')}
         style={{ borderRadius: `var(--borderRadius, 12px)` }}
     >

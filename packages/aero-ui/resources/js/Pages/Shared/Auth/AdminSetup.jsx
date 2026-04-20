@@ -301,7 +301,7 @@ export default function AdminSetup({
                                 </div>
 
                                 {/* Password Requirements */}
-                                <div className="text-xs text-default-500 bg-default-50 p-3 rounded-lg">
+                                <div className="text-xs text-default-500 bg-content2 p-3 rounded-lg">
                                     <p className="font-medium mb-1">Password Requirements:</p>
                                     <ul className="list-disc list-inside space-y-0.5">
                                         <li>At least 8 characters long</li>

@@ -195,7 +195,7 @@ const GpsMapPreview = ({
                 )}
                 
                 {/* Legend */}
-                <div className="p-4 bg-default-50 border-t border-divider">
+                <div className="p-4 bg-content2 border-t border-divider">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                         <div className="flex items-center gap-2">
                             <div className="w-3 h-3 rounded-full bg-blue-500 border-2 border-white"></div>

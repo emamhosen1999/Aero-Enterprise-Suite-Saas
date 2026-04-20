@@ -988,7 +988,7 @@ const ModuleManagement = (props) => {
         return (
             <div key={subModule.id} className="mb-2">
                 <div
-                    className={`flex items-center justify-between p-3 rounded-lg bg-default-50 hover:bg-default-100 cursor-pointer transition-colors ${!subModule.is_active ? 'opacity-60' : ''}`}
+                    className={`flex items-center justify-between p-3 rounded-lg bg-content2 hover:bg-content3 cursor-pointer transition-colors ${!subModule.is_active ? 'opacity-60' : ''}`}
                     onClick={() => toggleSubModuleExpand(subModule.id)}
                 >
                     <div className="flex items-center gap-3 flex-1">
@@ -1128,7 +1128,7 @@ const ModuleManagement = (props) => {
                             return (
                                 <div
                                     key={action.code || idx}
-                                    className="flex items-center justify-between p-1.5 pl-3 rounded bg-default-50 hover:bg-default-100 transition-colors text-xs"
+                                    className="flex items-center justify-between p-1.5 pl-3 rounded bg-content2 hover:bg-content3 transition-colors text-xs"
                                 >
                                     <div className="flex items-center gap-2">
                                         {/* Role Access Checkbox for Action */}
@@ -1347,7 +1347,7 @@ const ModuleManagement = (props) => {
                                                 variant="bordered"
                                                 radius={themeRadius}
                                                 classNames={{
-                                                    inputWrapper: "bg-white/50 dark:bg-default-50/10 backdrop-blur-md border-default-200/30",
+                                                    inputWrapper: "bg-white/50 dark:bg-content2/10 backdrop-blur-md border-default-200/30",
                                                     input: "text-foreground placeholder:text-default-400",
                                                 }}
                                             />
@@ -1359,7 +1359,7 @@ const ModuleManagement = (props) => {
                                                 variant="bordered"
                                                 radius={themeRadius}
                                                 classNames={{
-                                                    trigger: "bg-white/50 dark:bg-default-50/10 backdrop-blur-md border-default-200/30",
+                                                    trigger: "bg-white/50 dark:bg-content2/10 backdrop-blur-md border-default-200/30",
                                                     value: "text-foreground",
                                                 }}
                                             >
@@ -1376,7 +1376,7 @@ const ModuleManagement = (props) => {
                                                 variant="bordered"
                                                 radius={themeRadius}
                                                 classNames={{
-                                                    trigger: "bg-white/50 dark:bg-default-50/10 backdrop-blur-md border-default-200/30",
+                                                    trigger: "bg-white/50 dark:bg-content2/10 backdrop-blur-md border-default-200/30",
                                                     value: "text-foreground",
                                                 }}
                                             >
@@ -1442,7 +1442,7 @@ const ModuleManagement = (props) => {
                                                     radius={themeRadius}
                                                     isLoading={roleAccessLoading}
                                                     classNames={{
-                                                        trigger: "bg-white/50 dark:bg-default-50/10 backdrop-blur-md border-default-200/30",
+                                                        trigger: "bg-white/50 dark:bg-content2/10 backdrop-blur-md border-default-200/30",
                                                         value: "text-foreground",
                                                     }}
                                                 >

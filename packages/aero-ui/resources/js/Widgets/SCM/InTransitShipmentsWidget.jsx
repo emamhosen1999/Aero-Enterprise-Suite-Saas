@@ -65,7 +65,7 @@ export default function InTransitShipmentsWidget({ shipments = [], in_transit_co
                             <div className="space-y-2">
                                 <p className="text-xs text-default-500 font-medium">Recent Shipments</p>
                                 {shipments.slice(0, 3).map((shipment, idx) => (
-                                    <div key={idx} className="flex items-center gap-2 p-2 bg-default-50 rounded-lg">
+                                    <div key={idx} className="flex items-center gap-2 p-2 bg-content2 rounded-lg">
                                         <MapPinIcon className="w-4 h-4 text-default-400" />
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-medium truncate">{shipment.reference}</p>

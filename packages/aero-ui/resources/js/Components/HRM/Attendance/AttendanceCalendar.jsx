@@ -38,7 +38,7 @@ const getStatusColor = (status) => {
         'Weekend': { bg: 'bg-default-100', text: 'text-default-500', border: 'border-default-200' },
         'Holiday': { bg: 'bg-purple-100', text: 'text-purple-700', border: 'border-purple-300' }
     };
-    return statusMap[status] || { bg: 'bg-default-50', text: 'text-default-400', border: 'border-default-100' };
+    return statusMap[status] || { bg: 'bg-content2', text: 'text-default-400', border: 'border-default-100' };
 };
 
 const AttendanceCalendar = ({ 
@@ -318,7 +318,7 @@ const AttendanceCalendar = ({
                                                 aspect-square flex flex-col items-center justify-center rounded-lg
                                                 transition-all duration-200 cursor-pointer
                                                 ${dayData.isCurrentMonth ? 'opacity-100' : 'opacity-30'}
-                                                ${dayData.isCurrentMonth && attendance ? colors.bg : 'bg-default-50'}
+                                                ${dayData.isCurrentMonth && attendance ? colors.bg : 'bg-content2'}
                                                 ${isToday ? 'ring-2 ring-primary-500 ring-offset-2' : ''}
                                                 ${isSelected ? 'ring-2 ring-secondary-500' : ''}
                                                 ${isWeekend && !attendance ? 'bg-default-100' : ''}

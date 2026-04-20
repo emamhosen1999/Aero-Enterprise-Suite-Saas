@@ -58,7 +58,7 @@ export default function PendingPurchaseRequisitionsWidget({
                                 <p className="text-xs text-default-600">My Requests</p>
                             </div>
                         </div>
-                        <div className="text-center p-3 rounded-lg bg-default-100 dark:bg-default-50/10">
+                        <div className="text-center p-3 rounded-lg bg-content2">
                             <p className="text-lg font-bold text-default-700">{currency} {total_amount.toLocaleString()}</p>
                             <p className="text-xs text-default-600">Estimated Value</p>
                         </div>

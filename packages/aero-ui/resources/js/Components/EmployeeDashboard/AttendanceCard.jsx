@@ -62,7 +62,7 @@ const getStatusConfig = (status) =>
 const TodayPunchStatus = ({ todayAttendance, themeRadius }) => {
     if (!todayAttendance) {
         return (
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-default-100 dark:bg-default-50/10">
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-content2">
                 <ClockIcon className="w-5 h-5 text-default-400" />
                 <span className="text-sm text-default-500">No attendance recorded today</span>
             </div>

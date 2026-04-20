@@ -123,7 +123,7 @@ export default function MyGoalsWidget({
                             {goals.slice(0, 3).map((goal) => (
                                 <div 
                                     key={goal.id}
-                                    className="p-3 bg-default-50 rounded-lg"
+                                    className="p-3 bg-content2 rounded-lg"
                                 >
                                     <div className="flex items-center justify-between mb-2">
                                         <span className="font-medium text-sm truncate flex-1">

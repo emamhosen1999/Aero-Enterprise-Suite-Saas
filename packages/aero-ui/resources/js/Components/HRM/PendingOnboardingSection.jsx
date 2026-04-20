@@ -147,7 +147,7 @@ const PendingOnboardingSection = ({
         <CardBody className="p-0">
           {/* Header */}
           <div
-            className="flex items-center justify-between p-4 cursor-pointer hover:bg-default-50 transition-colors"
+            className="flex items-center justify-between p-4 cursor-pointer hover:bg-content2 transition-colors"
             onClick={() => setIsExpanded(!isExpanded)}
           >
             <div className="flex items-center gap-3">
@@ -238,7 +238,7 @@ const PendingOnboardingSection = ({
                     {pendingUsers.map((user) => (
                       <div
                         key={user.id}
-                        className="p-4 rounded-lg border border-divider hover:border-primary-300 hover:bg-default-50 dark:hover:bg-default-100/50 transition-all"
+                        className="p-4 rounded-lg border border-divider hover:border-primary-300 hover:bg-content2 dark:hover:bg-content3 transition-all"
                       >
                         {/* User Info */}
                         <div className="flex items-start gap-3 mb-3">

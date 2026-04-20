@@ -200,7 +200,7 @@ const ContractInteractionModal = ({
         <ModalBody>
           <div className="space-y-6">
             {/* Contract Information */}
-            <div className="p-4 bg-default-50 rounded-lg">
+            <div className="p-4 bg-content2 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <DocumentTextIcon className="w-4 h-4 text-default-600" />
                 <span className="font-medium text-sm">Contract Details</span>
