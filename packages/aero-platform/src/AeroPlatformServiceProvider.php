@@ -443,7 +443,7 @@ class AeroPlatformServiceProvider extends ServiceProvider
         $router->aliasMiddleware('tenant.super.admin', \Aero\Platform\Http\Middleware\TenantSuperAdmin::class);
         $router->aliasMiddleware('tenant.setup', \Aero\Platform\Http\Middleware\EnsureTenantIsSetup::class);
         $router->aliasMiddleware('tenant.onboarding', \Aero\Platform\Http\Middleware\RequireTenantOnboarding::class);
-        $router->aliasMiddleware('set.locale', \Aero\Platform\Http\Middleware\SetLocale::class);
+        $router->aliasMiddleware('set.locale', \Aero\I18n\Http\Middleware\SetLocale::class);
         $router->aliasMiddleware('check.subscription', \Aero\Platform\Http\Middleware\CheckModuleSubscription::class);
         $router->aliasMiddleware('require.saas', \Aero\Platform\Http\Middleware\RequireSaasMode::class);
 

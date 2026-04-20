@@ -134,21 +134,19 @@ class AeroRfiServiceProvider extends ServiceProvider
     {
         $routesPath = __DIR__.'/../routes';
 
-        // Check if aero-platform is active (SaaS mode)
-        // Use global helper function for consistency
         if (function_exists('is_saas_mode') && is_saas_mode()) {
-            // SaaS Mode: InitializeTenancyIfNotCentral initializes tenant context,
-            // 'tenant' middleware ensures valid tenant context exists
-            Route::middleware([
-                'web',
-                \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
-                'tenant',
-            ])
+            $platformDomain = env('PLATFORM_DOMAIN', env('APP_DOMAIN', 'localhost'));
+
+            Route::domain('{tenant}.'.$platformDomain)
+                ->middleware([
+                    'web',
+                    \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
+                    'tenant',
+                ])
                 ->prefix('rfi')
                 ->name('rfi.')
                 ->group($routesPath.'/web.php');
         } else {
-            // Standalone Mode: Routes with standard web middleware on domain.com
             Route::middleware(['web'])
                 ->prefix('rfi')
                 ->name('rfi.')
@@ -177,16 +175,16 @@ class AeroRfiServiceProvider extends ServiceProvider
             return;
         }
 
-        // API routes use sanctum auth and work in both SaaS and Standalone modes
         if (function_exists('is_saas_mode') && is_saas_mode()) {
-            // SaaS Mode: Include tenancy middleware
-            Route::middleware([
-                'api',
-                \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
-                'tenant',
-            ])->group($apiRoutesPath);
+            $platformDomain = env('PLATFORM_DOMAIN', env('APP_DOMAIN', 'localhost'));
+
+            Route::domain('{tenant}.'.$platformDomain)
+                ->middleware([
+                    'api',
+                    \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
+                    'tenant',
+                ])->group($apiRoutesPath);
         } else {
-            // Standalone Mode: Standard API middleware
             Route::middleware(['api'])
                 ->group($apiRoutesPath);
         }

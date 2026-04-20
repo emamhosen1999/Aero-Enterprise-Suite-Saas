@@ -1,7 +1,7 @@
 <?php
 
 use Aero\Cms\Http\Controllers\PublicCmsController;
-use Aero\Cms\Http\Middleware\SetLocale;
+use Aero\I18n\Http\Middleware\SetLocale;
 use Illuminate\Support\Facades\Route;
 
 /*

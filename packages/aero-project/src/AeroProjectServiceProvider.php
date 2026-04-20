@@ -154,14 +154,15 @@ class AeroProjectServiceProvider extends ServiceProvider
         // Web routes
         if (file_exists($webRoutesPath)) {
             if (function_exists('is_saas_mode') && is_saas_mode()) {
-                // SaaS mode - routes on tenant domains only
-                Route::middleware([
-                    'web',
-                    \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
-                    'tenant',
-                ])->group($webRoutesPath);
+                $platformDomain = env('PLATFORM_DOMAIN', env('APP_DOMAIN', 'localhost'));
+
+                Route::domain('{tenant}.'.$platformDomain)
+                    ->middleware([
+                        'web',
+                        \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
+                        'tenant',
+                    ])->group($webRoutesPath);
             } else {
-                // Standalone mode
                 Route::middleware(['web'])->group($webRoutesPath);
             }
         }
@@ -169,11 +170,14 @@ class AeroProjectServiceProvider extends ServiceProvider
         // API routes
         if (file_exists($apiRoutesPath)) {
             if (function_exists('is_saas_mode') && is_saas_mode()) {
-                Route::middleware([
-                    'api',
-                    \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
-                    'tenant',
-                ])->group($apiRoutesPath);
+                $platformDomain = $platformDomain ?? env('PLATFORM_DOMAIN', env('APP_DOMAIN', 'localhost'));
+
+                Route::domain('{tenant}.'.$platformDomain)
+                    ->middleware([
+                        'api',
+                        \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
+                        'tenant',
+                    ])->group($apiRoutesPath);
             } else {
                 Route::middleware(['api'])->group($apiRoutesPath);
             }

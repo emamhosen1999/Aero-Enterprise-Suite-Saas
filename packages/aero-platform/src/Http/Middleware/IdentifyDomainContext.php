@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\URL;
 
 class IdentifyDomainContext
 {
@@ -45,6 +46,14 @@ class IdentifyDomainContext
         // 1. Identify and SET the domain context on request attributes
         $context = $this->identifyContext($request);
         $request->attributes->set('domain_context', $context);
+
+        // 1b. Set URL defaults for tenant subdomain so route() auto-fills {tenant}
+        if ($context === self::CONTEXT_TENANT) {
+            $parsed = $this->parseHost($request->getHost());
+            if ($parsed['subdomain']) {
+                URL::defaults(['tenant' => $parsed['subdomain']]);
+            }
+        }
 
         // 2. Check if application is installed (for platform domain root only)
         // NOTE: Landing page rendering is now handled by CMS package.

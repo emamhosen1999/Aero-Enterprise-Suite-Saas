@@ -9,6 +9,7 @@ use Aero\Core\Services\NavigationRegistry;
 use Aero\HRMAC\Contracts\RoleModuleAccessInterface;
 use Aero\HRMAC\Models\Module;
 use Aero\HRMAC\Models\SubModule;
+use Aero\I18n\Services\TranslationService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -165,7 +166,7 @@ class HandleInertiaRequests extends Middleware
             'url' => $request->fullUrl(),
             'csrfToken' => csrf_token(),
             'locale' => App::getLocale(),
-            'translations' => fn () => $this->getTranslations(),
+            ...app(TranslationService::class)->getSharedProps(),
             'navigation' => fn () => $this->getNavigationProps($user),
             'userNavMetadata' => fn () => $user ? app(NavigationRegistry::class)->getUserNavigationMetadata($user) : null,
             'flash' => [
@@ -294,28 +295,6 @@ class HandleInertiaRequests extends Middleware
         }
 
         return [];
-    }
-
-    /**
-     * Get translations for the current locale.
-     *
-     * @return array<string, mixed>
-     */
-    protected function getTranslations(): array
-    {
-        $locale = App::getLocale();
-        $translations = [];
-
-        // Load JSON translations
-        $jsonPath = lang_path("{$locale}.json");
-        if (file_exists($jsonPath)) {
-            $jsonTranslations = json_decode(file_get_contents($jsonPath), true);
-            if ($jsonTranslations) {
-                $translations = $jsonTranslations;
-            }
-        }
-
-        return $translations;
     }
 
     /**

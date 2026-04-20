@@ -4,335 +4,517 @@ import axios from 'axios';
 import { getGlossaryTranslation, isInGlossary } from './BusinessGlossary';
 
 /**
- * Translation Context with Business Glossary + Google Translate API
- * 
- * Uses a curated glossary for domain-specific terms (HR, ERP, etc.)
- * Falls back to Google Translate for general text
+ * Advanced Translation Context — Aero Enterprise Suite
+ *
+ * Architecture:
+ *   - Web Worker for Google Translate API calls + IndexedDB caching (off main thread)
+ *   - In-memory Map for instant synchronous lookups (populated from Worker)
+ *   - Business Glossary for domain-specific term accuracy (main thread, instant)
+ *   - Server dictionaries from Inertia props (highest priority)
+ *   - Batch API calls (join texts with \n separator — reduces ~100 calls to 2-3)
+ *   - Automatic fallback to main-thread fetch if Worker unavailable
+ *
+ * Lookup priority:
+ *   1. Server translations (from aero-i18n lang/*.json via Inertia props)
+ *   2. In-memory cache (synced from Worker/IndexedDB)
+ *   3. Business Glossary (domain-specific HR/ERP terms)
+ *   4. Google Translate API via Worker (batch, async, off main thread)
+ *   5. Original text (passthrough while translating)
  */
 
 const TranslationContext = createContext(null);
 
-// Cache configuration - reduced TTL to prevent stale translations
-const CACHE_KEY = 'translations_cache_v5'; // Bumped version to invalidate old cache
-const CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours (was 30 days)
+// ─── Fallback: localStorage for when Worker/IndexedDB unavailable ────────────
+const LS_KEY = 'aero_i18n_cache_v2';
+const LS_EXPIRY = 48 * 60 * 60 * 1000; // 48 hours
+
+function lsLoad() {
+    try {
+        const s = localStorage.getItem(LS_KEY);
+        if (s) {
+            const { d, t } = JSON.parse(s);
+            if (Date.now() - t < LS_EXPIRY) return d || {};
+        }
+        // Migrate old cache format
+        const old = localStorage.getItem('translations_cache_v6');
+        if (old) {
+            const { data, timestamp } = JSON.parse(old);
+            if (Date.now() - timestamp < LS_EXPIRY && data) {
+                localStorage.removeItem('translations_cache_v6');
+                return data;
+            }
+            localStorage.removeItem('translations_cache_v6');
+        }
+    } catch { /* ignore */ }
+    return {};
+}
+
+function lsSave(d) {
+    try { localStorage.setItem(LS_KEY, JSON.stringify({ d, t: Date.now() })); } catch { /* ignore */ }
+}
 
 // Google Translate language codes
 const LANG_CODES = {
-    'en': 'en', 'bn': 'bn', 'ar': 'ar', 'es': 'es',
-    'fr': 'fr', 'de': 'de', 'hi': 'hi', 'zh-CN': 'zh-CN', 'zh-TW': 'zh-TW',
+    en: 'en', bn: 'bn', ar: 'ar', es: 'es', fr: 'fr', de: 'de',
+    hi: 'hi', 'zh-CN': 'zh-CN', 'zh-TW': 'zh-TW', pt: 'pt', ru: 'ru',
+    ja: 'ja', ko: 'ko', it: 'it', nl: 'nl', tr: 'tr', pl: 'pl',
+    vi: 'vi', th: 'th', id: 'id',
 };
 
-/**
- * Load cache from localStorage
- */
-const loadCache = () => {
-    try {
-        const stored = localStorage.getItem(CACHE_KEY);
-        if (stored) {
-            const { data, timestamp } = JSON.parse(stored);
-            if (Date.now() - timestamp < CACHE_EXPIRY) {
-                return data || {};
-            }
-        }
-    } catch (e) {}
-    return {};
-};
+// ─── Fallback: main-thread batch Google Translate ────────────────────────────
 
-/**
- * Save cache to localStorage
- */
-const saveCache = (data) => {
-    try {
-        localStorage.setItem(CACHE_KEY, JSON.stringify({
-            data,
-            timestamp: Date.now(),
-        }));
-    } catch (e) {}
-};
-
-/**
- * Translate text using Business Glossary first, then Google Translate API
- */
-const translateText = async (text, targetLang) => {
-    if (!text?.trim() || targetLang === 'en') return text;
-
-    // Check glossary first for domain-specific translations
-    const glossaryTranslation = getGlossaryTranslation(text, targetLang);
-    if (glossaryTranslation) {
-        return glossaryTranslation;
-    }
-
+async function fallbackBatchTranslate(texts, targetLang) {
     const target = LANG_CODES[targetLang] || targetLang;
-
-    try {
-        const response = await fetch(
-            `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${target}&dt=t&q=${encodeURIComponent(text)}`
-        );
-        
-        if (!response.ok) return text;
-        
-        const data = await response.json();
-        
-        // Google returns: [[["translated", "original", ...], ...], ...]
-        if (data?.[0]) {
-            let translated = '';
-            for (const part of data[0]) {
-                if (part?.[0]) translated += part[0];
-            }
-            if (translated && translated !== text) {
-                return translated;
-            }
-        }
-    } catch (error) {
-        console.warn('Translation error:', error);
-    }
-
-    return text;
-};
-
-/**
- * Batch translate multiple texts (glossary first, then API)
- */
-const batchTranslate = async (texts, targetLang, cache) => {
-    if (!texts.length || targetLang === 'en') {
-        return texts.reduce((acc, t) => ({ ...acc, [t]: t }), {});
-    }
-
     const results = {};
-    const toTranslate = [];
 
-    // Check cache and glossary first
+    // Try batch first (join with \n)
+    const maxChars = 2000;
+    const batches = [];
+    let batch = [];
+    let chars = 0;
+
     for (const text of texts) {
-        // Check cache
-        const cached = cache[targetLang]?.[text];
-        if (cached) {
-            results[text] = cached;
-            continue;
+        const len = encodeURIComponent(text).length;
+        if ((chars + len > maxChars || batch.length >= 80) && batch.length > 0) {
+            batches.push(batch);
+            batch = [text];
+            chars = len;
+        } else {
+            batch.push(text);
+            chars += len + 3;
         }
-        
-        // Check glossary
-        const glossaryTranslation = getGlossaryTranslation(text, targetLang);
-        if (glossaryTranslation) {
-            results[text] = glossaryTranslation;
-            continue;
-        }
-        
-        // Need API translation
-        toTranslate.push(text);
     }
+    if (batch.length) batches.push(batch);
 
-    // Translate uncached texts in parallel (max 5 concurrent)
-    const batchSize = 5;
-    for (let i = 0; i < toTranslate.length; i += batchSize) {
-        const batch = toTranslate.slice(i, i + batchSize);
-        const translations = await Promise.all(
-            batch.map(text => translateText(text, targetLang))
-        );
-        batch.forEach((text, idx) => {
-            results[text] = translations[idx];
-        });
-        
-        // Small delay between batches to avoid rate limiting
-        if (i + batchSize < toTranslate.length) {
-            await new Promise(r => setTimeout(r, 50));
+    for (const b of batches) {
+        if (b.length === 1) {
+            try {
+                const r = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${target}&dt=t&q=${encodeURIComponent(b[0])}`);
+                if (r.ok) {
+                    const d = await r.json();
+                    let out = '';
+                    if (d?.[0]) for (const p of d[0]) { if (p?.[0]) out += p[0]; }
+                    if (out) results[b[0]] = out;
+                }
+            } catch { /* silent */ }
+            continue;
+        }
+
+        const combined = b.join('\n');
+        try {
+            const r = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${target}&dt=t&q=${encodeURIComponent(combined)}`);
+            if (r.ok) {
+                const d = await r.json();
+                let full = '';
+                if (d?.[0]) for (const p of d[0]) { if (p?.[0]) full += p[0]; }
+                const parts = full.split('\n');
+                if (parts.length === b.length) {
+                    b.forEach((t, i) => { results[t] = parts[i].trim() || t; });
+                    continue;
+                }
+            }
+        } catch { /* silent */ }
+
+        // Individual fallback for this batch
+        for (const text of b) {
+            if (results[text]) continue;
+            try {
+                const r = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${target}&dt=t&q=${encodeURIComponent(text)}`);
+                if (r.ok) {
+                    const d = await r.json();
+                    let out = '';
+                    if (d?.[0]) for (const p of d[0]) { if (p?.[0]) out += p[0]; }
+                    if (out) results[text] = out;
+                }
+            } catch { /* silent */ }
         }
     }
 
     return results;
-};
+}
 
-/**
- * Inner Translation Provider
- */
+// ─── Inner Translation Provider ──────────────────────────────────────────────
+
 function InnerTranslationProvider({ children }) {
     const { props } = usePage();
-    
-    const [locale, setLocaleState] = useState(() => {
-        return localStorage.getItem('locale') || props.locale || 'en';
-    });
-    
-    const [cache, setCache] = useState(loadCache);
+
+    const serverTranslations = props.translations || {};
+    const serverLocale = props.locale || 'en';
+    const serverSupportedLocales = props.supportedLocales || ['en'];
+    const serverLocaleMeta = props.localeMeta || {};
+
+    const [locale, setLocaleState] = useState(() =>
+        localStorage.getItem('locale') || serverLocale
+    );
     const [isTranslating, setIsTranslating] = useState(false);
     const [translationVersion, setTranslationVersion] = useState(0);
-    
-    const pendingRef = useRef(new Map()); // text -> Promise
+    const [workerReady, setWorkerReady] = useState(false);
+    const [stats, setStats] = useState({ hits: 0, misses: 0, apiCalls: 0, batchCalls: 0 });
+
+    // In-memory cache for instant sync lookups (keyed by text, scoped to current locale)
+    const memoryCacheRef = useRef(new Map());
+    const workerRef = useRef(null);
+    const useWorkerRef = useRef(true);
+    const localeRef = useRef(locale);
     const queueRef = useRef(new Set());
     const timerRef = useRef(null);
+    const pendingPromises = useRef(new Map()); // text -> { resolve, promise }
+    const lsCacheRef = useRef(lsLoad());
 
-    const supportedLocales = useMemo(() => 
-        ['en', 'bn', 'ar', 'es', 'fr', 'de', 'hi', 'zh-CN', 'zh-TW'],
-        []
-    );
+    const isRTL = useMemo(() => ['ar', 'he', 'fa', 'ur'].includes(locale), [locale]);
 
-    const isRTL = useMemo(() => 
-        ['ar', 'he', 'fa', 'ur'].includes(locale),
-        [locale]
-    );
+    // Keep localeRef in sync
+    useEffect(() => { localeRef.current = locale; }, [locale]);
 
-    // Persist cache
-    useEffect(() => {
-        if (Object.keys(cache).length > 0) {
-            saveCache(cache);
-        }
-    }, [cache]);
-
-    // Apply RTL direction
+    // Apply document direction + lang
     useEffect(() => {
         document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
         document.documentElement.lang = locale;
     }, [isRTL, locale]);
 
-    /**
-     * Process queued translations
-     */
+    // ─── Web Worker Setup ────────────────────────────────────────────────────
+
+    useEffect(() => {
+        let worker;
+        try {
+            worker = new Worker(
+                new URL('./TranslationWorker.js', import.meta.url),
+                { type: 'module' }
+            );
+        } catch (e) {
+            console.warn('[i18n] Worker unavailable, using fallback:', e.message);
+            useWorkerRef.current = false;
+            // Seed memory cache from localStorage
+            const lsData = lsCacheRef.current[localeRef.current];
+            if (lsData) {
+                for (const [text, translation] of Object.entries(lsData)) {
+                    memoryCacheRef.current.set(text, translation);
+                }
+            }
+            return;
+        }
+
+        worker.onmessage = (e) => {
+            const msg = e.data;
+            switch (msg.type) {
+                case 'ready':
+                    setWorkerReady(true);
+                    break;
+
+                case 'cache-loaded': {
+                    const currentLocale = localeRef.current;
+                    if (msg.locale === currentLocale) {
+                        const mc = memoryCacheRef.current;
+                        for (const [text, translation] of Object.entries(msg.cache)) {
+                            mc.set(text, translation);
+                        }
+                        // Also seed localStorage fallback
+                        lsCacheRef.current[msg.locale] = {
+                            ...lsCacheRef.current[msg.locale],
+                            ...msg.cache,
+                        };
+                        lsSave(lsCacheRef.current);
+                        setTranslationVersion(v => v + 1);
+                    }
+                    break;
+                }
+
+                case 'translated': {
+                    const currentLocale = localeRef.current;
+                    const isCurrentLocale = msg.locale === currentLocale;
+                    const mc = memoryCacheRef.current;
+
+                    for (const [text, translation] of Object.entries(msg.results)) {
+                        if (isCurrentLocale) {
+                            mc.set(text, translation);
+                        }
+                        // Resolve pending promises
+                        const entry = pendingPromises.current.get(text);
+                        if (entry) {
+                            entry.resolve(translation);
+                            pendingPromises.current.delete(text);
+                        }
+                    }
+
+                    if (isCurrentLocale) {
+                        lsCacheRef.current[msg.locale] = {
+                            ...lsCacheRef.current[msg.locale],
+                            ...msg.results,
+                        };
+                        lsSave(lsCacheRef.current);
+                        setTranslationVersion(v => v + 1);
+                        setIsTranslating(queueRef.current.size > 0);
+                    }
+                    break;
+                }
+
+                case 'stats':
+                    setStats(msg.stats || {});
+                    break;
+
+                case 'cache-cleared':
+                    memoryCacheRef.current.clear();
+                    lsCacheRef.current = {};
+                    localStorage.removeItem(LS_KEY);
+                    setTranslationVersion(v => v + 1);
+                    break;
+            }
+        };
+
+        worker.onerror = (e) => {
+            console.warn('[i18n] Worker error, switching to fallback:', e.message);
+            useWorkerRef.current = false;
+        };
+
+        workerRef.current = worker;
+        worker.postMessage({ type: 'init', locale: localeRef.current });
+
+        return () => {
+            worker.terminate();
+            workerRef.current = null;
+        };
+    }, []); // Create once
+
+    // Notify worker of locale changes
+    useEffect(() => {
+        if (workerRef.current && workerReady) {
+            memoryCacheRef.current.clear();
+            // Pre-seed from localStorage for instant display
+            const lsData = lsCacheRef.current[locale];
+            if (lsData) {
+                for (const [text, translation] of Object.entries(lsData)) {
+                    memoryCacheRef.current.set(text, translation);
+                }
+            }
+            workerRef.current.postMessage({ type: 'set-locale', locale });
+        }
+    }, [locale, workerReady]);
+
+    // ─── Queue Processing ────────────────────────────────────────────────────
+
     const processQueue = useCallback(async () => {
         const texts = Array.from(queueRef.current);
-        if (texts.length === 0) return;
-        
+        if (!texts.length) return;
         queueRef.current.clear();
+
         setIsTranslating(true);
 
-        try {
-            const results = await batchTranslate(texts, locale, cache);
-            
-            setCache(prev => ({
-                ...prev,
-                [locale]: { ...prev[locale], ...results }
-            }));
-            
-            // Trigger re-render for components using translations
-            setTranslationVersion(v => v + 1);
-        } catch (error) {
-            console.error('Queue processing error:', error);
+        if (useWorkerRef.current && workerRef.current) {
+            workerRef.current.postMessage({ type: 'translate', texts, locale: localeRef.current });
+        } else {
+            // Fallback: main-thread batch translation
+            try {
+                const results = await fallbackBatchTranslate(texts, localeRef.current);
+                const mc = memoryCacheRef.current;
+                const currentLocale = localeRef.current;
+                for (const [text, translation] of Object.entries(results)) {
+                    mc.set(text, translation);
+                    const entry = pendingPromises.current.get(text);
+                    if (entry) { entry.resolve(translation); pendingPromises.current.delete(text); }
+                }
+                lsCacheRef.current[currentLocale] = {
+                    ...lsCacheRef.current[currentLocale],
+                    ...results,
+                };
+                lsSave(lsCacheRef.current);
+                setTranslationVersion(v => v + 1);
+            } catch (e) {
+                console.warn('[i18n] Fallback translation error:', e);
+            }
+            setIsTranslating(false);
         }
-        
-        setIsTranslating(false);
-    }, [locale, cache]);
+    }, []);
+
+    const queueTexts = useCallback((texts) => {
+        const currentLocale = localeRef.current;
+        if (currentLocale === 'en') return;
+        for (const text of texts) {
+            if (!text || typeof text !== 'string') continue;
+            if (serverTranslations[text]) continue;
+            if (memoryCacheRef.current.has(text)) continue;
+            if (isInGlossary(text)) continue;
+            if (lsCacheRef.current[currentLocale]?.[text]) continue;
+            queueRef.current.add(text);
+        }
+        if (queueRef.current.size > 0) {
+            if (timerRef.current) clearTimeout(timerRef.current);
+            timerRef.current = setTimeout(processQueue, 200);
+        }
+    }, [serverTranslations, processQueue]);
+
+    // ─── Pending Promise Helper ──────────────────────────────────────────────
+
+    const getOrCreatePending = useCallback((text) => {
+        let entry = pendingPromises.current.get(text);
+        if (entry) return entry.promise;
+
+        let resolve;
+        const promise = new Promise(r => { resolve = r; });
+        const timeout = setTimeout(() => {
+            if (pendingPromises.current.has(text)) {
+                pendingPromises.current.delete(text);
+                resolve(text);
+            }
+        }, 10000);
+
+        pendingPromises.current.set(text, {
+            resolve: (v) => { clearTimeout(timeout); resolve(v); },
+            promise,
+        });
+        return promise;
+    }, []);
+
+    // ─── Translation API ─────────────────────────────────────────────────────
 
     /**
-     * Queue text for translation
-     */
-    const queueTranslation = useCallback((text) => {
-        if (!text || typeof text !== 'string' || locale === 'en') return;
-        if (cache[locale]?.[text]) return;
-        // Don't queue if in glossary (already handled)
-        if (isInGlossary(text)) return;
-        
-        queueRef.current.add(text);
-        
-        if (timerRef.current) clearTimeout(timerRef.current);
-        timerRef.current = setTimeout(processQueue, 100);
-    }, [locale, cache, processQueue]);
-
-    /**
-     * Synchronous translation (glossary -> cache -> queue for API)
+     * Synchronous translation lookup (instant from cache/glossary)
      */
     const t = useCallback((text) => {
         if (!text || typeof text !== 'string') return text || '';
         if (locale === 'en') return text;
-        
-        // Check glossary first for instant domain-specific translation
-        const glossaryTranslation = getGlossaryTranslation(text, locale);
-        if (glossaryTranslation) return glossaryTranslation;
-        
-        // Check cache
-        const cached = cache[locale]?.[text];
-        if (cached) return cached;
-        
-        // Queue for API translation
-        queueTranslation(text);
+
+        // 1. Server dictionary
+        if (serverTranslations[text]) return serverTranslations[text];
+
+        // 2. In-memory cache (from Worker/IndexedDB)
+        const memHit = memoryCacheRef.current.get(text);
+        if (memHit) return memHit;
+
+        // 3. Business Glossary
+        const glossary = getGlossaryTranslation(text, locale);
+        if (glossary) return glossary;
+
+        // 4. localStorage fallback cache
+        const lsHit = lsCacheRef.current[locale]?.[text];
+        if (lsHit) {
+            memoryCacheRef.current.set(text, lsHit);
+            return lsHit;
+        }
+
+        // 5. Queue for async translation
+        queueTexts([text]);
         return text;
-    }, [locale, cache, queueTranslation, translationVersion]);
+    }, [locale, serverTranslations, queueTexts, translationVersion]);
 
     /**
-     * Async translation (waits for result)
+     * Async translation — returns Promise that resolves with translated text
      */
     const translateAsync = useCallback(async (text) => {
         if (!text || typeof text !== 'string') return text || '';
         if (locale === 'en') return text;
-        
-        const cached = cache[locale]?.[text];
-        if (cached) return cached;
-        
-        // Check if already pending
-        if (pendingRef.current.has(text)) {
-            return pendingRef.current.get(text);
-        }
-        
-        // Create pending promise
-        const promise = translateText(text, locale).then(result => {
-            setCache(prev => ({
-                ...prev,
-                [locale]: { ...prev[locale], [text]: result }
-            }));
-            pendingRef.current.delete(text);
-            return result;
-        });
-        
-        pendingRef.current.set(text, promise);
+
+        // Check sync sources first
+        if (serverTranslations[text]) return serverTranslations[text];
+        const memHit = memoryCacheRef.current.get(text);
+        if (memHit) return memHit;
+        const glossary = getGlossaryTranslation(text, locale);
+        if (glossary) return glossary;
+        const lsHit = lsCacheRef.current[locale]?.[text];
+        if (lsHit) { memoryCacheRef.current.set(text, lsHit); return lsHit; }
+
+        // Get/create pending promise and queue
+        const promise = getOrCreatePending(text);
+        queueTexts([text]);
         return promise;
-    }, [locale, cache]);
+    }, [locale, serverTranslations, getOrCreatePending, queueTexts]);
 
     /**
-     * Change locale
+     * Batch translate — returns Promise<{ [text]: translation }>
+     * This is the PRIMARY method for GlobalAutoTranslator.
+     * Dramatically faster than individual translateAsync calls.
+     */
+    const translateBatch = useCallback(async (texts) => {
+        if (!texts?.length || locale === 'en') {
+            return Object.fromEntries(texts?.map(t => [t, t]) || []);
+        }
+
+        const results = {};
+        const uncached = [];
+
+        for (const text of texts) {
+            const hit = serverTranslations[text]
+                || memoryCacheRef.current.get(text)
+                || getGlossaryTranslation(text, locale)
+                || lsCacheRef.current[locale]?.[text];
+            if (hit) {
+                results[text] = hit;
+                if (!memoryCacheRef.current.has(text)) memoryCacheRef.current.set(text, hit);
+            } else {
+                uncached.push(text);
+            }
+        }
+
+        if (!uncached.length) return results;
+
+        // Create/reuse pending promises for uncached texts
+        const promises = uncached.map(text =>
+            getOrCreatePending(text).then(translation => [text, translation])
+        );
+        queueTexts(uncached);
+
+        const settled = await Promise.all(promises);
+        for (const [text, translation] of settled) {
+            results[text] = translation;
+        }
+
+        return results;
+    }, [locale, serverTranslations, getOrCreatePending, queueTexts]);
+
+    /**
+     * Change locale — instant client-side switch + server notification
      */
     const setLocale = useCallback((newLocale) => {
-        if (newLocale === locale || !supportedLocales.includes(newLocale)) return;
+        if (newLocale === locale || !serverSupportedLocales.includes(newLocale)) return;
 
         localStorage.setItem('locale', newLocale);
         setLocaleState(newLocale);
-        
-        // Clear pending queue
+
+        // Clear queues
         queueRef.current.clear();
-        pendingRef.current.clear();
-        
-        // Trigger re-render
+        if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+        pendingPromises.current.forEach(entry => entry.resolve(''));
+        pendingPromises.current.clear();
+
         setTranslationVersion(v => v + 1);
 
-        // Notify server
+        // Notify server (fire-and-forget)
         axios.post('/locale', { locale: newLocale }).catch(() => {});
-    }, [locale, supportedLocales]);
+    }, [locale, serverSupportedLocales]);
 
     /**
-     * Clear cache
+     * Clear all caches (memory + localStorage + IndexedDB via Worker)
      */
     const clearCache = useCallback(() => {
-        setCache({});
-        localStorage.removeItem(CACHE_KEY);
+        memoryCacheRef.current.clear();
+        lsCacheRef.current = {};
+        localStorage.removeItem(LS_KEY);
+        if (workerRef.current) workerRef.current.postMessage({ type: 'clear-cache' });
         setTranslationVersion(v => v + 1);
     }, []);
 
     /**
-     * Preload common UI texts
+     * Preload texts into cache
      */
     const preload = useCallback(async (texts) => {
         if (!texts?.length || locale === 'en') return;
-        
-        const uncached = texts.filter(t => !cache[locale]?.[t]);
-        if (uncached.length === 0) return;
-        
-        setIsTranslating(true);
-        const results = await batchTranslate(uncached, locale, cache);
-        setCache(prev => ({
-            ...prev,
-            [locale]: { ...prev[locale], ...results }
-        }));
-        setIsTranslating(false);
-        setTranslationVersion(v => v + 1);
-    }, [locale, cache]);
+        queueTexts(texts);
+    }, [locale, queueTexts]);
 
     const value = useMemo(() => ({
         locale,
         t,
         translateAsync,
+        translateBatch,
         setLocale,
-        supportedLocales,
+        supportedLocales: serverSupportedLocales,
+        localeMeta: serverLocaleMeta,
         isRTL,
         isTranslating,
         clearCache,
         preload,
-        translationVersion, // For components that need to re-render on translation
-    }), [locale, t, translateAsync, setLocale, supportedLocales, isRTL, isTranslating, clearCache, preload, translationVersion]);
+        translationVersion,
+        stats,
+    }), [locale, t, translateAsync, translateBatch, setLocale, serverSupportedLocales, serverLocaleMeta, isRTL, isTranslating, clearCache, preload, translationVersion, stats]);
 
     return (
         <TranslationContext.Provider value={value}>
@@ -352,13 +534,16 @@ export function TranslationProvider({ children }) {
             locale: 'en',
             t: (text) => text,
             translateAsync: async (text) => text,
+            translateBatch: async (texts) => Object.fromEntries(texts?.map(t => [t, t]) || []),
             setLocale: () => {},
             supportedLocales: ['en'],
+            localeMeta: {},
             isRTL: false,
             isTranslating: false,
             clearCache: () => {},
             preload: async () => {},
             translationVersion: 0,
+            stats: {},
         };
 
         return (

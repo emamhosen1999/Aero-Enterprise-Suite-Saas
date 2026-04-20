@@ -77,24 +77,27 @@ class AeroHrmServiceProvider extends ServiceProvider
      */
     protected function registerRoutes(): void
     {
+        // HRMServiceProvider (via AbstractModuleProvider) already loads routes
+        // with proper domain constraints. Skip here to prevent duplicate registration.
+        if ($this->app->providerIsLoaded(\Aero\HRM\Providers\HRMServiceProvider::class)) {
+            return;
+        }
+
         $routesPath = __DIR__.'/../routes';
 
-        // Check if running in SaaS mode (Platform active AND stancl/tenancy available)
-        // Note: isPlatformActive() checks class existence, isSaaSMode() checks runtime mode
         if ($this->isPlatformActive() && $this->isSaaSMode()) {
-            // SaaS Mode: InitializeTenancyIfNotCentral initializes tenant context,
-            // 'tenant' middleware ensures valid tenant context exists
-            Route::middleware([
-                'web',
-                \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
-                'tenant',
-            ])
+            $platformDomain = env('PLATFORM_DOMAIN', env('APP_DOMAIN', 'localhost'));
+
+            Route::domain('{tenant}.'.$platformDomain)
+                ->middleware([
+                    'web',
+                    \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
+                    'tenant',
+                ])
                 ->prefix('hrm')
                 ->name('hrm.')
                 ->group($routesPath.'/web.php');
         } else {
-            // Standalone Mode: Routes with standard web middleware on domain.com
-            // Also used when Platform is installed but not in SaaS mode
             Route::middleware(['web', 'auth'])
                 ->prefix('hrm')
                 ->name('hrm.')

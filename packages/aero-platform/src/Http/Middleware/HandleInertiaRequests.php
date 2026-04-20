@@ -10,14 +10,13 @@ use Aero\Core\Support\TenantCache;
 use Aero\HRMAC\Contracts\RoleModuleAccessInterface;
 use Aero\HRMAC\Models\Module;
 use Aero\HRMAC\Models\SubModule;
+use Aero\I18n\Services\TranslationService;
 use Aero\Platform\Http\Resources\PlatformSettingResource;
 use Aero\Platform\Models\PlatformSetting;
 use Aero\Platform\Models\SystemSetting;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\View;
 use Inertia\Middleware;
@@ -243,10 +242,8 @@ class HandleInertiaRequests extends Middleware
         return [
             'url' => $request->fullUrl(),
             'csrfToken' => csrf_token(),
-            'locale' => App::getLocale(),
+            ...app(TranslationService::class)->getSharedProps(),
             'fallbackLocale' => config('app.fallback_locale', 'en'),
-            // Lazy load translations to avoid parsing JSON/PHP files on every partial reload
-            'translations' => fn () => $this->getTranslations(),
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
@@ -385,43 +382,8 @@ class HandleInertiaRequests extends Middleware
     }
 
     // =========================================================================
-    // HELPERS (Settings, Navigation, Translation, Modules)
+    // HELPERS (Settings, Navigation, Modules)
     // =========================================================================
-
-    protected function getTranslations(): array
-    {
-        $locale = App::getLocale();
-        $translations = [];
-
-        $namespaces = ['common', 'navigation', 'validation'];
-
-        // Intelligent namespace loading based on route
-        $routeName = request()->route()?->getName() ?? '';
-        if (str_contains($routeName, 'dashboard')) {
-            $namespaces[] = 'dashboard';
-        }
-        if (str_contains($routeName, 'hr') || str_contains($routeName, 'employee') || str_contains($routeName, 'department') || str_contains($routeName, 'leave') || str_contains($routeName, 'attendance')) {
-            $namespaces[] = 'hr';
-        }
-        if (str_contains($routeName, 'device')) {
-            $namespaces[] = 'device';
-        }
-
-        foreach ($namespaces as $namespace) {
-            $path = lang_path("{$locale}/{$namespace}.php");
-            if (file_exists($path)) {
-                $translations[$namespace] = require $path;
-            }
-        }
-
-        // Load main JSON file
-        $jsonPath = lang_path("{$locale}.json");
-        if (file_exists($jsonPath)) {
-            $translations = array_merge($translations, json_decode(file_get_contents($jsonPath), true) ?? []);
-        }
-
-        return $translations;
-    }
 
     protected function getNavigationProps($user): array
     {

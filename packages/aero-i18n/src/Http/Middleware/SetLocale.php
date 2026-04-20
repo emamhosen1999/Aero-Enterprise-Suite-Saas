@@ -1,6 +1,6 @@
 <?php
 
-namespace Aero\Core\Http\Middleware;
+namespace Aero\I18n\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
@@ -11,13 +11,6 @@ use Symfony\Component\HttpFoundation\Response;
 class SetLocale
 {
     /**
-     * Supported locales for the application.
-     *
-     * @var array<string>
-     */
-    protected array $supportedLocales = ['en', 'bn', 'ar', 'es', 'fr', 'de', 'hi', 'zh-CN', 'zh-TW'];
-
-    /**
      * Handle an incoming request.
      */
     public function handle(Request $request, Closure $next): Response
@@ -26,7 +19,6 @@ class SetLocale
 
         App::setLocale($locale);
 
-        // Store in session for persistence
         Session::put('locale', $locale);
 
         return $next($request);
@@ -37,46 +29,46 @@ class SetLocale
      */
     protected function determineLocale(Request $request): string
     {
-        // 1. Check query parameter (for immediate switching)
+        // 1. Query parameter (immediate switching)
         if ($request->has('locale') && $this->isSupported($request->query('locale'))) {
             return $request->query('locale');
         }
 
-        // 2. Check session
+        // 2. Session
         if (Session::has('locale') && $this->isSupported(Session::get('locale'))) {
             return Session::get('locale');
         }
 
-        // 3. Check cookie
+        // 3. Cookie
         if ($request->hasCookie('locale') && $this->isSupported($request->cookie('locale'))) {
             return $request->cookie('locale');
         }
 
-        // 4. Check authenticated user preference
+        // 4. Authenticated user preference
         if ($request->user() && $request->user()->locale && $this->isSupported($request->user()->locale)) {
             return $request->user()->locale;
         }
 
-        // 5. Check browser Accept-Language header
+        // 5. Browser Accept-Language header
         $browserLocale = $this->getPreferredLocaleFromHeader($request);
         if ($browserLocale && $this->isSupported($browserLocale)) {
             return $browserLocale;
         }
 
-        // 6. Fall back to default locale
-        return config('app.locale', 'en');
+        // 6. Default
+        return config('locale.default') ?? config('app.locale', 'en');
     }
 
     /**
-     * Check if a locale is supported.
+     * Check if a locale is in the supported list.
      */
     protected function isSupported(?string $locale): bool
     {
-        return $locale && in_array($locale, $this->supportedLocales, true);
+        return $locale && in_array($locale, static::getSupportedLocales(), true);
     }
 
     /**
-     * Get the preferred locale from the Accept-Language header.
+     * Parse the Accept-Language header and return the first supported locale.
      */
     protected function getPreferredLocaleFromHeader(Request $request): ?string
     {
@@ -86,7 +78,6 @@ class SetLocale
             return null;
         }
 
-        // Parse Accept-Language header (e.g., "en-US,en;q=0.9,bn;q=0.8")
         $languages = [];
         foreach (explode(',', $acceptLanguage) as $part) {
             $part = trim($part);
@@ -99,15 +90,12 @@ class SetLocale
                 $lang = $part;
             }
 
-            // Extract base language (e.g., "en" from "en-US")
             $baseLang = strtolower(substr($lang, 0, 2));
             $languages[$baseLang] = $priority;
         }
 
-        // Sort by priority
         arsort($languages);
 
-        // Return the first supported language
         foreach (array_keys($languages) as $lang) {
             if ($this->isSupported($lang)) {
                 return $lang;
@@ -118,10 +106,18 @@ class SetLocale
     }
 
     /**
-     * Get the list of supported locales.
+     * Get the list of supported locales from config.
      */
     public static function getSupportedLocales(): array
     {
-        return (new static)->supportedLocales;
+        return config('locale.supported', ['en']);
+    }
+
+    /**
+     * Get locale metadata from config.
+     */
+    public static function getLocaleMeta(): array
+    {
+        return config('locale.meta', []);
     }
 }

@@ -44,6 +44,7 @@ import { useNavigation } from './NavigationProvider';
 import { getMenuItemUrl, isItemActive, navigateToItem, getMenuItemId, hasRoute, normalizePath } from './navigationUtils.jsx';
 import { useBranding } from '@/Hooks/useBranding';
 import ProfileAvatar from '@/Components/ProfileAvatar';
+import LanguageSwitcher from '@/Components/LanguageSwitcher';
 import { useTheme } from '@/Context/ThemeContext';
 
 const safeRoute = (routeName, fallback = '#') => {
@@ -550,6 +551,11 @@ const HeaderThemeToggle = React.memo(() => {
   );
 });
 
+/* ─── HeaderLanguageSwitcher ─── */
+const HeaderLanguageSwitcher = React.memo(() => (
+  <LanguageSwitcher variant="minimal" size="sm" showFlag />
+));
+
 /* ─── HeaderUserMenu — premium profile dropdown ─── */
 const HeaderUserMenu = React.memo(({ user }) => {
   const handleLogout = useCallback(() => {
@@ -703,6 +709,7 @@ const HeaderActions = React.memo(({ user, searchTerm, onSearchChange, sidebarCol
   <div className="flex items-center gap-1 shrink-0">
     {sidebarCollapsed && <HeaderSearch searchTerm={searchTerm} onSearchChange={onSearchChange} />}
     <HeaderThemeToggle />
+    <HeaderLanguageSwitcher />
     <HeaderNotifications />
     {/* Glass divider */}
     <div

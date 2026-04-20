@@ -191,11 +191,15 @@ class CoreModuleProvider extends AbstractModuleProvider
         }
 
         if ($this->isPlatformActive()) {
-            Route::middleware([
-                'web',
-                \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
-                'tenant',
-            ])->group($routesPath.'/web.php');
+            // SaaS mode: Only load on tenant subdomains using domain constraint
+            $platformDomain = env('PLATFORM_DOMAIN', env('APP_DOMAIN', 'localhost'));
+
+            Route::domain('{tenant}.'.$platformDomain)
+                ->middleware([
+                    'web',
+                    \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
+                    'tenant',
+                ])->group($routesPath.'/web.php');
         } else {
             Route::middleware(['web'])->group($routesPath.'/web.php');
         }

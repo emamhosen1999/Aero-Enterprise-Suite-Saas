@@ -308,13 +308,15 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
         }
 
         if ($this->isPlatformActive()) {
-            // SaaS: InitializeTenancyIfNotCentral MUST come BEFORE 'tenant'
-            // to gracefully return 404 on central domains instead of crashing
-            Route::middleware([
-                'web',
-                \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
-                'tenant',
-            ])
+            // SaaS: Tenant routes only on tenant subdomains ({tenant}.domain.com)
+            $platformDomain = env('PLATFORM_DOMAIN', env('APP_DOMAIN', 'localhost'));
+
+            Route::domain('{tenant}.'.$platformDomain)
+                ->middleware([
+                    'web',
+                    \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
+                    'tenant',
+                ])
                 ->prefix($this->moduleCode)
                 ->name($this->moduleCode.'.')
                 ->group($routesPath.'/web.php');

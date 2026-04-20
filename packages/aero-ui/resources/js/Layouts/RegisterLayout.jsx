@@ -8,7 +8,7 @@ import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import MaintenanceModeBanner from '@/Components/Platform/MaintenanceModeBanner.jsx';
-import { LanguageSelector, LanguageProvider } from '@/Components/Platform/LanguageSelector.jsx';
+import { LanguageSelector } from '@/Components/Platform/LanguageSelector.jsx';
 
 /**
  * Captures and stores UTM parameters from URL

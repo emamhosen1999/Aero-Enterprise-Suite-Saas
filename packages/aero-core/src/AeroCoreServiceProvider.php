@@ -275,6 +275,8 @@ class AeroCoreServiceProvider extends ServiceProvider
 
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'aero-core');
 
+        // JSON translations are now loaded by aero-i18n package
+
         // Register routes - conditional on installation status
         $this->registerRoutes();
 

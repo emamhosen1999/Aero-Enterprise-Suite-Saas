@@ -65,28 +65,53 @@ class AeroComplianceServiceProvider extends ServiceProvider
      */
     protected function registerRoutes(): void
     {
-        // API routes
+        $isSaas = function_exists('is_saas_mode') && is_saas_mode();
+        $platformDomain = env('PLATFORM_DOMAIN', env('APP_DOMAIN', 'localhost'));
+        $adminDomain = env('ADMIN_DOMAIN', 'admin.'.$platformDomain);
+
+        // API routes (tenant-scoped)
         if (file_exists(__DIR__.'/../routes/api.php')) {
-            Route::middleware(['api'])
+            $route = Route::middleware(['api'])
                 ->prefix('api/compliance')
-                ->name('api.compliance.')
-                ->group(__DIR__.'/../routes/api.php');
+                ->name('api.compliance.');
+
+            if ($isSaas) {
+                $route->domain('{tenant}.'.$platformDomain);
+            }
+
+            $route->group(__DIR__.'/../routes/api.php');
         }
 
         // Web routes (tenant-scoped)
         if (file_exists(__DIR__.'/../routes/tenant.php')) {
-            Route::middleware(['web'])
-                ->prefix('compliance')
-                ->name('compliance.')
-                ->group(__DIR__.'/../routes/tenant.php');
+            $route = Route::prefix('compliance')
+                ->name('compliance.');
+
+            if ($isSaas) {
+                $route->domain('{tenant}.'.$platformDomain)
+                    ->middleware([
+                        'web',
+                        \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
+                        'tenant',
+                    ]);
+            } else {
+                $route->middleware(['web']);
+            }
+
+            $route->group(__DIR__.'/../routes/tenant.php');
         }
 
-        // Admin routes (landlord)
+        // Admin routes (landlord) — on admin subdomain only
         if (file_exists(__DIR__.'/../routes/admin.php')) {
-            Route::middleware(['web'])
+            $route = Route::middleware(['web'])
                 ->prefix('admin/compliance')
-                ->name('admin.compliance.')
-                ->group(__DIR__.'/../routes/admin.php');
+                ->name('admin.compliance.');
+
+            if ($isSaas) {
+                $route->domain($adminDomain);
+            }
+
+            $route->group(__DIR__.'/../routes/admin.php');
         }
     }
 

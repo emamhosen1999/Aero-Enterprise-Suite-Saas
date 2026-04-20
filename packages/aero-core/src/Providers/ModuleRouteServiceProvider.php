@@ -147,16 +147,19 @@ class ModuleRouteServiceProvider extends ServiceProvider
         // InitializeTenancyIfNotCentral initializes tenant context on tenant domains
         // 'tenant' middleware (EnsureTenantContext) ensures valid tenant context exists
         $tenancyMiddleware = \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class;
+        $platformDomain = env('PLATFORM_DOMAIN', env('APP_DOMAIN', 'localhost'));
 
         // Register tenant routes (subdomain-based, requires auth)
         if (File::exists($routesPath.'/tenant.php')) {
-            Route::middleware(['web', $tenancyMiddleware, 'tenant', 'auth', 'verified'])
+            Route::domain('{tenant}.'.$platformDomain)
+                ->middleware(['web', $tenancyMiddleware, 'tenant', 'auth', 'verified'])
                 ->group($routesPath.'/tenant.php');
         }
 
         // Register web routes (for tenant routes without auth requirement)
         if (File::exists($routesPath.'/web.php')) {
-            Route::middleware(['web', $tenancyMiddleware, 'tenant'])
+            Route::domain('{tenant}.'.$platformDomain)
+                ->middleware(['web', $tenancyMiddleware, 'tenant'])
                 ->group($routesPath.'/web.php');
         }
 
@@ -169,7 +172,8 @@ class ModuleRouteServiceProvider extends ServiceProvider
 
         // Register API routes (tenant-scoped)
         if (File::exists($routesPath.'/api.php')) {
-            Route::middleware(['api', $tenancyMiddleware, 'tenant', 'auth:sanctum'])
+            Route::domain('{tenant}.'.$platformDomain)
+                ->middleware(['api', $tenancyMiddleware, 'tenant', 'auth:sanctum'])
                 ->prefix('api')
                 ->group($routesPath.'/api.php');
         }

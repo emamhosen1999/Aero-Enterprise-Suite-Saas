@@ -292,22 +292,7 @@ Route::middleware('auth:web')->group(function () {
         return response()->json(['authenticated' => auth()->check()]);
     })->name('core.session-check');
 
-    // Locale Switching
-    Route::post('/locale', function (Request $request) {
-        $locale = $request->input('locale', 'en');
-        $supportedLocales = ['en', 'bn', 'ar', 'es', 'fr', 'de', 'hi', 'zh-CN', 'zh-TW'];
-
-        if (in_array($locale, $supportedLocales)) {
-            session(['locale' => $locale]);
-            app()->setLocale($locale);
-
-            if (auth()->check()) {
-                auth()->user()->update(['locale' => $locale]);
-            }
-        }
-
-        return response()->noContent();
-    })->name('core.locale.update');
+    // Locale switching is now handled by aero-i18n package (route: i18n.locale.update)
 
     // ========================================================================
     // USER MANAGEMENT ROUTES

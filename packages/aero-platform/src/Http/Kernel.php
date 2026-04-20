@@ -30,7 +30,7 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            Aero\Platform\Http\Middleware\SetLocale::class, // Locale detection before Inertia
+            \Aero\I18n\Http\Middleware\SetLocale::class, // Locale detection before Inertia
             Aero\Platform\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
             Aero\Platform\Http\Middleware\Cors::class,
