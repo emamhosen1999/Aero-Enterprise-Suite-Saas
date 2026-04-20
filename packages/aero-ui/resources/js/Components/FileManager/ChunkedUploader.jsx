@@ -159,12 +159,12 @@ export function ChunkedUploader({
                             transition-colors duration-200
                             ${isDragActive
                                 ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                                : 'border-gray-300 dark:border-gray-600 hover:border-primary-400'
+                                : 'border-default-300 dark:border-default-600 hover:border-primary-400'
                             }
                         `}
                     >
                         <input {...getInputProps()} />
-                        <CloudArrowUpIcon className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                        <CloudArrowUpIcon className="w-12 h-12 mx-auto mb-4 text-default-400" />
                         {isDragActive ? (
                             <p className="text-primary-600 dark:text-primary-400">
                                 Drop the file here...
@@ -174,7 +174,7 @@ export function ChunkedUploader({
                                 <p className="text-default-500 mb-2">
                                     Drag and drop a file here, or click to select
                                 </p>
-                                <p className="text-sm text-gray-400">
+                                <p className="text-sm text-default-400">
                                     Max size: {formatBytes(maxSize)}
                                 </p>
                             </>
@@ -195,13 +195,13 @@ export function ChunkedUploader({
 
                 {/* Selected file info */}
                 {file && (
-                    <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <DocumentIcon className="w-10 h-10 text-gray-400" />
+                    <div className="flex items-center gap-3 p-4 bg-content2 dark:bg-content2 rounded-lg">
+                        <DocumentIcon className="w-10 h-10 text-default-400" />
                         <div className="flex-1 min-w-0">
                             <p className="font-medium text-foreground truncate">
                                 {file.name}
                             </p>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-default-500">
                                 {formatBytes(file.size)} • {progress.totalChunks} chunks
                             </p>
                         </div>
@@ -221,7 +221,7 @@ export function ChunkedUploader({
                             showValueLabel
                             className="w-full"
                         />
-                        <div className="flex justify-between text-sm text-gray-500">
+                        <div className="flex justify-between text-sm text-default-500">
                             <span>
                                 {formatBytes(progress.uploadedSize)} / {formatBytes(progress.totalSize)}
                             </span>

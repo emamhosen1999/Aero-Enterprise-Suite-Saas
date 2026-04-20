@@ -1388,5 +1388,267 @@ return [
                 ],
             ],
         ],
+
+        // 2.21 Dashboard
+        [
+            'code' => 'dashboard',
+            'name' => 'HR Dashboard',
+            'description' => 'HR management dashboard with key metrics and insights',
+            'icon' => 'HomeIcon',
+            'route' => '/hrm/dashboard',
+            'priority' => 0,
+            'show_in_nav' => false,
+            'components' => [
+                [
+                    'code' => 'hr-dashboard',
+                    'name' => 'HR Dashboard',
+                    'type' => 'page',
+                    'route' => '/hrm/dashboard',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View HR Dashboard'],
+                    ],
+                ],
+            ],
+        ],
+
+        // 2.22 Onboarding & Offboarding
+        [
+            'code' => 'onboarding',
+            'name' => 'Onboarding & Offboarding',
+            'description' => 'Employee onboarding wizards, checklists, and offboarding processes',
+            'icon' => 'UserPlusIcon',
+            'route' => '/hrm/onboarding',
+            'priority' => 21,
+            'components' => [
+                [
+                    'code' => 'onboarding-list',
+                    'name' => 'Onboarding',
+                    'type' => 'page',
+                    'route' => '/hrm/onboarding',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Onboarding'],
+                        ['code' => 'create', 'name' => 'Create Onboarding'],
+                        ['code' => 'update', 'name' => 'Update Onboarding'],
+                        ['code' => 'delete', 'name' => 'Delete Onboarding'],
+                    ],
+                ],
+                [
+                    'code' => 'offboarding-list',
+                    'name' => 'Offboarding',
+                    'type' => 'page',
+                    'route' => '/hrm/offboarding',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Offboarding'],
+                        ['code' => 'create', 'name' => 'Create Offboarding'],
+                        ['code' => 'update', 'name' => 'Update Offboarding'],
+                        ['code' => 'delete', 'name' => 'Delete Offboarding'],
+                    ],
+                ],
+                [
+                    'code' => 'checklists',
+                    'name' => 'Onboarding Checklists',
+                    'type' => 'page',
+                    'route' => '/hrm/checklists',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Checklists'],
+                        ['code' => 'manage', 'name' => 'Manage Checklists'],
+                    ],
+                ],
+            ],
+        ],
+
+        // 2.23 Workplace Safety
+        [
+            'code' => 'safety',
+            'name' => 'Workplace Safety',
+            'description' => 'Workplace health & safety incidents, inspections, and training',
+            'icon' => 'ShieldCheckIcon',
+            'route' => '/hrm/safety',
+            'priority' => 22,
+            'components' => [
+                [
+                    'code' => 'safety-incidents',
+                    'name' => 'Safety Incidents',
+                    'type' => 'page',
+                    'route' => '/hrm/safety/incidents',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Incidents'],
+                        ['code' => 'create', 'name' => 'Report Incident'],
+                        ['code' => 'update', 'name' => 'Update Incident'],
+                        ['code' => 'delete', 'name' => 'Delete Incident'],
+                        ['code' => 'resolve', 'name' => 'Resolve Incident'],
+                    ],
+                ],
+                [
+                    'code' => 'safety-inspections',
+                    'name' => 'Safety Inspections',
+                    'type' => 'page',
+                    'route' => '/hrm/safety/inspections',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Inspections'],
+                        ['code' => 'create', 'name' => 'Create Inspection'],
+                        ['code' => 'update', 'name' => 'Update Inspection'],
+                        ['code' => 'delete', 'name' => 'Delete Inspection'],
+                    ],
+                ],
+                [
+                    'code' => 'safety-training',
+                    'name' => 'Safety Training',
+                    'type' => 'page',
+                    'route' => '/hrm/safety/training',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Safety Training'],
+                        ['code' => 'create', 'name' => 'Create Safety Training'],
+                        ['code' => 'update', 'name' => 'Update Safety Training'],
+                    ],
+                ],
+            ],
+        ],
+
+        // 2.24 HR Documents
+        [
+            'code' => 'documents',
+            'name' => 'HR Documents',
+            'description' => 'Company-wide HR document management and employee document tracking',
+            'icon' => 'DocumentTextIcon',
+            'route' => '/hrm/documents',
+            'priority' => 23,
+            'components' => [
+                [
+                    'code' => 'document-list',
+                    'name' => 'HR Documents',
+                    'type' => 'page',
+                    'route' => '/hrm/documents',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Documents'],
+                        ['code' => 'create', 'name' => 'Create Document'],
+                        ['code' => 'update', 'name' => 'Update Document'],
+                        ['code' => 'delete', 'name' => 'Delete Document'],
+                        ['code' => 'verify', 'name' => 'Verify Document'],
+                    ],
+                ],
+                [
+                    'code' => 'document-categories',
+                    'name' => 'Document Categories',
+                    'type' => 'page',
+                    'route' => '/hrm/document-categories',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Categories'],
+                        ['code' => 'manage', 'name' => 'Manage Categories'],
+                    ],
+                ],
+            ],
+        ],
+
+        // 2.25 HR Settings
+        [
+            'code' => 'settings',
+            'name' => 'HR Settings',
+            'description' => 'Configuration for HR module features and policies',
+            'icon' => 'CogIcon',
+            'route' => '/hrm/settings',
+            'priority' => 99,
+            'components' => [
+                [
+                    'code' => 'onboarding-settings',
+                    'name' => 'Onboarding Settings',
+                    'type' => 'page',
+                    'route' => '/hrm/settings/hr/onboarding',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Settings'],
+                        ['code' => 'update', 'name' => 'Update Settings'],
+                    ],
+                ],
+                [
+                    'code' => 'skills-settings',
+                    'name' => 'Skills Settings',
+                    'type' => 'page',
+                    'route' => '/hrm/settings/hr/skills',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Settings'],
+                        ['code' => 'update', 'name' => 'Update Settings'],
+                    ],
+                ],
+                [
+                    'code' => 'benefits-settings',
+                    'name' => 'Benefits Settings',
+                    'type' => 'page',
+                    'route' => '/hrm/settings/hr/benefits',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Settings'],
+                        ['code' => 'update', 'name' => 'Update Settings'],
+                    ],
+                ],
+                [
+                    'code' => 'safety-settings',
+                    'name' => 'Safety Settings',
+                    'type' => 'page',
+                    'route' => '/hrm/settings/hr/safety',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Settings'],
+                        ['code' => 'update', 'name' => 'Update Settings'],
+                    ],
+                ],
+                [
+                    'code' => 'documents-settings',
+                    'name' => 'Documents Settings',
+                    'type' => 'page',
+                    'route' => '/hrm/settings/hr/documents',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Settings'],
+                        ['code' => 'update', 'name' => 'Update Settings'],
+                    ],
+                ],
+            ],
+        ],
+
+        // 2.26 AI Analytics
+        [
+            'code' => 'ai-analytics',
+            'name' => 'AI Analytics',
+            'description' => 'AI-powered predictive HR analytics including attrition, burnout, and talent insights',
+            'icon' => 'SparklesIcon',
+            'route' => '/hrm/ai-analytics',
+            'priority' => 24,
+            'components' => [
+                [
+                    'code' => 'ai-dashboard',
+                    'name' => 'AI Analytics Dashboard',
+                    'type' => 'page',
+                    'route' => '/hrm/ai-analytics',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View AI Dashboard'],
+                    ],
+                ],
+                [
+                    'code' => 'attrition-predictions',
+                    'name' => 'Attrition Predictions',
+                    'type' => 'page',
+                    'route' => '/hrm/ai-analytics/attrition',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Attrition Predictions'],
+                        ['code' => 'run', 'name' => 'Run Predictions'],
+                    ],
+                ],
+                [
+                    'code' => 'burnout-analysis',
+                    'name' => 'Burnout Risk Analysis',
+                    'type' => 'page',
+                    'route' => '/hrm/ai-analytics/burnout',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Burnout Risks'],
+                    ],
+                ],
+                [
+                    'code' => 'talent-mobility',
+                    'name' => 'Talent Mobility',
+                    'type' => 'page',
+                    'route' => '/hrm/ai-analytics/talent-mobility',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Talent Mobility'],
+                    ],
+                ],
+            ],
+        ],
     ],
 ];

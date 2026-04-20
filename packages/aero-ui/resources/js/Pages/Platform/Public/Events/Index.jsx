@@ -34,10 +34,10 @@ const PublicEventsIndex = ({ events }) => {
             <Head title="Events" />
             
             {/* Header */}
-            <div className="bg-white shadow-sm border-b">
+            <div className="bg-content1 dark:bg-content2 shadow-sm border-b">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <h1 className="text-3xl font-bold text-gray-900">Upcoming Events</h1>
-                    <p className="mt-2 text-gray-600">Browse and register for scheduled events and programmes</p>
+                    <h1 className="text-3xl font-bold text-foreground">Upcoming Events</h1>
+                    <p className="mt-2 text-default-600">Browse and register for scheduled events and programmes</p>
                 </div>
             </div>
             
@@ -131,9 +131,9 @@ const PublicEventsIndex = ({ events }) => {
                     </div>
                 ) : (
                     <div className="text-center py-16">
-                        <CalendarIcon className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                        <h3 className="text-xl font-semibold text-gray-700 mb-2">No events found</h3>
-                        <p className="text-gray-500">Check back later for upcoming events</p>
+                        <CalendarIcon className="w-16 h-16 mx-auto text-default-400 mb-4" />
+                        <h3 className="text-xl font-semibold text-default-700 mb-2">No events found</h3>
+                        <p className="text-default-500">Check back later for upcoming events</p>
                     </div>
                 )}
             </div>

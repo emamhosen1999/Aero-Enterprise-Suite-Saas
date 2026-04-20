@@ -722,7 +722,7 @@ export default function OnboardingWizard({
                                             <Card
                                                 radius={themeRadius}
                                                 classNames={{
-                                                    base: `bg-gray-800 border-2 ${brandingForm.errors.logo_dark ? 'border-danger' : logoPreviews.logo_dark ? 'border-success' : 'border-dashed border-divider hover:border-primary'} transition-colors cursor-pointer`
+                                                    base: `bg-content2 border-2 ${brandingForm.errors.logo_dark ? 'border-danger' : logoPreviews.logo_dark ? 'border-success' : 'border-dashed border-divider hover:border-primary'} transition-colors cursor-pointer`
                                                 }}
                                                 isPressable
                                                 onPress={() => document.getElementById('logo_dark').click()}
@@ -739,9 +739,9 @@ export default function OnboardingWizard({
                                                         </>
                                                     ) : (
                                                         <>
-                                                            <Upload className="w-8 h-8 text-gray-400 mb-2" />
+                                                            <Upload className="w-8 h-8 text-default-400 mb-2" />
                                                             <p className="text-sm font-medium text-white">Dark Mode Logo</p>
-                                                            <p className="text-xs text-gray-400">200x50px recommended</p>
+                                                            <p className="text-xs text-default-400">200x50px recommended</p>
                                                         </>
                                                     )}
                                                 </CardBody>

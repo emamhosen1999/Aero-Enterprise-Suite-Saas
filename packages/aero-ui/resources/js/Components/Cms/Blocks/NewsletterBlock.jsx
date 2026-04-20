@@ -67,7 +67,7 @@ const NewsletterBlock = ({ data = {} }) => {
                         className="flex-1"
                         radius="lg"
                         classNames={{
-                            inputWrapper: "bg-white border border-divider"
+                            inputWrapper: "bg-content1 dark:bg-content2 border border-divider"
                         }}
                     />
                     <Button

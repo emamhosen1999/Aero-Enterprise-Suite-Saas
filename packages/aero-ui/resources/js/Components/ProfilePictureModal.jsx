@@ -331,10 +331,10 @@ const ProfilePictureModal = ({
                     <div className="flex items-center gap-3">
                         <UserCircleIcon className="w-6 h-6 text-blue-500" />
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-900">
+                            <h3 className="text-lg font-semibold text-foreground">
                                 Update Profile Picture
                             </h3>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-default-500">
                                 {targetUser?.name || 'User'}
                             </p>
                         </div>
@@ -343,7 +343,7 @@ const ProfilePictureModal = ({
                         isIconOnly
                         variant="light"
                         onPress={handleClose}
-                        className="text-gray-400 hover:text-gray-600"
+                        className="text-default-400 hover:text-default-600"
                     >
                         <XMarkIcon className="w-5 h-5" />
                     </Button>
@@ -410,7 +410,7 @@ const ProfilePictureModal = ({
                                 Choose New Picture
                             </Button>
                             
-                            <div className="text-xs text-gray-500 space-y-1">
+                            <div className="text-xs text-default-500 space-y-1">
                                 <p>Supported formats: JPEG, PNG, WebP</p>
                                 <p>Maximum size: 2MB</p>
                                 <p>Minimum dimensions: 100x100px</p>
@@ -420,15 +420,15 @@ const ProfilePictureModal = ({
 
                         {/* Selected File Info */}
                         {selectedFile && (
-                            <div className="bg-gray-50 rounded-lg p-3">
+                            <div className="bg-content2 rounded-lg p-3">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <CheckCircleIcon className="w-5 h-5 text-green-500" />
                                         <div>
-                                            <p className="text-sm font-medium text-gray-900">
+                                            <p className="text-sm font-medium text-foreground">
                                                 {selectedFile.name}
                                             </p>
-                                            <p className="text-xs text-gray-500">
+                                            <p className="text-xs text-default-500">
                                                 {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                                             </p>
                                         </div>

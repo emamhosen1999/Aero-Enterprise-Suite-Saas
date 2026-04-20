@@ -312,7 +312,7 @@ const EmployeeFormModal = ({
                                 helperText={touched.name && errors.name}
                                 fullWidth
                                 InputProps={{
-                                    startAdornment: <UserIcon className="w-4 h-4 text-gray-400 mr-2" />
+                                    startAdornment: <UserIcon className="w-4 h-4 text-default-400 mr-2" />
                                 }}
                                 sx={{
                                     '& .MuiOutlinedInput-root': {
@@ -352,7 +352,7 @@ const EmployeeFormModal = ({
                                 helperText={touched.email && errors.email}
                                 fullWidth
                                 InputProps={{
-                                    startAdornment: <EnvelopeIcon className="w-4 h-4 text-gray-400 mr-2" />
+                                    startAdornment: <EnvelopeIcon className="w-4 h-4 text-default-400 mr-2" />
                                 }}
                                 sx={{
                                     '& .MuiOutlinedInput-root': {
@@ -390,7 +390,7 @@ const EmployeeFormModal = ({
                                 helperText={touched.phone && errors.phone}
                                 fullWidth
                                 InputProps={{
-                                    startAdornment: <PhoneIcon className="w-4 h-4 text-gray-400 mr-2" />
+                                    startAdornment: <PhoneIcon className="w-4 h-4 text-default-400 mr-2" />
                                 }}
                                 sx={{
                                     '& .MuiOutlinedInput-root': {
@@ -427,7 +427,7 @@ const EmployeeFormModal = ({
                                 isReadOnly={isView}
                                 isInvalid={touched.hire_date && !!errors.hire_date}
                                 errorMessage={touched.hire_date && errors.hire_date}
-                                startContent={<CalendarIcon className="w-4 h-4 text-gray-400" />}
+                                startContent={<CalendarIcon className="w-4 h-4 text-default-400" />}
                             />
                         </Grid>
 
@@ -526,7 +526,7 @@ const EmployeeFormModal = ({
                                 isReadOnly={isView}
                                 isInvalid={touched.salary && !!errors.salary}
                                 errorMessage={touched.salary && errors.salary}
-                                startContent={<CurrencyDollarIcon className="w-4 h-4 text-gray-400" />}
+                                startContent={<CurrencyDollarIcon className="w-4 h-4 text-default-400" />}
                             />
                         </Grid>
 

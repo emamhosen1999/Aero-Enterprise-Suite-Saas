@@ -46,15 +46,15 @@ const LogoCloud = ({
     // Background classes
     const backgroundClasses = {
         transparent: 'bg-transparent',
-        light: 'bg-gray-50 dark:bg-gray-900',
-        dark: 'bg-gray-900 dark:bg-gray-100'
+        light: 'bg-content2 dark:bg-content3',
+        dark: 'bg-content3 dark:bg-default-100'
     };
 
     // Text color based on background
     const textColorClasses = {
         transparent: 'text-foreground',
         light: 'text-foreground',
-        dark: 'text-white dark:text-gray-900'
+        dark: 'text-white dark:text-foreground'
     };
 
     // Logo filter classes
@@ -104,7 +104,7 @@ const LogoCloud = ({
                     className={`
                         flex items-center justify-center p-4 
                         ${logo.url ? 'cursor-pointer' : ''}
-                        ${showDividers && layout === 'row' ? 'border-r border-gray-200 dark:border-gray-700 last:border-r-0' : ''}
+                        ${showDividers && layout === 'row' ? 'border-r border-divider last:border-r-0' : ''}
                     `}
                 >
                     {logo.image ? (
@@ -118,8 +118,8 @@ const LogoCloud = ({
                         <div className={`${sizeClasses[size]} flex items-center justify-center`}>
                             <span className={`text-lg font-bold ${
                                 background === 'dark' 
-                                    ? 'text-gray-300 dark:text-gray-600' 
-                                    : 'text-gray-400 dark:text-gray-500'
+                                    ? 'text-default-300 dark:text-default-600' 
+                                    : 'text-default-400 dark:text-default-500'
                             }`}>
                                 {logo.name}
                             </span>
@@ -151,7 +151,7 @@ const LogoCloud = ({
                                 loading="lazy"
                             />
                         ) : (
-                            <span className="text-lg font-bold text-gray-400">
+                            <span className="text-lg font-bold text-default-400">
                                 {logo.name}
                             </span>
                         )}
@@ -216,7 +216,7 @@ const LogoCloud = ({
                 ) : (
                     <div className={`
                         flex flex-wrap justify-center items-center gap-8 lg:gap-12
-                        ${showDividers ? 'divide-x divide-gray-200 dark:divide-gray-700' : ''}
+                        ${showDividers ? 'divide-x divide-divider' : ''}
                     `}>
                         {logos.map((logo, index) => renderLogo(logo, index))}
                     </div>

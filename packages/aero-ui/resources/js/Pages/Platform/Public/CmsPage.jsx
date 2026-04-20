@@ -15,8 +15,8 @@ export default function CmsPage({ page, title }) {
                 <Head title="Page Not Found" />
                 <div className="w-full h-screen flex items-center justify-center">
                     <div className="text-center">
-                        <h1 className="text-4xl font-bold text-gray-800">404</h1>
-                        <p className="text-gray-600 mt-2">Page not found</p>
+                        <h1 className="text-4xl font-bold text-foreground">404</h1>
+                        <p className="text-default-600 mt-2">Page not found</p>
                     </div>
                 </div>
             </>
@@ -27,7 +27,7 @@ export default function CmsPage({ page, title }) {
         <>
             <Head title={title || page.title} />
             
-            <div className="w-full min-h-screen bg-gray-50">
+            <div className="w-full min-h-screen bg-content1">
                 {/* Hero/Header Section */}
                 <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-12 px-4">
                     <div className="max-w-4xl mx-auto">
@@ -44,7 +44,7 @@ export default function CmsPage({ page, title }) {
                     {page.blocks && page.blocks.length > 0 ? (
                         <div className="space-y-6">
                             {page.blocks.map((block, index) => (
-                                <Card key={index} className="border border-gray-200">
+                                <Card key={index} className="border border-divider">
                                     <CardBody className="p-6">
                                         {/* Rich text block */}
                                         {block.type === 'text' && (
@@ -55,7 +55,7 @@ export default function CmsPage({ page, title }) {
                                         {block.type === 'hero' && (
                                             <div className="py-8">
                                                 <h2 className="text-3xl font-bold mb-4">{block.data?.title}</h2>
-                                                <p className="text-gray-600 text-lg">{block.data?.subtitle}</p>
+                                                <p className="text-default-600 text-lg">{block.data?.subtitle}</p>
                                             </div>
                                         )}
                                         
@@ -75,7 +75,7 @@ export default function CmsPage({ page, title }) {
                                         
                                         {/* Generic fallback for unknown block types */}
                                         {!['text', 'hero', 'cta', 'image'].includes(block.type) && (
-                                            <div className="text-gray-500 italic">
+                                            <div className="text-default-500 italic">
                                                 Block type '{block.type}' not supported
                                             </div>
                                         )}
@@ -84,10 +84,10 @@ export default function CmsPage({ page, title }) {
                             ))}
                         </div>
                     ) : (
-                        <Card className="border border-gray-200">
+                        <Card className="border border-divider">
                             <CardBody className="p-12 text-center">
-                                <p className="text-gray-600 text-lg">No content blocks added yet.</p>
-                                <p className="text-gray-500 mt-2">Visit the CMS admin to add content to this page.</p>
+                                <p className="text-default-600 text-lg">No content blocks added yet.</p>
+                                <p className="text-default-500 mt-2">Visit the CMS admin to add content to this page.</p>
                             </CardBody>
                         </Card>
                     )}
@@ -95,10 +95,10 @@ export default function CmsPage({ page, title }) {
 
                 {/* Metadata (for reference in dev) */}
                 {process.env.NODE_ENV === 'development' && (
-                    <div className="max-w-4xl mx-auto px-4 py-4 text-xs text-gray-400">
+                    <div className="max-w-4xl mx-auto px-4 py-4 text-xs text-default-400">
                         <details>
                             <summary>Page Metadata</summary>
-                            <pre className="mt-2 bg-gray-100 p-2 rounded overflow-auto">
+                            <pre className="mt-2 bg-content2 p-2 rounded overflow-auto">
                                 {JSON.stringify({
                                     id: page.id,
                                     slug: page.slug,

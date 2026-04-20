@@ -18,7 +18,7 @@ const TeamMembersBlock = ({ data = {} }) => {
         const platformLinks = {
             twitter: { icon: '𝕏', color: 'text-[#1DA1F2]' },
             linkedin: { icon: 'in', color: 'text-[#0A66C2]' },
-            github: { icon: '⚡', color: 'text-gray-700' },
+            github: { icon: '⚡', color: 'text-default-700' },
         };
 
         const config = platformLinks[platform];

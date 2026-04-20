@@ -17,7 +17,7 @@ const TestimonialsBlock = ({ data = {} }) => {
         return Array.from({ length: 5 }).map((_, i) => (
             <StarIcon
                 key={i}
-                className={`w-4 h-4 ${i < rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                className={`w-4 h-4 ${i < rating ? 'text-yellow-400' : 'text-default-300'}`}
             />
         ));
     };

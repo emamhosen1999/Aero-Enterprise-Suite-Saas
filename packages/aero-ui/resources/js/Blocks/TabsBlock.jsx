@@ -169,7 +169,7 @@ const TabsBlock = ({
                                                 flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all
                                                 ${selectedTab === tab.title 
                                                     ? 'bg-primary text-white shadow-lg' 
-                                                    : 'bg-gray-100 dark:bg-gray-800 text-default-600 hover:bg-gray-200 dark:hover:bg-gray-700'
+                                                    : 'bg-default-100 dark:bg-content2 text-default-600 hover:bg-default-200 dark:hover:bg-default-700'
                                                 }
                                             `}
                                         >
@@ -181,7 +181,7 @@ const TabsBlock = ({
                             </div>
 
                             {/* Vertical tab content */}
-                            <div className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
+                            <div className="flex-1 bg-content2 dark:bg-content2 rounded-xl p-6">
                                 {renderTabContent(selectedTabContent)}
                             </div>
                         </div>
@@ -216,7 +216,7 @@ const TabsBlock = ({
                             </div>
 
                             {/* Horizontal tab content */}
-                            <div className="mt-8 bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
+                            <div className="mt-8 bg-content2 dark:bg-content2 rounded-xl p-6">
                                 {renderTabContent(selectedTabContent)}
                             </div>
                         </>

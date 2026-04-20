@@ -1,36 +1,61 @@
 <?php
 
+use Aero\HRM\Http\Controllers\AIAnalyticsController;
 use Aero\HRM\Http\Controllers\Asset\AssetCategoryController;
+use Aero\HRM\Http\Controllers\Asset\AssetController;
 use Aero\HRM\Http\Controllers\Attendance\AttendanceController;
+use Aero\HRM\Http\Controllers\CareerPathController;
+use Aero\HRM\Http\Controllers\CompensationPlanningController;
+use Aero\HRM\Http\Controllers\Disciplinary\ActionTypeController;
+use Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController;
+use Aero\HRM\Http\Controllers\Disciplinary\WarningController;
 use Aero\HRM\Http\Controllers\Employee\BenefitsController;
 use Aero\HRM\Http\Controllers\Employee\DepartmentController;
+use Aero\HRM\Http\Controllers\Employee\DesignationController;
 use Aero\HRM\Http\Controllers\Employee\EducationController;
+use Aero\HRM\Http\Controllers\Employee\EmployeeController;
 use Aero\HRM\Http\Controllers\Employee\EmployeeDashboardController;
+use Aero\HRM\Http\Controllers\Employee\EmployeeDocumentController;
 use Aero\HRM\Http\Controllers\Employee\EmployeeImageController;
+use Aero\HRM\Http\Controllers\Employee\EmployeeProfileController;
 use Aero\HRM\Http\Controllers\Employee\EmployeeSelfServiceController;
 use Aero\HRM\Http\Controllers\Employee\ExperienceController;
 use Aero\HRM\Http\Controllers\Employee\HolidayController;
 use Aero\HRM\Http\Controllers\Employee\HrAnalyticsController;
 use Aero\HRM\Http\Controllers\Employee\HrDocumentController;
+use Aero\HRM\Http\Controllers\Employee\ManagersController;
 use Aero\HRM\Http\Controllers\Employee\OnboardingController;
 use Aero\HRM\Http\Controllers\Employee\PayrollController;
 use Aero\HRM\Http\Controllers\Employee\ProfileController;
 use Aero\HRM\Http\Controllers\Employee\ProfileImageController;
+use Aero\HRM\Http\Controllers\Employee\SalaryStructureController;
 use Aero\HRM\Http\Controllers\Employee\SkillsController;
 use Aero\HRM\Http\Controllers\Employee\TimeOffController;
 use Aero\HRM\Http\Controllers\Employee\TimeOffManagementController;
 use Aero\HRM\Http\Controllers\Employee\TrainingController;
 use Aero\HRM\Http\Controllers\Employee\WorkplaceSafetyController;
+use Aero\HRM\Http\Controllers\EmployeeHistoryController;
+use Aero\HRM\Http\Controllers\ExitInterviewController;
 use Aero\HRM\Http\Controllers\Expense\ExpenseCategoryController;
+use Aero\HRM\Http\Controllers\Expense\ExpenseClaimController;
+use Aero\HRM\Http\Controllers\Feedback360Controller;
+use Aero\HRM\Http\Controllers\GrievanceController;
 use Aero\HRM\Http\Controllers\HRMDashboardController;
 use Aero\HRM\Http\Controllers\Leave\BulkLeaveController;
 use Aero\HRM\Http\Controllers\Leave\LeaveController;
+use Aero\HRM\Http\Controllers\OvertimeController;
 use Aero\HRM\Http\Controllers\Performance\GoalController;
 use Aero\HRM\Http\Controllers\Performance\PerformanceReviewController;
 use Aero\HRM\Http\Controllers\Performance\SkillMatrixController;
+use Aero\HRM\Http\Controllers\PulseSurveyController;
 use Aero\HRM\Http\Controllers\Recruitment\RecruitmentController;
 use Aero\HRM\Http\Controllers\Settings\AttendanceSettingController;
+use Aero\HRM\Http\Controllers\Settings\HrmSettingController;
 use Aero\HRM\Http\Controllers\Settings\LeaveSettingController;
+use Aero\HRM\Http\Controllers\SuccessionPlanningController;
+use Aero\HRM\Http\Controllers\WorkforcePlanningController;
+use Aero\HRM\Models\Department;
+use Aero\HRM\Models\Designation;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -489,71 +514,71 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Employee Management - Core CRUD operations
     Route::middleware(['hrmac:hrm.employees'])->group(function () {
-        Route::get('/employees', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'index'])->name('employees.index');
-        Route::get('/employees/paginate', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'paginate'])->name('employees.paginate');
-        Route::get('/employees/stats', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'stats'])->name('employees.stats');
-        Route::get('/employees/list', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'list'])->name('employees.list');
-        Route::get('/employees/pending-onboarding', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'getPendingOnboarding'])->name('employees.pending-onboarding');
-        Route::get('/employees/onboarding-analytics', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'getOnboardingAnalytics'])->name('employees.onboarding-analytics');
-        Route::post('/employees', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'store'])->middleware('quota:employees')->name('employees.store');
-        Route::post('/employees/onboard', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'onboard'])->name('employees.onboard');
-        Route::post('/employees/onboard-bulk', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'bulkOnboard'])->name('employees.onboard-bulk');
-        Route::get('/employees/{id}', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'show'])->name('employees.show');
-        Route::put('/employees/{id}', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'update'])->name('employees.update');
-        Route::delete('/employees/{id}', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'destroy'])->name('employees.destroy');
-        Route::post('/employees/{id}/restore', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'restore'])->name('employees.restore');
+        Route::get('/employees', [EmployeeController::class, 'index'])->name('employees.index');
+        Route::get('/employees/paginate', [EmployeeController::class, 'paginate'])->name('employees.paginate');
+        Route::get('/employees/stats', [EmployeeController::class, 'stats'])->name('employees.stats');
+        Route::get('/employees/list', [EmployeeController::class, 'list'])->name('employees.list');
+        Route::get('/employees/pending-onboarding', [EmployeeController::class, 'getPendingOnboarding'])->name('employees.pending-onboarding');
+        Route::get('/employees/onboarding-analytics', [EmployeeController::class, 'getOnboardingAnalytics'])->name('employees.onboarding-analytics');
+        Route::post('/employees', [EmployeeController::class, 'store'])->middleware('quota:employees')->name('employees.store');
+        Route::post('/employees/onboard', [EmployeeController::class, 'onboard'])->name('employees.onboard');
+        Route::post('/employees/onboard-bulk', [EmployeeController::class, 'bulkOnboard'])->name('employees.onboard-bulk');
+        Route::get('/employees/{id}', [EmployeeController::class, 'show'])->name('employees.show');
+        Route::put('/employees/{id}', [EmployeeController::class, 'update'])->name('employees.update');
+        Route::delete('/employees/{id}', [EmployeeController::class, 'destroy'])->name('employees.destroy');
+        Route::post('/employees/{id}/restore', [EmployeeController::class, 'restore'])->name('employees.restore');
     });
 
     // Employee Profile Management (Bank Details, Emergency Contacts)
     Route::middleware(['hrmac:hrm.employees'])->prefix('employees/{user}')->name('employees.')->group(function () {
         // Profile Overview
-        Route::get('/profile', [\Aero\HRM\Http\Controllers\Employee\EmployeeProfileController::class, 'show'])->name('profile.show');
-        Route::get('/profile/edit', [\Aero\HRM\Http\Controllers\Employee\EmployeeProfileController::class, 'edit'])->name('profile.edit');
-        Route::put('/profile', [\Aero\HRM\Http\Controllers\Employee\EmployeeProfileController::class, 'update'])->name('profile.update');
+        Route::get('/profile', [EmployeeProfileController::class, 'show'])->name('profile.show');
+        Route::get('/profile/edit', [EmployeeProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('/profile', [EmployeeProfileController::class, 'update'])->name('profile.update');
 
         // Bank Details
-        Route::get('/bank-details', [\Aero\HRM\Http\Controllers\Employee\EmployeeProfileController::class, 'getBankDetails'])->name('bank-details.show');
-        Route::post('/bank-details/verify', [\Aero\HRM\Http\Controllers\Employee\EmployeeProfileController::class, 'verifyBankDetails'])
+        Route::get('/bank-details', [EmployeeProfileController::class, 'getBankDetails'])->name('bank-details.show');
+        Route::post('/bank-details/verify', [EmployeeProfileController::class, 'verifyBankDetails'])
             ->middleware('hrmac:hrm.employees.verify')
             ->name('bank-details.verify');
 
         // Emergency Contacts
-        Route::get('/emergency-contacts', [\Aero\HRM\Http\Controllers\Employee\EmployeeProfileController::class, 'getEmergencyContacts'])->name('emergency-contacts.index');
-        Route::post('/emergency-contacts', [\Aero\HRM\Http\Controllers\Employee\EmployeeProfileController::class, 'addEmergencyContact'])->name('emergency-contacts.store');
-        Route::delete('/emergency-contacts/{contact}', [\Aero\HRM\Http\Controllers\Employee\EmployeeProfileController::class, 'deleteEmergencyContact'])->name('emergency-contacts.destroy');
+        Route::get('/emergency-contacts', [EmployeeProfileController::class, 'getEmergencyContacts'])->name('emergency-contacts.index');
+        Route::post('/emergency-contacts', [EmployeeProfileController::class, 'addEmergencyContact'])->name('emergency-contacts.store');
+        Route::delete('/emergency-contacts/{contact}', [EmployeeProfileController::class, 'deleteEmergencyContact'])->name('emergency-contacts.destroy');
 
         // Document Management
-        Route::get('/documents', [\Aero\HRM\Http\Controllers\Employee\EmployeeDocumentController::class, 'index'])->name('documents.index');
-        Route::post('/documents', [\Aero\HRM\Http\Controllers\Employee\EmployeeDocumentController::class, 'store'])->name('documents.store');
-        Route::get('/documents/{document}', [\Aero\HRM\Http\Controllers\Employee\EmployeeDocumentController::class, 'show'])->name('documents.show');
-        Route::get('/documents/{document}/download', [\Aero\HRM\Http\Controllers\Employee\EmployeeDocumentController::class, 'download'])->name('documents.download');
-        Route::put('/documents/{document}', [\Aero\HRM\Http\Controllers\Employee\EmployeeDocumentController::class, 'update'])->name('documents.update');
-        Route::delete('/documents/{document}', [\Aero\HRM\Http\Controllers\Employee\EmployeeDocumentController::class, 'destroy'])->name('documents.destroy');
-        Route::post('/documents/{document}/verify', [\Aero\HRM\Http\Controllers\Employee\EmployeeDocumentController::class, 'verify'])
+        Route::get('/documents', [EmployeeDocumentController::class, 'index'])->name('documents.index');
+        Route::post('/documents', [EmployeeDocumentController::class, 'store'])->name('documents.store');
+        Route::get('/documents/{document}', [EmployeeDocumentController::class, 'show'])->name('documents.show');
+        Route::get('/documents/{document}/download', [EmployeeDocumentController::class, 'download'])->name('documents.download');
+        Route::put('/documents/{document}', [EmployeeDocumentController::class, 'update'])->name('documents.update');
+        Route::delete('/documents/{document}', [EmployeeDocumentController::class, 'destroy'])->name('documents.destroy');
+        Route::post('/documents/{document}/verify', [EmployeeDocumentController::class, 'verify'])
             ->middleware('hrmac:hrm.documents.verify')
             ->name('documents.verify');
     });
 
     // Document Expiry Dashboard (HR Admin)
     Route::middleware(['hrmac:hrm.documents'])->group(function () {
-        Route::get('/documents/expiring', [\Aero\HRM\Http\Controllers\Employee\EmployeeDocumentController::class, 'expiring'])->name('documents.expiring');
+        Route::get('/documents/expiring', [EmployeeDocumentController::class, 'expiring'])->name('documents.expiring');
     });
 
     // Salary Structure Management
     Route::middleware(['hrmac:hrm.payroll'])->prefix('salary-structure')->name('salary-structure.')->group(function () {
-        Route::get('/', [\Aero\HRM\Http\Controllers\Employee\SalaryStructureController::class, 'index'])->name('index');
-        Route::post('/', [\Aero\HRM\Http\Controllers\Employee\SalaryStructureController::class, 'store'])->name('store');
-        Route::put('/{id}', [\Aero\HRM\Http\Controllers\Employee\SalaryStructureController::class, 'update'])->name('update');
-        Route::delete('/{id}', [\Aero\HRM\Http\Controllers\Employee\SalaryStructureController::class, 'destroy'])->name('destroy');
+        Route::get('/', [SalaryStructureController::class, 'index'])->name('index');
+        Route::post('/', [SalaryStructureController::class, 'store'])->name('store');
+        Route::put('/{id}', [SalaryStructureController::class, 'update'])->name('update');
+        Route::delete('/{id}', [SalaryStructureController::class, 'destroy'])->name('destroy');
 
         // Employee Salary Management
-        Route::get('/employee/{employeeId}', [\Aero\HRM\Http\Controllers\Employee\SalaryStructureController::class, 'employeeSalary'])->name('employee.salary');
-        Route::post('/assign', [\Aero\HRM\Http\Controllers\Employee\SalaryStructureController::class, 'assignToEmployee'])->name('assign');
-        Route::post('/calculate-preview', [\Aero\HRM\Http\Controllers\Employee\SalaryStructureController::class, 'calculatePreview'])->name('calculate-preview');
+        Route::get('/employee/{employeeId}', [SalaryStructureController::class, 'employeeSalary'])->name('employee.salary');
+        Route::post('/assign', [SalaryStructureController::class, 'assignToEmployee'])->name('assign');
+        Route::post('/calculate-preview', [SalaryStructureController::class, 'calculatePreview'])->name('calculate-preview');
     });
 
     // Managers for dropdowns
-    Route::get('/managers', [\Aero\HRM\Http\Controllers\Employee\ManagersController::class, 'index'])->name('managers.list');
+    Route::get('/managers', [ManagersController::class, 'index'])->name('managers.list');
 
     // Employee self-service routes
     Route::middleware(['hrmac:hrm.time-off.own-leave'])->group(function () {
@@ -576,7 +601,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Expenses self-service route
     Route::middleware(['hrmac:hrm.expenses'])->group(function () {
-        Route::get('/my-expenses', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'myExpenses'])->name('my-expenses');
+        Route::get('/my-expenses', [ExpenseClaimController::class, 'myExpenses'])->name('my-expenses');
     });
 
     // Punch routes - require punch permission
@@ -693,9 +718,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // HR Management routes
     Route::middleware(['hrmac:hrm.employees'])->group(function () {
-        Route::get('/employees', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'index'])->name('employees');
-        Route::get('/employees/paginate', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'paginate'])->name('employees.paginate');
-        Route::get('/employees/stats', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'stats'])->name('employees.stats');
+        Route::get('/employees', [EmployeeController::class, 'index'])->name('employees');
+        Route::get('/employees/paginate', [EmployeeController::class, 'paginate'])->name('employees.paginate');
+        Route::get('/employees/stats', [EmployeeController::class, 'stats'])->name('employees.stats');
     });
 
     // Department management routes - Departments is under hrm.employees.departments in navigation
@@ -771,41 +796,41 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // HR Module Settings
     Route::prefix('settings/hr')->middleware(['auth', 'verified'])->group(function () {
-        Route::middleware(['hrmac:hrm.settings.onboarding-settings'])->get('/onboarding', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.onboarding');
-        Route::middleware(['hrmac:hrm.settings.skills-settings'])->get('/skills', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.skills');
-        Route::middleware(['hrmac:hrm.settings.benefits-settings'])->get('/benefits', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.benefits');
-        Route::middleware(['hrmac:hrm.settings.safety-settings'])->get('/safety', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.safety');
-        Route::middleware(['hrmac:hrm.settings.documents-settings'])->get('/documents', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.documents');
+        Route::middleware(['hrmac:hrm.settings.onboarding-settings'])->get('/onboarding', [HrmSettingController::class, 'index'])->name('settings.hr.onboarding');
+        Route::middleware(['hrmac:hrm.settings.skills-settings'])->get('/skills', [HrmSettingController::class, 'index'])->name('settings.hr.skills');
+        Route::middleware(['hrmac:hrm.settings.benefits-settings'])->get('/benefits', [HrmSettingController::class, 'index'])->name('settings.hr.benefits');
+        Route::middleware(['hrmac:hrm.settings.safety-settings'])->get('/safety', [HrmSettingController::class, 'index'])->name('settings.hr.safety');
+        Route::middleware(['hrmac:hrm.settings.documents-settings'])->get('/documents', [HrmSettingController::class, 'index'])->name('settings.hr.documents');
 
         // Update routes
-        Route::middleware(['hrmac:hrm.settings.onboarding-settings,setting-list,update'])->post('/onboarding', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'updateOnboardingSettings'])->name('settings.hr.onboarding.update');
-        Route::middleware(['hrmac:hrm.settings.skills-settings,setting-list,update'])->post('/skills', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'updateSkillsSettings'])->name('settings.hr.skills.update');
-        Route::middleware(['hrmac:hrm.settings.benefits-settings,setting-list,update'])->post('/benefits', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'updateBenefitsSettings'])->name('settings.hr.benefits.update');
-        Route::middleware(['hrmac:hrm.settings.safety-settings,setting-list,update'])->post('/safety', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'updateSafetySettings'])->name('settings.hr.safety.update');
-        Route::middleware(['hrmac:hrm.settings.documents-settings,setting-list,update'])->post('/documents', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'updateDocumentSettings'])->name('settings.hr.documents.update');
+        Route::middleware(['hrmac:hrm.settings.onboarding-settings,setting-list,update'])->post('/onboarding', [HrmSettingController::class, 'updateOnboardingSettings'])->name('settings.hr.onboarding.update');
+        Route::middleware(['hrmac:hrm.settings.skills-settings,setting-list,update'])->post('/skills', [HrmSettingController::class, 'updateSkillsSettings'])->name('settings.hr.skills.update');
+        Route::middleware(['hrmac:hrm.settings.benefits-settings,setting-list,update'])->post('/benefits', [HrmSettingController::class, 'updateBenefitsSettings'])->name('settings.hr.benefits.update');
+        Route::middleware(['hrmac:hrm.settings.safety-settings,setting-list,update'])->post('/safety', [HrmSettingController::class, 'updateSafetySettings'])->name('settings.hr.safety.update');
+        Route::middleware(['hrmac:hrm.settings.documents-settings,setting-list,update'])->post('/documents', [HrmSettingController::class, 'updateDocumentSettings'])->name('settings.hr.documents.update');
     });
 
     // Designation Management - Designations is under hrm.employees.designations in navigation
     Route::middleware(['hrmac:hrm.employees.designations'])->group(function () {
         // Initial page render (Inertia)
-        Route::get('/designations', [\Aero\HRM\Http\Controllers\Employee\DesignationController::class, 'index'])->name('designations.index');
+        Route::get('/designations', [DesignationController::class, 'index'])->name('designations.index');
         // API data fetch (JSON)
-        Route::get('/designations/json', [\Aero\HRM\Http\Controllers\Employee\DesignationController::class, 'getDesignations'])->name('designations.json');
+        Route::get('/designations/json', [DesignationController::class, 'getDesignations'])->name('designations.json');
         // Stats endpoint for frontend analytics
-        Route::get('/designations/stats', [\Aero\HRM\Http\Controllers\Employee\DesignationController::class, 'stats'])->name('designations.stats');
-        Route::post('/designations', [\Aero\HRM\Http\Controllers\Employee\DesignationController::class, 'store'])->name('designations.store');
-        Route::get('/designations/{id}', [\Aero\HRM\Http\Controllers\Employee\DesignationController::class, 'show'])->name('designations.show');
-        Route::put('/designations/{id}', [\Aero\HRM\Http\Controllers\Employee\DesignationController::class, 'update'])->name('designations.update');
-        Route::delete('/designations/{id}', [\Aero\HRM\Http\Controllers\Employee\DesignationController::class, 'destroy'])->name('designations.destroy');
+        Route::get('/designations/stats', [DesignationController::class, 'stats'])->name('designations.stats');
+        Route::post('/designations', [DesignationController::class, 'store'])->name('designations.store');
+        Route::get('/designations/{id}', [DesignationController::class, 'show'])->name('designations.show');
+        Route::put('/designations/{id}', [DesignationController::class, 'update'])->name('designations.update');
+        Route::delete('/designations/{id}', [DesignationController::class, 'destroy'])->name('designations.destroy');
         // For dropdowns and API
-        Route::get('/designations/list', [\Aero\HRM\Http\Controllers\Employee\DesignationController::class, 'list'])->name('designations.list');
+        Route::get('/designations/list', [DesignationController::class, 'list'])->name('designations.list');
     });
 
     // Expense Claims Management
     Route::middleware(['hrmac:hrm.expenses'])->prefix('expenses')->name('expenses.')->group(function () {
         // Main index page (Inertia)
-        Route::get('/', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'index'])->name('index');
-        Route::get('/my-claims', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'myExpensesPaginate'])->name('my-claims');
+        Route::get('/', [ExpenseClaimController::class, 'index'])->name('index');
+        Route::get('/my-claims', [ExpenseClaimController::class, 'myExpensesPaginate'])->name('my-claims');
         Route::get('/categories', [ExpenseCategoryController::class, 'index'])->name('categories.index');
         Route::get('/categories/list', [ExpenseCategoryController::class, 'list'])->name('categories.list');
         Route::get('/categories/paginate', [ExpenseCategoryController::class, 'paginate'])->name('categories.paginate');
@@ -814,35 +839,35 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/categories/{id}', [ExpenseCategoryController::class, 'update'])->name('categories.update');
         Route::delete('/categories/{id}', [ExpenseCategoryController::class, 'destroy'])->name('categories.destroy');
         // API endpoints for data fetching
-        Route::get('/paginate', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'paginate'])->name('paginate');
-        Route::get('/stats', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'stats'])->name('stats');
+        Route::get('/paginate', [ExpenseClaimController::class, 'paginate'])->name('paginate');
+        Route::get('/stats', [ExpenseClaimController::class, 'stats'])->name('stats');
         // CRUD operations
-        Route::post('/', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'store'])->name('store');
-        Route::put('/{id}', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'update'])->name('update');
-        Route::delete('/{id}', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'destroy'])->name('destroy');
+        Route::post('/', [ExpenseClaimController::class, 'store'])->name('store');
+        Route::put('/{id}', [ExpenseClaimController::class, 'update'])->name('update');
+        Route::delete('/{id}', [ExpenseClaimController::class, 'destroy'])->name('destroy');
         // Workflow actions
-        Route::post('/{id}/approve', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'approve'])->name('approve');
-        Route::post('/{id}/reject', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'reject'])->name('reject');
+        Route::post('/{id}/approve', [ExpenseClaimController::class, 'approve'])->name('approve');
+        Route::post('/{id}/reject', [ExpenseClaimController::class, 'reject'])->name('reject');
     });
 
     // Asset Management
     Route::middleware(['hrmac:hrm.assets'])->prefix('assets')->name('assets.')->group(function () {
         // Main index page (Inertia)
-        Route::get('/', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'index'])->name('index');
-        Route::get('/allocations', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'allocations'])->name('allocations');
-        Route::get('/allocations/index', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'allocationsIndex'])->name('allocations.index');
+        Route::get('/', [AssetController::class, 'index'])->name('index');
+        Route::get('/allocations', [AssetController::class, 'allocations'])->name('allocations');
+        Route::get('/allocations/index', [AssetController::class, 'allocationsIndex'])->name('allocations.index');
         Route::get('/categories', [AssetCategoryController::class, 'index'])->name('categories.index');
         Route::get('/categories/list', [AssetCategoryController::class, 'list'])->name('categories.list');
         // API endpoints for data fetching
-        Route::get('/paginate', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'paginate'])->name('paginate');
-        Route::get('/stats', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'stats'])->name('stats');
+        Route::get('/paginate', [AssetController::class, 'paginate'])->name('paginate');
+        Route::get('/stats', [AssetController::class, 'stats'])->name('stats');
         // CRUD operations
-        Route::post('/', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'store'])->name('store');
-        Route::put('/{id}', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'update'])->name('update');
-        Route::delete('/{id}', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'destroy'])->name('destroy');
+        Route::post('/', [AssetController::class, 'store'])->name('store');
+        Route::put('/{id}', [AssetController::class, 'update'])->name('update');
+        Route::delete('/{id}', [AssetController::class, 'destroy'])->name('destroy');
         // Asset allocation workflow
-        Route::post('/{id}/allocate', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'allocate'])->name('allocate');
-        Route::post('/{id}/return', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'returnAsset'])->name('return');
+        Route::post('/{id}/allocate', [AssetController::class, 'allocate'])->name('allocate');
+        Route::post('/{id}/return', [AssetController::class, 'returnAsset'])->name('return');
     });
 
     // Disciplinary Management
@@ -850,274 +875,274 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Index redirect - redirects /disciplinary to /disciplinary/cases
         Route::get('/', fn () => redirect()->route('hrm.disciplinary.cases.index'))->name('index');
         // Main index page (Inertia)
-        Route::get('/cases', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'index'])->name('cases.index');
+        Route::get('/cases', [DisciplinaryCaseController::class, 'index'])->name('cases.index');
         // API endpoints for data fetching
-        Route::get('/cases/paginate', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'paginate'])->name('cases.paginate');
-        Route::get('/cases/stats', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'stats'])->name('cases.stats');
+        Route::get('/cases/paginate', [DisciplinaryCaseController::class, 'paginate'])->name('cases.paginate');
+        Route::get('/cases/stats', [DisciplinaryCaseController::class, 'stats'])->name('cases.stats');
         // CRUD operations
-        Route::post('/cases', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'store'])->name('cases.store');
-        Route::put('/cases/{id}', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'update'])->name('cases.update');
-        Route::delete('/cases/{id}', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'destroy'])->name('cases.destroy');
+        Route::post('/cases', [DisciplinaryCaseController::class, 'store'])->name('cases.store');
+        Route::put('/cases/{id}', [DisciplinaryCaseController::class, 'update'])->name('cases.update');
+        Route::delete('/cases/{id}', [DisciplinaryCaseController::class, 'destroy'])->name('cases.destroy');
         // Workflow actions
-        Route::post('/cases/{id}/start-investigation', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'startInvestigation'])->name('cases.start-investigation');
-        Route::post('/cases/{id}/take-action', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'takeAction'])->name('cases.take-action');
-        Route::post('/cases/{id}/close', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'close'])->name('cases.close');
-        Route::post('/cases/{id}/appeal', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'appeal'])->name('cases.appeal');
+        Route::post('/cases/{id}/start-investigation', [DisciplinaryCaseController::class, 'startInvestigation'])->name('cases.start-investigation');
+        Route::post('/cases/{id}/take-action', [DisciplinaryCaseController::class, 'takeAction'])->name('cases.take-action');
+        Route::post('/cases/{id}/close', [DisciplinaryCaseController::class, 'close'])->name('cases.close');
+        Route::post('/cases/{id}/appeal', [DisciplinaryCaseController::class, 'appeal'])->name('cases.appeal');
 
         // Warnings
-        Route::get('/warnings', [\Aero\HRM\Http\Controllers\Disciplinary\WarningController::class, 'index'])->name('warnings.index');
-        Route::get('/warnings/data', [\Aero\HRM\Http\Controllers\Disciplinary\WarningController::class, 'getData'])->name('warnings.data');
-        Route::post('/warnings', [\Aero\HRM\Http\Controllers\Disciplinary\WarningController::class, 'store'])->name('warnings.store');
-        Route::put('/warnings/{id}', [\Aero\HRM\Http\Controllers\Disciplinary\WarningController::class, 'update'])->name('warnings.update');
-        Route::delete('/warnings/{id}', [\Aero\HRM\Http\Controllers\Disciplinary\WarningController::class, 'destroy'])->name('warnings.destroy');
+        Route::get('/warnings', [WarningController::class, 'index'])->name('warnings.index');
+        Route::get('/warnings/data', [WarningController::class, 'getData'])->name('warnings.data');
+        Route::post('/warnings', [WarningController::class, 'store'])->name('warnings.store');
+        Route::put('/warnings/{id}', [WarningController::class, 'update'])->name('warnings.update');
+        Route::delete('/warnings/{id}', [WarningController::class, 'destroy'])->name('warnings.destroy');
 
         // Action Types
-        Route::get('/action-types', [\Aero\HRM\Http\Controllers\Disciplinary\ActionTypeController::class, 'index'])->name('action-types.index');
-        Route::get('/action-types/data', [\Aero\HRM\Http\Controllers\Disciplinary\ActionTypeController::class, 'getData'])->name('action-types.data');
-        Route::post('/action-types', [\Aero\HRM\Http\Controllers\Disciplinary\ActionTypeController::class, 'store'])->name('action-types.store');
-        Route::put('/action-types/{id}', [\Aero\HRM\Http\Controllers\Disciplinary\ActionTypeController::class, 'update'])->name('action-types.update');
-        Route::delete('/action-types/{id}', [\Aero\HRM\Http\Controllers\Disciplinary\ActionTypeController::class, 'destroy'])->name('action-types.destroy');
+        Route::get('/action-types', [ActionTypeController::class, 'index'])->name('action-types.index');
+        Route::get('/action-types/data', [ActionTypeController::class, 'getData'])->name('action-types.data');
+        Route::post('/action-types', [ActionTypeController::class, 'store'])->name('action-types.store');
+        Route::put('/action-types/{id}', [ActionTypeController::class, 'update'])->name('action-types.update');
+        Route::delete('/action-types/{id}', [ActionTypeController::class, 'destroy'])->name('action-types.destroy');
     });
 
     Route::get('/api/designations/list', function () {
-        return response()->json(\Aero\HRM\Models\Designation::select('id', 'title as name')->get());
+        return response()->json(Designation::select('id', 'title as name')->get());
     })->name('api.designations.list');
 
     Route::get('/api/departments/list', function () {
-        return response()->json(\Aero\HRM\Models\Department::select('id', 'name')->get());
+        return response()->json(Department::select('id', 'name')->get());
     })->name('departments.list');
 
     // =========================================================================
     // AI Analytics - Next-Generation Predictive HR Intelligence
     // =========================================================================
-    Route::middleware(['hrmac:hrm.ai_analytics'])->prefix('ai-analytics')->name('ai-analytics.')->group(function () {
+    Route::middleware(['hrmac:hrm.ai-analytics'])->prefix('ai-analytics')->name('ai-analytics.')->group(function () {
         // Dashboard
-        Route::get('/', [\Aero\HRM\Http\Controllers\AIAnalyticsController::class, 'dashboard'])->name('dashboard');
+        Route::get('/', [AIAnalyticsController::class, 'dashboard'])->name('dashboard');
 
         // Attrition Predictions
-        Route::get('/attrition', [\Aero\HRM\Http\Controllers\AIAnalyticsController::class, 'attritionPredictions'])->name('attrition');
+        Route::get('/attrition', [AIAnalyticsController::class, 'attritionPredictions'])->name('attrition');
 
         // Burnout Risk Analysis
-        Route::get('/burnout', [\Aero\HRM\Http\Controllers\AIAnalyticsController::class, 'burnoutRisks'])->name('burnout');
+        Route::get('/burnout', [AIAnalyticsController::class, 'burnoutRisks'])->name('burnout');
 
         // Behavioral Anomaly Detection
-        Route::get('/anomalies', [\Aero\HRM\Http\Controllers\AIAnalyticsController::class, 'anomalies'])->name('anomalies');
-        Route::post('/anomalies/{anomaly}/resolve', [\Aero\HRM\Http\Controllers\AIAnalyticsController::class, 'resolveAnomaly'])->name('anomalies.resolve');
+        Route::get('/anomalies', [AIAnalyticsController::class, 'anomalies'])->name('anomalies');
+        Route::post('/anomalies/{anomaly}/resolve', [AIAnalyticsController::class, 'resolveAnomaly'])->name('anomalies.resolve');
 
         // Talent Mobility & Internal Recommendations
-        Route::get('/talent-mobility', [\Aero\HRM\Http\Controllers\AIAnalyticsController::class, 'talentMobility'])->name('talent-mobility');
+        Route::get('/talent-mobility', [AIAnalyticsController::class, 'talentMobility'])->name('talent-mobility');
 
         // Engagement & Sentiment Analytics
-        Route::get('/engagement', [\Aero\HRM\Http\Controllers\AIAnalyticsController::class, 'engagementSentiment'])->name('engagement');
+        Route::get('/engagement', [AIAnalyticsController::class, 'engagementSentiment'])->name('engagement');
 
         // AI Insights (cross-cutting alerts)
-        Route::get('/insights', [\Aero\HRM\Http\Controllers\AIAnalyticsController::class, 'insights'])->name('insights');
-        Route::post('/insights/{insight}/resolve', [\Aero\HRM\Http\Controllers\AIAnalyticsController::class, 'resolveInsight'])->name('insights.resolve');
+        Route::get('/insights', [AIAnalyticsController::class, 'insights'])->name('insights');
+        Route::post('/insights/{insight}/resolve', [AIAnalyticsController::class, 'resolveInsight'])->name('insights.resolve');
 
         // Employee Risk Profile (detailed view)
-        Route::get('/employees/{employee}/risk-profile', [\Aero\HRM\Http\Controllers\AIAnalyticsController::class, 'employeeRiskProfile'])->name('employee-risk-profile');
+        Route::get('/employees/{employee}/risk-profile', [AIAnalyticsController::class, 'employeeRiskProfile'])->name('employee-risk-profile');
 
         // Run predictions (admin action)
-        Route::post('/run-predictions', [\Aero\HRM\Http\Controllers\AIAnalyticsController::class, 'runPredictions'])->name('run-predictions');
+        Route::post('/run-predictions', [AIAnalyticsController::class, 'runPredictions'])->name('run-predictions');
     });
 
     // =========================================================================
     // Succession Planning - Talent Pipeline & Critical Position Management
     // =========================================================================
-    Route::middleware(['hrmac:hrm.succession_planning'])->prefix('succession-planning')->name('succession.')->group(function () {
-        Route::get('/', [\Aero\HRM\Http\Controllers\SuccessionPlanningController::class, 'index'])->name('index');
-        Route::get('/paginate', [\Aero\HRM\Http\Controllers\SuccessionPlanningController::class, 'paginate'])->name('paginate');
-        Route::get('/stats', [\Aero\HRM\Http\Controllers\SuccessionPlanningController::class, 'stats'])->name('stats');
-        Route::post('/', [\Aero\HRM\Http\Controllers\SuccessionPlanningController::class, 'store'])->name('store');
-        Route::get('/pipeline-report', [\Aero\HRM\Http\Controllers\SuccessionPlanningController::class, 'pipelineReport'])->name('pipeline-report');
-        Route::get('/{id}', [\Aero\HRM\Http\Controllers\SuccessionPlanningController::class, 'show'])->name('show');
-        Route::put('/{id}', [\Aero\HRM\Http\Controllers\SuccessionPlanningController::class, 'update'])->name('update');
-        Route::delete('/{id}', [\Aero\HRM\Http\Controllers\SuccessionPlanningController::class, 'destroy'])->name('destroy');
+    Route::middleware(['hrmac:hrm.succession-planning'])->prefix('succession-planning')->name('succession.')->group(function () {
+        Route::get('/', [SuccessionPlanningController::class, 'index'])->name('index');
+        Route::get('/paginate', [SuccessionPlanningController::class, 'paginate'])->name('paginate');
+        Route::get('/stats', [SuccessionPlanningController::class, 'stats'])->name('stats');
+        Route::post('/', [SuccessionPlanningController::class, 'store'])->name('store');
+        Route::get('/pipeline-report', [SuccessionPlanningController::class, 'pipelineReport'])->name('pipeline-report');
+        Route::get('/{id}', [SuccessionPlanningController::class, 'show'])->name('show');
+        Route::put('/{id}', [SuccessionPlanningController::class, 'update'])->name('update');
+        Route::delete('/{id}', [SuccessionPlanningController::class, 'destroy'])->name('destroy');
 
         // Candidates
-        Route::get('/{planId}/potential-candidates', [\Aero\HRM\Http\Controllers\SuccessionPlanningController::class, 'getPotentialCandidates'])->name('potential-candidates');
-        Route::post('/{planId}/candidates', [\Aero\HRM\Http\Controllers\SuccessionPlanningController::class, 'addCandidate'])->name('candidates.store');
-        Route::put('/{planId}/candidates/{candidateId}', [\Aero\HRM\Http\Controllers\SuccessionPlanningController::class, 'updateCandidate'])->name('candidates.update');
-        Route::delete('/{planId}/candidates/{candidateId}', [\Aero\HRM\Http\Controllers\SuccessionPlanningController::class, 'removeCandidate'])->name('candidates.destroy');
+        Route::get('/{planId}/potential-candidates', [SuccessionPlanningController::class, 'getPotentialCandidates'])->name('potential-candidates');
+        Route::post('/{planId}/candidates', [SuccessionPlanningController::class, 'addCandidate'])->name('candidates.store');
+        Route::put('/{planId}/candidates/{candidateId}', [SuccessionPlanningController::class, 'updateCandidate'])->name('candidates.update');
+        Route::delete('/{planId}/candidates/{candidateId}', [SuccessionPlanningController::class, 'removeCandidate'])->name('candidates.destroy');
     });
 
     // =========================================================================
     // Overtime Management - Hours Tracking, Approval & Compensation
     // =========================================================================
     Route::middleware(['hrmac:hrm.overtime'])->prefix('overtime')->name('overtime.')->group(function () {
-        Route::get('/', [\Aero\HRM\Http\Controllers\OvertimeController::class, 'index'])->name('index');
-        Route::get('/paginate', [\Aero\HRM\Http\Controllers\OvertimeController::class, 'paginate'])->name('paginate');
-        Route::get('/stats', [\Aero\HRM\Http\Controllers\OvertimeController::class, 'stats'])->name('stats');
-        Route::post('/', [\Aero\HRM\Http\Controllers\OvertimeController::class, 'store'])->name('store');
-        Route::put('/{id}', [\Aero\HRM\Http\Controllers\OvertimeController::class, 'update'])->name('update');
-        Route::delete('/{id}', [\Aero\HRM\Http\Controllers\OvertimeController::class, 'destroy'])->name('destroy');
-        Route::post('/{id}/approve', [\Aero\HRM\Http\Controllers\OvertimeController::class, 'approve'])->name('approve');
-        Route::post('/{id}/reject', [\Aero\HRM\Http\Controllers\OvertimeController::class, 'reject'])->name('reject');
-        Route::post('/bulk-approve', [\Aero\HRM\Http\Controllers\OvertimeController::class, 'bulkApprove'])->name('bulk-approve');
-        Route::post('/{id}/compensate', [\Aero\HRM\Http\Controllers\OvertimeController::class, 'markCompensated'])->name('compensate');
-        Route::get('/employees/{employeeId}/summary', [\Aero\HRM\Http\Controllers\OvertimeController::class, 'employeeSummary'])->name('employee-summary');
+        Route::get('/', [OvertimeController::class, 'index'])->name('index');
+        Route::get('/paginate', [OvertimeController::class, 'paginate'])->name('paginate');
+        Route::get('/stats', [OvertimeController::class, 'stats'])->name('stats');
+        Route::post('/', [OvertimeController::class, 'store'])->name('store');
+        Route::put('/{id}', [OvertimeController::class, 'update'])->name('update');
+        Route::delete('/{id}', [OvertimeController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/approve', [OvertimeController::class, 'approve'])->name('approve');
+        Route::post('/{id}/reject', [OvertimeController::class, 'reject'])->name('reject');
+        Route::post('/bulk-approve', [OvertimeController::class, 'bulkApprove'])->name('bulk-approve');
+        Route::post('/{id}/compensate', [OvertimeController::class, 'markCompensated'])->name('compensate');
+        Route::get('/employees/{employeeId}/summary', [OvertimeController::class, 'employeeSummary'])->name('employee-summary');
     });
 
     // =========================================================================
     // Grievance Management - Employee Complaints & Resolution
     // =========================================================================
     Route::middleware(['hrmac:hrm.grievances'])->prefix('grievances')->name('grievances.')->group(function () {
-        Route::get('/', [\Aero\HRM\Http\Controllers\GrievanceController::class, 'index'])->name('index');
-        Route::get('/paginate', [\Aero\HRM\Http\Controllers\GrievanceController::class, 'paginate'])->name('paginate');
-        Route::get('/stats', [\Aero\HRM\Http\Controllers\GrievanceController::class, 'stats'])->name('stats');
-        Route::get('/categories', [\Aero\HRM\Http\Controllers\GrievanceController::class, 'categories'])->name('categories');
-        Route::post('/categories', [\Aero\HRM\Http\Controllers\GrievanceController::class, 'storeCategory'])->name('categories.store');
-        Route::post('/', [\Aero\HRM\Http\Controllers\GrievanceController::class, 'store'])->name('store');
-        Route::get('/{id}', [\Aero\HRM\Http\Controllers\GrievanceController::class, 'show'])->name('show');
-        Route::put('/{id}', [\Aero\HRM\Http\Controllers\GrievanceController::class, 'update'])->name('update');
-        Route::delete('/{id}', [\Aero\HRM\Http\Controllers\GrievanceController::class, 'destroy'])->name('destroy');
-        Route::post('/{id}/assign', [\Aero\HRM\Http\Controllers\GrievanceController::class, 'assign'])->name('assign');
-        Route::post('/{id}/investigate', [\Aero\HRM\Http\Controllers\GrievanceController::class, 'startInvestigation'])->name('investigate');
-        Route::post('/{id}/resolve', [\Aero\HRM\Http\Controllers\GrievanceController::class, 'resolve'])->name('resolve');
-        Route::post('/{id}/close', [\Aero\HRM\Http\Controllers\GrievanceController::class, 'close'])->name('close');
-        Route::post('/{id}/notes', [\Aero\HRM\Http\Controllers\GrievanceController::class, 'addNote'])->name('notes.store');
+        Route::get('/', [GrievanceController::class, 'index'])->name('index');
+        Route::get('/paginate', [GrievanceController::class, 'paginate'])->name('paginate');
+        Route::get('/stats', [GrievanceController::class, 'stats'])->name('stats');
+        Route::get('/categories', [GrievanceController::class, 'categories'])->name('categories');
+        Route::post('/categories', [GrievanceController::class, 'storeCategory'])->name('categories.store');
+        Route::post('/', [GrievanceController::class, 'store'])->name('store');
+        Route::get('/{id}', [GrievanceController::class, 'show'])->name('show');
+        Route::put('/{id}', [GrievanceController::class, 'update'])->name('update');
+        Route::delete('/{id}', [GrievanceController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/assign', [GrievanceController::class, 'assign'])->name('assign');
+        Route::post('/{id}/investigate', [GrievanceController::class, 'startInvestigation'])->name('investigate');
+        Route::post('/{id}/resolve', [GrievanceController::class, 'resolve'])->name('resolve');
+        Route::post('/{id}/close', [GrievanceController::class, 'close'])->name('close');
+        Route::post('/{id}/notes', [GrievanceController::class, 'addNote'])->name('notes.store');
     });
 
     // =========================================================================
     // Exit Interviews - Offboarding Feedback & Analytics
     // =========================================================================
-    Route::middleware(['hrmac:hrm.exit_interviews'])->prefix('exit-interviews')->name('exit-interviews.')->group(function () {
-        Route::get('/', [\Aero\HRM\Http\Controllers\ExitInterviewController::class, 'index'])->name('index');
-        Route::get('/paginate', [\Aero\HRM\Http\Controllers\ExitInterviewController::class, 'paginate'])->name('paginate');
-        Route::get('/stats', [\Aero\HRM\Http\Controllers\ExitInterviewController::class, 'stats'])->name('stats');
-        Route::get('/analytics', [\Aero\HRM\Http\Controllers\ExitInterviewController::class, 'analytics'])->name('analytics');
-        Route::post('/', [\Aero\HRM\Http\Controllers\ExitInterviewController::class, 'store'])->name('store');
-        Route::get('/{id}', [\Aero\HRM\Http\Controllers\ExitInterviewController::class, 'show'])->name('show');
-        Route::put('/{id}', [\Aero\HRM\Http\Controllers\ExitInterviewController::class, 'update'])->name('update');
-        Route::delete('/{id}', [\Aero\HRM\Http\Controllers\ExitInterviewController::class, 'destroy'])->name('destroy');
-        Route::post('/{id}/complete', [\Aero\HRM\Http\Controllers\ExitInterviewController::class, 'complete'])->name('complete');
+    Route::middleware(['hrmac:hrm.exit-interviews'])->prefix('exit-interviews')->name('exit-interviews.')->group(function () {
+        Route::get('/', [ExitInterviewController::class, 'index'])->name('index');
+        Route::get('/paginate', [ExitInterviewController::class, 'paginate'])->name('paginate');
+        Route::get('/stats', [ExitInterviewController::class, 'stats'])->name('stats');
+        Route::get('/analytics', [ExitInterviewController::class, 'analytics'])->name('analytics');
+        Route::post('/', [ExitInterviewController::class, 'store'])->name('store');
+        Route::get('/{id}', [ExitInterviewController::class, 'show'])->name('show');
+        Route::put('/{id}', [ExitInterviewController::class, 'update'])->name('update');
+        Route::delete('/{id}', [ExitInterviewController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/complete', [ExitInterviewController::class, 'complete'])->name('complete');
     });
 
     // =========================================================================
     // Pulse Surveys - Quick Engagement & Sentiment Check-ins
     // =========================================================================
-    Route::middleware(['hrmac:hrm.pulse_surveys'])->prefix('pulse-surveys')->name('pulse-surveys.')->group(function () {
-        Route::get('/', [\Aero\HRM\Http\Controllers\PulseSurveyController::class, 'index'])->name('index');
-        Route::get('/paginate', [\Aero\HRM\Http\Controllers\PulseSurveyController::class, 'paginate'])->name('paginate');
-        Route::get('/stats', [\Aero\HRM\Http\Controllers\PulseSurveyController::class, 'stats'])->name('stats');
-        Route::get('/analytics', [\Aero\HRM\Http\Controllers\PulseSurveyController::class, 'analytics'])->name('analytics');
-        Route::get('/my-pending', [\Aero\HRM\Http\Controllers\PulseSurveyController::class, 'myPendingSurveys'])->name('my-pending');
-        Route::post('/', [\Aero\HRM\Http\Controllers\PulseSurveyController::class, 'store'])->name('store');
-        Route::get('/{id}', [\Aero\HRM\Http\Controllers\PulseSurveyController::class, 'show'])->name('show');
-        Route::put('/{id}', [\Aero\HRM\Http\Controllers\PulseSurveyController::class, 'update'])->name('update');
-        Route::delete('/{id}', [\Aero\HRM\Http\Controllers\PulseSurveyController::class, 'destroy'])->name('destroy');
-        Route::post('/{id}/activate', [\Aero\HRM\Http\Controllers\PulseSurveyController::class, 'activate'])->name('activate');
-        Route::post('/{id}/pause', [\Aero\HRM\Http\Controllers\PulseSurveyController::class, 'pause'])->name('pause');
-        Route::post('/{id}/complete', [\Aero\HRM\Http\Controllers\PulseSurveyController::class, 'complete'])->name('complete');
-        Route::post('/{id}/respond', [\Aero\HRM\Http\Controllers\PulseSurveyController::class, 'submitResponse'])->name('respond');
+    Route::middleware(['hrmac:hrm.pulse-surveys'])->prefix('pulse-surveys')->name('pulse-surveys.')->group(function () {
+        Route::get('/', [PulseSurveyController::class, 'index'])->name('index');
+        Route::get('/paginate', [PulseSurveyController::class, 'paginate'])->name('paginate');
+        Route::get('/stats', [PulseSurveyController::class, 'stats'])->name('stats');
+        Route::get('/analytics', [PulseSurveyController::class, 'analytics'])->name('analytics');
+        Route::get('/my-pending', [PulseSurveyController::class, 'myPendingSurveys'])->name('my-pending');
+        Route::post('/', [PulseSurveyController::class, 'store'])->name('store');
+        Route::get('/{id}', [PulseSurveyController::class, 'show'])->name('show');
+        Route::put('/{id}', [PulseSurveyController::class, 'update'])->name('update');
+        Route::delete('/{id}', [PulseSurveyController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/activate', [PulseSurveyController::class, 'activate'])->name('activate');
+        Route::post('/{id}/pause', [PulseSurveyController::class, 'pause'])->name('pause');
+        Route::post('/{id}/complete', [PulseSurveyController::class, 'complete'])->name('complete');
+        Route::post('/{id}/respond', [PulseSurveyController::class, 'submitResponse'])->name('respond');
     });
 
     // =========================================================================
     // Employee History - Compensation, Promotions, Transfers
     // =========================================================================
     Route::prefix('employee-history')->name('employee-history.')->group(function () {
-        Route::get('/', [\Aero\HRM\Http\Controllers\EmployeeHistoryController::class, 'index'])->name('index');
+        Route::get('/', [EmployeeHistoryController::class, 'index'])->name('index');
 
         // Compensation History
-        Route::get('/compensations', [\Aero\HRM\Http\Controllers\EmployeeHistoryController::class, 'compensationHistory'])->name('compensations');
-        Route::post('/compensations', [\Aero\HRM\Http\Controllers\EmployeeHistoryController::class, 'storeCompensation'])->name('compensations.store');
+        Route::get('/compensations', [EmployeeHistoryController::class, 'compensationHistory'])->name('compensations');
+        Route::post('/compensations', [EmployeeHistoryController::class, 'storeCompensation'])->name('compensations.store');
 
         // Promotion History
-        Route::get('/promotions', [\Aero\HRM\Http\Controllers\EmployeeHistoryController::class, 'promotionHistory'])->name('promotions');
-        Route::post('/promotions', [\Aero\HRM\Http\Controllers\EmployeeHistoryController::class, 'storePromotion'])->name('promotions.store');
+        Route::get('/promotions', [EmployeeHistoryController::class, 'promotionHistory'])->name('promotions');
+        Route::post('/promotions', [EmployeeHistoryController::class, 'storePromotion'])->name('promotions.store');
 
         // Transfer History
-        Route::get('/transfers', [\Aero\HRM\Http\Controllers\EmployeeHistoryController::class, 'transferHistory'])->name('transfers');
-        Route::post('/transfers', [\Aero\HRM\Http\Controllers\EmployeeHistoryController::class, 'storeTransfer'])->name('transfers.store');
+        Route::get('/transfers', [EmployeeHistoryController::class, 'transferHistory'])->name('transfers');
+        Route::post('/transfers', [EmployeeHistoryController::class, 'storeTransfer'])->name('transfers.store');
 
         // Complete Employee History View
-        Route::get('/employees/{employeeId}', [\Aero\HRM\Http\Controllers\EmployeeHistoryController::class, 'employeeHistory'])->name('employee');
+        Route::get('/employees/{employeeId}', [EmployeeHistoryController::class, 'employeeHistory'])->name('employee');
     });
 
     // =========================================================================
     // Career Path Management - Career Progression & Employee Development
     // =========================================================================
-    Route::middleware(['hrmac:hrm.career_pathing'])->prefix('career-paths')->name('career-paths.')->group(function () {
-        Route::get('/', [\Aero\HRM\Http\Controllers\CareerPathController::class, 'index'])->name('index');
-        Route::get('/paginate', [\Aero\HRM\Http\Controllers\CareerPathController::class, 'paginate'])->name('paginate');
-        Route::get('/stats', [\Aero\HRM\Http\Controllers\CareerPathController::class, 'stats'])->name('stats');
-        Route::post('/', [\Aero\HRM\Http\Controllers\CareerPathController::class, 'store'])->name('store');
-        Route::get('/progressions', [\Aero\HRM\Http\Controllers\CareerPathController::class, 'employeeProgressions'])->name('progressions');
-        Route::get('/{id}', [\Aero\HRM\Http\Controllers\CareerPathController::class, 'show'])->name('show');
-        Route::put('/{id}', [\Aero\HRM\Http\Controllers\CareerPathController::class, 'update'])->name('update');
-        Route::delete('/{id}', [\Aero\HRM\Http\Controllers\CareerPathController::class, 'destroy'])->name('destroy');
+    Route::middleware(['hrmac:hrm.career-pathing'])->prefix('career-paths')->name('career-paths.')->group(function () {
+        Route::get('/', [CareerPathController::class, 'index'])->name('index');
+        Route::get('/paginate', [CareerPathController::class, 'paginate'])->name('paginate');
+        Route::get('/stats', [CareerPathController::class, 'stats'])->name('stats');
+        Route::post('/', [CareerPathController::class, 'store'])->name('store');
+        Route::get('/progressions', [CareerPathController::class, 'employeeProgressions'])->name('progressions');
+        Route::get('/{id}', [CareerPathController::class, 'show'])->name('show');
+        Route::put('/{id}', [CareerPathController::class, 'update'])->name('update');
+        Route::delete('/{id}', [CareerPathController::class, 'destroy'])->name('destroy');
 
         // Milestones
-        Route::get('/{id}/milestones', [\Aero\HRM\Http\Controllers\CareerPathController::class, 'milestones'])->name('milestones');
-        Route::post('/{id}/milestones', [\Aero\HRM\Http\Controllers\CareerPathController::class, 'addMilestone'])->name('milestones.store');
-        Route::put('/{id}/milestones/{milestoneId}', [\Aero\HRM\Http\Controllers\CareerPathController::class, 'updateMilestone'])->name('milestones.update');
-        Route::delete('/{id}/milestones/{milestoneId}', [\Aero\HRM\Http\Controllers\CareerPathController::class, 'deleteMilestone'])->name('milestones.destroy');
+        Route::get('/{id}/milestones', [CareerPathController::class, 'milestones'])->name('milestones');
+        Route::post('/{id}/milestones', [CareerPathController::class, 'addMilestone'])->name('milestones.store');
+        Route::put('/{id}/milestones/{milestoneId}', [CareerPathController::class, 'updateMilestone'])->name('milestones.update');
+        Route::delete('/{id}/milestones/{milestoneId}', [CareerPathController::class, 'deleteMilestone'])->name('milestones.destroy');
 
         // Employee Assignments
-        Route::post('/{id}/assign-employee', [\Aero\HRM\Http\Controllers\CareerPathController::class, 'assignEmployee'])->name('assign-employee');
-        Route::put('/{id}/progressions/{progressionId}', [\Aero\HRM\Http\Controllers\CareerPathController::class, 'updateProgression'])->name('progressions.update');
+        Route::post('/{id}/assign-employee', [CareerPathController::class, 'assignEmployee'])->name('assign-employee');
+        Route::put('/{id}/progressions/{progressionId}', [CareerPathController::class, 'updateProgression'])->name('progressions.update');
     });
 
     // =========================================================================
     // 360° Feedback - Multi-Rater Performance Feedback
     // =========================================================================
-    Route::middleware(['hrmac:hrm.feedback_360'])->prefix('feedback-360')->name('feedback-360.')->group(function () {
-        Route::get('/', [\Aero\HRM\Http\Controllers\Feedback360Controller::class, 'index'])->name('index');
-        Route::get('/paginate', [\Aero\HRM\Http\Controllers\Feedback360Controller::class, 'paginate'])->name('paginate');
-        Route::get('/stats', [\Aero\HRM\Http\Controllers\Feedback360Controller::class, 'stats'])->name('stats');
-        Route::get('/my-pending', [\Aero\HRM\Http\Controllers\Feedback360Controller::class, 'myPendingFeedback'])->name('my-pending');
-        Route::post('/', [\Aero\HRM\Http\Controllers\Feedback360Controller::class, 'store'])->name('store');
-        Route::get('/{id}', [\Aero\HRM\Http\Controllers\Feedback360Controller::class, 'show'])->name('show');
-        Route::put('/{id}', [\Aero\HRM\Http\Controllers\Feedback360Controller::class, 'update'])->name('update');
-        Route::delete('/{id}', [\Aero\HRM\Http\Controllers\Feedback360Controller::class, 'destroy'])->name('destroy');
-        Route::post('/{id}/launch', [\Aero\HRM\Http\Controllers\Feedback360Controller::class, 'launch'])->name('launch');
-        Route::post('/{id}/reviewers', [\Aero\HRM\Http\Controllers\Feedback360Controller::class, 'addReviewers'])->name('reviewers.store');
-        Route::post('/{id}/responses/{responseId}', [\Aero\HRM\Http\Controllers\Feedback360Controller::class, 'submitResponse'])->name('responses.submit');
+    Route::middleware(['hrmac:hrm.feedback-360'])->prefix('feedback-360')->name('feedback-360.')->group(function () {
+        Route::get('/', [Feedback360Controller::class, 'index'])->name('index');
+        Route::get('/paginate', [Feedback360Controller::class, 'paginate'])->name('paginate');
+        Route::get('/stats', [Feedback360Controller::class, 'stats'])->name('stats');
+        Route::get('/my-pending', [Feedback360Controller::class, 'myPendingFeedback'])->name('my-pending');
+        Route::post('/', [Feedback360Controller::class, 'store'])->name('store');
+        Route::get('/{id}', [Feedback360Controller::class, 'show'])->name('show');
+        Route::put('/{id}', [Feedback360Controller::class, 'update'])->name('update');
+        Route::delete('/{id}', [Feedback360Controller::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/launch', [Feedback360Controller::class, 'launch'])->name('launch');
+        Route::post('/{id}/reviewers', [Feedback360Controller::class, 'addReviewers'])->name('reviewers.store');
+        Route::post('/{id}/responses/{responseId}', [Feedback360Controller::class, 'submitResponse'])->name('responses.submit');
     });
 
     // =========================================================================
     // Compensation Planning - Salary Reviews & Market Benchmarking
     // =========================================================================
     // Redirect /compensation to /compensation-planning for navigation consistency
-    Route::middleware(['hrmac:hrm.compensation_planning'])->get('/compensation', fn () => redirect()->route('hrm.compensation.index'))->name('compensation-redirect');
+    Route::middleware(['hrmac:hrm.compensation-planning'])->get('/compensation', fn () => redirect()->route('hrm.compensation.index'))->name('compensation-redirect');
 
-    Route::middleware(['hrmac:hrm.compensation_planning'])->prefix('compensation-planning')->name('compensation.')->group(function () {
-        Route::get('/', [\Aero\HRM\Http\Controllers\CompensationPlanningController::class, 'index'])->name('index');
-        Route::get('/paginate', [\Aero\HRM\Http\Controllers\CompensationPlanningController::class, 'paginate'])->name('paginate');
-        Route::get('/stats', [\Aero\HRM\Http\Controllers\CompensationPlanningController::class, 'stats'])->name('stats');
-        Route::get('/analytics', [\Aero\HRM\Http\Controllers\CompensationPlanningController::class, 'analytics'])->name('analytics');
-        Route::post('/', [\Aero\HRM\Http\Controllers\CompensationPlanningController::class, 'store'])->name('store');
-        Route::get('/{id}', [\Aero\HRM\Http\Controllers\CompensationPlanningController::class, 'show'])->name('show');
-        Route::put('/{id}', [\Aero\HRM\Http\Controllers\CompensationPlanningController::class, 'update'])->name('update');
-        Route::delete('/{id}', [\Aero\HRM\Http\Controllers\CompensationPlanningController::class, 'destroy'])->name('destroy');
+    Route::middleware(['hrmac:hrm.compensation-planning'])->prefix('compensation-planning')->name('compensation.')->group(function () {
+        Route::get('/', [CompensationPlanningController::class, 'index'])->name('index');
+        Route::get('/paginate', [CompensationPlanningController::class, 'paginate'])->name('paginate');
+        Route::get('/stats', [CompensationPlanningController::class, 'stats'])->name('stats');
+        Route::get('/analytics', [CompensationPlanningController::class, 'analytics'])->name('analytics');
+        Route::post('/', [CompensationPlanningController::class, 'store'])->name('store');
+        Route::get('/{id}', [CompensationPlanningController::class, 'show'])->name('show');
+        Route::put('/{id}', [CompensationPlanningController::class, 'update'])->name('update');
+        Route::delete('/{id}', [CompensationPlanningController::class, 'destroy'])->name('destroy');
 
         // Adjustments
-        Route::get('/{id}/adjustments', [\Aero\HRM\Http\Controllers\CompensationPlanningController::class, 'adjustments'])->name('adjustments');
-        Route::post('/{id}/adjustments', [\Aero\HRM\Http\Controllers\CompensationPlanningController::class, 'addAdjustment'])->name('adjustments.store');
-        Route::put('/{id}/adjustments/{adjustmentId}', [\Aero\HRM\Http\Controllers\CompensationPlanningController::class, 'updateAdjustment'])->name('adjustments.update');
-        Route::delete('/{id}/adjustments/{adjustmentId}', [\Aero\HRM\Http\Controllers\CompensationPlanningController::class, 'deleteAdjustment'])->name('adjustments.destroy');
-        Route::post('/{id}/adjustments/{adjustmentId}/approve', [\Aero\HRM\Http\Controllers\CompensationPlanningController::class, 'approveAdjustment'])->name('adjustments.approve');
-        Route::post('/{id}/adjustments/{adjustmentId}/reject', [\Aero\HRM\Http\Controllers\CompensationPlanningController::class, 'rejectAdjustment'])->name('adjustments.reject');
+        Route::get('/{id}/adjustments', [CompensationPlanningController::class, 'adjustments'])->name('adjustments');
+        Route::post('/{id}/adjustments', [CompensationPlanningController::class, 'addAdjustment'])->name('adjustments.store');
+        Route::put('/{id}/adjustments/{adjustmentId}', [CompensationPlanningController::class, 'updateAdjustment'])->name('adjustments.update');
+        Route::delete('/{id}/adjustments/{adjustmentId}', [CompensationPlanningController::class, 'deleteAdjustment'])->name('adjustments.destroy');
+        Route::post('/{id}/adjustments/{adjustmentId}/approve', [CompensationPlanningController::class, 'approveAdjustment'])->name('adjustments.approve');
+        Route::post('/{id}/adjustments/{adjustmentId}/reject', [CompensationPlanningController::class, 'rejectAdjustment'])->name('adjustments.reject');
     });
 
     // =========================================================================
     // Workforce Planning - Headcount Forecasting & Strategic Planning
     // =========================================================================
-    Route::middleware(['hrmac:hrm.workforce_planning'])->prefix('workforce-planning')->name('workforce-planning.')->group(function () {
-        Route::get('/', [\Aero\HRM\Http\Controllers\WorkforcePlanningController::class, 'index'])->name('index');
-        Route::get('/paginate', [\Aero\HRM\Http\Controllers\WorkforcePlanningController::class, 'paginate'])->name('paginate');
-        Route::get('/stats', [\Aero\HRM\Http\Controllers\WorkforcePlanningController::class, 'stats'])->name('stats');
-        Route::get('/forecast', [\Aero\HRM\Http\Controllers\WorkforcePlanningController::class, 'forecast'])->name('forecast');
-        Route::post('/', [\Aero\HRM\Http\Controllers\WorkforcePlanningController::class, 'store'])->name('store');
-        Route::get('/{id}', [\Aero\HRM\Http\Controllers\WorkforcePlanningController::class, 'show'])->name('show');
-        Route::put('/{id}', [\Aero\HRM\Http\Controllers\WorkforcePlanningController::class, 'update'])->name('update');
-        Route::delete('/{id}', [\Aero\HRM\Http\Controllers\WorkforcePlanningController::class, 'destroy'])->name('destroy');
-        Route::post('/{id}/approve', [\Aero\HRM\Http\Controllers\WorkforcePlanningController::class, 'approve'])->name('approve');
+    Route::middleware(['hrmac:hrm.workforce-planning'])->prefix('workforce-planning')->name('workforce-planning.')->group(function () {
+        Route::get('/', [WorkforcePlanningController::class, 'index'])->name('index');
+        Route::get('/paginate', [WorkforcePlanningController::class, 'paginate'])->name('paginate');
+        Route::get('/stats', [WorkforcePlanningController::class, 'stats'])->name('stats');
+        Route::get('/forecast', [WorkforcePlanningController::class, 'forecast'])->name('forecast');
+        Route::post('/', [WorkforcePlanningController::class, 'store'])->name('store');
+        Route::get('/{id}', [WorkforcePlanningController::class, 'show'])->name('show');
+        Route::put('/{id}', [WorkforcePlanningController::class, 'update'])->name('update');
+        Route::delete('/{id}', [WorkforcePlanningController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/approve', [WorkforcePlanningController::class, 'approve'])->name('approve');
 
         // Positions
-        Route::get('/{id}/positions', [\Aero\HRM\Http\Controllers\WorkforcePlanningController::class, 'positions'])->name('positions');
-        Route::post('/{id}/positions', [\Aero\HRM\Http\Controllers\WorkforcePlanningController::class, 'addPosition'])->name('positions.store');
-        Route::put('/{id}/positions/{positionId}', [\Aero\HRM\Http\Controllers\WorkforcePlanningController::class, 'updatePosition'])->name('positions.update');
-        Route::delete('/{id}/positions/{positionId}', [\Aero\HRM\Http\Controllers\WorkforcePlanningController::class, 'deletePosition'])->name('positions.destroy');
+        Route::get('/{id}/positions', [WorkforcePlanningController::class, 'positions'])->name('positions');
+        Route::post('/{id}/positions', [WorkforcePlanningController::class, 'addPosition'])->name('positions.store');
+        Route::put('/{id}/positions/{positionId}', [WorkforcePlanningController::class, 'updatePosition'])->name('positions.update');
+        Route::delete('/{id}/positions/{positionId}', [WorkforcePlanningController::class, 'deletePosition'])->name('positions.destroy');
     });
 });

@@ -9,22 +9,38 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Check Role Module Access Middleware
  *
  * Enforces role-based module/sub-module access using the role_module_access table.
- * This is different from permission-based access - it checks what modules/sub-modules
- * are assigned to the user's role(s).
+ * Supports both dot-notation and legacy comma-separated formats.
  *
- * Usage in routes:
- *   - role.access:core,dashboard       - Check sub-module access (module code, submodule code)
- *   - role.access:hrm                  - Check module-level access
- *   - role.access:hrm,employees        - Check sub-module access within HRM
+ * Usage in routes (dot-notation — preferred):
+ *   - hrmac:hrm                              - Module-level access
+ *   - hrmac:hrm.employees                    - Sub-module access
+ *   - hrmac:hrm.employees.departments        - Component-level (checks sub-module)
+ *   - hrmac:hrm.attendance.own-attendance,punch - Component + action check
+ *
+ * Legacy format (comma-separated — still supported):
+ *   - role.access:hrm,employees              - Sub-module access
  */
 class CheckRoleModuleAccess
 {
+    /**
+     * Sub-module code aliases for backward compatibility.
+     * Maps route names to canonical config/module.php codes.
+     *
+     * @var array<string, string>
+     */
+    protected const SUB_MODULE_ALIASES = [
+        'time-off' => 'leaves',
+        'hr-reports' => 'hr-analytics',
+    ];
+
     public function __construct(
         protected RoleModuleAccessInterface $roleModuleAccessService
     ) {}
@@ -32,17 +48,17 @@ class CheckRoleModuleAccess
     /**
      * Handle an incoming request.
      *
-     * @param  string  $moduleCode  The module code (e.g., 'core', 'hrm')
-     * @param  string|null  $subModuleCode  The sub-module code (optional, e.g., 'dashboard', 'employees')
+     * @param  string  $path  Dot-notation path (e.g., 'hrm.employees.departments') or legacy module code
+     * @param  string|null  $extra1  Legacy submodule code, or component override, or action code
+     * @param  string|null  $extra2  Action code when extra1 is component
      */
     public function handle(
         Request $request,
         Closure $next,
-        string $moduleCode,
-        ?string $subModuleCode = null
+        string $path,
+        ?string $extra1 = null,
+        ?string $extra2 = null
     ): Response {
-        // Try to get user from request first (supports multiple guards)
-        // This ensures we get the authenticated user regardless of which guard was used
         $user = $request->user() ?? Auth::user();
 
         if (! $user) {
@@ -53,25 +69,27 @@ class CheckRoleModuleAccess
                 ], 401);
             }
 
-            // Check if we're on admin domain to use appropriate login route
             return redirect()->to($this->getLoginUrl($request));
         }
 
-        // Super admin bypasses all checks
         if ($this->isSuperAdmin($user)) {
             return $next($request);
         }
 
-        // Check access based on level
-        $hasAccess = $subModuleCode
-            ? $this->roleModuleAccessService->userCanAccessSubModule($user, $moduleCode, $subModuleCode)
-            : $this->roleModuleAccessService->userCanAccessModule($user, $moduleCode);
+        // Parse the access path into module/submodule/component/action
+        [$moduleCode, $subModuleCode, $componentCode, $actionCode] = $this->parsePath($path, $extra1, $extra2);
+
+        // Check access at the appropriate level
+        $hasAccess = $this->checkAccess($user, $moduleCode, $subModuleCode, $componentCode, $actionCode);
 
         if (! $hasAccess) {
             Log::warning('Role module access denied', [
                 'user_id' => $user->id,
+                'path' => $path,
                 'module' => $moduleCode,
                 'sub_module' => $subModuleCode,
+                'component' => $componentCode,
+                'action' => $actionCode,
                 'user_roles' => $user->roles->pluck('name')->toArray(),
             ]);
 
@@ -79,6 +97,77 @@ class CheckRoleModuleAccess
         }
 
         return $next($request);
+    }
+
+    /**
+     * Parse middleware parameters into module/submodule/component/action.
+     *
+     * @return array{0: string, 1: ?string, 2: ?string, 3: ?string}
+     */
+    protected function parsePath(string $path, ?string $extra1, ?string $extra2): array
+    {
+        // Detect format: dot-notation vs legacy comma-separated
+        if (str_contains($path, '.')) {
+            // Dot-notation: hrm.employees.departments
+            $parts = explode('.', $path);
+            $moduleCode = $this->normalize($parts[0]);
+            $subModuleCode = isset($parts[1]) ? $this->normalize($parts[1]) : null;
+            $componentCode = isset($parts[2]) ? $this->normalize($parts[2]) : null;
+
+            // Comma params extend the path
+            // Pattern: hrmac:hrm.attendance.own-attendance,punch → action=punch
+            // Pattern: hrmac:hrm.employees.departments,department-list,create → component=department-list, action=create
+            if ($extra1 !== null && $extra2 !== null) {
+                // Two extra params: override component + action
+                $componentCode = $this->normalize($extra1);
+                $actionCode = $this->normalize($extra2);
+            } elseif ($extra1 !== null) {
+                // One extra param: it's the action code
+                $actionCode = $this->normalize($extra1);
+            } else {
+                $actionCode = null;
+            }
+        } else {
+            // Legacy format: hrmac:hrm,employees or role.access:hrm,employees
+            $moduleCode = $this->normalize($path);
+            $subModuleCode = $extra1 ? $this->normalize($extra1) : null;
+            $componentCode = null;
+            $actionCode = $extra2 ? $this->normalize($extra2) : null;
+        }
+
+        // Resolve sub-module aliases
+        if ($subModuleCode) {
+            $subModuleCode = self::SUB_MODULE_ALIASES[$subModuleCode] ?? $subModuleCode;
+        }
+
+        return [$moduleCode, $subModuleCode, $componentCode, $actionCode];
+    }
+
+    /**
+     * Check access at the most specific level possible, falling back to broader checks.
+     */
+    protected function checkAccess(mixed $user, string $moduleCode, ?string $subModuleCode, ?string $componentCode, ?string $actionCode): bool
+    {
+        // If action specified, try action-level check first
+        if ($actionCode && $subModuleCode) {
+            return $this->roleModuleAccessService->userCanAccessAction($user, $moduleCode, $subModuleCode, $actionCode);
+        }
+
+        // Sub-module level check (primary gate for most routes)
+        if ($subModuleCode) {
+            return $this->roleModuleAccessService->userCanAccessSubModule($user, $moduleCode, $subModuleCode);
+        }
+
+        // Module-level check
+        return $this->roleModuleAccessService->userCanAccessModule($user, $moduleCode);
+    }
+
+    /**
+     * Normalize a code segment: convert underscores to dashes, lowercase.
+     */
+    protected function normalize(string $code): string
+    {
+        return strtolower(str_replace('_', '-', trim($code)));
     }
 
     /**
@@ -136,7 +225,7 @@ class CheckRoleModuleAccess
                         'type' => 'AccessDenied',
                         'title' => 'Access Denied',
                         'message' => $message,
-                        'trace_id' => \Illuminate\Support\Str::uuid()->toString(),
+                        'trace_id' => Str::uuid()->toString(),
                         'showHomeButton' => true,
                         'showRetryButton' => false,
                         'timestamp' => now()->toISOString(),
@@ -170,7 +259,7 @@ class CheckRoleModuleAccess
         }
 
         // Try named route for regular login
-        if (\Illuminate\Support\Facades\Route::has('login')) {
+        if (Route::has('login')) {
             return route('login');
         }
 

@@ -54,13 +54,13 @@ const PrintToken = ({ registration, event }) => {
                         {/* Header */}
                         <div className="text-center mb-8">
                             <h1 className="text-4xl font-bold text-primary mb-2">{event.title}</h1>
-                            <p className="text-lg text-gray-600">Event Registration Token</p>
+                            <p className="text-lg text-default-600">Event Registration Token</p>
                         </div>
                         
                         {/* QR Code */}
                         <div className="flex justify-center mb-8">
                             {registration.qr_code ? (
-                                <div className="p-4 bg-white border-2 border-gray-300 rounded-lg">
+                                <div className="p-4 bg-white border-2 border-default-300 rounded-lg">
                                     <img 
                                         src={`/storage/${registration.qr_code}`}
                                         alt="QR Code"
@@ -68,37 +68,37 @@ const PrintToken = ({ registration, event }) => {
                                     />
                                 </div>
                             ) : (
-                                <div className="w-48 h-48 bg-gray-100 border-2 border-gray-300 rounded-lg flex items-center justify-center">
-                                    <p className="text-gray-400 text-sm">QR Code</p>
+                                <div className="w-48 h-48 bg-default-100 border-2 border-default-300 rounded-lg flex items-center justify-center">
+                                    <p className="text-default-400 text-sm">QR Code</p>
                                 </div>
                             )}
                         </div>
                         
                         {/* Token Number */}
                         <div className="text-center mb-8">
-                            <p className="text-sm text-gray-600 mb-2">Registration Token</p>
+                            <p className="text-sm text-default-600 mb-2">Registration Token</p>
                             <p className="text-5xl font-mono font-bold tracking-wider text-primary">
                                 {registration.token}
                             </p>
                         </div>
                         
                         {/* Participant Details */}
-                        <div className="border-t-2 border-gray-200 pt-6 mb-6">
+                        <div className="border-t-2 border-divider pt-6 mb-6">
                             <div className="grid grid-cols-2 gap-6">
                                 <div>
-                                    <p className="text-sm text-gray-500 mb-1">Participant Name</p>
+                                    <p className="text-sm text-default-500 mb-1">Participant Name</p>
                                     <p className="text-lg font-semibold">{registration.name}</p>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-500 mb-1">Email</p>
+                                    <p className="text-sm text-default-500 mb-1">Email</p>
                                     <p className="text-lg font-semibold">{registration.email}</p>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-500 mb-1">Phone</p>
+                                    <p className="text-sm text-default-500 mb-1">Phone</p>
                                     <p className="text-lg font-semibold">{registration.phone}</p>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-500 mb-1">Registration Date</p>
+                                    <p className="text-sm text-default-500 mb-1">Registration Date</p>
                                     <p className="text-lg font-semibold">
                                         {dayjs(registration.created_at).format('MMM DD, YYYY')}
                                     </p>
@@ -107,7 +107,7 @@ const PrintToken = ({ registration, event }) => {
                             
                             {registration.organization_or_department && (
                                 <div className="mt-4">
-                                    <p className="text-sm text-gray-500 mb-1">Organization/Department</p>
+                                    <p className="text-sm text-default-500 mb-1">Organization/Department</p>
                                     <p className="text-lg font-semibold">{registration.organization_or_department}</p>
                                 </div>
                             )}
@@ -115,8 +115,8 @@ const PrintToken = ({ registration, event }) => {
                         
                         {/* Sub-Events */}
                         {registration.sub_events && registration.sub_events.length > 0 && (
-                            <div className="border-t-2 border-gray-200 pt-6 mb-6">
-                                <p className="text-sm text-gray-500 mb-3">Registered Sub-Events</p>
+                            <div className="border-t-2 border-divider pt-6 mb-6">
+                                <p className="text-sm text-default-500 mb-3">Registered Sub-Events</p>
                                 <div className="grid grid-cols-1 gap-2">
                                     {registration.sub_events.map((subEvent, index) => (
                                         <div key={index} className="flex items-center gap-2">
@@ -131,27 +131,27 @@ const PrintToken = ({ registration, event }) => {
                         )}
                         
                         {/* Event Details */}
-                        <div className="border-t-2 border-gray-200 pt-6">
+                        <div className="border-t-2 border-divider pt-6">
                             <div className="grid grid-cols-2 gap-6">
                                 <div>
-                                    <p className="text-sm text-gray-500 mb-1">Event Date</p>
+                                    <p className="text-sm text-default-500 mb-1">Event Date</p>
                                     <p className="text-lg font-semibold">
                                         {dayjs(event.event_date).format('MMMM DD, YYYY')}
                                     </p>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-500 mb-1">Event Time</p>
+                                    <p className="text-sm text-default-500 mb-1">Event Time</p>
                                     <p className="text-lg font-semibold">{event.event_time}</p>
                                 </div>
                                 <div className="col-span-2">
-                                    <p className="text-sm text-gray-500 mb-1">Venue</p>
+                                    <p className="text-sm text-default-500 mb-1">Venue</p>
                                     <p className="text-lg font-semibold">{event.venue}</p>
                                 </div>
                             </div>
                         </div>
                         
                         {/* Status */}
-                        <div className="border-t-2 border-gray-200 pt-6 mt-6">
+                        <div className="border-t-2 border-divider pt-6 mt-6">
                             <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
                                 <p className="text-sm text-green-700 mb-1">Registration Status</p>
                                 <p className="text-2xl font-bold text-green-800 uppercase">{registration.status}</p>
@@ -159,12 +159,12 @@ const PrintToken = ({ registration, event }) => {
                         </div>
                         
                         {/* Footer */}
-                        <div className="border-t-2 border-gray-200 pt-6 mt-6 text-center">
-                            <p className="text-sm text-gray-500">
+                        <div className="border-t-2 border-divider pt-6 mt-6 text-center">
+                            <p className="text-sm text-default-500">
                                 Please bring this token on the event day for verification
                             </p>
                             {event.organizer_phone && (
-                                <p className="text-sm text-gray-500 mt-2">
+                                <p className="text-sm text-default-500 mt-2">
                                     For queries, contact: {event.organizer_phone}
                                     {event.organizer_email && ` | ${event.organizer_email}`}
                                 </p>
@@ -182,7 +182,7 @@ const PrintToken = ({ registration, event }) => {
                         </button>
                         <button
                             onClick={() => window.close()}
-                            className="ml-4 px-6 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                            className="ml-4 px-6 py-3 bg-default-200 text-foreground rounded-lg font-semibold hover:bg-default-300 transition-colors"
                         >
                             Close
                         </button>

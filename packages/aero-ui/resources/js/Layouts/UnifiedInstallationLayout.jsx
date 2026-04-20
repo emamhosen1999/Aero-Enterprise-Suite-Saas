@@ -320,7 +320,7 @@ const UnifiedInstallationLayout = ({
                 </div>
 
                 {/* Step Indicators (Desktop) */}
-                <div className="hidden md:block w-full bg-white/50 dark:bg-gray-800/50 border-b border-divider">
+                <div className="hidden md:block w-full bg-white/50 dark:bg-content2/50 border-b border-divider">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
                         <div className="flex items-center justify-between">
                             {steps.map((step, index) => (
@@ -379,7 +379,7 @@ const UnifiedInstallationLayout = ({
                 </div>
 
                 {/* Footer */}
-                <div className="w-full bg-white/80 dark:bg-gray-900/80 border-t border-divider py-4">
+                <div className="w-full bg-white/80 dark:bg-content3/80 border-t border-divider py-4">
                     <div className="max-w-7xl mx-auto px-4 text-center">
                         <p className="text-sm text-default-500">
                             &copy; {new Date().getFullYear()} {appName}. 

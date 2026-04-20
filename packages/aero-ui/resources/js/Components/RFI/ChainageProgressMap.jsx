@@ -340,7 +340,7 @@ const ChainageProgressMap = ({
                         <Spinner size="lg" label="Loading progress map..." />
                     </div>
                 ) : (
-                    <div ref={containerRef} className="overflow-x-auto bg-white">
+                    <div ref={containerRef} className="overflow-x-auto bg-content1">
                         <canvas
                             ref={canvasRef}
                             width={CANVAS_WIDTH}
@@ -359,7 +359,7 @@ const ChainageProgressMap = ({
                             {Object.entries(STATUS_COLORS).map(([status, color]) => (
                                 <div key={status} className="flex items-center gap-2">
                                     <div
-                                        className="w-4 h-4 rounded border border-gray-300"
+                                        className="w-4 h-4 rounded border border-default-300"
                                         style={{ backgroundColor: color }}
                                     ></div>
                                     <span className="capitalize">{status.replace('_', ' ')}</span>

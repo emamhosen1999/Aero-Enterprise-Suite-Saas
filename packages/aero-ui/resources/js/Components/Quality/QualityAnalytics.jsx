@@ -226,9 +226,9 @@ const QualityAnalytics = ({
         <div className={`p-6 rounded-lg border-2 ${color} transition-all duration-300 hover:shadow-lg`}>
             <div className="flex items-center justify-between">
                 <div>
-                    <p className="text-sm text-gray-600 mb-1">{title}</p>
-                    <p className="text-2xl font-bold text-gray-900">{value}</p>
-                    {subValue && <p className="text-sm text-gray-500">{subValue}</p>}
+                    <p className="text-sm text-default-600 mb-1">{title}</p>
+                    <p className="text-2xl font-bold text-foreground">{value}</p>
+                    {subValue && <p className="text-sm text-default-500">{subValue}</p>}
                     <div className="flex items-center mt-2">
                         {trendDirection === 'up' ? (
                             <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
@@ -250,14 +250,14 @@ const QualityAnalytics = ({
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Quality Analytics Dashboard</h2>
-                    <p className="text-gray-600">Comprehensive quality metrics and performance insights</p>
+                    <h2 className="text-2xl font-bold text-foreground">Quality Analytics Dashboard</h2>
+                    <p className="text-default-600">Comprehensive quality metrics and performance insights</p>
                 </div>
                 <div className="flex space-x-3">
                     <select
                         value={selectedTimeRange}
                         onChange={(e) => setSelectedTimeRange(e.target.value)}
-                        className="border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="border border-default-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                         <option value="1month">Last Month</option>
                         <option value="3months">Last 3 Months</option>
@@ -305,13 +305,13 @@ const QualityAnalytics = ({
             {/* Main Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Inspection Trends */}
-                <div className="bg-white p-6 rounded-lg shadow-xs border border-gray-200">
+                <div className="bg-content1 dark:bg-content2 p-6 rounded-lg shadow-xs border border-divider">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                        <h3 className="text-lg font-semibold text-foreground flex items-center">
                             <BarChart3 className="w-5 h-5 mr-2 text-blue-600" />
                             Inspection Trends
                         </h3>
-                        <select className="text-sm border border-gray-300 rounded-sm px-2 py-1">
+                        <select className="text-sm border border-default-300 rounded-sm px-2 py-1">
                             <option>Last 6 Months</option>
                             <option>Last Year</option>
                         </select>
@@ -322,9 +322,9 @@ const QualityAnalytics = ({
                 </div>
 
                 {/* Quality Metrics Radar */}
-                <div className="bg-white p-6 rounded-lg shadow-xs border border-gray-200">
+                <div className="bg-content1 dark:bg-content2 p-6 rounded-lg shadow-xs border border-divider">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                        <h3 className="text-lg font-semibold text-foreground flex items-center">
                             <Zap className="w-5 h-5 mr-2 text-blue-600" />
                             Quality Performance
                         </h3>
@@ -338,8 +338,8 @@ const QualityAnalytics = ({
             {/* Distribution Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Inspection Results */}
-                <div className="bg-white p-6 rounded-lg shadow-xs border border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <div className="bg-content1 dark:bg-content2 p-6 rounded-lg shadow-xs border border-divider">
+                    <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
                         <PieChart className="w-5 h-5 mr-2 text-blue-600" />
                         Inspection Results
                     </h3>
@@ -349,8 +349,8 @@ const QualityAnalytics = ({
                 </div>
 
                 {/* NCR Severity */}
-                <div className="bg-white p-6 rounded-lg shadow-xs border border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <div className="bg-content1 dark:bg-content2 p-6 rounded-lg shadow-xs border border-divider">
+                    <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
                         <AlertTriangle className="w-5 h-5 mr-2 text-red-600" />
                         NCR Severity
                     </h3>
@@ -360,8 +360,8 @@ const QualityAnalytics = ({
                 </div>
 
                 {/* Calibration Status */}
-                <div className="bg-white p-6 rounded-lg shadow-xs border border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <div className="bg-content1 dark:bg-content2 p-6 rounded-lg shadow-xs border border-divider">
+                    <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
                         <Target className="w-5 h-5 mr-2 text-green-600" />
                         Calibration Status
                     </h3>
@@ -372,8 +372,8 @@ const QualityAnalytics = ({
             </div>
 
             {/* Quality Insights */}
-            <div className="bg-white p-6 rounded-lg shadow-xs border border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Quality Insights & Recommendations</h3>
+            <div className="bg-content1 dark:bg-content2 p-6 rounded-lg shadow-xs border border-divider">
+                <h3 className="text-lg font-semibold text-foreground mb-4">Quality Insights & Recommendations</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                         <div className="flex items-start space-x-3">
@@ -381,8 +381,8 @@ const QualityAnalytics = ({
                                 <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                             </div>
                             <div>
-                                <p className="text-sm font-medium text-gray-900">Inspection Pass Rate Improving</p>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm font-medium text-foreground">Inspection Pass Rate Improving</p>
+                                <p className="text-sm text-default-600">
                                     Pass rate has increased by 12% over the last quarter, indicating improved quality processes.
                                 </p>
                             </div>
@@ -392,8 +392,8 @@ const QualityAnalytics = ({
                                 <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
                             </div>
                             <div>
-                                <p className="text-sm font-medium text-gray-900">Calibration Due Soon</p>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm font-medium text-foreground">Calibration Due Soon</p>
+                                <p className="text-sm text-default-600">
                                     12 equipment items require calibration within the next 30 days. Schedule maintenance accordingly.
                                 </p>
                             </div>
@@ -405,8 +405,8 @@ const QualityAnalytics = ({
                                 <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
                             </div>
                             <div>
-                                <p className="text-sm font-medium text-gray-900">NCR Resolution Time</p>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm font-medium text-foreground">NCR Resolution Time</p>
+                                <p className="text-sm text-default-600">
                                     3 NCRs are overdue. Consider additional resources or process improvements to reduce resolution time.
                                 </p>
                             </div>
@@ -416,8 +416,8 @@ const QualityAnalytics = ({
                                 <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
                             </div>
                             <div>
-                                <p className="text-sm font-medium text-gray-900">Quality Score Target</p>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm font-medium text-foreground">Quality Score Target</p>
+                                <p className="text-sm text-default-600">
                                     Overall quality score of 88% is close to the 90% target. Focus on inspection consistency.
                                 </p>
                             </div>

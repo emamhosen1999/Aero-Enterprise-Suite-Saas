@@ -266,7 +266,7 @@ export default function TwoFactorSettings({ enabled = false, remainingCodes = 0 
                                     Authenticator or Authy), then enter the 6-digit code to verify.
                                 </p>
 
-                                <div className="flex justify-center p-4 bg-white rounded-lg">
+                                <div className="flex justify-center p-4 bg-white dark:bg-content2 rounded-lg">
                                     {/* QR Code - would use a QR code library in production */}
                                     <img
                                         src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(

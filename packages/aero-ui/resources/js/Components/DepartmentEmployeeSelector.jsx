@@ -203,7 +203,7 @@ const DepartmentEmployeeSelector = ({
                                 <div className="flex flex-col flex-1">
                                     <span className="text-sm font-medium">{user.name}</span>
                                     {user.designation && (
-                                        <span className="text-xs text-gray-500">{user.designation}</span>
+                                        <span className="text-xs text-default-500">{user.designation}</span>
                                     )}
                                 </div>
                                 {user.department && (
@@ -221,7 +221,7 @@ const DepartmentEmployeeSelector = ({
                     
                     {filteredEmployees.length === 0 && (
                         <SelectItem key="no-employees" isDisabled>
-                            <span className="text-sm text-gray-500">
+                            <span className="text-sm text-default-500">
                                 {selectedDepartmentId 
                                     ? 'No employees found in selected department'
                                     : 'No employees found'

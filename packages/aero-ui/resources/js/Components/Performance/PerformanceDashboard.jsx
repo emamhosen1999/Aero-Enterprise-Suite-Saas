@@ -79,7 +79,7 @@ const PerformanceDashboard = ({ isVisible = false, onToggle }) => {
             case 'good': return 'text-green-600 bg-green-100';
             case 'needs-improvement': return 'text-yellow-600 bg-yellow-100';
             case 'poor': return 'text-red-600 bg-red-100';
-            default: return 'text-gray-600 bg-gray-100';
+            default: return 'text-default-600 bg-default-100';
         }
     };
 
@@ -128,16 +128,16 @@ const PerformanceDashboard = ({ isVisible = false, onToggle }) => {
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-            <div className="bg-white rounded-lg shadow-2xl w-11/12 max-w-6xl h-5/6 flex flex-col">
+            <div className="bg-content1 dark:bg-content2 rounded-lg shadow-2xl w-11/12 max-w-6xl h-5/6 flex flex-col">
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b">
                     <div className="flex items-center space-x-4">
-                        <h2 className="text-xl font-bold text-gray-800">
+                        <h2 className="text-xl font-bold text-foreground">
                             Glass ERP Performance Dashboard
                         </h2>
                         <div className="flex items-center space-x-2">
                             <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                            <span className="text-sm text-gray-600">Live Monitoring</span>
+                            <span className="text-sm text-default-600">Live Monitoring</span>
                         </div>
                     </div>
                     <div className="flex items-center space-x-4">
@@ -145,11 +145,11 @@ const PerformanceDashboard = ({ isVisible = false, onToggle }) => {
                             <div className="text-2xl font-bold text-blue-600">
                                 {generatePerformanceScore()}
                             </div>
-                            <div className="text-xs text-gray-500">Performance Score</div>
+                            <div className="text-xs text-default-500">Performance Score</div>
                         </div>
                         <button
                             onClick={onToggle}
-                            className="text-gray-500 hover:text-gray-700 text-xl"
+                            className="text-default-500 hover:text-default-700 text-xl"
                         >
                             ✕
                         </button>
@@ -170,7 +170,7 @@ const PerformanceDashboard = ({ isVisible = false, onToggle }) => {
                             className={`px-4 py-2 font-medium text-sm transition-colors ${
                                 activeTab === tab.id
                                     ? 'border-b-2 border-blue-500 text-blue-600'
-                                    : 'text-gray-600 hover:text-gray-800'
+                                    : 'text-default-600 hover:text-foreground'
                             }`}
                         >
                             {tab.icon} {tab.label}
@@ -192,9 +192,9 @@ const PerformanceDashboard = ({ isVisible = false, onToggle }) => {
                                 const baseline = baseline.averages?.[metricName];
                                 
                                 return (
-                                    <div key={metricName} className="bg-gray-50 rounded-lg p-4">
+                                    <div key={metricName} className="bg-content2 rounded-lg p-4">
                                         <div className="flex items-center justify-between mb-2">
-                                            <h3 className="font-semibold text-gray-800">
+                                            <h3 className="font-semibold text-foreground">
                                                 {metricName}
                                             </h3>
                                             {metric && (
@@ -206,7 +206,7 @@ const PerformanceDashboard = ({ isVisible = false, onToggle }) => {
                                         
                                         <div className="space-y-2">
                                             <div className="flex justify-between">
-                                                <span className="text-gray-600">Current:</span>
+                                                <span className="text-default-600">Current:</span>
                                                 <span className="font-mono">
                                                     {metric ? formatValue(metricName, metric.value) : 'Measuring...'}
                                                 </span>
@@ -215,13 +215,13 @@ const PerformanceDashboard = ({ isVisible = false, onToggle }) => {
                                             {baseline && (
                                                 <>
                                                     <div className="flex justify-between">
-                                                        <span className="text-gray-600">Average:</span>
+                                                        <span className="text-default-600">Average:</span>
                                                         <span className="font-mono text-blue-600">
                                                             {formatValue(metricName, baseline.average)}
                                                         </span>
                                                     </div>
                                                     <div className="flex justify-between">
-                                                        <span className="text-gray-600">Best:</span>
+                                                        <span className="text-default-600">Best:</span>
                                                         <span className="font-mono text-green-600">
                                                             {formatValue(metricName, baseline.min)}
                                                         </span>
@@ -230,8 +230,8 @@ const PerformanceDashboard = ({ isVisible = false, onToggle }) => {
                                             )}
                                             
                                             <div className="flex justify-between">
-                                                <span className="text-gray-600">Target:</span>
-                                                <span className="font-mono text-gray-500">
+                                                <span className="text-default-600">Target:</span>
+                                                <span className="font-mono text-default-500">
                                                     {formatValue(metricName, getThreshold(metricName))}
                                                 </span>
                                             </div>
@@ -239,7 +239,7 @@ const PerformanceDashboard = ({ isVisible = false, onToggle }) => {
 
                                         {metric?.page && (
                                             <div className="mt-2 pt-2 border-t">
-                                                <span className="text-xs text-gray-500">
+                                                <span className="text-xs text-default-500">
                                                     Page: {metric.page}
                                                 </span>
                                             </div>
@@ -252,15 +252,15 @@ const PerformanceDashboard = ({ isVisible = false, onToggle }) => {
 
                     {activeTab === 'modules' && (
                         <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-gray-800">
+                            <h3 className="text-lg font-semibold text-foreground">
                                 Feature Module Load Performance
                             </h3>
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {Object.entries(getModuleLoadTimes()).map(([moduleName, moduleData]) => (
-                                    <div key={moduleName} className="bg-gray-50 rounded-lg p-4">
+                                    <div key={moduleName} className="bg-content2 rounded-lg p-4">
                                         <div className="flex items-center justify-between mb-2">
-                                            <h4 className="font-medium text-gray-800">{moduleName}</h4>
+                                            <h4 className="font-medium text-foreground">{moduleName}</h4>
                                             <span className={`px-2 py-1 rounded text-xs ${
                                                 moduleData.loadTime < 500 ? 'bg-green-100 text-green-800' :
                                                 moduleData.loadTime < 1000 ? 'bg-yellow-100 text-yellow-800' :
@@ -272,11 +272,11 @@ const PerformanceDashboard = ({ isVisible = false, onToggle }) => {
                                         
                                         <div className="space-y-1 text-sm">
                                             <div className="flex justify-between">
-                                                <span className="text-gray-600">Size:</span>
+                                                <span className="text-default-600">Size:</span>
                                                 <span>{Math.round(moduleData.size / 1024)}KB</span>
                                             </div>
                                             <div className="flex justify-between">
-                                                <span className="text-gray-600">Cached:</span>
+                                                <span className="text-default-600">Cached:</span>
                                                 <span className={moduleData.cached ? 'text-green-600' : 'text-red-600'}>
                                                     {moduleData.cached ? 'Yes' : 'No'}
                                                 </span>
@@ -287,7 +287,7 @@ const PerformanceDashboard = ({ isVisible = false, onToggle }) => {
                             </div>
                             
                             {Object.keys(getModuleLoadTimes()).length === 0 && (
-                                <div className="text-center text-gray-500 py-8">
+                                <div className="text-center text-default-500 py-8">
                                     No module load data available yet. Navigate through the application to collect data.
                                 </div>
                             )}
@@ -296,7 +296,7 @@ const PerformanceDashboard = ({ isVisible = false, onToggle }) => {
 
                     {activeTab === 'alerts' && (
                         <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-gray-800">
+                            <h3 className="text-lg font-semibold text-foreground">
                                 Performance Alerts
                             </h3>
                             
@@ -311,12 +311,12 @@ const PerformanceDashboard = ({ isVisible = false, onToggle }) => {
                                                             🚨 {alert.message}
                                                         </span>
                                                     </div>
-                                                    <div className="mt-1 text-sm text-gray-600">
+                                                    <div className="mt-1 text-sm text-default-600">
                                                         Value: {formatValue(alert.message.split(' ')[0], alert.value)} 
                                                         (Target: {formatValue(alert.message.split(' ')[0], alert.threshold)})
                                                     </div>
                                                 </div>
-                                                <span className="text-xs text-gray-500">
+                                                <span className="text-xs text-default-500">
                                                     {new Date(alert.timestamp).toLocaleTimeString()}
                                                 </span>
                                             </div>
@@ -324,7 +324,7 @@ const PerformanceDashboard = ({ isVisible = false, onToggle }) => {
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center text-gray-500 py-8">
+                                <div className="text-center text-default-500 py-8">
                                     🎉 No performance alerts! Everything is running smoothly.
                                 </div>
                             )}
@@ -333,42 +333,42 @@ const PerformanceDashboard = ({ isVisible = false, onToggle }) => {
 
                     {activeTab === 'baseline' && (
                         <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-gray-800">
+                            <h3 className="text-lg font-semibold text-foreground">
                                 Performance Baseline Data
                             </h3>
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="bg-gray-50 rounded-lg p-4">
-                                    <h4 className="font-medium text-gray-800 mb-3">Session Info</h4>
+                                <div className="bg-content2 rounded-lg p-4">
+                                    <h4 className="font-medium text-foreground mb-3">Session Info</h4>
                                     <div className="space-y-2 text-sm">
                                         <div className="flex justify-between">
-                                            <span className="text-gray-600">Total Sessions:</span>
+                                            <span className="text-default-600">Total Sessions:</span>
                                             <span>{baseline.sessions || 0}</span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className="text-gray-600">Current Session:</span>
+                                            <span className="text-default-600">Current Session:</span>
                                             <span>{webVitalsMonitor.sessionId?.slice(-8) || 'N/A'}</span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="bg-gray-50 rounded-lg p-4">
-                                    <h4 className="font-medium text-gray-800 mb-3">Performance Trends</h4>
-                                    <div className="text-sm text-gray-600">
+                                <div className="bg-content2 rounded-lg p-4">
+                                    <h4 className="font-medium text-foreground mb-3">Performance Trends</h4>
+                                    <div className="text-sm text-default-600">
                                         Track performance changes over time to identify optimization opportunities.
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="bg-white border rounded-lg p-4">
-                                <h4 className="font-medium text-gray-800 mb-3">Optimization Recommendations</h4>
+                            <div className="bg-content1 dark:bg-content2 border border-divider rounded-lg p-4">
+                                <h4 className="font-medium text-foreground mb-3">Optimization Recommendations</h4>
                                 <div className="space-y-2">
                                     {webVitalsMonitor.generateReport().recommendations.map((rec, index) => (
                                         <div key={index} className="border-l-4 border-blue-500 pl-4">
-                                            <div className="font-medium text-gray-800">
+                                            <div className="font-medium text-foreground">
                                                 {rec.metric} Optimization ({rec.priority} priority)
                                             </div>
-                                            <ul className="mt-1 text-sm text-gray-600 list-disc list-inside">
+                                            <ul className="mt-1 text-sm text-default-600 list-disc list-inside">
                                                 {rec.actions.map((action, actionIndex) => (
                                                     <li key={actionIndex}>{action}</li>
                                                 ))}

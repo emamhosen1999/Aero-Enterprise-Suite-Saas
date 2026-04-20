@@ -334,7 +334,7 @@ const EditEvent = ({ event }) => {
                                                             type="file"
                                                             accept="image/*"
                                                             onChange={handleBannerChange}
-                                                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-600"
+                                                            className="block w-full text-sm text-default-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-600"
                                                         />
                                                         {errors.banner_image && (
                                                             <p className="text-xs text-danger mt-1">{errors.banner_image}</p>

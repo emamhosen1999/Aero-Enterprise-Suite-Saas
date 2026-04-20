@@ -195,21 +195,21 @@ const Dashboard = () => {
                         <Divider />
                         <CardBody className="p-0">
                             {recentDocuments.length > 0 ? (
-                                <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                                <ul className="divide-y divide-divider">
                                     {recentDocuments.map((doc) => (
                                         <li
                                             key={doc.id}
-                                            className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                                            className="px-4 py-3 hover:bg-content2 dark:hover:bg-content2 transition-colors cursor-pointer"
                                             onClick={() => navigateTo(route('dms.documents.show', doc.id))}
                                         >
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
-                                                    <DocumentDuplicateIcon className="h-5 w-5 text-gray-400" />
+                                                    <DocumentDuplicateIcon className="h-5 w-5 text-default-400" />
                                                     <div>
                                                         <p className="text-sm font-medium text-foreground">
                                                             {doc.name}
                                                         </p>
-                                                        <p className="text-xs text-gray-500">
+                                                        <p className="text-xs text-default-500">
                                                             {doc.size} • {doc.updated_at}
                                                         </p>
                                                     </div>
@@ -237,8 +237,8 @@ const Dashboard = () => {
                                     ))}
                                 </ul>
                             ) : (
-                                <div className="p-8 text-center text-gray-500">
-                                    <DocumentDuplicateIcon className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                                <div className="p-8 text-center text-default-500">
+                                    <DocumentDuplicateIcon className="h-12 w-12 mx-auto mb-3 text-default-300" />
                                     <p>No documents yet</p>
                                     <Button
                                         size="sm"
@@ -269,21 +269,21 @@ const Dashboard = () => {
                         <Divider />
                         <CardBody className="p-0">
                             {sharedWithMe.length > 0 ? (
-                                <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                                <ul className="divide-y divide-divider">
                                     {sharedWithMe.map((doc) => (
                                         <li
                                             key={doc.id}
-                                            className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                                            className="px-4 py-3 hover:bg-content2 dark:hover:bg-content2 transition-colors cursor-pointer"
                                             onClick={() => navigateTo(route('dms.documents.show', doc.id))}
                                         >
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
-                                                    <ShareIcon className="h-5 w-5 text-gray-400" />
+                                                    <ShareIcon className="h-5 w-5 text-default-400" />
                                                     <div>
                                                         <p className="text-sm font-medium text-foreground">
                                                             {doc.name}
                                                         </p>
-                                                        <p className="text-xs text-gray-500">
+                                                        <p className="text-xs text-default-500">
                                                             Shared by {doc.shared_by} • {doc.shared_at}
                                                         </p>
                                                     </div>
@@ -296,8 +296,8 @@ const Dashboard = () => {
                                     ))}
                                 </ul>
                             ) : (
-                                <div className="p-8 text-center text-gray-500">
-                                    <ShareIcon className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                                <div className="p-8 text-center text-default-500">
+                                    <ShareIcon className="h-12 w-12 mx-auto mb-3 text-default-300" />
                                     <p>No shared documents</p>
                                 </div>
                             )}

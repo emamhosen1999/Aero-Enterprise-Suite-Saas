@@ -122,8 +122,8 @@ export const TenantStatusBadgeTailwind = ({
   const statusStyles = {
     active: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800',
     suspended: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800',
-    pending: 'bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-800/50 dark:text-gray-400 dark:border-gray-700',
-    archived: 'bg-gray-100 text-gray-500 border-gray-200 dark:bg-gray-800/50 dark:text-gray-400 dark:border-gray-700',
+    pending: 'bg-content2 text-default-600 border-divider dark:bg-content2/50 dark:text-default-400 dark:border-divider',
+    archived: 'bg-default-100 text-default-500 border-divider dark:bg-content2/50 dark:text-default-400 dark:border-divider',
     trial: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800',
   };
 

@@ -866,21 +866,21 @@ const [filterData, setFilterData] = useState(externalFilterData || {
                                                     <div className="flex items-center gap-6 pt-2 border-t border-white/10">
                                                         <div className="flex items-center gap-2">
                                                             <CheckCircleIcon className="w-4 h-4 text-success" />
-                                                            <span className="text-xs text-gray-500">
+                                                            <span className="text-xs text-default-500">
                                                                 Present: {totalRows}
                                                             </span>
                                                         </div>
                                                         {canViewAllAttendance && (
                                                             <div className="flex items-center gap-2">
                                                                 <ExclamationTriangleIcon className="w-4 h-4 text-warning" />
-                                                                <span className="text-xs text-gray-500">
+                                                                <span className="text-xs text-default-500">
                                                                     Absent: {absentUsers.length}
                                                                 </span>
                                                             </div>
                                                         )}
                                                         <div className="flex items-center gap-2">
                                                             <UserGroupIcon className="w-4 h-4 text-primary" />
-                                                            <span className="text-xs text-gray-500">
+                                                            <span className="text-xs text-default-500">
                                                                 Total: {totalRows + absentUsers.length}
                                                             </span>
                                                         </div>

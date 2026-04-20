@@ -789,7 +789,7 @@ const EmployeeTable = ({
                     size="sm"
                     className={`justify-between backdrop-blur-md border-white/20 min-w-[150px] transition-all duration-300 ${
                       !departmentId
-                        ? 'bg-gray-500/20 border-gray-400/40 opacity-50'
+                        ? 'bg-default-500/20 border-default-400/40 opacity-50'
                         : 'bg-white/10 hover:bg-white/15'
                     }`}
                     isDisabled={!departmentId}
@@ -942,7 +942,7 @@ const EmployeeTable = ({
                   size="sm"
                   className={`justify-between backdrop-blur-md border-white/20 min-w-[180px] transition-all duration-300 ${
                     !hasConfiguredTypes
-                      ? 'bg-gray-500/20 border-gray-400/40 opacity-50'
+                      ? 'bg-default-500/20 border-default-400/40 opacity-50'
                       : 'bg-white/10 hover:bg-white/15'
                   }`}
                   startContent={<ClockIcon className="w-4 h-4" />}

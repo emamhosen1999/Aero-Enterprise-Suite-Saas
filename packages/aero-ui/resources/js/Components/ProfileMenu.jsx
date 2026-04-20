@@ -166,7 +166,7 @@ const ProfileMenu = ({ children }) => {
                 ))}
                 {auth.roles?.length > 2 && (
                   <span 
-                    className="text-xs px-2 py-0.5 bg-gray-200 text-gray-700"
+                    className="text-xs px-2 py-0.5 bg-default-200 text-default-600"
                     style={{
                       borderRadius: `var(--borderRadius, 6px)`,
                       fontFamily: `var(--fontFamily, 'Inter')`,

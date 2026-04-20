@@ -624,7 +624,7 @@ const BulkLeaveModal = ({
                             {/* Summary Information */}
                             {selectedDates.length > 0 && (
                                 <div 
-                                    className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
+                                    className="p-4 rounded-lg border border-divider bg-content2"
                                     style={{
                                         borderRadius: `var(--borderRadius, 12px)`,
                                         border: `var(--borderWidth, 2px) solid var(--theme-divider, #E4E4E7)`,

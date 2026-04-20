@@ -1,0 +1,33 @@
+<?php
+
+namespace Aero\HRM\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class UpdateExpenseCategoryRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'name' => ['nullable', 'string', 'max:255', 'unique:expense_categories,name,' . $this->route('expense_category')],
+            'description' => ['nullable', 'string', 'max:500'],
+            'max_amount' => ['nullable', 'numeric', 'min:0'],
+            'requires_receipt' => ['nullable', 'boolean'],
+            'status' => ['nullable', 'in:active,inactive'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'name.unique' => 'This expense category name already exists.',
+            'max_amount.min' => 'The maximum amount must be at least 0.',
+            'status.in' => 'The status must be either active or inactive.',
+        ];
+    }
+}

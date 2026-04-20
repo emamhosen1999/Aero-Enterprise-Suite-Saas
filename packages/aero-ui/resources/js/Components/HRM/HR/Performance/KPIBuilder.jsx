@@ -86,7 +86,7 @@ export default function KPIBuilder({ kpis = [], onChange }) {
             {kpis.length === 0 ? (
                 <Card>
                     <CardBody className="text-center py-12">
-                        <p className="text-gray-500">No KPIs added yet. Click "Add KPI" to get started.</p>
+                        <p className="text-default-500">No KPIs added yet. Click "Add KPI" to get started.</p>
                     </CardBody>
                 </Card>
             ) : (
@@ -140,7 +140,7 @@ export default function KPIBuilder({ kpis = [], onChange }) {
                                             <div>
                                                 <p className="font-medium">{kpi.name || 'Unnamed KPI'}</p>
                                                 {kpi.description && (
-                                                    <p className="text-xs text-gray-500">{kpi.description}</p>
+                                                    <p className="text-xs text-default-500">{kpi.description}</p>
                                                 )}
                                             </div>
                                         )}

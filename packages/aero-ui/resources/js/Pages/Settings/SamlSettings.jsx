@@ -153,7 +153,7 @@ const SamlSettings = () => {
                                                 <button
                                                     type="button"
                                                     onClick={() => copyToClipboard(acsUrl)}
-                                                    className="text-gray-400 hover:text-gray-600"
+                                                    className="text-default-400 hover:text-default-600"
                                                 >
                                                     <DocumentDuplicateIcon className="w-5 h-5" />
                                                 </button>
@@ -176,7 +176,7 @@ const SamlSettings = () => {
                                                 <button
                                                     type="button"
                                                     onClick={() => copyToClipboard(sloUrl)}
-                                                    className="text-gray-400 hover:text-gray-600"
+                                                    className="text-default-400 hover:text-default-600"
                                                 >
                                                     <DocumentDuplicateIcon className="w-5 h-5" />
                                                 </button>
@@ -201,7 +201,7 @@ const SamlSettings = () => {
                                             <button
                                                 type="button"
                                                 onClick={() => copyToClipboard(spMetadataUrl)}
-                                                className="text-gray-400 hover:text-gray-600"
+                                                className="text-default-400 hover:text-default-600"
                                             >
                                                 <DocumentDuplicateIcon className="w-5 h-5" />
                                             </button>

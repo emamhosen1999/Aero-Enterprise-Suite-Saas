@@ -27,7 +27,7 @@ const TestimonialBlock = ({ data = {} }) => {
                                     className={`w-5 h-5 ${
                                         i < testimonial.rating
                                             ? 'text-yellow-400'
-                                            : 'text-gray-300'
+                                            : 'text-default-300'
                                     }`}
                                 />
                             ))}
@@ -88,7 +88,7 @@ const TestimonialBlock = ({ data = {} }) => {
                                             className={`w-4 h-4 ${
                                                 i < testimonial.rating
                                                     ? 'text-yellow-400'
-                                                    : 'text-gray-300'
+                                                    : 'text-default-300'
                                             }`}
                                         />
                                     ))}

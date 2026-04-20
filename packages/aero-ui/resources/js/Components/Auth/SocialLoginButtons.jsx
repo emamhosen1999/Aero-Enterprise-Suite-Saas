@@ -20,8 +20,8 @@ export default function SocialLoginButtons({ providers = [], isLoading = false }
         switch (provider.name) {
             case 'google':
                 return {
-                    bg: 'bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700',
-                    border: 'border-gray-300 dark:border-gray-600',
+                    bg: 'bg-white hover:bg-content2 dark:bg-content2 dark:hover:bg-default-700',
+                    border: 'border-default-300 dark:border-default-600',
                     text: 'text-default-600',
                 };
             case 'microsoft':
@@ -32,14 +32,14 @@ export default function SocialLoginButtons({ providers = [], isLoading = false }
                 };
             case 'github':
                 return {
-                    bg: 'bg-[#24292F] hover:bg-[#32383F] dark:bg-gray-900 dark:hover:bg-gray-800',
+                    bg: 'bg-[#24292F] hover:bg-[#32383F] dark:bg-content3 dark:hover:bg-content2',
                     border: 'border-transparent',
                     text: 'text-white',
                 };
             default:
                 return {
-                    bg: 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700',
-                    border: 'border-gray-300 dark:border-gray-600',
+                    bg: 'bg-default-100 hover:bg-default-200 dark:bg-content2 dark:hover:bg-default-700',
+                    border: 'border-default-300 dark:border-default-600',
                     text: 'text-default-600',
                 };
         }

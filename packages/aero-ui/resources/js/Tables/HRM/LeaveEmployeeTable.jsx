@@ -361,7 +361,7 @@ const topContent = React.useMemo(() => {
                             {user?.phone}
                             </Link>
                         ) : (
-                            <span className="flex items-center gap-1 text-xs text-gray-400 italic">
+                            <span className="flex items-center gap-1 text-xs text-default-400 italic">
                             <PhoneOff className="w-3 h-3" /> No Phone
                             </span>
                         )
@@ -534,7 +534,7 @@ const topContent = React.useMemo(() => {
                             {user?.phone}
                             </Link>
                         ) : (
-                            <span className="flex items-center gap-1 text-xs text-gray-400 italic">
+                            <span className="flex items-center gap-1 text-xs text-default-400 italic">
                             <PhoneOff className="w-3 h-3" /> No Phone
                             </span>
                         )

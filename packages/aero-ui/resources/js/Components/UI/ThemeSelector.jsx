@@ -55,7 +55,7 @@ const ThemePreview = ({ styleKey, config, isSelected, onClick }) => {
               style={{ backgroundColor: config.preview.secondary }}
             />
             <div
-              className="w-4 h-4 rounded-full border border-gray-300 mt-1"
+              className="w-4 h-4 rounded-full border border-default-300 mt-1"
               style={{ backgroundColor: config.preview.background }}
             />
           </div>
@@ -244,11 +244,11 @@ const ThemeSelector = () => {
                         {cardStyleOptions.find(opt => opt.key === cardStyle)?.preview && (
                           <>
                             <div
-                              className="w-4 h-4 rounded-full border border-gray-300"
+                              className="w-4 h-4 rounded-full border border-default-300"
                               style={{ backgroundColor: cardStyleOptions.find(opt => opt.key === cardStyle).preview.primary }}
                             />
                             <div
-                              className="w-4 h-4 rounded-full border border-gray-300"
+                              className="w-4 h-4 rounded-full border border-default-300"
                               style={{ backgroundColor: cardStyleOptions.find(opt => opt.key === cardStyle).preview.secondary }}
                             />
                           </>

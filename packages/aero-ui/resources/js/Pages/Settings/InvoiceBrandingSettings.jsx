@@ -158,7 +158,7 @@ const InvoiceBrandingSettings = () => {
                                         Company Logo
                                     </label>
                                     <div className="flex items-center gap-4">
-                                        <div className="w-32 h-20 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex items-center justify-center overflow-hidden bg-gray-50 dark:bg-gray-800">
+                                        <div className="w-32 h-20 border-2 border-dashed border-default-300 dark:border-default-600 rounded-lg flex items-center justify-center overflow-hidden bg-content2 dark:bg-content2">
                                             {logoPreview ? (
                                                 <Image
                                                     src={logoPreview}
@@ -166,7 +166,7 @@ const InvoiceBrandingSettings = () => {
                                                     className="max-w-full max-h-full object-contain"
                                                 />
                                             ) : (
-                                                <PhotoIcon className="h-8 w-8 text-gray-400" />
+                                                <PhotoIcon className="h-8 w-8 text-default-400" />
                                             )}
                                         </div>
                                         <div className="flex flex-col gap-2">
@@ -195,7 +195,7 @@ const InvoiceBrandingSettings = () => {
                                                     Remove
                                                 </Button>
                                             )}
-                                            <p className="text-xs text-gray-500">
+                                            <p className="text-xs text-default-500">
                                                 Max 2MB. JPG, PNG, GIF, SVG
                                             </p>
                                         </div>
@@ -290,7 +290,7 @@ const InvoiceBrandingSettings = () => {
                                     value={data.phone}
                                     onChange={(e) => setData('phone', e.target.value)}
                                     placeholder="+1 (555) 123-4567"
-                                    startContent={<PhoneIcon className="h-4 w-4 text-gray-400" />}
+                                    startContent={<PhoneIcon className="h-4 w-4 text-default-400" />}
                                     isInvalid={!!errors.phone}
                                     errorMessage={errors.phone}
                                 />
@@ -300,7 +300,7 @@ const InvoiceBrandingSettings = () => {
                                     value={data.email}
                                     onChange={(e) => setData('email', e.target.value)}
                                     placeholder="billing@company.com"
-                                    startContent={<EnvelopeIcon className="h-4 w-4 text-gray-400" />}
+                                    startContent={<EnvelopeIcon className="h-4 w-4 text-default-400" />}
                                     isInvalid={!!errors.email}
                                     errorMessage={errors.email}
                                 />
@@ -312,7 +312,7 @@ const InvoiceBrandingSettings = () => {
                                     value={data.website}
                                     onChange={(e) => setData('website', e.target.value)}
                                     placeholder="https://www.company.com"
-                                    startContent={<GlobeAltIcon className="h-4 w-4 text-gray-400" />}
+                                    startContent={<GlobeAltIcon className="h-4 w-4 text-default-400" />}
                                     isInvalid={!!errors.website}
                                     errorMessage={errors.website}
                                 />

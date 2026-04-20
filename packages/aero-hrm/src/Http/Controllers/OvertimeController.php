@@ -4,6 +4,7 @@ namespace Aero\HRM\Http\Controllers;
 
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\OvertimeRecord;
+use Aero\HRM\Services\OvertimeApprovalService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -12,6 +13,8 @@ use Inertia\Response;
 
 class OvertimeController extends Controller
 {
+    public function __construct(private OvertimeApprovalService $overtimeService) {}
+
     /**
      * Display overtime management page.
      */
@@ -183,15 +186,15 @@ class OvertimeController extends Controller
     {
         $record = OvertimeRecord::findOrFail($id);
 
-        if ($record->status !== 'pending') {
-            return response()->json(['message' => 'Record is not pending approval'], 422);
+        try {
+            $record = $this->overtimeService->managerApprove(
+                $record->overtimeRequest ?? $record,
+                auth()->id(),
+                $request->input('notes')
+            );
+        } catch (\RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
         }
-
-        $record->update([
-            'status' => 'approved',
-            'approved_by' => auth()->id(),
-            'approved_at' => now(),
-        ]);
 
         return response()->json([
             'message' => 'Overtime approved successfully',
@@ -206,20 +209,19 @@ class OvertimeController extends Controller
     {
         $record = OvertimeRecord::findOrFail($id);
 
-        if ($record->status !== 'pending') {
-            return response()->json(['message' => 'Record is not pending approval'], 422);
-        }
-
         $validated = $request->validate([
             'rejection_reason' => 'required|string|max:500',
         ]);
 
-        $record->update([
-            'status' => 'rejected',
-            'rejection_reason' => $validated['rejection_reason'],
-            'approved_by' => auth()->id(),
-            'approved_at' => now(),
-        ]);
+        try {
+            $record = $this->overtimeService->reject(
+                $record->overtimeRequest ?? $record,
+                auth()->id(),
+                $validated['rejection_reason']
+            );
+        } catch (\RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
 
         return response()->json([
             'message' => 'Overtime rejected',
