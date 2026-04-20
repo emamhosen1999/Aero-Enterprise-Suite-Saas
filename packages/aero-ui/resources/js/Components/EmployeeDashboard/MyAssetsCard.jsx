@@ -52,7 +52,7 @@ const MyAssetsCard = ({ assetData }) => {
                         const Icon = CATEGORY_ICON[cat] || WrenchScrewdriverIcon;
 
                         return (
-                            <div key={a.id || i} className="flex items-center gap-3 p-2 rounded-lg bg-default-50 dark:bg-default-50/10">
+                            <div key={a.id || i} className="flex items-center gap-3 p-2 rounded-lg bg-content2">
                                 <div className="p-1.5 rounded-lg bg-primary/10 shrink-0">
                                     <Icon className="w-4 h-4 text-primary" />
                                 </div>

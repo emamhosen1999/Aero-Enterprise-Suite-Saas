@@ -40,7 +40,7 @@ const BenefitsCard = ({ benefitData }) => {
 
                 <ThemedCardBody className="p-4 sm:p-5 space-y-3">
                     {benefits.length > 0 ? benefits.map((b, i) => (
-                        <div key={b.id || i} className="flex items-center justify-between p-2 rounded-lg bg-default-50 dark:bg-default-50/10">
+                        <div key={b.id || i} className="flex items-center justify-between p-2 rounded-lg bg-content2">
                             <div className="min-w-0">
                                 <p className="text-xs font-medium text-foreground truncate">{b.name || b.plan_name || b.title}</p>
                                 {b.provider && <p className="text-[10px] text-default-400">{b.provider}</p>}

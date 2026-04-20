@@ -462,7 +462,7 @@ const HeaderNotifications = React.memo(() => {
   return (
     <Dropdown placement="bottom-end">
       <DropdownTrigger>
-        <Button isIconOnly variant="light" size="sm" className="relative group">
+        <Button isIconOnly variant="light" size="sm" className="relative group" style={{ color: 'var(--theme-foreground)' }}>
           {/* Background glow on hover */}
           <div
             className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
@@ -519,6 +519,7 @@ const HeaderThemeToggle = React.memo(() => {
         size="sm"
         onPress={() => setMode?.(isDark ? 'light' : 'dark')}
         className="relative group"
+        style={{ color: 'var(--theme-foreground)' }}
       >
         <div
           className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
@@ -801,6 +802,7 @@ const Header = React.memo(({
                 variant="light"
                 size="sm"
                 onPress={() => setMobileDrawerOpen(true)}
+                style={{ color: 'var(--theme-foreground)' }}
               >
                 <Bars3Icon className="w-5 h-5" />
               </Button>

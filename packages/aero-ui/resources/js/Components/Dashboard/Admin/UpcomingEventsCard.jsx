@@ -29,7 +29,7 @@ const UpcomingEventsCard = ({ events = [], loading = false }) => {
                 ) : (
                     <div className="space-y-2 max-h-60 overflow-y-auto">
                         {events.map((event, i) => (
-                            <div key={event.id || i} className="flex items-start gap-3 p-2 rounded-lg hover:bg-default-50 transition-colors">
+                            <div key={event.id || i} className="flex items-start gap-3 p-2 rounded-lg hover:bg-content2 transition-colors">
                                 <div className="flex flex-col items-center bg-primary/10 rounded-lg p-1.5 min-w-[44px]">
                                     <span className="text-xs text-primary font-semibold">
                                         {new Date(event.date).toLocaleDateString('en', { month: 'short' })}

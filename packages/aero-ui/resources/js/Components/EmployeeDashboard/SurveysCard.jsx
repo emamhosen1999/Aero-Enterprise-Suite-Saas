@@ -46,7 +46,7 @@ const SurveysCard = ({ surveyData }) => {
                         try { surveyHref = route('hrm.surveys.show', s.id); } catch {}
 
                         return (
-                            <div key={s.id || i} className="flex items-center justify-between p-3 rounded-lg bg-default-50 dark:bg-default-50/10">
+                            <div key={s.id || i} className="flex items-center justify-between p-3 rounded-lg bg-content2">
                                 <div className="min-w-0">
                                     <p className="text-xs font-medium text-foreground truncate">{s.title || s.name}</p>
                                     {s.deadline && <p className="text-[10px] text-default-400">Due: {s.deadline}</p>}

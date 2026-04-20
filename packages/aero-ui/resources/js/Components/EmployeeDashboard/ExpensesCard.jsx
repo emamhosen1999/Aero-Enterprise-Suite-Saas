@@ -79,7 +79,7 @@ const ExpensesCard = ({ expenseData }) => {
                         <div className="space-y-2">
                             <p className="text-xs font-medium text-default-500 uppercase tracking-wider">Recent</p>
                             {recent.map((e, i) => (
-                                <div key={e.id || i} className="flex items-center justify-between p-2 rounded-lg bg-default-50 dark:bg-default-50/10">
+                                <div key={e.id || i} className="flex items-center justify-between p-2 rounded-lg bg-content2">
                                     <div className="min-w-0">
                                         <p className="text-xs font-medium text-foreground truncate">{e.title || e.description || 'Expense'}</p>
                                         <p className="text-[10px] text-default-400">{e.date || e.created_at}</p>

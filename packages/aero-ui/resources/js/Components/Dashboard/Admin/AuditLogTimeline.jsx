@@ -81,7 +81,7 @@ const AuditLogTimeline = ({ logs = [], loading = false }) => {
                                 return (
                                     <div
                                         key={log.id ?? idx}
-                                        className="flex items-start gap-3 p-2 pl-6 rounded-lg hover:bg-default-50 transition-colors group relative"
+                                        className="flex items-start gap-3 p-2 pl-6 rounded-lg hover:bg-content2 transition-colors group relative"
                                     >
                                         {/* Timeline dot */}
                                         <div className={`absolute left-[10px] top-[14px] w-3.5 h-3.5 rounded-full border-2 border-background ${dot} shrink-0 transition-transform group-hover:scale-110`} />

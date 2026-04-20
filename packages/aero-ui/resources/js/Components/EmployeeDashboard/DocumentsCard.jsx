@@ -68,7 +68,7 @@ const DocumentsCard = ({ documentData }) => {
                     {docs.length > 0 ? docs.map((d, i) => {
                         const color = expiryColor(d.expiry_date);
                         return (
-                            <div key={d.id || i} className="flex items-center justify-between p-2 rounded-lg bg-default-50 dark:bg-default-50/10">
+                            <div key={d.id || i} className="flex items-center justify-between p-2 rounded-lg bg-content2">
                                 <div className="flex items-center gap-2 min-w-0">
                                     <DocumentTextIcon className="w-4 h-4 text-default-400 shrink-0" />
                                     <div className="min-w-0">

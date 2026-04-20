@@ -47,7 +47,7 @@ const ModuleSummaryGrid = ({ summaries = [], loading = false }) => {
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                                 {Object.entries(summary.stats || {}).slice(0, 4).map(([key, value]) => (
-                                    <div key={key} className="text-center p-2 rounded-lg bg-default-50">
+                                    <div key={key} className="text-center p-2 rounded-lg bg-content2">
                                         <p className="text-lg font-bold">{value}</p>
                                         <p className="text-xs text-default-500 capitalize">
                                             {key.replace(/([A-Z])/g, ' $1').trim()}

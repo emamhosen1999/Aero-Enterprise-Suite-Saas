@@ -48,7 +48,7 @@ const TeamCard = ({ teamData }) => {
                     {info.manager && (
                         <div className="space-y-2">
                             <p className="text-xs font-medium text-default-500 uppercase tracking-wider">Manager</p>
-                            <div className="flex items-center gap-3 p-2 rounded-lg bg-default-50 dark:bg-default-50/10">
+                            <div className="flex items-center gap-3 p-2 rounded-lg bg-content2">
                                 <Avatar src={info.manager.avatar || info.manager.profile_photo_url} name={info.manager.name} size="sm" radius="full" />
                                 <div className="min-w-0">
                                     <p className="text-sm font-medium text-foreground truncate">{info.manager.name}</p>
@@ -64,7 +64,7 @@ const TeamCard = ({ teamData }) => {
                             <p className="text-xs font-medium text-default-500 uppercase tracking-wider">Team Members</p>
                             <div className="flex flex-wrap gap-2">
                                 {members.map((m, i) => (
-                                    <div key={m.id || i} className="flex items-center gap-2 p-1.5 rounded-lg bg-default-50 dark:bg-default-50/10">
+                                    <div key={m.id || i} className="flex items-center gap-2 p-1.5 rounded-lg bg-content2">
                                         <Avatar src={m.avatar || m.profile_photo_url} name={m.name} size="sm" radius="full" className="w-7 h-7" />
                                         <span className="text-xs text-foreground truncate max-w-[80px]">{m.name}</span>
                                     </div>

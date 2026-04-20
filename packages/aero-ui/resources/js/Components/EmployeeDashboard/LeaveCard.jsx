@@ -88,7 +88,7 @@ const LeaveCard = ({ leaveBalances, pendingLeaves, upcomingApprovedLeaves }) => 
                             <p className="text-xs font-medium text-default-500 uppercase tracking-wider">Pending Requests</p>
                             <div className="space-y-1.5">
                                 {pending.map((l, i) => (
-                                    <div key={l.id || i} className="flex items-center justify-between p-2 rounded-lg bg-default-50 dark:bg-default-50/10">
+                                    <div key={l.id || i} className="flex items-center justify-between p-2 rounded-lg bg-content2">
                                         <div className="min-w-0">
                                             <p className="text-xs font-medium text-foreground truncate">{l.leave_type || l.type || 'Leave'}</p>
                                             <p className="text-[10px] text-default-400">{l.from_date} → {l.to_date}</p>

@@ -84,7 +84,7 @@ const RecentNotificationsCard = ({ notifications = {}, loading = false }) => {
                             const statusColor = statusColorMap[item.status] || 'default';
                             return (
                                 <Tooltip key={item.id} content={item.subject} className="text-xs">
-                                    <div className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-default-50 transition-colors border-l-2"
+                                    <div className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-content2 transition-colors border-l-2"
                                         style={{
                                             borderLeftColor: item.isRead ? 'transparent' : 'var(--theme-primary)',
                                             background: item.isRead ? 'transparent' : 'color-mix(in srgb, var(--theme-primary) 5%, transparent)',

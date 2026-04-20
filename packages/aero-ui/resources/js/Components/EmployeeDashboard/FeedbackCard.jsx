@@ -64,7 +64,7 @@ const FeedbackCard = ({ feedbackData }) => {
 
                     {/* Average Score */}
                     {avgScore != null && (
-                        <div className="flex items-center justify-between p-3 rounded-lg bg-default-50 dark:bg-default-50/10">
+                        <div className="flex items-center justify-between p-3 rounded-lg bg-content2">
                             <span className="text-xs text-default-500">Average Score</span>
                             <span className="text-lg font-bold" style={{ color: 'var(--theme-primary)' }}>
                                 {Number(avgScore).toFixed(1)}

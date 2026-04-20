@@ -62,7 +62,7 @@ const PendingApprovalsCard = ({ approvals, loading = false }) => {
                                 >
                                     <div className="space-y-2 pt-2">
                                         {Object.entries(items).map(([itemKey, itemCount]) => (
-                                            <div key={itemKey} className="flex items-center justify-between p-2 rounded-lg bg-default-50">
+                                            <div key={itemKey} className="flex items-center justify-between p-2 rounded-lg bg-content2">
                                                 <span className="text-sm capitalize">
                                                     {itemKey.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}
                                                 </span>

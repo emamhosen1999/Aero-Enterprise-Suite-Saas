@@ -81,7 +81,7 @@ const TrainingCard = ({ trainingData }) => {
                         <div className="space-y-2">
                             <p className="text-xs font-medium text-default-500 uppercase tracking-wider">Upcoming Sessions</p>
                             {sessions.map((s, i) => (
-                                <div key={s.id || i} className="flex items-center gap-2 p-2 rounded-lg bg-default-50 dark:bg-default-50/10">
+                                <div key={s.id || i} className="flex items-center gap-2 p-2 rounded-lg bg-content2">
                                     <CalendarDaysIcon className="w-4 h-4 text-primary shrink-0" />
                                     <div className="min-w-0">
                                         <p className="text-xs font-medium text-foreground truncate">{s.name || s.title}</p>
@@ -97,7 +97,7 @@ const TrainingCard = ({ trainingData }) => {
                         <div className="space-y-2">
                             <p className="text-xs font-medium text-default-500 uppercase tracking-wider">Certifications</p>
                             {certs.map((c, i) => (
-                                <div key={c.id || i} className="flex items-center justify-between p-2 rounded-lg bg-default-50 dark:bg-default-50/10">
+                                <div key={c.id || i} className="flex items-center justify-between p-2 rounded-lg bg-content2">
                                     <span className="text-xs text-foreground truncate max-w-[60%]">{c.name || c.title}</span>
                                     <Chip size="sm" variant="flat" color={certExpiryColor(c.expiry_date)} radius={themeRadius}>
                                         {c.expiry_date ? (certExpiryColor(c.expiry_date) === 'danger' ? 'Expired' : certExpiryColor(c.expiry_date) === 'warning' ? 'Expiring' : 'Valid') : 'No Expiry'}

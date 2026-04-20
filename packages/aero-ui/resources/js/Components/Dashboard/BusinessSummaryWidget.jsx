@@ -79,7 +79,7 @@ export default function BusinessSummaryWidget() {
                     {kpis.map(kpi => {
                         const Icon = kpi.icon;
                         return (
-                            <div key={kpi.label} className="flex items-center gap-3 p-3 rounded-lg bg-default-50 dark:bg-default-100/50">
+                            <div key={kpi.label} className="flex items-center gap-3 p-3 rounded-lg bg-content2">
                                 {loading ? (
                                     <>
                                         <Skeleton className="w-10 h-10 rounded-lg" />
