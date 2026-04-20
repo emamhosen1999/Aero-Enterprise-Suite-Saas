@@ -33,7 +33,9 @@ import { useAINavigation } from '@/Hooks/useAINavigation.js';
 import { TranslationProvider } from '@/Context/TranslationContext';
 import { GlobalAutoTranslator } from '@/Context/GlobalAutoTranslator';
 import { AppStateProvider } from '@/Context/AppStateContext';
+import { useTheme } from '@/Context/ThemeContext';
 import { useBranding } from '@/Hooks/useBranding';
+import { resolveEffectiveMode } from '@/theme/index';
 
 import '@/utils/serviceWorkerManager.js';
 
@@ -163,6 +165,12 @@ const App = React.memo(({ children }) => {
   
   // Get domain-aware branding
   const { favicon, siteName } = useBranding();
+  const { themeSettings } = useTheme();
+
+  const effectiveMode = resolveEffectiveMode(themeSettings?.mode || 'system');
+  const isDarkAppearance = effectiveMode !== null;
+  const activeBackgroundType = themeSettings?.background?.type || 'color';
+  const usesDocumentBackground = ['pattern', 'image', 'texture'].includes(activeBackgroundType);
 
   // Version manager for update notifications
   const {
@@ -250,14 +258,8 @@ const App = React.memo(({ children }) => {
     return () => { mounted = false; };
   }, [authData?.user?.id]);
 
-  // Initialize theme background from theme system
-  useEffect(() => {
-    // The ThemeProvider will handle background initialization
-    // This effect is just to ensure CSS variable fallback is available
-    if (typeof window !== 'undefined' && !document.documentElement.style.getPropertyValue('--theme-background')) {
-      document.documentElement.style.setProperty('--theme-background', '#F4F4F5');
-    }
-  }, []);
+  // Theme background is initialized by ThemeProvider via applyThemeToDocument()
+  // No manual fallback needed — ThemeContext handles all CSS variable setup
 
   // Command Palette keyboard shortcut (⌘K / Ctrl+K)
   useKeyboardNavigation({ onCommandPalette: staticToggleCommandPalette });
@@ -346,7 +348,7 @@ const App = React.memo(({ children }) => {
                   pauseOnFocusLoss
                   draggable
                   pauseOnHover
-                  theme="colored"
+                  theme={isDarkAppearance ? 'dark' : 'light'}
                 />
 
                 {/* Floating Theme Settings Button - Desktop Only */}
@@ -382,7 +384,11 @@ const App = React.memo(({ children }) => {
                 <div 
                   className="flex h-full overflow-hidden"
                   style={{
-                    background: `var(--theme-background, var(--background, #F4F4F5))`,
+                    background: usesDocumentBackground
+                      ? 'transparent'
+                      : `var(--theme-background, var(--background, #F4F4F5))`,
+                    color: 'var(--theme-foreground, #11181C)',
+                    fontFamily: 'var(--fontFamily, "Inter")',
                   }}
                 >
                   {/* Sidebar - Desktop visible, Mobile drawer */}

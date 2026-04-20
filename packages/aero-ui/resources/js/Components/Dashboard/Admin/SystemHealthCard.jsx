@@ -65,7 +65,7 @@ const SystemHealthCard = ({ health = {}, loading = false }) => {
                                 svc.status === 'healthy' ? 'border-success/20 bg-success/5' :
                                 svc.status === 'degraded' ? 'border-warning/20 bg-warning/5' :
                                 svc.status !== 'unknown' ? 'border-danger/20 bg-danger/5' :
-                                'border-default-200 bg-default-50'
+                                'border-divider bg-content2'
                             }`}>
                                 <div className="flex items-center gap-2.5">
                                     <div className={`relative w-2.5 h-2.5 rounded-full ${cfg.dot} ${svc.status === 'healthy' ? cfg.pulse : ''}`}>

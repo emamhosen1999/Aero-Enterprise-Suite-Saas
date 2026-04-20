@@ -151,7 +151,7 @@ const Breadcrumb = () => {
                     separator="/"
                     classNames={{
                         list: "flex flex-wrap items-center gap-1.5",
-                        separator: "text-[var(--theme-text-secondary,#6b7280)] mx-1.5 text-sm",
+                        separator: "text-default-400 mx-1.5 text-sm",
                         base: "w-full"
                     }}
                 >
@@ -162,8 +162,8 @@ const Breadcrumb = () => {
                             className={`
                                 text-sm font-medium transition-colors duration-200
                                 ${breadcrumb.href 
-                                    ? 'text-[var(--theme-text-secondary,#6b7280)] hover:text-[var(--theme-primary,#0070f3)] cursor-pointer' 
-                                    : 'text-[var(--theme-text,#374151)] cursor-default'
+                                    ? 'text-default-500 hover:text-primary cursor-pointer' 
+                                    : 'text-foreground cursor-default'
                                 }
                             `}
                         >

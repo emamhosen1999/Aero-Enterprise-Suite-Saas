@@ -153,10 +153,10 @@ export default function AdminSetup({
                         <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4">
                             <BuildingOfficeIcon className="w-8 h-8 text-white" />
                         </div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
                             {tenant.name || 'Your Organisation'} — Administrator Setup
                         </h1>
-                        <p className="text-gray-600 dark:text-gray-300">
+                        <p className="text-default-500">
                             Complete the following steps to configure your administrator account
                         </p>
                     </div>
@@ -330,7 +330,7 @@ export default function AdminSetup({
                     </Card>
 
                     {/* Footer */}
-                    <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
+                    <p className="text-center text-sm text-default-500 mt-6">
                         Already have an account?{' '}
                         <a 
                             href={loginUrl} 

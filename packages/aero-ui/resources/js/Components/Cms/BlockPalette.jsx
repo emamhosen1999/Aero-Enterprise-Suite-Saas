@@ -61,7 +61,7 @@ const BlockPalette = ({ categories, blockTypes, onAddBlock }) => {
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-slate-900 dark:text-white group-hover:text-primary">
+                        <p className="text-xs font-medium text-foreground group-hover:text-primary">
                           {block.label}
                         </p>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">

@@ -126,7 +126,7 @@ const TabsBlock = ({
                     <div className="text-center mb-10">
                         {title && (
                             <motion.h2
-                                className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white"
+                                className="text-3xl sm:text-4xl font-bold text-foreground"
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
@@ -137,7 +137,7 @@ const TabsBlock = ({
                         )}
                         {subtitle && (
                             <motion.p
-                                className="mt-4 text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto"
+                                className="mt-4 text-lg text-default-500 max-w-3xl mx-auto"
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
@@ -169,7 +169,7 @@ const TabsBlock = ({
                                                 flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all
                                                 ${selectedTab === tab.title 
                                                     ? 'bg-primary text-white shadow-lg' 
-                                                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                                                    : 'bg-gray-100 dark:bg-gray-800 text-default-600 hover:bg-gray-200 dark:hover:bg-gray-700'
                                                 }
                                             `}
                                         >

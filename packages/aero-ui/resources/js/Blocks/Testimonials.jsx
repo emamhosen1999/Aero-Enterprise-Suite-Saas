@@ -67,7 +67,7 @@ const Testimonials = ({ content = {}, settings = {} }) => {
             <Avatar name={testimonial.name} size="md" />
           )}
           <div>
-            <p className="font-semibold text-slate-900 dark:text-white">
+            <p className="font-semibold text-foreground">
               {testimonial.name}
             </p>
             {testimonial.title && (

@@ -277,7 +277,7 @@ const RfisTable = ({
             case "structure":
                 return <DocumentIcon className={`${iconClass} text-blue-600 dark:text-blue-400`} />;
             case "pavement":
-                return <MapPinIcon className={`${iconClass} text-gray-600 dark:text-gray-400`} />;
+                return <MapPinIcon className={`${iconClass} text-default-500`} />;
             case "earthwork":
                 return <BuildingOfficeIcon className={`${iconClass} text-green-600 dark:text-green-400`} />;
             case "drainage":

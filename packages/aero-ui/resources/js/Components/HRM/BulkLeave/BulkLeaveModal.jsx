@@ -610,10 +610,10 @@ const BulkLeaveModal = ({
                                             isDisabled={isSubmitting || isValidating}
                                         />
                                         <div>
-                                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                            <p className="text-sm font-medium text-foreground">
                                                 Allow partial success
                                             </p>
-                                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                            <p className="text-xs text-default-500">
                                                 Valid dates will be processed even if some dates fail validation
                                             </p>
                                         </div>
@@ -634,18 +634,18 @@ const BulkLeaveModal = ({
                                         fontFamily: `var(--fontFamily, "Inter")`,
                                     }}
                                 >
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2" style={{
+                                    <p className="text-sm text-default-500 mb-2" style={{
                                         fontFamily: `var(--fontFamily, "Inter")`,
                                     }}>
                                         Selected Dates Summary
                                     </p>
-                                    <p className="text-base font-medium text-gray-900 dark:text-white" style={{
+                                    <p className="text-base font-medium text-foreground" style={{
                                         fontFamily: `var(--fontFamily, "Inter")`,
                                     }}>
                                         <strong>{selectedDates.length}</strong> date{selectedDates.length !== 1 ? 's' : ''} selected
                                     </p>
                                     {selectedLeaveType && (
-                                        <p className="text-sm text-gray-500 dark:text-gray-400" style={{
+                                        <p className="text-sm text-default-500" style={{
                                             fontFamily: `var(--fontFamily, "Inter")`,
                                         }}>
                                             Leave type: {selectedLeaveType}

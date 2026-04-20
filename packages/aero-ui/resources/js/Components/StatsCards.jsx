@@ -274,6 +274,7 @@ const StatsCards = ({ stats = [], gridCols, className = "mb-6", animate = true, 
         borderColor: `var(--theme-divider, #E4E4E7)`,
         borderWidth: `var(--borderWidth, 2px)`,
         borderRadius: `var(--borderRadius, 12px)`,
+        color: `var(--theme-foreground, #11181C)`,
         fontFamily: `var(--fontFamily, "Inter")`,
     });
 

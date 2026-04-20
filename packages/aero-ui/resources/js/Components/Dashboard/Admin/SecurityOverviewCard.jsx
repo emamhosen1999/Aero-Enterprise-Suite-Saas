@@ -67,7 +67,7 @@ const SecurityOverviewCard = ({ security = {}, loading = false }) => {
                 <div className="grid grid-cols-1 gap-2">
                     <Tooltip content="Failed login attempts in the past 24 hours" placement="left">
                         <div className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
-                            failedLogins > 10 ? 'border-danger/30 bg-danger/5' : 'border-default-200 bg-default-50'
+                            failedLogins > 10 ? 'border-danger/30 bg-danger/5' : 'border-divider bg-content2'
                         }`}>
                             <div className="flex items-center gap-2">
                                 <ExclamationTriangleIcon className={`w-4 h-4 ${failedLogins > 10 ? 'text-danger' : 'text-default-400'}`} />
@@ -80,7 +80,7 @@ const SecurityOverviewCard = ({ security = {}, loading = false }) => {
                     </Tooltip>
 
                     <Tooltip content="New device sign-ins recently detected" placement="left">
-                        <div className="flex items-center justify-between p-3 rounded-xl border border-default-200 bg-default-50">
+                        <div className="flex items-center justify-between p-3 rounded-xl border border-divider bg-content2">
                             <div className="flex items-center gap-2">
                                 <DevicePhoneMobileIcon className="w-4 h-4 text-default-400" />
                                 <span className="text-sm">New Devices</span>
@@ -90,7 +90,7 @@ const SecurityOverviewCard = ({ security = {}, loading = false }) => {
                     </Tooltip>
 
                     <Tooltip content="Active API / Sanctum tokens" placement="left">
-                        <div className="flex items-center justify-between p-3 rounded-xl border border-default-200 bg-default-50">
+                        <div className="flex items-center justify-between p-3 rounded-xl border border-divider bg-content2">
                             <div className="flex items-center gap-2">
                                 <KeyIcon className="w-4 h-4 text-default-400" />
                                 <span className="text-sm">Active Tokens</span>

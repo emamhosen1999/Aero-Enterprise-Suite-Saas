@@ -135,6 +135,17 @@ export const generatePatternCSS = (patternConfig) => {
   }
 };
 
+const clearBackgroundOverlay = () => {
+  if (typeof window === 'undefined' || !window.document) {
+    return;
+  }
+
+  const existingOverlay = document.getElementById('background-overlay');
+  if (existingOverlay) {
+    existingOverlay.remove();
+  }
+};
+
 /**
  * Apply background configuration to document body
  */
@@ -151,54 +162,68 @@ export const applyBackground = (backgroundConfig, opacity = 1) => {
   body.style.backgroundPosition = '';
   body.style.backgroundRepeat = '';
   body.style.backgroundAttachment = '';
+  body.style.opacity = '';
+  clearBackgroundOverlay();
+
+  const fallbackThemeBackground = () => root.style.getPropertyValue('--theme-background')?.trim() || '#F4F4F5';
   
   if (!backgroundConfig || !backgroundConfig.type) return;
   
   switch (backgroundConfig.type) {
     case BACKGROUND_TYPES.color:
-      body.style.backgroundColor = backgroundConfig.value;
-      // Also set CSS variable for App.jsx layout
-      root.style.setProperty('--theme-background', backgroundConfig.value);
+      {
+        const colorValue = backgroundConfig.value || fallbackThemeBackground();
+        body.style.backgroundColor = colorValue;
+        root.style.setProperty('--theme-background-type', BACKGROUND_TYPES.color);
+
+        // Keep existing semantic fallback color when drawer value is empty
+        if (backgroundConfig.value) {
+          root.style.setProperty('--theme-background', backgroundConfig.value);
+        }
+      }
       break;
       
     case BACKGROUND_TYPES.gradient:
-      body.style.backgroundImage = backgroundConfig.value;
-      // Also set CSS variable for App.jsx layout
-      root.style.setProperty('--theme-background', backgroundConfig.value);
+      {
+        const gradientValue = backgroundConfig.value || fallbackThemeBackground();
+        body.style.backgroundImage = gradientValue;
+        body.style.backgroundColor = fallbackThemeBackground();
+        root.style.setProperty('--theme-background-type', BACKGROUND_TYPES.gradient);
+
+        // Keep existing semantic fallback color when drawer value is empty
+        if (backgroundConfig.value) {
+          root.style.setProperty('--theme-background', backgroundConfig.value);
+        }
+      }
       break;
       
     case BACKGROUND_TYPES.pattern:
-      const patternCSS = generatePatternCSS(backgroundConfig.value);
-      Object.assign(body.style, patternCSS);
-      if (opacity < 1) {
-        body.style.opacity = opacity.toString();
+      {
+        const patternCSS = generatePatternCSS(backgroundConfig.value);
+        body.style.backgroundColor = fallbackThemeBackground();
+        Object.assign(body.style, patternCSS);
+        root.style.setProperty('--theme-background-type', BACKGROUND_TYPES.pattern);
       }
       break;
       
     case BACKGROUND_TYPES.image:
-      body.style.backgroundImage = `url(${backgroundConfig.value.url})`;
-      body.style.backgroundSize = backgroundConfig.value.size || 'cover';
-      body.style.backgroundPosition = backgroundConfig.value.position || 'center';
-      body.style.backgroundRepeat = backgroundConfig.value.repeat || 'no-repeat';
-      if (backgroundConfig.value.attachment) {
-        body.style.backgroundAttachment = backgroundConfig.value.attachment;
+      {
+        body.style.backgroundColor = fallbackThemeBackground();
+        body.style.backgroundImage = `url(${backgroundConfig.value.url})`;
+        body.style.backgroundSize = backgroundConfig.value.size || 'cover';
+        body.style.backgroundPosition = backgroundConfig.value.position || 'center';
+        body.style.backgroundRepeat = backgroundConfig.value.repeat || 'no-repeat';
+        root.style.setProperty('--theme-background-type', BACKGROUND_TYPES.image);
+
+        if (backgroundConfig.value.attachment) {
+          body.style.backgroundAttachment = backgroundConfig.value.attachment;
+        }
       }
-      if (opacity < 1) {
-        // Create overlay for opacity
-        const overlay = document.createElement('div');
-        overlay.id = 'background-overlay';
-        overlay.style.cssText = `
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: rgba(255,255,255,${1-opacity});
-          pointer-events: none;
-          z-index: -1;
-        `;
-        body.appendChild(overlay);
-      }
+      break;
+
+    default:
+      root.style.setProperty('--theme-background-type', BACKGROUND_TYPES.color);
+      body.style.backgroundColor = fallbackThemeBackground();
       break;
   }
 };

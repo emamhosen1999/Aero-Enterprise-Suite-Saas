@@ -5,6 +5,7 @@ import { useHRMAC } from '@/Hooks/useHRMAC';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
 import CreateAnnouncementModal from './CreateAnnouncementModal';
+import { getThemedCardStyle } from '@/Components/UI/ThemedCard';
 
 const typeColorMap = {
     info: 'primary',
@@ -67,8 +68,12 @@ const AnnouncementsBanner = ({ announcements = [], onRefresh }) => {
                 {visibleAnnouncements.map((announcement) => (
                     <Card
                         key={announcement.id}
-                        className={`border-l-4`}
-                        style={{ borderLeftColor: `var(--heroui-${typeColorMap[announcement.type] || 'primary'})` }}
+                        className="border-l-4 transition-all duration-200"
+                        style={{
+                            ...getThemedCardStyle(),
+                            borderLeftColor: `var(--heroui-${typeColorMap[announcement.type] || 'primary'})`,
+                            borderLeftWidth: '4px',
+                        }}
                     >
                         <CardBody className="p-3 flex flex-row items-start gap-3">
                             <MegaphoneIcon className="w-5 h-5 shrink-0 mt-0.5" style={{ color: `var(--heroui-${typeColorMap[announcement.type] || 'primary'})` }} />

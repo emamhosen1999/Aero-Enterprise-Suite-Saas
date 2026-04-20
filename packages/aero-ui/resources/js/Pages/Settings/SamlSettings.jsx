@@ -109,10 +109,10 @@ const SamlSettings = () => {
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        <h1 className="text-2xl font-bold text-foreground">
                             SAML SSO Settings
                         </h1>
-                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        <p className="mt-1 text-sm text-default-500">
                             Configure enterprise Single Sign-On with your identity provider
                         </p>
                     </div>
@@ -140,7 +140,7 @@ const SamlSettings = () => {
                     <CardBody className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <label className="text-sm font-medium text-default-600">
                                     ACS URL (Assertion Consumer Service)
                                 </label>
                                 <div className="flex mt-1">
@@ -163,7 +163,7 @@ const SamlSettings = () => {
                                 </div>
                             </div>
                             <div>
-                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <label className="text-sm font-medium text-default-600">
                                     SLO URL (Single Logout Service)
                                 </label>
                                 <div className="flex mt-1">
@@ -188,7 +188,7 @@ const SamlSettings = () => {
                         </div>
 
                         <div>
-                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label className="text-sm font-medium text-default-600">
                                 SP Metadata URL
                             </label>
                             <div className="flex mt-1 gap-2">

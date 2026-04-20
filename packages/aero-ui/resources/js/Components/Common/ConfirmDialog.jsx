@@ -57,7 +57,7 @@ const ConfirmDialog = ({
             </DialogTitle>
 
             <DialogContent>
-                <Typography variant="body1" className="text-gray-600 dark:text-gray-300">
+                <Typography variant="body1" className="text-default-500">
                     {description}
                 </Typography>
             </DialogContent>

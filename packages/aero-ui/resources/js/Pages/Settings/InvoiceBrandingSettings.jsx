@@ -129,10 +129,10 @@ const InvoiceBrandingSettings = () => {
 
             <div className="max-w-4xl mx-auto px-4 py-6">
                 <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <h1 className="text-2xl font-bold text-foreground">
                         Invoice Branding
                     </h1>
-                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    <p className="mt-1 text-sm text-default-500">
                         Customize the appearance of your invoices and receipts with your company branding.
                     </p>
                 </div>
@@ -154,7 +154,7 @@ const InvoiceBrandingSettings = () => {
                             <div className="flex flex-col md:flex-row gap-6">
                                 {/* Logo Upload */}
                                 <div className="flex-1">
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label className="block text-sm font-medium text-default-600 mb-2">
                                         Company Logo
                                     </label>
                                     <div className="flex items-center gap-4">
@@ -208,7 +208,7 @@ const InvoiceBrandingSettings = () => {
                                 {/* Colors */}
                                 <div className="flex-1 space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <label className="block text-sm font-medium text-default-600 mb-2">
                                             Primary Color
                                         </label>
                                         <div className="flex items-center gap-3">
@@ -228,7 +228,7 @@ const InvoiceBrandingSettings = () => {
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <label className="block text-sm font-medium text-default-600 mb-2">
                                             Secondary Color
                                         </label>
                                         <div className="flex items-center gap-3">

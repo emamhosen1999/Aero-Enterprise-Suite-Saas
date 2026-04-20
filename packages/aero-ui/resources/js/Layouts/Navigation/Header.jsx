@@ -141,7 +141,7 @@ const HeaderLogo = React.memo(({ onMenuClick, isMobile, showMenuButton = false }
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
-                background: 'linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.25) 50%, transparent 70%)',
+                background: 'linear-gradient(110deg, transparent 30%, color-mix(in srgb, var(--theme-foreground) 25%, transparent) 50%, transparent 70%)',
                 animation: 'headerShimmer 3s ease-in-out infinite',
               }}
             />
@@ -357,7 +357,7 @@ const HeaderSearch = React.memo(({ searchTerm, onSearchChange }) => {
           startContent={
             <MagnifyingGlassIcon
               className="w-4 h-4 transition-colors"
-              style={{ color: focused ? 'var(--theme-primary, #006FEE)' : 'var(--theme-foreground-400, #A1A1AA)' }}
+              style={{ color: focused ? 'var(--theme-primary, #006FEE)' : 'color-mix(in srgb, var(--theme-foreground, #11181C) 45%, transparent)' }}
             />
           }
           endContent={
@@ -578,14 +578,14 @@ const HeaderUserMenu = React.memo(({ user }) => {
             />
             <div
               className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2"
-              style={{ background: '#17C964', borderColor: 'var(--theme-content1, #FAFAFA)' }}
+              style={{ background: 'var(--theme-success, #17C964)', borderColor: 'var(--theme-content1, #FAFAFA)' }}
             />
           </div>
           <div className="hidden sm:block text-left relative z-10">
             <p className="text-xs font-semibold truncate max-w-[100px] leading-tight" style={{ color: 'var(--theme-foreground, #11181C)' }}>
               {user?.name || 'User'}
             </p>
-            <p className="text-[10px] truncate max-w-[100px] leading-tight" style={{ color: 'var(--theme-foreground-500, #71717A)' }}>
+            <p className="text-[10px] truncate max-w-[100px] leading-tight" style={{ color: 'color-mix(in srgb, var(--theme-foreground, #11181C) 58%, transparent)' }}>
               {roleName}
             </p>
           </div>
@@ -605,12 +605,12 @@ const HeaderUserMenu = React.memo(({ user }) => {
                 />
                 <div
                   className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center"
-                  style={{ background: '#17C964', borderColor: 'var(--theme-content1, #FAFAFA)' }}
+                  style={{ background: 'var(--theme-success, #17C964)', borderColor: 'var(--theme-content1, #FAFAFA)' }}
                 />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-sm truncate">{user?.name || 'User'}</p>
-                <p className="text-xs truncate" style={{ color: 'var(--theme-foreground-500, #71717A)' }}>{user?.email}</p>
+                <p className="text-xs truncate" style={{ color: 'color-mix(in srgb, var(--theme-foreground, #11181C) 58%, transparent)' }}>{user?.email}</p>
                 <div
                   className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold"
                   style={{
@@ -755,14 +755,16 @@ const Header = React.memo(({
         className="mx-3 mt-3 relative overflow-hidden group/header"
         style={{
           background: `color-mix(in srgb, var(--theme-content1, #FAFAFA) 75%, transparent)`,
-          border: `1px solid color-mix(in srgb, var(--theme-divider, #E4E4E7) 60%, transparent)`,
+          border: `var(--borderWidth, 1px) solid color-mix(in srgb, var(--theme-divider, #E4E4E7) 60%, transparent)`,
           borderRadius: `var(--borderRadius, 12px)`,
+          fontFamily: 'var(--fontFamily, "Inter")',
+          color: 'var(--theme-foreground, #11181C)',
           backdropFilter: 'blur(20px) saturate(1.4)',
           WebkitBackdropFilter: 'blur(20px) saturate(1.4)',
           boxShadow: `
             0 1px 3px color-mix(in srgb, var(--theme-foreground, #000) 4%, transparent),
             0 8px 24px -8px color-mix(in srgb, var(--theme-foreground, #000) 6%, transparent),
-            inset 0 1px 0 0 color-mix(in srgb, #fff 15%, transparent)
+            inset 0 1px 0 0 color-mix(in srgb, var(--theme-content4, #D4D4D8) 15%, transparent)
           `,
         }}
       >
@@ -785,7 +787,7 @@ const Header = React.memo(({
         <div
           className="absolute inset-0 pointer-events-none opacity-0 group-hover/header:opacity-100 transition-opacity duration-700"
           style={{
-            background: 'linear-gradient(110deg, transparent 40%, rgba(255,255,255,0.03) 50%, transparent 60%)',
+            background: 'linear-gradient(110deg, transparent 40%, color-mix(in srgb, var(--theme-foreground) 3%, transparent) 50%, transparent 60%)',
             animation: 'headerShimmer 4s ease-in-out infinite',
           }}
         />

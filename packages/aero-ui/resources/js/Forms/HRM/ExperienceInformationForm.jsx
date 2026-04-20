@@ -181,7 +181,7 @@ const ExperienceInformationForm = ({ user, open, closeModal, setUser }) => {
                                 <Card className="shadow-lg">
                                     <div className="p-4 relative">
                                         <div className="flex items-center justify-between mb-4">
-                                            <h4 className="text-base font-semibold text-gray-900 dark:text-white">
+                                            <h4 className="text-base font-semibold text-foreground">
                                                 Experience #{index + 1}
                                             </h4>
                                             <Button

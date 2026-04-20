@@ -83,7 +83,7 @@ const SidebarHeader = React.memo(({ collapsed, onClose, isMobile }) => {
       <motion.div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.3) 50%, transparent 60%)',
+          background: 'linear-gradient(105deg, transparent 40%, color-mix(in srgb, var(--theme-foreground) 12%, transparent) 50%, transparent 60%)',
           backgroundSize: '250% 100%',
         }}
         animate={{ backgroundPosition: ['200% 0', '-200% 0'] }}
@@ -152,7 +152,7 @@ const SidebarHeader = React.memo(({ collapsed, onClose, isMobile }) => {
               />
               <p 
                 className="text-[11px] truncate font-medium"
-                style={{ color: 'var(--theme-foreground-400, #A1A1AA)' }}
+                style={{ color: 'color-mix(in srgb, var(--theme-foreground, #11181C) 45%, transparent)' }}
               >
                 Enterprise Suite
               </p>
@@ -195,7 +195,7 @@ const SidebarSearch = React.memo(({ collapsed, searchTerm, onSearchChange, onExp
         startContent={
           <MagnifyingGlassIcon 
             className="w-4 h-4"
-            style={{ color: 'var(--theme-foreground-400, #A1A1AA)' }}
+            style={{ color: 'color-mix(in srgb, var(--theme-foreground, #11181C) 45%, transparent)' }}
           />
         }
         endContent={
@@ -396,10 +396,10 @@ const SidebarContent = React.memo(({
           <div className="flex items-center gap-2 px-2 py-1.5 mb-2">
             <motion.div
               className="w-4 h-[2px] rounded-full"
-              style={{ background: 'linear-gradient(90deg, var(--theme-foreground-400, #A1A1AA), var(--theme-foreground-300, #D4D4D8))' }}
+              style={{ background: 'linear-gradient(90deg, color-mix(in srgb, var(--theme-foreground, #11181C) 45%, transparent), color-mix(in srgb, var(--theme-foreground, #11181C) 30%, transparent))' }}
             />
             <span className="text-[10px] font-bold uppercase tracking-[0.12em]"
-              style={{ color: 'var(--theme-foreground-400, #A1A1AA)' }}
+              style={{ color: 'color-mix(in srgb, var(--theme-foreground, #11181C) 45%, transparent)' }}
             >
               Navigation
             </span>
@@ -417,10 +417,10 @@ const SidebarContent = React.memo(({
           <div className="flex items-center gap-2 px-2 py-1.5 mb-2">
             <motion.div
               className="w-4 h-[2px] rounded-full"
-              style={{ background: 'linear-gradient(90deg, var(--theme-foreground-400, #A1A1AA), var(--theme-foreground-300, #D4D4D8))' }}
+              style={{ background: 'linear-gradient(90deg, color-mix(in srgb, var(--theme-foreground, #11181C) 45%, transparent), color-mix(in srgb, var(--theme-foreground, #11181C) 30%, transparent))' }}
             />
             <span className="text-[10px] font-bold uppercase tracking-[0.12em]"
-              style={{ color: 'var(--theme-foreground-400, #A1A1AA)' }}
+              style={{ color: 'color-mix(in srgb, var(--theme-foreground, #11181C) 45%, transparent)' }}
             >
               Settings
             </span>
@@ -437,11 +437,11 @@ const SidebarContent = React.memo(({
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <MagnifyingGlassIcon 
             className="w-10 h-10 mb-2"
-            style={{ color: 'var(--theme-foreground-300, #D4D4D8)' }}
+            style={{ color: 'color-mix(in srgb, var(--theme-foreground, #11181C) 30%, transparent)' }}
           />
           <p 
             className="text-sm"
-            style={{ color: 'var(--theme-foreground-400, #A1A1AA)' }}
+            style={{ color: 'color-mix(in srgb, var(--theme-foreground, #11181C) 45%, transparent)' }}
           >
             No results found
           </p>
@@ -609,12 +609,13 @@ const Sidebar = React.memo(({ className = '' }) => {
                 className={`h-full flex flex-col ${className}`}
                 style={{
                   borderRadius: 0,
+                  fontFamily: 'var(--fontFamily, "Inter")',
                   background: `linear-gradient(180deg, 
                     color-mix(in srgb, var(--theme-content1, #FAFAFA) 92%, transparent) 0%, 
                     color-mix(in srgb, var(--theme-content2, #F4F4F5) 90%, transparent) 100%)`,
                   backdropFilter: 'blur(20px) saturate(1.4)',
                   WebkitBackdropFilter: 'blur(20px) saturate(1.4)',
-                  borderRight: `1px solid color-mix(in srgb, var(--theme-divider, #E4E4E7) 50%, transparent)`,
+                  borderRight: `var(--borderWidth, 1px) solid color-mix(in srgb, var(--theme-divider, #E4E4E7) 50%, transparent)`,
                   boxShadow: '4px 0 30px -5px rgba(0,0,0,0.1)',
                 }}
               >
@@ -670,17 +671,19 @@ const Sidebar = React.memo(({ className = '' }) => {
       <Card
         className="h-full flex flex-col m-3 mr-0 overflow-hidden relative"
         style={{
+          fontFamily: 'var(--fontFamily, "Inter")',
+          color: 'var(--theme-foreground, #11181C)',
           background: `linear-gradient(180deg, 
             color-mix(in srgb, var(--theme-content1, #FAFAFA) 92%, transparent) 0%, 
             color-mix(in srgb, var(--theme-content2, #F4F4F5) 90%, transparent) 100%)`,
           backdropFilter: 'blur(20px) saturate(1.4)',
           WebkitBackdropFilter: 'blur(20px) saturate(1.4)',
-          border: `1px solid color-mix(in srgb, var(--theme-divider, #E4E4E7) 50%, transparent)`,
+          border: `var(--borderWidth, 1px) solid color-mix(in srgb, var(--theme-divider, #E4E4E7) 50%, transparent)`,
           borderRadius: `var(--borderRadius, 12px)`,
           boxShadow: `
             0 20px 60px -15px rgba(0,0,0,0.08),
             0 0 0 1px color-mix(in srgb, var(--theme-divider, #E4E4E7) 30%, transparent),
-            inset 0 1px 0 0 rgba(255,255,255,0.6)
+            inset 0 1px 0 0 color-mix(in srgb, var(--theme-content4, #D4D4D8) 20%, transparent)
           `,
         }}
       >

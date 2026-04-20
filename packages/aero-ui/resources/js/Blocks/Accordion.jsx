@@ -66,7 +66,7 @@ const Accordion = ({ content = {}, settings = {} }) => {
                   key={index.toString()}
                   aria-label={item.title}
                   title={
-                    <span className="font-semibold text-slate-900 dark:text-white">
+                    <span className="font-semibold text-foreground">
                       {item.title}
                     </span>
                   }

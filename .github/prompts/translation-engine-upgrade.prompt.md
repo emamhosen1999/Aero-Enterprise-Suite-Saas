@@ -1,22 +1,32 @@
 ---
-description: "Upgrade the AEOS translation engine: consolidate backend locale handling, build proper JSON translation files per package, create a robust useT() hook, replace hardcoded strings with translation keys, and unify the language switcher across tenant and platform pages."
+description: "Upgrade the AEOS translation engine: consolidate backend locale handling, build static JSON dictionary files per package, create a zero-migration auto-translating wrapper that translates all UI strings without touching any page components, and unify the language switcher."
 agent: "AEOS Frontend Engineer"
-argument-hint: "Specify which module/package to translate first, or 'all' for full sweep"
+argument-hint: "Specify which phase to implement (1-9), or 'all' for full sweep"
 ---
 
-# Translation Engine Upgrade — Full i18n for AEOS
+# Translation Engine Upgrade — Zero-Migration i18n for AEOS
 
 ## Objective
 
 Transform the current translation system from a fragile Google-Translate-DOM-mutation hack into a **proper, professional i18n architecture** that:
 
-1. Uses **static JSON translation files** per locale per package (not runtime Google Translate API calls)
-2. Provides a **`t()` function** that components call explicitly (not MutationObserver DOM rewriting)
-3. Consolidates the **3 duplicate locale-switching mechanisms** into one
-4. Extends the backend to **load and merge package-level translation files**
-5. Makes **every UI string** translatable with proper keys
+1. Uses **static JSON dictionary files** per locale per package (not runtime Google Translate API calls)
+2. **Translates the entire UI automatically via a wrapper** — NO page-by-page migration needed
+3. Provides an **optional `t()` function** for components that want explicit key-based translation (opt-in, not required)
+4. Consolidates the **3 duplicate locale-switching mechanisms** into one
+5. Extends the backend to **load and merge package-level translation files**
 6. Supports **RTL layouts** natively
 7. Preserves the **BusinessGlossary** as a source-of-truth for domain terms (HR, ERP, etc.)
+
+### Core Principle: Zero Page Modifications
+
+**The translation must work as a transparent wrapper.** Existing pages with hardcoded English strings like `<h4>Leave Management</h4>` must render correctly in Bengali/Arabic/etc. without changing a single line in those pages.
+
+**How it works:**
+- JSON dictionaries map `"English text" → "Translated text"` (value-based, not key-based)
+- A React-level `<AutoTranslateProvider>` intercepts string children during rendering and replaces them with translated equivalents from the static dictionary
+- BusinessGlossary provides fallback translations for domain terms not yet in JSON files
+- Pages that want fine-grained control can opt-in to `t('key')` calls, but this is **never required**
 
 ---
 
@@ -556,35 +566,39 @@ export function useT() {
 export default TranslationContext;
 ```
 
-#### 3B — Remove `GlobalAutoTranslator` from App.jsx
+#### 3B — Replace `GlobalAutoTranslator` with a static dictionary wrapper
 
-The DOM mutation approach is being replaced by explicit `t()` calls:
+The runtime Google Translate layer must be removed from the app shell and replaced with a **static-dictionary translation wrapper** that works without editing pages.
 
 ```jsx
-// In App.jsx — REMOVE these lines:
+// In App.jsx — REMOVE the Google Translate powered wrapper:
 // import { GlobalAutoTranslator } from '@/Context/GlobalAutoTranslator';
 // <GlobalAutoTranslator> ... </GlobalAutoTranslator>
 
-// Keep TranslationProvider wrapping. The GlobalAutoTranslator file can remain
-// for a transitional period but should NOT be imported in App.jsx.
+// Replace it with a new wrapper such as:
+// import { StaticTranslationWrapper } from '@/Context/StaticTranslationWrapper';
+// <TranslationProvider>
+//   <StaticTranslationWrapper>
+//     {children}
+//   </StaticTranslationWrapper>
+// </TranslationProvider>
 ```
 
-**IMPORTANT:** Do NOT delete `GlobalAutoTranslator.jsx` immediately. Keep it as an optional import that can be re-enabled per-page during the migration period. Once all pages are migrated, delete it.
+**Wrapper requirements:**
+- No external API calls
+- No MutationObserver-driven continuous rewriting loop
+- No page-level edits
+- Works against a static dictionary loaded from Inertia props + BusinessGlossary
+- Runs only within the application shell subtree
+- Skips `data-no-translate`, form values, code blocks, IDs, tenant names, user content, and marked safe containers
+
+**IMPORTANT:** `GlobalAutoTranslator.jsx` may remain in the codebase temporarily for rollback reference, but it must no longer be mounted in `App.jsx`.
 
 #### 3C — Merge `LanguageSelector` into `LanguageSwitcher`
 
-Delete the separate `Components/Platform/LanguageSelector.jsx` system and update Platform pages to use the main `LanguageSwitcher` component. The `LanguageProvider` context from LanguageSelector is redundant since `TranslationProvider` already handles everything.
+Delete the separate `Components/Platform/LanguageSelector.jsx` system and unify locale state under `TranslationProvider`. Do this at the **layout/app-shell layer**, not by migrating individual platform pages.
 
-Update Platform registration pages to:
-```jsx
-// BEFORE (separate system):
-import { useLanguage } from '@/Components/Platform/LanguageSelector';
-const { t, language } = useLanguage();
-
-// AFTER (unified system):
-import { useTranslation } from '@/Context/TranslationContext';
-const { t, locale } = useTranslation();
-```
+If public/platform layouts currently mount a separate provider, remove that provider and mount the shared `LanguageSwitcher` from the common navigation/layout wrapper instead.
 
 #### 3D — Add `LanguageSwitcher` to Header/Navbar
 
@@ -613,88 +627,94 @@ const { supportedLocales, localeConfig } = usePage().props;
 
 ---
 
-### Phase 4 — Migrate Pages to Use `t()`
+### Phase 4 — Build the Zero-Touch Translation Wrapper
 
-**Goal:** Replace every hardcoded English string in JSX pages with `t('key')` calls.
+**Goal:** Translate existing hardcoded UI text without migrating or editing page components.
 
-#### Migration Pattern
+#### 4A — Create a deterministic wrapper component
 
-For each page component:
+Build a wrapper such as `StaticTranslationWrapper.jsx` in `packages/aero-ui/resources/js/Context/` or `Components/` that wraps the app subtree once.
 
-1. Import the hook:
-```jsx
-import { useTranslation } from '@/Context/TranslationContext';
+It must:
+- Walk only the mounted application subtree after render
+- Replace eligible text nodes using the static locale dictionary
+- Re-run on locale changes and Inertia navigations
+- Avoid flicker by batching updates in a single pass
+- Cache translated strings per locale for performance
+- Be idempotent so repeated runs do not double-translate content
 
-// Inside component:
-const { t } = useTranslation();
-```
+**Important:** this is still a wrapper approach, but it is **dictionary-based and deterministic**, not an uncontrolled Google Translate DOM hack.
 
-2. Replace hardcoded strings:
-```jsx
-// BEFORE:
-<h4 className="text-2xl font-bold">Leave Management</h4>
-<p className="text-sm text-default-500">Manage employee leaves and time-off requests</p>
-<Button>Add New</Button>
-<Input placeholder="Search..." label="Search" />
-<TableColumn>Name</TableColumn>
-<Chip>Approved</Chip>
+#### 4B — Translation lookup strategy
 
-// AFTER:
-<h4 className="text-2xl font-bold">{t('hrm.leaves.title')}</h4>
-<p className="text-sm text-default-500">{t('hrm.leaves.description')}</p>
-<Button>{t('core.common.add_new')}</Button>
-<Input placeholder={t('core.common.search')} label={t('core.common.search')} />
-<TableColumn>{t('core.users.name')}</TableColumn>
-<Chip>{t('core.common.approved')}</Chip>
-```
+The wrapper should translate using this precedence order:
 
-3. Handle interpolation:
-```jsx
-// BEFORE:
-<p>Showing 1 to 10 of 100 results</p>
+1. Exact string match in package/global JSON dictionaries
+2. Normalized string match (trimmed whitespace, collapsed spaces)
+3. BusinessGlossary domain-term replacement
+4. English fallback from `en.json`
+5. Leave the original text untouched if still unresolved
 
-// AFTER:
-<p>{t('core.common.showing', { from: 1, to: 10, total: 100 })}</p>
-```
+#### 4C — What the wrapper may translate
 
-#### Page Migration Priority
+Safe targets include:
+- Plain text nodes in headings, labels, buttons, tabs, cards, empty states, helper copy
+- Known attributes such as `placeholder`, `aria-label`, `title`, `alt` when the value matches dictionary entries
+- Shared chrome text in Header, Sidebar, Breadcrumbs, dashboards, filters, tables, modals
 
-Migrate in this order (highest traffic first):
+#### 4D — What the wrapper must never translate
 
-| Priority | Pages | Package | Est. Strings |
-|----------|-------|---------|--------------|
-| 1 | Dashboard, Sidebar navigation, Header | aero-core / aero-ui | ~80 |
-| 2 | LeavesAdmin, LeaveList, LeaveForm | aero-hrm | ~60 |
-| 3 | EmployeeList, EmployeeForm, EmployeeDashboard | aero-hrm | ~100 |
-| 4 | UsersList, AddEditUserForm, InviteUserForm | aero-core | ~50 |
-| 5 | AttendanceDashboard, TimeSheetTable | aero-hrm | ~40 |
-| 6 | DepartmentList, DesignationList | aero-hrm | ~30 |
-| 7 | PayrollAdmin, PayslipView | aero-hrm | ~40 |
-| 8 | Registration flow (ModernSignUp, etc.) | aero-platform | ~60 |
-| 9 | Landing, Pricing, Features (public pages) | aero-platform | ~80 |
-| 10 | Events, Announcements, Communications | aero-hrm | ~30 |
-| 11 | CRM pages (Contacts, Deals, Pipeline) | aero-crm | ~60 |
-| 12 | Finance pages (Invoices, Payments) | aero-finance | ~50 |
-| 13 | Project pages (Tasks, Milestones) | aero-project | ~40 |
-| 14 | Remaining modules | various | ~100+ |
-
-**Total estimated: ~800+ unique strings across all modules**
-
-#### Strings That Should NOT Be Translated
-
-Add `data-no-translate` attribute or skip in `t()`:
+Skip nodes or attributes that contain:
 - User names, emails, phone numbers
-- Company/tenant names
-- Dates (use `Intl.DateTimeFormat` with locale instead)
-- Currency amounts (use `Intl.NumberFormat` with locale instead)
-- Code identifiers (employee IDs, invoice numbers)
-- URLs and routes
+- Company, tenant, customer, vendor, project, department, or employee-specific names from data
+- Dates, times, currency amounts, percentages, counts, IDs, invoice numbers, route fragments
+- Inputs, textareas, editors, code/pre blocks, charts, toasts already generated from backend locale strings
+- Any subtree marked with `data-no-translate`
+
+#### 4E — Marking and exclusion rules
+
+Support these escape hatches:
+- `data-no-translate` on any container disables translation for the full subtree
+- `data-translate="attribute-only"` for cases where text should remain but placeholder/title should translate
+- `data-translate-key="core.common.save"` as an optional bridge for shared components only, not for page migration
+
+#### 4F — Dictionary shape for zero-touch translation
+
+Because pages are not being migrated, the dictionaries must support **value-based matching** in addition to keyed lookups.
+
+Recommended shape:
+
+```json
+{
+    "core.common.save": "Save",
+    "__strings": {
+        "Save": "Guardar",
+        "Cancel": "Cancelar",
+        "Leave Management": "Gestion de permisos",
+        "Search...": "Buscar..."
+    }
+}
+```
+
+Rules:
+- Keyed entries remain the long-term source of truth for new code and backend usage
+- `__strings` enables zero-touch wrapper translation for legacy pages
+- A build-time generator may derive `__strings` from English source files and curated dictionaries
+
+#### 4G — Optional explicit `t()` remains available
+
+`t()` stays in the API for:
+- New shared components
+- Backend-driven flash messages
+- Future incremental cleanup when convenient
+
+But the success criterion for this upgrade is that **existing pages work without being edited**.
 
 ---
 
 ### Phase 5 — Date, Number, and Currency Localization
 
-**Goal:** Ensure all formatted values respect the current locale.
+**Goal:** Ensure formatted values respect locale without mass-editing pages.
 
 #### 5A — Create a `useLocaleFormatters()` hook
 
@@ -803,25 +823,24 @@ export function useLocaleFormatters() {
 }
 ```
 
-#### 5B — Replace hardcoded `Intl.NumberFormat('en-US')` calls
+#### 5B — Apply locale formatting only in shared infrastructure
 
-Search for all `new Intl.NumberFormat(` and `toLocaleString(` calls and replace with the hook:
+Do **not** open and migrate page components just to swap formatter calls.
 
-```jsx
-// BEFORE (in ~15+ files):
-const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
-};
+Allowed targets:
+- Shared table components
+- Shared form components
+- Shared dashboard/stat cards
+- Centralized utility modules already consumed by many pages
+- Backend serializers where dates/numbers are prepared once
 
-// AFTER:
-const { formatCurrency } = useLocaleFormatters();
-```
+If a formatter is hardcoded inside an individual page, leave it alone for this upgrade unless that page is already being changed for another justified reason.
 
 ---
 
 ### Phase 6 — RTL Layout Support
 
-**Goal:** Ensure the full UI flips correctly for Arabic and other RTL locales.
+**Goal:** Ensure the shell and shared primitives flip correctly for Arabic and other RTL locales without page migration.
 
 #### 6A — Tailwind RTL utilities
 
@@ -954,7 +973,7 @@ __('hrm.leaves.title')
 
 ### Phase 8 — Language Switcher Upgrade
 
-**Goal:** Make the language switcher polished and accessible from everywhere.
+**Goal:** Make the language switcher polished and accessible from the shared shell and public navigation.
 
 #### 8A — Header integration
 
@@ -971,46 +990,18 @@ import LanguageSwitcher from '@/Components/LanguageSwitcher';
 </div>
 ```
 
-#### 8B — Settings page integration
+#### 8B — Settings integration without page migration
 
-In the Settings page, add a full Language section:
+Do not refactor the Settings page component tree just to add language controls.
 
-```jsx
-<div className="space-y-4">
-    <h3 className="text-lg font-semibold">{t('core.settings.language')}</h3>
-    <p className="text-sm text-default-500">{t('core.settings.language_description')}</p>
-    
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {supportedLocales.map((code) => {
-            const config = localeConfig[code];
-            if (!config) return null;
-            
-            return (
-                <button
-                    key={code}
-                    onClick={() => setLocale(code)}
-                    className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
-                        locale === code
-                            ? 'border-primary bg-primary/10'
-                            : 'border-divider hover:border-default-300'
-                    }`}
-                >
-                    <FlagIcon code={code} className="w-8 h-8" />
-                    <div className="text-left">
-                        <p className="text-sm font-medium">{config.native}</p>
-                        <p className="text-xs text-default-400">{config.name}</p>
-                    </div>
-                    {locale === code && <CheckIcon className="w-4 h-4 text-primary ml-auto" />}
-                </button>
-            );
-        })}
-    </div>
-</div>
-```
+Preferred options:
+- Inject the shared `LanguageSwitcher` into the existing header/topbar actions
+- Add a shared settings-panel card only if that panel is assembled from reusable shell components
+- If no shared insertion point exists, defer the dedicated settings-language panel until a later explicit UI task
 
 #### 8C — Public/Platform pages
 
-Replace `LanguageSelector.jsx` usage with the main `LanguageSwitcher`:
+Replace `LanguageSelector.jsx` usage with the main `LanguageSwitcher` at the layout/navigation level:
 
 ```jsx
 // In Platform layout (registration, pricing, landing pages):
@@ -1047,7 +1038,7 @@ Schema::table('tenant_settings', function (Blueprint $table) {
 
 #### 9C — Admin settings UI for locale management
 
-In the admin Settings page, add a section where admins can:
+In a shared admin settings surface or reusable settings shell, add controls where admins can:
 - Set the default locale for their organization
 - Enable/disable specific locales for their users
 - Upload custom translation overrides (e.g., rename "Department" → "Division")
@@ -1058,10 +1049,12 @@ In the admin Settings page, add a section where admins can:
 
 After all changes, verify:
 
-- [ ] **Locale switches correctly** — Changing language in LanguageSwitcher updates all visible text without page reload flicker
+- [ ] **Locale switches correctly** — Changing language in LanguageSwitcher updates visible text through the wrapper without per-page edits
 - [ ] **Inertia props include translations** — `usePage().props.translations` contains merged JSON keys from all packages
-- [ ] **`t()` works for all keys** — Every translation key resolves to the correct text in all 9 locales
+- [ ] **Wrapper works without page changes** — Existing pages with hardcoded English strings render translated text with zero page migration
+- [ ] **`t()` still works for keys** — Explicit translation calls remain supported for shared/new code
 - [ ] **No runtime Google Translate calls** — Zero requests to `translate.googleapis.com` in network tab during normal usage
+- [ ] **No page migration was required** — No sweep of page-by-page string replacement was performed
 - [ ] **RTL layout works** — Arabic locale flips sidebar, text alignment, margins/padding, icons
 - [ ] **Dates/numbers localized** — Date/currency/number displays use `Intl` with correct locale
 - [ ] **Backend messages translated** — API error messages and flash messages respect locale
@@ -1069,9 +1062,9 @@ After all changes, verify:
 - [ ] **BusinessGlossary preserved** — Domain terms (Leave, Payroll, Department, etc.) use curated translations
 - [ ] **No duplicate locale code** — Single LocaleController, single SetLocale middleware, single locale route
 - [ ] **LanguageSwitcher visible** — Present in Header for tenant pages and in public nav for platform pages
-- [ ] **Fallback works** — Missing translation key shows the key itself (not blank, not error)
+- [ ] **Fallback works** — Missing wrapper entry leaves the original English text intact; missing key-based lookup returns the key or English fallback
 - [ ] **`data-no-translate` respected** — Names, emails, IDs are never translated
-- [ ] **Settings page has language selector** — Full-page locale picker in user settings
+- [ ] **Shared shell controls exist** — The language switcher is available from shared shell/navigation without requiring settings-page edits
 - [ ] **Build passes** — `npm run build` completes with zero errors
 - [ ] **No visual regressions** — Pages look correct in all locales, no layout breaks
 
@@ -1080,14 +1073,16 @@ After all changes, verify:
 ## Rules
 
 1. **All changes in `packages/`** — Never modify host app files directly
-2. **JSON translation files are the source of truth** — Not runtime API calls
-3. **BusinessGlossary has highest priority** — Domain terms from glossary override JSON file values
-4. **Never translate user-generated content** — Names, emails, company names, IDs stay as-is
-5. **Use `Intl.*` APIs for dates/numbers/currency** — Never manually format with locale-specific strings
-6. **Keep backward compatibility** — `useTranslation()` must still export the same API shape (locale, t, setLocale, supportedLocales, isRTL)
-7. **English is the fallback** — If a key is missing in `bn.json`, the English value from `en.json` is returned
-8. **One `t()` call per string** — Don't concatenate translated fragments; translate the full sentence
-9. **RTL support uses logical properties** — `ms-*` not `ml-*`, `start-*` not `left-*`
-10. **Translation keys are stable** — Once a key is created, don't rename it without a migration
-11. **GlobalAutoTranslator removal is gradual** — Remove from App.jsx first, keep the file until all pages are migrated
-12. **Package translations are publishable** — Host apps can override package translations via `vendor/aero-{module}/lang/`
+2. **No page migration** — Do not edit page components just to replace strings with `t()`
+3. **Wrapper-first translation** — The translation layer must work as a shared wrapper around existing UI
+4. **JSON translation files are the source of truth** — Not runtime API calls
+5. **BusinessGlossary has highest priority for domain terms** — Glossary overrides generic dictionary values when there is a conflict
+6. **Never translate user-generated content** — Names, emails, company names, IDs stay as-is
+7. **Use `Intl.*` APIs for dates/numbers/currency** — Never manually format with locale-specific strings
+8. **Keep backward compatibility** — `useTranslation()` must still export the same API shape (locale, t, setLocale, supportedLocales, isRTL)
+9. **English is the fallback** — If a key or wrapper string is missing in `bn.json`, use English or leave the source text intact
+10. **`t()` is optional for legacy pages** — Reserve explicit key-based translation for new shared code and future cleanup, not for this upgrade sweep
+11. **RTL support uses logical properties** — `ms-*` not `ml-*`, `start-*` not `left-*`
+12. **Translation keys are stable** — Once a key is created, don't rename it without a migration
+13. **Replace Google Translate wrapper entirely** — Do not keep any runtime dependency on `translate.googleapis.com`
+14. **Package translations are publishable** — Host apps can override package translations via `vendor/aero-{module}/lang/`

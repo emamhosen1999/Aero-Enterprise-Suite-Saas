@@ -70,10 +70,10 @@ const Dashboard = () => {
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        <h1 className="text-2xl font-bold text-foreground">
                             Document Management
                         </h1>
-                        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                        <p className="mt-1 text-sm text-default-500">
                             Manage, share, and organize your documents
                         </p>
                     </div>
@@ -96,10 +96,10 @@ const Dashboard = () => {
                                 <DocumentDuplicateIcon className="h-6 w-6 text-primary" />
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                <p className="text-sm text-default-500">
                                     Total Documents
                                 </p>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                                <p className="text-2xl font-bold text-foreground">
                                     {stats.totalDocuments || 0}
                                 </p>
                             </div>
@@ -112,10 +112,10 @@ const Dashboard = () => {
                                 <FolderIcon className="h-6 w-6 text-success" />
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                <p className="text-sm text-default-500">
                                     Folders
                                 </p>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                                <p className="text-2xl font-bold text-foreground">
                                     {stats.totalFolders || 0}
                                 </p>
                             </div>
@@ -128,10 +128,10 @@ const Dashboard = () => {
                                 <ShareIcon className="h-6 w-6 text-warning" />
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                <p className="text-sm text-default-500">
                                     Shared with Me
                                 </p>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                                <p className="text-2xl font-bold text-foreground">
                                     {stats.sharedWithMe || 0}
                                 </p>
                             </div>
@@ -144,10 +144,10 @@ const Dashboard = () => {
                                 <ChartBarIcon className="h-6 w-6 text-secondary" />
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                <p className="text-sm text-default-500">
                                     This Month
                                 </p>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                                <p className="text-2xl font-bold text-foreground">
                                     {stats.thisMonth || 0}
                                 </p>
                             </div>
@@ -163,10 +163,10 @@ const Dashboard = () => {
                     <Divider />
                     <CardBody>
                         <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                            <span className="text-sm text-default-500">
                                 {storageUsage.used} GB of {storageUsage.total} GB used
                             </span>
-                            <span className="text-sm font-medium text-gray-900 dark:text-white">
+                            <span className="text-sm font-medium text-foreground">
                                 {storageUsage.percentage}%
                             </span>
                         </div>
@@ -206,7 +206,7 @@ const Dashboard = () => {
                                                 <div className="flex items-center gap-3">
                                                     <DocumentDuplicateIcon className="h-5 w-5 text-gray-400" />
                                                     <div>
-                                                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                                        <p className="text-sm font-medium text-foreground">
                                                             {doc.name}
                                                         </p>
                                                         <p className="text-xs text-gray-500">
@@ -280,7 +280,7 @@ const Dashboard = () => {
                                                 <div className="flex items-center gap-3">
                                                     <ShareIcon className="h-5 w-5 text-gray-400" />
                                                     <div>
-                                                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                                        <p className="text-sm font-medium text-foreground">
                                                             {doc.name}
                                                         </p>
                                                         <p className="text-xs text-gray-500">

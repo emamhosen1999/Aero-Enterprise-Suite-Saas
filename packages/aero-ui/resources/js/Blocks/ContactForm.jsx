@@ -159,7 +159,7 @@ const ContactForm = ({
                         onValueChange={(val) => updateField(field.name, val)}
                         isInvalid={!!errors[field.name]}
                     >
-                        <span className={`text-sm ${errors[field.name] ? 'text-danger' : 'text-gray-600 dark:text-gray-400'}`}>
+                        <span className={`text-sm ${errors[field.name] ? 'text-danger' : 'text-default-500'}`}>
                             {field.label}
                         </span>
                     </Checkbox>
@@ -185,8 +185,8 @@ const ContactForm = ({
                         <EnvelopeIcon className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                        <h3 className="font-medium text-gray-900 dark:text-white">Email</h3>
-                        <a href={`mailto:${contactInfo.email}`} className="text-gray-600 dark:text-gray-400 hover:text-primary">
+                        <h3 className="font-medium text-foreground">Email</h3>
+                        <a href={`mailto:${contactInfo.email}`} className="text-default-500 hover:text-primary">
                             {contactInfo.email}
                         </a>
                     </div>
@@ -199,8 +199,8 @@ const ContactForm = ({
                         <PhoneIcon className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                        <h3 className="font-medium text-gray-900 dark:text-white">Phone</h3>
-                        <a href={`tel:${contactInfo.phone.replace(/\D/g, '')}`} className="text-gray-600 dark:text-gray-400 hover:text-primary">
+                        <h3 className="font-medium text-foreground">Phone</h3>
+                        <a href={`tel:${contactInfo.phone.replace(/\D/g, '')}`} className="text-default-500 hover:text-primary">
                             {contactInfo.phone}
                         </a>
                     </div>
@@ -213,8 +213,8 @@ const ContactForm = ({
                         <MapPinIcon className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                        <h3 className="font-medium text-gray-900 dark:text-white">Address</h3>
-                        <p className="text-gray-600 dark:text-gray-400 whitespace-pre-line">
+                        <h3 className="font-medium text-foreground">Address</h3>
+                        <p className="text-default-500 whitespace-pre-line">
                             {contactInfo.address}
                         </p>
                     </div>
@@ -236,10 +236,10 @@ const ContactForm = ({
                         <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-success/20 flex items-center justify-center">
                             <CheckCircleIcon className="w-10 h-10 text-success" />
                         </div>
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                        <h2 className="text-2xl font-bold text-foreground mb-4">
                             Message Received
                         </h2>
-                        <p className="text-gray-600 dark:text-gray-400 mb-8">
+                        <p className="text-default-500 mb-8">
                             {successMessage}
                         </p>
                         <Button
@@ -296,12 +296,12 @@ const ContactForm = ({
                                 {(title || subtitle) && (
                                     <div className="text-center mb-8">
                                         {title && (
-                                            <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+                                            <h2 className="text-3xl font-bold text-foreground">
                                                 {title}
                                             </h2>
                                         )}
                                         {subtitle && (
-                                            <p className="mt-3 text-gray-600 dark:text-gray-400">
+                                            <p className="mt-3 text-default-500">
                                                 {subtitle}
                                             </p>
                                         )}
@@ -328,12 +328,12 @@ const ContactForm = ({
                             viewport={{ once: true }}
                         >
                             {title && (
-                                <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+                                <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
                                     {title}
                                 </h2>
                             )}
                             {subtitle && (
-                                <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
+                                <p className="mt-4 text-lg text-default-500">
                                     {subtitle}
                                 </p>
                             )}
@@ -372,12 +372,12 @@ const ContactForm = ({
                         viewport={{ once: true }}
                     >
                         {title && (
-                            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+                            <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
                                 {title}
                             </h2>
                         )}
                         {subtitle && (
-                            <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
+                            <p className="mt-4 text-lg text-default-500">
                                 {subtitle}
                             </p>
                         )}

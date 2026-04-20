@@ -52,8 +52,8 @@ const LogoCloud = ({
 
     // Text color based on background
     const textColorClasses = {
-        transparent: 'text-gray-900 dark:text-white',
-        light: 'text-gray-900 dark:text-white',
+        transparent: 'text-foreground',
+        light: 'text-foreground',
         dark: 'text-white dark:text-gray-900'
     };
 

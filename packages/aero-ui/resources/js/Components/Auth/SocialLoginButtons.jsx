@@ -22,7 +22,7 @@ export default function SocialLoginButtons({ providers = [], isLoading = false }
                 return {
                     bg: 'bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700',
                     border: 'border-gray-300 dark:border-gray-600',
-                    text: 'text-gray-700 dark:text-gray-200',
+                    text: 'text-default-600',
                 };
             case 'microsoft':
                 return {
@@ -40,7 +40,7 @@ export default function SocialLoginButtons({ providers = [], isLoading = false }
                 return {
                     bg: 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700',
                     border: 'border-gray-300 dark:border-gray-600',
-                    text: 'text-gray-700 dark:text-gray-200',
+                    text: 'text-default-600',
                 };
         }
     };
@@ -95,7 +95,7 @@ export default function SocialLoginButtons({ providers = [], isLoading = false }
         >
             <div className="relative">
                 <Divider className="my-4" />
-                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 px-4 bg-background text-sm text-gray-500 dark:text-gray-400">
+                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 px-4 bg-background text-sm text-default-500">
                     Or continue with
                 </span>
             </div>
@@ -119,7 +119,7 @@ export default function SocialLoginButtons({ providers = [], isLoading = false }
                 })}
             </div>
 
-            <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-4">
+            <p className="text-xs text-center text-default-500 mt-4">
                 By continuing, you agree to our Terms of Service and Privacy Policy
             </p>
         </motion.div>

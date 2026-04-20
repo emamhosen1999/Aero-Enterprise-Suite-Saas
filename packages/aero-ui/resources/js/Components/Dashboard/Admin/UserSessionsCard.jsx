@@ -56,7 +56,7 @@ const UserSessionsCard = ({ sessions = {}, loading = false }) => {
                 <div className="grid grid-cols-3 gap-2">
                     {stats.map((stat) => (
                         <Tooltip key={stat.label} content={stat.label} className="text-xs">
-                            <div className="text-center p-2 rounded-lg hover:bg-default-50 transition-colors cursor-pointer">
+                            <div className="text-center p-2 rounded-lg hover:bg-content2 transition-colors cursor-pointer">
                                 <p className="text-lg mb-1">{stat.icon}</p>
                                 <p className={`text-lg font-bold text-${stat.color}`}>{stat.value}</p>
                                 <p className="text-xs text-default-500">{stat.label.split(' ')[0]}</p>
@@ -71,7 +71,7 @@ const UserSessionsCard = ({ sessions = {}, loading = false }) => {
                         <p className="text-xs font-semibold text-default-500 mb-2 uppercase">Device Types</p>
                         <div className="grid grid-cols-2 gap-2">
                             {Object.entries(deviceBreakdown).map(([type, count]) => (
-                                <div key={type} className="flex items-center gap-2 p-2 rounded-lg bg-default-50">
+                                <div key={type} className="flex items-center gap-2 p-2 rounded-lg bg-content2">
                                     <span className="text-primary">{deviceTypeIcons[type.toLowerCase()] || deviceTypeIcons.unknown}</span>
                                     <div className="flex-1 min-w-0">
                                         <p className="text-xs font-medium capitalize truncate">{type}</p>
@@ -89,7 +89,7 @@ const UserSessionsCard = ({ sessions = {}, loading = false }) => {
                         <p className="text-xs font-semibold text-default-500 mb-2 uppercase">Recent Activity</p>
                         <div className="space-y-2 max-h-64 overflow-y-auto">
                             {recentSessions.map((session, idx) => (
-                                <div key={idx} className={`flex items-center justify-between p-2 rounded-lg text-sm ${session.isOnline ? 'bg-success/10 border border-success/30' : 'bg-default-50'}`}>
+                                <div key={idx} className={`flex items-center justify-between p-2 rounded-lg text-sm ${session.isOnline ? 'bg-success/10 border border-success/30' : 'bg-content2'}`}>
                                     <div className="min-w-0">
                                         <p className="font-medium text-sm truncate">{session.user}</p>
                                         <p className="text-[10px] text-default-400 truncate">{session.ip}</p>

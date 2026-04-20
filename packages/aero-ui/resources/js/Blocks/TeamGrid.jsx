@@ -104,7 +104,7 @@ const TeamGrid = ({ content = {}, settings = {} }) => {
 
                     {/* Name */}
                     {member.name && (
-                      <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                      <h3 className="text-lg font-bold text-foreground">
                         {member.name}
                       </h3>
                     )}

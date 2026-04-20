@@ -196,7 +196,7 @@ const EmergencyContactForm = ({user,setUser, open, closeModal }) => {
                         <div>
                             <Card className="shadow-lg">
                                 <div className="p-4">
-                                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                                    <h4 className="text-lg font-semibold text-foreground mb-4">
                                         Primary Contact
                                     </h4>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -269,7 +269,7 @@ const EmergencyContactForm = ({user,setUser, open, closeModal }) => {
                         <div>
                             <Card className="shadow-lg">
                                 <div className="p-4">
-                                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                                    <h4 className="text-lg font-semibold text-foreground mb-4">
                                         Secondary Contact
                                     </h4>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -108,7 +108,7 @@ const MenuItem3D = React.memo(({
       >
         <span
           style={{
-            color: isActive ? accent.from : (isHovered ? accent.from : 'var(--theme-foreground-600, #52525B)'),
+            color: isActive ? accent.from : (isHovered ? accent.from : 'color-mix(in srgb, var(--theme-foreground, #11181C) 72%, transparent)'),
             width: cfg.iconSize,
             height: cfg.iconSize,
             display: 'flex',
@@ -137,7 +137,7 @@ const MenuItem3D = React.memo(({
         <ChevronDownIcon
           className="w-3.5 h-3.5"
           style={{
-            color: isActive ? accent.from : 'var(--theme-foreground-400, #A1A1AA)',
+            color: isActive ? accent.from : 'color-mix(in srgb, var(--theme-foreground, #11181C) 45%, transparent)',
             transition: 'color 0.2s ease',
           }}
         />
@@ -154,7 +154,7 @@ const MenuItem3D = React.memo(({
           background: isHighlighted
             ? `${accent.from}18`
             : 'color-mix(in srgb, var(--theme-content3, #E4E4E7) 60%, transparent)',
-          color: isHighlighted ? accent.from : 'var(--theme-foreground-500, #71717A)',
+          color: isHighlighted ? accent.from : 'color-mix(in srgb, var(--theme-foreground, #11181C) 58%, transparent)',
           transition: 'all 0.2s ease',
         }}
       >
@@ -256,7 +256,7 @@ const MenuItem3D = React.memo(({
           <motion.div
             className="absolute inset-0"
             style={{
-              background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.35) 50%, transparent 60%)',
+              background: 'linear-gradient(105deg, transparent 40%, color-mix(in srgb, var(--theme-foreground) 12%, transparent) 50%, transparent 60%)',
               backgroundSize: '200% 100%',
             }}
             animate={{ backgroundPosition: ['200% 0', '-200% 0'] }}

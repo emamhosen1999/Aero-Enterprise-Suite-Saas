@@ -69,7 +69,7 @@ export default function KPIBuilder({ kpis = [], onChange }) {
             <div className="flex justify-between items-center">
                 <div>
                     <h3 className="text-lg font-semibold">KPIs & Metrics</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-default-500">
                         Define measurable performance indicators
                     </p>
                 </div>
@@ -94,13 +94,13 @@ export default function KPIBuilder({ kpis = [], onChange }) {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <Card>
                             <CardBody>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">Total KPIs</p>
+                                <p className="text-sm text-default-500">Total KPIs</p>
                                 <p className="text-2xl font-bold">{kpis.length}</p>
                             </CardBody>
                         </Card>
                         <Card>
                             <CardBody>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">Total Weight</p>
+                                <p className="text-sm text-default-500">Total Weight</p>
                                 <p className="text-2xl font-bold">{totalWeight}%</p>
                                 {totalWeight !== 100 && (
                                     <p className="text-xs text-warning mt-1">Should be 100%</p>
@@ -109,7 +109,7 @@ export default function KPIBuilder({ kpis = [], onChange }) {
                         </Card>
                         <Card>
                             <CardBody>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">Weighted Score</p>
+                                <p className="text-sm text-default-500">Weighted Score</p>
                                 <p className="text-2xl font-bold">{averageScore.toFixed(1)}%</p>
                             </CardBody>
                         </Card>

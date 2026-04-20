@@ -171,7 +171,7 @@ export function ChunkedUploader({
                             </p>
                         ) : (
                             <>
-                                <p className="text-gray-600 dark:text-gray-300 mb-2">
+                                <p className="text-default-500 mb-2">
                                     Drag and drop a file here, or click to select
                                 </p>
                                 <p className="text-sm text-gray-400">
@@ -198,7 +198,7 @@ export function ChunkedUploader({
                     <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                         <DocumentIcon className="w-10 h-10 text-gray-400" />
                         <div className="flex-1 min-w-0">
-                            <p className="font-medium text-gray-900 dark:text-white truncate">
+                            <p className="font-medium text-foreground truncate">
                                 {file.name}
                             </p>
                             <p className="text-sm text-gray-500">

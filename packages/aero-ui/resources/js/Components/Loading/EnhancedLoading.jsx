@@ -78,7 +78,7 @@ export const SmartLoadingSpinner = memo(({
             {showLabel && (
                 <Typography 
                     variant="caption" 
-                    className="mt-2 text-gray-600 dark:text-gray-300"
+                    className="mt-2 text-default-500"
                     component="div"
                     sx={{ animation: `${fadeIn} 0.3s ease-out 0.1s both` }}
                 >
@@ -281,7 +281,7 @@ export const SmartInlineLoader = memo(({
                     ))}
                 </Box>
             )}
-            <Typography variant="body2" className="text-gray-600 dark:text-gray-300">
+            <Typography variant="body2" className="text-default-500">
                 {message}
             </Typography>
         </Box>

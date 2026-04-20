@@ -1,7 +1,8 @@
 import React from 'react';
-import { Card, CardBody, Progress, Chip, Button } from '@heroui/react';
-import { CheckCircleIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import { Card, CardBody, Progress, Chip } from '@heroui/react';
+import { CheckCircleIcon } from '@heroicons/react/24/outline';
 import { router } from '@inertiajs/react';
+import { getThemedCardStyle } from '@/Components/UI/ThemedCard';
 
 const OnboardingBanner = ({ steps = [] }) => {
     if (!steps || steps.length === 0) return null;
@@ -12,7 +13,17 @@ const OnboardingBanner = ({ steps = [] }) => {
     if (percentage === 100) return null;
 
     return (
-        <Card className="border border-primary/20 bg-primary/5">
+        <Card
+            className="transition-all duration-200"
+            style={{
+                ...getThemedCardStyle(),
+                border: `var(--borderWidth, 1px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 20%, var(--theme-divider, #E4E4E7))`,
+                background: `linear-gradient(135deg,
+                    color-mix(in srgb, var(--theme-primary, #006FEE) 8%, var(--theme-content1, #FAFAFA)) 0%,
+                    var(--theme-content1, #FAFAFA) 55%,
+                    color-mix(in srgb, var(--theme-primary, #006FEE) 4%, var(--theme-content2, #F4F4F5)) 100%)`,
+            }}
+        >
             <CardBody className="p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                     <div className="flex-1">
