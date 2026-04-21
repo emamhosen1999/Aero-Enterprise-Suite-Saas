@@ -924,6 +924,16 @@ return [
                         ['code' => 'export', 'name' => 'Export Performance Reports'],
                     ],
                 ],
+                [
+                    'code' => 'calibration',
+                    'name' => 'Performance Calibration',
+                    'type' => 'page',
+                    'route' => '/hrm/performance/calibration',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Calibration'],
+                        ['code' => 'manage', 'name' => 'Manage Calibration Sessions'],
+                    ],
+                ],
             ],
         ],
 
@@ -1283,6 +1293,17 @@ return [
                         ['code' => 'generate', 'name' => 'Generate Forecast'],
                     ],
                 ],
+                [
+                    'code' => 'talent-marketplace',
+                    'name' => 'Internal Talent Marketplace',
+                    'type' => 'page',
+                    'route' => '/hrm/talent-marketplace',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Marketplace'],
+                        ['code' => 'apply', 'name' => 'Apply to Opportunity'],
+                        ['code' => 'manage', 'name' => 'Manage Opportunities'],
+                    ],
+                ],
             ],
         ],
 
@@ -1637,6 +1658,16 @@ return [
                     'route' => '/hrm/ai-analytics/burnout',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Burnout Risks'],
+                    ],
+                ],
+                [
+                    'code' => 'wellbeing-monitor',
+                    'name' => 'Wellbeing & Burnout Monitor',
+                    'type' => 'page',
+                    'route' => '/hrm/wellbeing',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Wellbeing Dashboard'],
+                        ['code' => 'manage', 'name' => 'Manage Interventions'],
                     ],
                 ],
                 [

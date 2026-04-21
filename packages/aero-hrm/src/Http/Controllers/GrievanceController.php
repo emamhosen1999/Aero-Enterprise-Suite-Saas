@@ -6,6 +6,9 @@ use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Grievance;
 use Aero\HRM\Models\GrievanceCategory;
 use Aero\HRM\Models\GrievanceNote;
+use Aero\HRM\Http\Requests\StoreGrievanceRequest;
+use Aero\HRM\Http\Requests\UpdateGrievanceRequest;
+use Aero\HRM\Services\GrievanceResolutionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -14,6 +17,7 @@ use Inertia\Response;
 
 class GrievanceController extends Controller
 {
+    public function __construct(private GrievanceResolutionService $grievanceService) {}
     /**
      * Display grievance management page.
      */
@@ -106,28 +110,11 @@ class GrievanceController extends Controller
     /**
      * Store a new grievance.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreGrievanceRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'employee_id' => 'required|exists:employees,id',
-            'category_id' => 'nullable|exists:grievance_categories,id',
-            'subject' => 'required|string|max:255',
-            'description' => 'required|string',
-            'grievance_type' => 'required|in:harassment,discrimination,workplace_safety,compensation,management,policy,workload,interpersonal,other',
-            'severity' => 'required|in:low,medium,high,critical',
-            'against_employee_id' => 'nullable|exists:employees,id',
-            'against_department_id' => 'nullable|exists:departments,id',
-            'incident_date' => 'nullable|date',
-            'incident_location' => 'nullable|string|max:255',
-            'witnesses' => 'nullable|array',
-            'desired_resolution' => 'nullable|string',
-            'is_anonymous' => 'boolean',
-            'is_confidential' => 'boolean',
-        ]);
+        $validated = $request->validated();
 
-        $validated['status'] = 'submitted';
-
-        $grievance = Grievance::create($validated);
+        $grievance = $this->grievanceService->fileGrievance($validated);
 
         return response()->json([
             'message' => 'Grievance submitted successfully',
@@ -159,18 +146,11 @@ class GrievanceController extends Controller
     /**
      * Update grievance.
      */
-    public function update(Request $request, int $id): JsonResponse
+    public function update(UpdateGrievanceRequest $request, int $id): JsonResponse
     {
         $grievance = Grievance::findOrFail($id);
 
-        $validated = $request->validate([
-            'category_id' => 'nullable|exists:grievance_categories,id',
-            'subject' => 'required|string|max:255',
-            'description' => 'required|string',
-            'severity' => 'required|in:low,medium,high,critical',
-            'desired_resolution' => 'nullable|string',
-            'is_confidential' => 'boolean',
-        ]);
+        $validated = $request->validated();
 
         $grievance->update($validated);
 
@@ -191,24 +171,15 @@ class GrievanceController extends Controller
             'assigned_to' => 'required|exists:users,id',
         ]);
 
-        $grievance->update([
-            'assigned_to' => $validated['assigned_to'],
-            'assigned_at' => now(),
-            'status' => 'under_review',
-        ]);
-
-        // Add note
-        GrievanceNote::create([
-            'grievance_id' => $id,
-            'user_id' => auth()->id(),
-            'note_type' => 'update',
-            'content' => 'Grievance assigned for review',
-            'is_internal' => true,
-        ]);
+        $grievance = $this->grievanceService->assignInvestigator(
+            $grievance,
+            $validated['assigned_to'],
+            'Grievance assigned for review'
+        );
 
         return response()->json([
             'message' => 'Grievance assigned successfully',
-            'grievance' => $grievance->fresh(['assignedTo']),
+            'grievance' => $grievance->load(['assignedTo']),
         ]);
     }
 
@@ -219,21 +190,15 @@ class GrievanceController extends Controller
     {
         $grievance = Grievance::findOrFail($id);
 
-        $grievance->update([
-            'status' => 'investigating',
-        ]);
-
-        GrievanceNote::create([
-            'grievance_id' => $id,
-            'user_id' => auth()->id(),
-            'note_type' => 'investigation',
-            'content' => 'Investigation started',
-            'is_internal' => true,
-        ]);
+        $grievance = $this->grievanceService->assignInvestigator(
+            $grievance,
+            $grievance->assigned_to ?? auth()->id(),
+            'Investigation started'
+        );
 
         return response()->json([
             'message' => 'Investigation started',
-            'grievance' => $grievance->fresh(),
+            'grievance' => $grievance,
         ]);
     }
 
@@ -248,24 +213,15 @@ class GrievanceController extends Controller
             'resolution' => 'required|string',
         ]);
 
-        $grievance->update([
-            'status' => 'resolved',
-            'resolution' => $validated['resolution'],
-            'resolution_date' => now(),
-            'resolved_by' => auth()->id(),
-        ]);
-
-        GrievanceNote::create([
-            'grievance_id' => $id,
-            'user_id' => auth()->id(),
-            'note_type' => 'resolution',
-            'content' => "Resolution: {$validated['resolution']}",
-            'is_internal' => false,
-        ]);
+        $grievance = $this->grievanceService->resolve(
+            $grievance,
+            $validated['resolution'],
+            auth()->id()
+        );
 
         return response()->json([
             'message' => 'Grievance resolved',
-            'grievance' => $grievance->fresh(['resolvedBy']),
+            'grievance' => $grievance->load(['resolvedBy']),
         ]);
     }
 

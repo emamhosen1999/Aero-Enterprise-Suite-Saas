@@ -2,9 +2,12 @@
 
 namespace Aero\HRM\Http\Controllers;
 
+use Aero\HRM\Http\Requests\StoreWorkforcePlanRequest;
+use Aero\HRM\Http\Requests\UpdateWorkforcePlanRequest;
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\WorkforcePlan;
 use Aero\HRM\Models\WorkforcePlanPosition;
+use Aero\HRM\Services\WorkforceForecastingService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
@@ -17,6 +20,8 @@ use Inertia\Response;
  */
 class WorkforcePlanningController extends Controller
 {
+    public function __construct(private WorkforceForecastingService $forecastService) {}
+
     /**
      * Display workforce planning dashboard.
      */
@@ -99,20 +104,9 @@ class WorkforcePlanningController extends Controller
     /**
      * Create a new workforce plan.
      */
-    public function store(Request $request)
+    public function store(StoreWorkforcePlanRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'plan_year' => 'required|integer|min:2020|max:2050',
-            'plan_type' => 'required|in:annual,quarterly,strategic',
-            'department_id' => 'nullable|exists:departments,id',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after:start_date',
-            'budget_amount' => 'nullable|numeric|min:0',
-            'assumptions' => 'nullable|array',
-            'risks' => 'nullable|array',
-        ]);
+        $validated = $request->validated();
 
         // Calculate current headcount
         $query = Employee::where('employment_status', 'active');
@@ -152,24 +146,11 @@ class WorkforcePlanningController extends Controller
     /**
      * Update a workforce plan.
      */
-    public function update(Request $request, int $id)
+    public function update(UpdateWorkforcePlanRequest $request, int $id)
     {
         $plan = WorkforcePlan::findOrFail($id);
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'plan_year' => 'required|integer|min:2020|max:2050',
-            'plan_type' => 'required|in:annual,quarterly,strategic',
-            'department_id' => 'nullable|exists:departments,id',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after:start_date',
-            'planned_headcount' => 'nullable|integer|min:0',
-            'budget_amount' => 'nullable|numeric|min:0',
-            'status' => 'nullable|in:draft,active,approved,completed,cancelled',
-            'assumptions' => 'nullable|array',
-            'risks' => 'nullable|array',
-        ]);
+        $validated = $request->validated();
 
         $plan->update($validated);
 

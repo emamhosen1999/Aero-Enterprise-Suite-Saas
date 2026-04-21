@@ -8,10 +8,13 @@ import {
 import App from '@/Layouts/App.jsx';
 import { showToast } from '@/utils/toastUtils.jsx';
 import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import axios from 'axios';
 
 const EditPerformanceReview = ({ review, employees, reviewers, departments, templates }) => {
     const themeRadius = useThemeRadius();
+    const { canUpdate, isSuperAdmin } = useHRMAC();
+    const canUpdateReview = canUpdate('hrm.performance.reviews') || isSuperAdmin();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         employee_id: review?.employee_id?.toString() || '',
@@ -139,6 +142,7 @@ const EditPerformanceReview = ({ review, employees, reviewers, departments, temp
                                             >
                                                 Back
                                             </Button>
+                                            {canUpdateReview && (
                                             <Button
                                                 color="primary"
                                                 variant="shadow"
@@ -149,6 +153,7 @@ const EditPerformanceReview = ({ review, employees, reviewers, departments, temp
                                             >
                                                 Update Review
                                             </Button>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

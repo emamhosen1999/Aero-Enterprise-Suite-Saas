@@ -1,27 +1,60 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Head, usePage } from '@inertiajs/react';
-import { Button, Card, CardBody, CardHeader, Chip, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from "@heroui/react";
+import React, { useEffect, useMemo, useState } from 'react';
+import { Head, router } from '@inertiajs/react';
+import {
+    Button, Chip, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader,
+    Select, SelectItem, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Textarea,
+} from "@heroui/react";
 import { CalendarDaysIcon, CheckCircleIcon, ClockIcon, PlusIcon, XCircleIcon } from "@heroicons/react/24/outline";
+import axios from 'axios';
+import { showToast } from '@/utils/toastUtils.jsx';
 import App from '@/Layouts/App.jsx';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
-import { getThemedCardStyle } from '@/Components/UI/ThemedCard.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
 import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
 
-const TimeOff = ({ title, requests = [] }) => {
-    const { auth } = usePage().props;
+const EMPTY_FORM = { leave_type_id: '', start_date: '', end_date: '', reason: '' };
+
+const TimeOff = ({ title, requests = [], leaveTypes = [] }) => {
     const themeRadius = useThemeRadius();
-    const { hasAccess, isSuperAdmin } = useHRMAC();
+    const { canCreate, isSuperAdmin } = useHRMAC();
+    const canRequest = canCreate('hrm.self-service.time-off') || isSuperAdmin();
     
     const [isMobile, setIsMobile] = useState(false);
-    
     useEffect(() => {
-        const checkScreenSize = () => setIsMobile(window.innerWidth < 640);
-        checkScreenSize();
-        window.addEventListener('resize', checkScreenSize);
-        return () => window.removeEventListener('resize', checkScreenSize);
+        const check = () => setIsMobile(window.innerWidth < 640);
+        check();
+        window.addEventListener('resize', check);
+        return () => window.removeEventListener('resize', check);
     }, []);
+
+    const [modalOpen, setModalOpen]   = useState(false);
+    const [form, setForm]             = useState(EMPTY_FORM);
+    const [formErrors, setFormErrors] = useState({});
+    const [submitting, setSubmitting] = useState(false);
+
+    const handleSubmit = () => {
+        setSubmitting(true);
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post(route('hrm.time-off.store'), form);
+                if (response.status === 200 || response.status === 201) {
+                    resolve([response.data.message || 'Time-off request submitted']);
+                    setModalOpen(false);
+                    setForm(EMPTY_FORM);
+                    router.reload({ only: ['requests'] });
+                }
+            } catch (error) {
+                if (error.response?.status === 422) setFormErrors(error.response.data.errors || {});
+                reject(error.response?.data?.message || 'Failed to submit request');
+            } finally { setSubmitting(false); }
+        });
+        showToast.promise(promise, {
+            loading: 'Submitting time-off request...',
+            success: (d) => d.join(', '),
+            error: (e) => String(e),
+        });
+    };
 
     const stats = useMemo(() => {
         const pending = requests.filter(r => r.status === 'pending').length;
@@ -61,20 +94,55 @@ const TimeOff = ({ title, requests = [] }) => {
     };
 
     return (
-        <StandardPageLayout
-            title="My Time-Off"
-            subtitle="Request and track your time-off"
-            icon={<CalendarDaysIcon className="w-6 h-6" />}
-            iconColorClass="text-primary"
-            iconBgClass="bg-primary/20"
-            stats={<StatsCards stats={statsData} />}
-            actions={
-                <Button color="primary" variant="shadow" startContent={<PlusIcon className="w-4 h-4" />} size={isMobile ? "sm" : "md"}>
-                    Request Time-Off
-                </Button>
-            }
-            ariaLabel="My Time-Off"
-        >
+        <>
+            <Head title={title || 'My Time-Off'} />
+
+            {modalOpen && (
+                <Modal isOpen scrollBehavior="inside" size="lg" onOpenChange={(open) => { setModalOpen(open); if (!open) { setForm(EMPTY_FORM); setFormErrors({}); } }}
+                    classNames={{ base: 'bg-content1', header: 'border-b border-divider', footer: 'border-t border-divider' }}>
+                    <ModalContent>
+                        <ModalHeader>Request Time-Off</ModalHeader>
+                        <ModalBody className="py-4 space-y-4">
+                            <Select label="Leave Type" placeholder="Select leave type" isRequired radius={themeRadius}
+                                selectedKeys={form.leave_type_id ? [form.leave_type_id] : []}
+                                onSelectionChange={(keys) => setForm(p => ({ ...p, leave_type_id: Array.from(keys)[0] || '' }))}
+                                isInvalid={!!formErrors.leave_type_id} errorMessage={formErrors.leave_type_id}>
+                                {leaveTypes.map(lt => <SelectItem key={String(lt.id)}>{lt.name}</SelectItem>)}
+                            </Select>
+                            <div className="grid grid-cols-2 gap-4">
+                                <Input type="date" label="Start Date" isRequired radius={themeRadius}
+                                    value={form.start_date}
+                                    onChange={(e) => setForm(p => ({ ...p, start_date: e.target.value }))}
+                                    isInvalid={!!formErrors.start_date} errorMessage={formErrors.start_date} />
+                                <Input type="date" label="End Date" isRequired radius={themeRadius}
+                                    value={form.end_date}
+                                    onChange={(e) => setForm(p => ({ ...p, end_date: e.target.value }))}
+                                    isInvalid={!!formErrors.end_date} errorMessage={formErrors.end_date} />
+                            </div>
+                            <Textarea label="Reason" placeholder="Briefly describe your reason" radius={themeRadius}
+                                value={form.reason} onValueChange={(v) => setForm(p => ({ ...p, reason: v }))} />
+                        </ModalBody>
+                        <ModalFooter>
+                            <Button variant="flat" onPress={() => { setModalOpen(false); setForm(EMPTY_FORM); setFormErrors({}); }}>Cancel</Button>
+                            <Button color="primary" isLoading={submitting} onPress={handleSubmit}>Submit Request</Button>
+                        </ModalFooter>
+                    </ModalContent>
+                </Modal>
+            )}
+
+            <StandardPageLayout
+                title="My Time-Off"
+                subtitle="Request and track your time-off"
+                icon={<CalendarDaysIcon />}
+                stats={<StatsCards stats={statsData} />}
+                actions={canRequest && (
+                    <Button color="primary" variant="shadow" startContent={<PlusIcon className="w-4 h-4" />}
+                        size={isMobile ? 'sm' : 'md'} onPress={() => setModalOpen(true)}>
+                        Request Time-Off
+                    </Button>
+                )}
+                ariaLabel="My Time-Off"
+            >
             {requests.length > 0 ? (
                 <Table aria-label="Time-off requests" classNames={{
                     wrapper: "shadow-none border border-divider rounded-lg",
@@ -99,7 +167,8 @@ const TimeOff = ({ title, requests = [] }) => {
                     <p className="text-sm">You haven't submitted any time-off requests yet.</p>
                 </div>
             )}
-        </StandardPageLayout>
+            </StandardPageLayout>
+        </>
     );
 };
 

@@ -31,6 +31,7 @@ import {
 } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
 import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import { showToast } from '@/utils/toastUtils';
 import StatsCards from '@/Components/StatsCards';
 import { router } from '@inertiajs/react';
@@ -38,6 +39,10 @@ import { router } from '@inertiajs/react';
 const Structures = ({ title, structures, departments }) => {
     const themeRadius = useThemeRadius();
     const { auth } = usePage().props;
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+    const canAddStructure = canCreate('hrm.payroll.structures') || isSuperAdmin();
+    const canEditStructure = canUpdate('hrm.payroll.structures') || isSuperAdmin();
+    const canDeleteStructure = canDelete('hrm.payroll.structures') || isSuperAdmin();
     
     // Form state for creating/editing structures
     const { data, setData, post, put, processing, errors, reset } = useForm({
@@ -202,23 +207,27 @@ const Structures = ({ title, structures, departments }) => {
             case "actions":
                 return (
                     <div className="flex gap-2">
-                        <Button
-                            size="sm"
-                            variant="light"
-                            isIconOnly
-                            onPress={() => openModal('edit', structure)}
-                        >
-                            <PencilIcon className="w-4 h-4" />
-                        </Button>
-                        <Button
-                            size="sm"
-                            variant="light"
-                            color="danger"
-                            isIconOnly
-                            onPress={() => openModal('delete', structure)}
-                        >
-                            <TrashIcon className="w-4 h-4" />
-                        </Button>
+                        {canEditStructure && (
+                            <Button
+                                size="sm"
+                                variant="light"
+                                isIconOnly
+                                onPress={() => openModal('edit', structure)}
+                            >
+                                <PencilIcon className="w-4 h-4" />
+                            </Button>
+                        )}
+                        {canDeleteStructure && (
+                            <Button
+                                size="sm"
+                                variant="light"
+                                color="danger"
+                                isIconOnly
+                                onPress={() => openModal('delete', structure)}
+                            >
+                                <TrashIcon className="w-4 h-4" />
+                            </Button>
+                        )}
                     </div>
                 );
             default:
@@ -325,6 +334,7 @@ const Structures = ({ title, structures, departments }) => {
                                         >
                                             Back to Payroll
                                         </Button>
+                                        {canAddStructure && (
                                         <Button
                                             color="primary"
                                             variant="shadow"
@@ -333,6 +343,7 @@ const Structures = ({ title, structures, departments }) => {
                                         >
                                             Add Structure
                                         </Button>
+                                        )}
                                     </div>
                                 </div>
                             </CardHeader>

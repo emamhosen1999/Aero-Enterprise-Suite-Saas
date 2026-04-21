@@ -1,5 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Head, usePage } from '@inertiajs/react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Head } from '@inertiajs/react';
+import axios from 'axios';
+import { showToast } from '@/utils/toastUtils.jsx';
 import { Button, Chip, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from "@heroui/react";
 import { BanknotesIcon, ArrowDownTrayIcon, CalendarIcon, CurrencyDollarIcon } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
@@ -8,10 +10,26 @@ import StatsCards from '@/Components/StatsCards.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
 import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
 
-const Payslips = ({ title, payslips = [] }) => {
-    const { auth } = usePage().props;
+const Payslips = ({ title, payslips: initialPayslips = [] }) => {
     const { hasAccess } = useHRMAC();
     const themeRadius = useThemeRadius();
+    const [payslips, setPayslips] = useState(initialPayslips);
+    const [loading, setLoading]   = useState(false);
+
+    const fetchPayslips = useCallback(async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get(route('hrm.self-service.payslips'));
+            if (response.status === 200) {
+                const d = response.data;
+                setPayslips(Array.isArray(d) ? d : (d.data || []));
+            }
+        } catch (error) {
+            showToast.promise(Promise.reject(error), { error: 'Failed to load payslips' });
+        } finally { setLoading(false); }
+    }, []);
+
+    useEffect(() => { fetchPayslips(); }, [fetchPayslips]);
     
     const [isMobile, setIsMobile] = useState(false);
     
@@ -58,7 +76,9 @@ const Payslips = ({ title, payslips = [] }) => {
                 return `$${(item[columnKey] || 0).toLocaleString()}`;
             case 'actions':
                 return (
-                    <Button size="sm" variant="flat" color="primary" startContent={<ArrowDownTrayIcon className="w-4 h-4" />}>
+                    <Button size="sm" variant="flat" color="primary"
+                        startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
+                        onPress={() => window.open(route('hrm.self-service.payslips.download', item.id), '_blank')}>
                         Download
                     </Button>
                 );

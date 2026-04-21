@@ -5,12 +5,15 @@ namespace Aero\HRM\Http\Controllers\Disciplinary;
 use Aero\HRM\Models\DisciplinaryActionType;
 use Aero\HRM\Models\DisciplinaryCase;
 use Aero\HRM\Models\Employee;
+use Aero\HRM\Http\Requests\StoreDisciplinaryCaseRequest;
+use Aero\HRM\Services\DisciplinaryWorkflowService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class DisciplinaryCaseController extends Controller
 {
+    public function __construct(private DisciplinaryWorkflowService $disciplinaryService) {}
     public function index()
     {
         return Inertia::render('HRM/Disciplinary/DisciplinaryCasesIndex', [
@@ -63,21 +66,12 @@ class DisciplinaryCaseController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreDisciplinaryCaseRequest $request)
     {
-        $validated = $request->validate([
-            'employee_id' => 'required|exists:employees,id',
-            'action_type_id' => 'required|exists:disciplinary_action_types,id',
-            'incident_date' => 'required|date',
-            'incident_description' => 'required|string',
-            'investigation_notes' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
-        $case = DisciplinaryCase::create(array_merge($validated, [
-            'case_number' => DisciplinaryCase::generateCaseNumber(),
-            'reported_by' => $request->user()->id,
-            'status' => DisciplinaryCase::STATUS_PENDING,
-        ]));
+        $validated['reported_by'] = $request->user()->id;
+        $case = $this->disciplinaryService->openCase($validated);
 
         return response()->json(['message' => 'Disciplinary case created', 'case' => $case], 201);
     }
@@ -86,17 +80,19 @@ class DisciplinaryCaseController extends Controller
     {
         $case = DisciplinaryCase::findOrFail($id);
 
-        if ($case->status !== DisciplinaryCase::STATUS_PENDING) {
-            return response()->json(['message' => 'Case is not in pending status'], 422);
-        }
-
         $validated = $request->validate([
             'investigation_notes' => 'nullable|string',
         ]);
 
-        $case->update(array_merge($validated, [
-            'status' => DisciplinaryCase::STATUS_INVESTIGATING,
-        ]));
+        try {
+            $case = $this->disciplinaryService->startInvestigation(
+                $case,
+                $request->user()->id,
+                $validated['investigation_notes'] ?? null
+            );
+        } catch (\RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
 
         return response()->json(['message' => 'Investigation started']);
     }

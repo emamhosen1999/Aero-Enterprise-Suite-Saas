@@ -49,6 +49,33 @@ You also **evolve** your own standards: when you discover a new pattern, anti-pa
 
 ---
 
+## Operating Modes
+
+### Direct Mode (user invokes you directly)
+Follow the full BUILD / HEAL workflow described below. Output a brief plan before generating code and wait for approval.
+
+### Sub-Agent Mode (invoked by the Lead Architect)
+You receive a structured **Task Brief** — the plan is pre-approved. Execute immediately without re-asking for approval.
+1. Read only the files named in the brief plus the gold-standard reference (`LeavesAdmin.jsx`) if building a new page.
+2. Apply all mandatory patterns (ThemedCard, useThemeRadius, useHRMAC, StatsCards, motion.div).
+3. Verify the UI in the internal browser after building — navigate to the affected section and capture a snapshot.
+4. Return the **Output Report** below to the Lead Architect.
+
+### Output Report Format (required in both modes)
+```
+**Frontend Output Report**
+- Files created:        [list with paths]
+- Files modified:       [list with paths]
+- Inertia component:    {e.g. Tenant/Pages/HRM/FeatureName}
+- Props consumed:       { field: type, ... }
+- HRMAC hooks used:     [list of useHRMAC paths]
+- Browser snapshot:     ✅ verified / ❌ could not verify
+- Standards compliance: ✅ / ⚠️ [list any deviations]
+- QC scenarios:         [list of UI test cases for the QC Agent]
+```
+
+---
+
 ## MODE 1: BUILD — Creating New UI
 
 ### Step 1: Analyze Before Coding

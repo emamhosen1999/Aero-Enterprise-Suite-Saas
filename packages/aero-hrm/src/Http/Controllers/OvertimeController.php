@@ -4,6 +4,8 @@ namespace Aero\HRM\Http\Controllers;
 
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\OvertimeRecord;
+use Aero\HRM\Http\Requests\StoreOvertimeRecordRequest;
+use Aero\HRM\Http\Requests\UpdateOvertimeRecordRequest;
 use Aero\HRM\Services\OvertimeApprovalService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -104,19 +106,9 @@ class OvertimeController extends Controller
     /**
      * Store a new overtime request.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreOvertimeRecordRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'employee_id' => 'required|exists:employees,id',
-            'date' => 'required|date',
-            'start_time' => 'nullable|date_format:H:i',
-            'end_time' => 'nullable|date_format:H:i',
-            'hours' => 'required|numeric|min:0.5|max:24',
-            'overtime_type' => 'required|in:weekday,weekend,holiday,night,emergency',
-            'reason' => 'required|string',
-            'task_description' => 'nullable|string',
-            'project_id' => 'nullable|integer',
-        ]);
+        $validated = $request->validated();
 
         $validated['rate_multiplier'] = OvertimeRecord::getDefaultMultiplier($validated['overtime_type']);
         $validated['requested_by'] = auth()->id();
@@ -133,7 +125,7 @@ class OvertimeController extends Controller
     /**
      * Update overtime record.
      */
-    public function update(Request $request, int $id): JsonResponse
+    public function update(UpdateOvertimeRecordRequest $request, int $id): JsonResponse
     {
         $record = OvertimeRecord::findOrFail($id);
 
@@ -141,15 +133,7 @@ class OvertimeController extends Controller
             return response()->json(['message' => 'Cannot edit a processed overtime record'], 422);
         }
 
-        $validated = $request->validate([
-            'date' => 'required|date',
-            'start_time' => 'nullable|date_format:H:i',
-            'end_time' => 'nullable|date_format:H:i',
-            'hours' => 'required|numeric|min:0.5|max:24',
-            'overtime_type' => 'required|in:weekday,weekend,holiday,night,emergency',
-            'reason' => 'required|string',
-            'task_description' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
         $validated['rate_multiplier'] = OvertimeRecord::getDefaultMultiplier($validated['overtime_type']);
 

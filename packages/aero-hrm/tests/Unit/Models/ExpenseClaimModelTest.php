@@ -1,11 +1,11 @@
 <?php
 
-namespace AeroHRM\Tests\Unit\Models;
+namespace Aero\HRM\Tests\Unit\Models;
 
-use AeroHRM\Models\Employee;
-use AeroHRM\Models\ExpenseCategory;
-use AeroHRM\Models\ExpenseClaim;
-use AeroHRM\Tests\TestCase;
+use Aero\HRM\Models\Employee;
+use Aero\HRM\Models\ExpenseCategory;
+use Aero\HRM\Models\ExpenseClaim;
+use Aero\HRM\Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class ExpenseClaimModelTest extends TestCase

@@ -21,12 +21,15 @@ import {
 } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
 import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import { showToast } from '@/utils/toastUtils';
 import { router } from '@inertiajs/react';
 
 const CreatePayroll = ({ title, employees, allowanceTypes, deductionTypes }) => {
     const themeRadius = useThemeRadius();
     const { auth } = usePage().props;
+    const { canCreate, isSuperAdmin } = useHRMAC();
+    const canCreatePayroll = canCreate('hrm.payroll') || isSuperAdmin();
     
     // Form state
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -273,6 +276,7 @@ const CreatePayroll = ({ title, employees, allowanceTypes, deductionTypes }) => 
                                         >
                                             Cancel
                                         </Button>
+                                        {canCreatePayroll && (
                                         <Button
                                             type="submit"
                                             color="primary"
@@ -282,6 +286,7 @@ const CreatePayroll = ({ title, employees, allowanceTypes, deductionTypes }) => 
                                         >
                                             Create Payroll
                                         </Button>
+                                        )}
                                     </div>
                                 </form>
                             </CardBody>

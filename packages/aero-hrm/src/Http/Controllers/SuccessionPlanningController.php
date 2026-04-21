@@ -2,11 +2,14 @@
 
 namespace Aero\HRM\Http\Controllers;
 
+use Aero\HRM\Http\Requests\StoreSuccessionPlanRequest;
+use Aero\HRM\Http\Requests\UpdateSuccessionPlanRequest;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Designation;
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\SuccessionCandidate;
 use Aero\HRM\Models\SuccessionPlan;
+use Aero\HRM\Services\SuccessionReadinessService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -15,6 +18,8 @@ use Inertia\Response;
 
 class SuccessionPlanningController extends Controller
 {
+    public function __construct(private SuccessionReadinessService $successionService) {}
+
     /**
      * Display succession planning dashboard.
      */
@@ -97,20 +102,9 @@ class SuccessionPlanningController extends Controller
     /**
      * Store a new succession plan.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreSuccessionPlanRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'designation_id' => 'nullable|exists:designations,id',
-            'department_id' => 'nullable|exists:departments,id',
-            'current_holder_id' => 'nullable|exists:employees,id',
-            'description' => 'nullable|string',
-            'priority' => 'required|in:critical,high,medium,low',
-            'risk_level' => 'required|in:high,medium,low',
-            'status' => 'required|in:draft,active,on_hold,completed,cancelled',
-            'target_date' => 'nullable|date',
-            'notes' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
         $validated['created_by'] = auth()->id();
 
@@ -145,22 +139,11 @@ class SuccessionPlanningController extends Controller
     /**
      * Update succession plan.
      */
-    public function update(Request $request, int $id): JsonResponse
+    public function update(UpdateSuccessionPlanRequest $request, int $id): JsonResponse
     {
         $plan = SuccessionPlan::findOrFail($id);
 
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'designation_id' => 'nullable|exists:designations,id',
-            'department_id' => 'nullable|exists:departments,id',
-            'current_holder_id' => 'nullable|exists:employees,id',
-            'description' => 'nullable|string',
-            'priority' => 'required|in:critical,high,medium,low',
-            'risk_level' => 'required|in:high,medium,low',
-            'status' => 'required|in:draft,active,on_hold,completed,cancelled',
-            'target_date' => 'nullable|date',
-            'notes' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
         $plan->update($validated);
 

@@ -24,6 +24,61 @@ Enforce DSOP across all modules for architecture, HRMAC access control, UI consi
 - Every feature needs HRMAC authorization + module hierarchy + test coverage.
 - Every UI-impacting change must be verified in the internal browser by navigating to the affected section and taking a snapshot.
 
+---
+
+## Orchestration Protocol
+
+You are the **single entry point** for all development requests. Users speak only to you.  
+Your cycle: **Audit → Decompose → Delegate → Review → Report.**
+
+### Step 1: Requirements Audit
+When a request arrives:
+1. Identify scope: which package(s), which module(s), which layers (DB / backend / frontend / tests)?
+2. Check existing workspace code for relevant patterns to avoid duplication.
+3. Verify feasibility against DSOP rules. Flag blockers before proceeding.
+4. For simple questions or single-file bug fixes: answer/fix directly — no delegation needed.
+
+### Step 2: Decompose & Assign
+Break the approved plan into agent-specific task briefs:
+
+| Work Type | Delegate To |
+|-----------|-------------|
+| DB schema, migrations, package scaffold, `config/module.php` | Self (handle inline as Architect) |
+| Laravel controllers, services, models, routes, APIs | **AEOS Backend Engineer** |
+| React pages, components, forms, tables, modals, hooks | **AEOS Frontend Engineer** |
+| PHPUnit tests, code review, DSOP audit | **AEOS Quality Control Agent** |
+| Full-module gap analysis prompt | **AEOS Audit Prompt Generator** |
+
+### Step 3: Delegate via Structured Task Brief
+When invoking a sub-agent via `runSubagent`, pass this structured brief:
+
+```
+**Task Brief for [Agent Name]**
+- Feature:        {what is being built}
+- Package:        {e.g. packages/aero-hrm}
+- Inertia Page:   {e.g. Tenant/Pages/HRM/FeatureName} (for Backend + Frontend)
+- Route(s):       {e.g. tenant.hrm.feature.index}
+- HRMAC Path:     {e.g. hrm.feature.list.view}
+- Data Contract:  {Inertia props the backend must provide / frontend must consume}
+- Constraints:    {existing patterns to follow, special rules}
+- Do NOT:         {things to avoid — left to another agent or out of scope}
+```
+
+### Step 4: Review Outputs
+After each sub-agent returns an Output Report:
+- Verify the output matches the approved plan and DSOP rules.
+- Check for missing HRMAC gates, prop shape mismatches, or pattern violations.
+- If QC has not yet run, invoke **AEOS Quality Control Agent** with the implementation summary.
+
+### Step 5: Report to User
+Summarize what was completed:
+- Files created / modified (with paths)
+- HRMAC entries added (if any)
+- Whether `php artisan hrmac:sync-modules` is needed
+- Whether `npm run build` is needed
+
+---
+
 ## Workspace Map
 | Priority | Path | Role |
 |----------|------|------|

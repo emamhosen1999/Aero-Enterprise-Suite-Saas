@@ -6,6 +6,10 @@ use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\PulseSurvey;
 use Aero\HRM\Models\PulseSurveyResponse;
+use Aero\HRM\Http\Requests\StorePulseSurveyRequest;
+use Aero\HRM\Http\Requests\UpdatePulseSurveyRequest;
+use Aero\HRM\Http\Requests\SubmitPulseSurveyResponseRequest;
+use Aero\HRM\Services\PulseSurveyAnalyticsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -14,6 +18,7 @@ use Inertia\Response;
 
 class PulseSurveyController extends Controller
 {
+    public function __construct(private PulseSurveyAnalyticsService $surveyService) {}
     /**
      * Display pulse survey management page.
      */
@@ -94,22 +99,9 @@ class PulseSurveyController extends Controller
     /**
      * Store a new pulse survey.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StorePulseSurveyRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'questions' => 'required|array|min:1',
-            'questions.*.text' => 'required|string',
-            'questions.*.type' => 'required|in:rating,text,multiple_choice,yes_no',
-            'questions.*.options' => 'nullable|array',
-            'frequency' => 'required|in:weekly,biweekly,monthly,one_time',
-            'target_departments' => 'nullable|array',
-            'target_designations' => 'nullable|array',
-            'is_anonymous' => 'boolean',
-            'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after:start_date',
-        ]);
+        $validated = $request->validated();
 
         $validated['created_by'] = auth()->id();
         $validated['status'] = 'draft';
@@ -139,7 +131,7 @@ class PulseSurveyController extends Controller
     /**
      * Update survey.
      */
-    public function update(Request $request, int $id): JsonResponse
+    public function update(UpdatePulseSurveyRequest $request, int $id): JsonResponse
     {
         $survey = PulseSurvey::findOrFail($id);
 
@@ -147,17 +139,7 @@ class PulseSurveyController extends Controller
             return response()->json(['message' => 'Cannot edit a survey with responses'], 422);
         }
 
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'questions' => 'required|array|min:1',
-            'frequency' => 'required|in:weekly,biweekly,monthly,one_time',
-            'target_departments' => 'nullable|array',
-            'target_designations' => 'nullable|array',
-            'is_anonymous' => 'boolean',
-            'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after:start_date',
-        ]);
+        $validated = $request->validated();
 
         $survey->update($validated);
 
@@ -226,7 +208,7 @@ class PulseSurveyController extends Controller
     /**
      * Submit survey response (for employees).
      */
-    public function submitResponse(Request $request, int $surveyId): JsonResponse
+    public function submitResponse(SubmitPulseSurveyResponseRequest $request, int $surveyId): JsonResponse
     {
         $survey = PulseSurvey::active()->findOrFail($surveyId);
         $employeeId = Employee::where('user_id', auth()->id())->value('id');
@@ -240,10 +222,7 @@ class PulseSurveyController extends Controller
             return response()->json(['message' => 'You have already completed this survey'], 422);
         }
 
-        $validated = $request->validate([
-            'responses' => 'required|array',
-            'comments' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
         $response = PulseSurveyResponse::updateOrCreate(
             [

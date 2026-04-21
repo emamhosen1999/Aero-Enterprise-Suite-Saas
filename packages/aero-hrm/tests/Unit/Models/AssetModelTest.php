@@ -1,12 +1,12 @@
 <?php
 
-namespace AeroHRM\Tests\Unit\Models;
+namespace Aero\HRM\Tests\Unit\Models;
 
-use AeroHRM\Models\Asset;
-use AeroHRM\Models\AssetAllocation;
-use AeroHRM\Models\AssetCategory;
-use AeroHRM\Models\Employee;
-use AeroHRM\Tests\TestCase;
+use Aero\HRM\Models\Asset;
+use Aero\HRM\Models\AssetAllocation;
+use Aero\HRM\Models\AssetCategory;
+use Aero\HRM\Models\Employee;
+use Aero\HRM\Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class AssetModelTest extends TestCase

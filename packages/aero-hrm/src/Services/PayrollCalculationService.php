@@ -2,7 +2,7 @@
 
 namespace Aero\HRM\Services;
 
-use Aero\Core\Models\User;
+use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Payroll;
 use Aero\HRM\Models\PayrollAllowance;
 use Aero\HRM\Models\PayrollDeduction;
@@ -20,7 +20,7 @@ class PayrollCalculationService
     /**
      * Calculate comprehensive payroll for an employee
      */
-    public function calculatePayroll(User $employee, Carbon $payPeriodStart, Carbon $payPeriodEnd, array $additionalData = [])
+    public function calculatePayroll($employee, Carbon $payPeriodStart, Carbon $payPeriodEnd, array $additionalData = [])
     {
         $workingDays = $this->getWorkingDays($payPeriodStart, $payPeriodEnd);
         $attendanceData = $this->getAttendanceData($employee, $payPeriodStart, $payPeriodEnd);
@@ -331,7 +331,8 @@ class PayrollCalculationService
         $results = [];
 
         foreach ($employeeIds as $employeeId) {
-            $employee = User::find($employeeId);
+            // Resolve Employee by user_id (employeeIds are user IDs from the controller)
+            $employee = Employee::where('user_id', $employeeId)->first();
             if (! $employee) {
                 continue;
             }
@@ -341,7 +342,7 @@ class PayrollCalculationService
 
                 // Create payroll record
                 $payroll = Payroll::create([
-                    'user_id' => $employee->id,
+                    'user_id' => $employeeId,
                     'pay_period_start' => $payPeriodStart,
                     'pay_period_end' => $payPeriodEnd,
                     'basic_salary' => $calculation['basic_salary'],

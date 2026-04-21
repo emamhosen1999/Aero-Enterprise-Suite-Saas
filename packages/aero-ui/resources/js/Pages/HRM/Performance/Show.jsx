@@ -12,10 +12,13 @@ import {
 } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
 import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import { router } from '@inertiajs/react';
 
 const ShowPerformanceReview = ({ review }) => {
     const themeRadius = useThemeRadius();
+    const { canUpdate, isSuperAdmin } = useHRMAC();
+    const canEditReview = canUpdate('hrm.performance.reviews') || isSuperAdmin();
 
     // Responsive state management
     const [isMobile, setIsMobile] = useState(false);
@@ -106,6 +109,7 @@ const ShowPerformanceReview = ({ review }) => {
                                             >
                                                 Back
                                             </Button>
+                                            {canEditReview && (
                                             <Button
                                                 color="primary"
                                                 variant="shadow"
@@ -115,6 +119,7 @@ const ShowPerformanceReview = ({ review }) => {
                                             >
                                                 Edit Review
                                             </Button>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

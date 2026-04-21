@@ -37,10 +37,12 @@ import { useThemeRadius } from '@/Hooks/useThemeRadius';
 import { showToast } from '@/utils/toastUtils';
 import StatsCards from '@/Components/StatsCards';
 import { router } from '@inertiajs/react';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const Components = ({ title, allowances, deductions }) => {
     const themeRadius = useThemeRadius();
     const { auth } = usePage().props;
+    const { canCreate, canUpdate, canDelete } = useHRMAC();
     
     // Form state for creating/editing components
     const { data, setData, post, put, processing, errors, reset } = useForm({
@@ -242,23 +244,27 @@ const Components = ({ title, allowances, deductions }) => {
             case "actions":
                 return (
                     <div className="flex gap-2">
-                        <Button
-                            size="sm"
-                            variant="light"
-                            isIconOnly
-                            onPress={() => openModal('edit', component)}
-                        >
-                            <PencilIcon className="w-4 h-4" />
-                        </Button>
-                        <Button
-                            size="sm"
-                            variant="light"
-                            color="danger"
-                            isIconOnly
-                            onPress={() => openModal('delete', component)}
-                        >
-                            <TrashIcon className="w-4 h-4" />
-                        </Button>
+                        {canUpdate && (
+                            <Button
+                                size="sm"
+                                variant="light"
+                                isIconOnly
+                                onPress={() => openModal('edit', component)}
+                            >
+                                <PencilIcon className="w-4 h-4" />
+                            </Button>
+                        )}
+                        {canDelete && (
+                            <Button
+                                size="sm"
+                                variant="light"
+                                color="danger"
+                                isIconOnly
+                                onPress={() => openModal('delete', component)}
+                            >
+                                <TrashIcon className="w-4 h-4" />
+                            </Button>
+                        )}
                     </div>
                 );
             default:
@@ -393,14 +399,16 @@ const Components = ({ title, allowances, deductions }) => {
                                         >
                                             Back to Payroll
                                         </Button>
-                                        <Button
-                                            color="primary"
-                                            variant="shadow"
-                                            startContent={<PlusIcon className="w-4 h-4" />}
-                                            onPress={() => openModal('add')}
-                                        >
-                                            Add Component
-                                        </Button>
+                                        {canCreate && (
+                                            <Button
+                                                color="primary"
+                                                variant="shadow"
+                                                startContent={<PlusIcon className="w-4 h-4" />}
+                                                onPress={() => openModal('add')}
+                                            >
+                                                Add Component
+                                            </Button>
+                                        )}
                                     </div>
                                 </div>
                             </CardHeader>

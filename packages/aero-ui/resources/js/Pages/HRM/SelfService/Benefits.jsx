@@ -1,18 +1,35 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Head, usePage } from '@inertiajs/react';
-import { Card, CardBody, CardHeader, Chip, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from "@heroui/react";
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Head } from '@inertiajs/react';
+import { Chip, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from "@heroui/react";
+import axios from 'axios';
+import { showToast } from '@/utils/toastUtils.jsx';
 import { GiftIcon, HeartIcon, ShieldCheckIcon, CurrencyDollarIcon } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
-import { getThemedCardStyle } from '@/Components/UI/ThemedCard.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
 import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
 
-const Benefits = ({ title, benefits = [] }) => {
-    const { auth } = usePage().props;
+const Benefits = ({ title, benefits: initialBenefits = [] }) => {
     const themeRadius = useThemeRadius();
-    const { hasAccess, isSuperAdmin } = useHRMAC();
+    const { hasAccess } = useHRMAC();
+    const [benefits, setBenefits] = useState(initialBenefits);
+    const [loading, setLoading]   = useState(false);
+
+    const fetchBenefits = useCallback(async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get(route('hrm.self-service.benefits'));
+            if (response.status === 200) {
+                const d = response.data;
+                setBenefits(Array.isArray(d) ? d : (d.data || []));
+            }
+        } catch (error) {
+            showToast.promise(Promise.reject(error), { error: 'Failed to load benefits' });
+        } finally { setLoading(false); }
+    }, []);
+
+    useEffect(() => { fetchBenefits(); }, [fetchBenefits]);
     
     const [isMobile, setIsMobile] = useState(false);
     

@@ -5,10 +5,12 @@ namespace Aero\HRM\Http\Controllers\Employee;
 use Aero\Core\Models\User;
 use Aero\HRM\Events\Safety\SafetyIncidentReported;
 use Aero\HRM\Http\Controllers\Controller;
+use Aero\HRM\Http\Requests\StoreSafetyIncidentRequest;
+use Aero\HRM\Http\Requests\UpdateSafetyIncidentRequest;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\SafetyIncident;
 use Aero\HRM\Models\SafetyIncidentParticipant;
-use Illuminate\Http\Request;
+use Aero\HRM\Services\SafetyComplianceService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -16,6 +18,8 @@ use Inertia\Inertia;
 
 class SafetyIncidentController extends Controller
 {
+    public function __construct(private SafetyComplianceService $safetyService) {}
+
     /**
      * Display a listing of safety incidents.
      */
@@ -59,28 +63,11 @@ class SafetyIncidentController extends Controller
     /**
      * Store a newly created safety incident.
      */
-    public function store(Request $request)
+    public function store(StoreSafetyIncidentRequest $request)
     {
         $this->authorize('create', SafetyIncident::class);
 
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'incident_date' => 'required|date',
-            'incident_time' => 'required|string',
-            'location' => 'required|string|max:255',
-            'department_id' => 'required|exists:departments,id',
-            'severity' => 'required|in:low,medium,high,critical',
-            'type' => 'required|string|max:255',
-            'immediate_actions' => 'nullable|string',
-            'root_cause' => 'nullable|string',
-            'corrective_actions' => 'nullable|string',
-            'status' => 'required|in:reported,investigating,resolved,closed',
-            'participants' => 'array',
-            'participants.*.user_id' => 'required|exists:users,id',
-            'participants.*.role' => 'required|string|max:255',
-            'participants.*.description' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
         DB::beginTransaction();
 
@@ -176,31 +163,13 @@ class SafetyIncidentController extends Controller
     /**
      * Update the specified safety incident.
      */
-    public function update(Request $request, $id)
+    public function update(UpdateSafetyIncidentRequest $request, $id)
     {
         $incident = SafetyIncident::findOrFail($id);
 
         $this->authorize('update', $incident);
 
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'incident_date' => 'required|date',
-            'incident_time' => 'required|string',
-            'location' => 'required|string|max:255',
-            'department_id' => 'required|exists:departments,id',
-            'severity' => 'required|in:low,medium,high,critical',
-            'type' => 'required|string|max:255',
-            'immediate_actions' => 'nullable|string',
-            'root_cause' => 'nullable|string',
-            'corrective_actions' => 'nullable|string',
-            'status' => 'required|in:reported,investigating,resolved,closed',
-            'participants' => 'array',
-            'participants.*.id' => 'nullable|exists:safety_incident_participants,id',
-            'participants.*.user_id' => 'required|exists:users,id',
-            'participants.*.role' => 'required|string|max:255',
-            'participants.*.description' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
         DB::beginTransaction();
 

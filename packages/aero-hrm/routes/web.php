@@ -53,6 +53,9 @@ use Aero\HRM\Http\Controllers\Settings\AttendanceSettingController;
 use Aero\HRM\Http\Controllers\Settings\HrmSettingController;
 use Aero\HRM\Http\Controllers\Settings\LeaveSettingController;
 use Aero\HRM\Http\Controllers\SuccessionPlanningController;
+use Aero\HRM\Http\Controllers\TalentMarketplaceController;
+use Aero\HRM\Http\Controllers\WellbeingController;
+use Aero\HRM\Http\Controllers\Performance\PerformanceCalibrationController;
 use Aero\HRM\Http\Controllers\WorkforcePlanningController;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Designation;
@@ -118,6 +121,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('employee.dashboard');
         Route::get('/employee/dashboard/attendance-chart', [EmployeeDashboardController::class, 'attendanceChart'])
             ->name('employee.dashboard.attendance-chart');
+    });
+
+    // Performance Calibration
+    Route::middleware(['hrmac:hrm.performance.calibration.view'])->group(function () {
+        Route::get('/performance/calibration', [PerformanceCalibrationController::class, 'index'])->name('performance.calibration.index');
+        Route::get('/performance/calibration/{id}', [PerformanceCalibrationController::class, 'show'])->name('performance.calibration.show');
+    });
+    Route::middleware(['hrmac:hrm.performance.calibration.manage'])->group(function () {
+        Route::post('/performance/calibration', [PerformanceCalibrationController::class, 'store'])->name('performance.calibration.store');
+        Route::put('/performance/calibration/{id}/rating', [PerformanceCalibrationController::class, 'updateRating'])->name('performance.calibration.update-rating');
+        Route::post('/performance/calibration/{id}/finalize', [PerformanceCalibrationController::class, 'finalize'])->name('performance.calibration.finalize');
     });
 
     // Performance Management
@@ -946,6 +960,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/run-predictions', [AIAnalyticsController::class, 'runPredictions'])->name('run-predictions');
     });
 
+    // Wellbeing & Burnout Monitor
+    Route::middleware(['hrmac:hrm.ai-analytics.wellbeing-monitor.view'])->group(function () {
+        Route::get('/wellbeing', [WellbeingController::class, 'index'])->name('wellbeing.index');
+        Route::get('/wellbeing/{id}/detail', [WellbeingController::class, 'employeeDetail'])->name('wellbeing.employee-detail');
+    });
+    Route::middleware(['hrmac:hrm.ai-analytics.wellbeing-monitor.manage'])->group(function () {
+        Route::post('/wellbeing/{id}/intervention', [WellbeingController::class, 'markIntervention'])->name('wellbeing.intervention');
+    });
+
     // =========================================================================
     // Succession Planning - Talent Pipeline & Critical Position Management
     // =========================================================================
@@ -1144,5 +1167,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/{id}/positions', [WorkforcePlanningController::class, 'addPosition'])->name('positions.store');
         Route::put('/{id}/positions/{positionId}', [WorkforcePlanningController::class, 'updatePosition'])->name('positions.update');
         Route::delete('/{id}/positions/{positionId}', [WorkforcePlanningController::class, 'deletePosition'])->name('positions.destroy');
+    });
+
+    // Talent Marketplace - Employee view
+    Route::middleware(['hrmac:hrm.workforce-planning.talent-marketplace.view'])->group(function () {
+        Route::get('/talent-marketplace', [TalentMarketplaceController::class, 'index'])->name('talent-marketplace.index');
+    });
+    Route::middleware(['hrmac:hrm.workforce-planning.talent-marketplace.apply'])->group(function () {
+        Route::post('/talent-marketplace/{id}/apply', [TalentMarketplaceController::class, 'applyOpportunity'])->name('talent-marketplace.apply');
+    });
+
+    // Talent Marketplace - HR Admin view
+    Route::middleware(['hrmac:hrm.workforce-planning.talent-marketplace.manage'])->group(function () {
+        Route::get('/talent-marketplace/admin', [TalentMarketplaceController::class, 'adminIndex'])->name('talent-marketplace.admin');
+        Route::post('/talent-marketplace', [TalentMarketplaceController::class, 'storeOpportunity'])->name('talent-marketplace.store');
+        Route::put('/talent-marketplace/{id}', [TalentMarketplaceController::class, 'updateOpportunity'])->name('talent-marketplace.update');
+        Route::post('/talent-marketplace/{id}/close', [TalentMarketplaceController::class, 'closeOpportunity'])->name('talent-marketplace.close');
     });
 });

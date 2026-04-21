@@ -6,11 +6,16 @@ use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\ExpenseCategory;
 use Aero\HRM\Models\ExpenseClaim;
+use Aero\HRM\Http\Requests\StoreExpenseClaimRequest;
+use Aero\HRM\Http\Requests\UpdateExpenseClaimRequest;
+use Aero\HRM\Http\Requests\ApproveRejectExpenseRequest;
+use Aero\HRM\Services\ExpenseApprovalService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class ExpenseClaimController extends Controller
 {
+    public function __construct(private ExpenseApprovalService $expenseService) {}
     public function index(Request $request)
     {
         return Inertia::render('HRM/Expenses/ExpenseClaimsIndex', [
@@ -41,15 +46,9 @@ class ExpenseClaimController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreExpenseClaimRequest $request)
     {
-        $validated = $request->validate([
-            'category_id' => 'required|exists:expense_categories,id',
-            'amount' => 'required|numeric|min:0',
-            'expense_date' => 'required|date',
-            'description' => 'required|string',
-            'employee_id' => 'nullable|exists:employees,id',
-        ]);
+        $validated = $request->validated();
 
         // Try to get employee from form data first, then from user association
         $employeeId = $validated['employee_id'] ?? null;
@@ -80,7 +79,12 @@ class ExpenseClaimController extends Controller
     public function approve(int $id)
     {
         $claim = ExpenseClaim::findOrFail($id);
-        $claim->update(['status' => 'approved', 'approved_at' => now()]);
+
+        try {
+            $this->expenseService->managerApprove($claim, auth()->id());
+        } catch (\RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
 
         return response()->json(['message' => 'Claim approved']);
     }
@@ -88,10 +92,12 @@ class ExpenseClaimController extends Controller
     public function reject(Request $request, int $id)
     {
         $claim = ExpenseClaim::findOrFail($id);
-        $claim->update([
-            'status' => 'rejected',
-            'rejection_reason' => $request->rejection_reason,
-        ]);
+
+        try {
+            $this->expenseService->reject($claim, auth()->id(), $request->rejection_reason);
+        } catch (\RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
 
         return response()->json(['message' => 'Claim rejected']);
     }
@@ -139,16 +145,11 @@ class ExpenseClaimController extends Controller
         ]);
     }
 
-    public function update(Request $request, int $id)
+    public function update(UpdateExpenseClaimRequest $request, int $id)
     {
         $claim = ExpenseClaim::findOrFail($id);
 
-        $validated = $request->validate([
-            'category_id' => 'required|exists:expense_categories,id',
-            'amount' => 'required|numeric|min:0',
-            'expense_date' => 'required|date',
-            'description' => 'required|string',
-        ]);
+        $validated = $request->validated();
 
         // Only allow updates if claim is in draft or submitted status
         if (! in_array($claim->status, ['draft', 'submitted'])) {
