@@ -5,38 +5,62 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Create roles tables for Role-Module Access system
+ * Canonical RBAC permission tables migration.
  *
- * This creates ONLY the roles and model_has_roles tables.
- * We use role_module_access (created in separate migration) instead of permissions.
+ * Consolidates:
+ *  - 2025_11_29_000000_create_permission_tables.php                  (base)
+ *  - 2025_12_04_110855_add_scope_and_protection_to_rbac_tables.php   (absorbed)
+ *  - 2025_12_30_100218_add_is_active_to_roles_table.php              (absorbed)
+ *  - 2026_01_11_000001_add_default_dashboard_to_roles_table.php      (absorbed – seed logic moved to RoleSeeder)
  *
- * The system works as follows:
- * - roles: Define user roles (Admin, Manager, Employee, etc.)
- * - model_has_roles: Assign roles to users
- * - role_module_access: Grant module/submodule/component/action access to roles
+ * NOTE: The seedDefaultDashboards() logic that was embedded in the
+ *       add_default_dashboard migration must be moved to:
+ *       database/seeders/RoleSeeder.php
  */
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        // Create roles table
+        // ── roles ──────────────────────────────────────────────────────────────
         if (! Schema::hasTable('roles')) {
             Schema::create('roles', function (Blueprint $table) {
                 $table->id();
                 $table->string('name');
                 $table->string('description')->nullable();
                 $table->string('guard_name')->default('web');
-                $table->boolean('is_protected')->default(false)->comment('Protected roles cannot be deleted');
+
+                // Absorbed from: add_scope_and_protection_to_rbac_tables
+                $table->enum('scope', ['platform', 'tenant'])
+                    ->default('tenant')
+                    ->comment('Role scope: platform or tenant');
+                $table->boolean('is_protected')
+                    ->default(false)
+                    ->comment('Protected roles cannot be deleted or modified');
+
+                // Absorbed from: add_is_active_to_roles_table
+                $table->boolean('is_active')
+                    ->default(true);
+
+                // Absorbed from: add_default_dashboard_to_roles_table
+                $table->string('default_dashboard')
+                    ->nullable()
+                    ->comment('Route name for the default dashboard (e.g., hrm.dashboard)');
+                $table->integer('priority')
+                    ->default(0)
+                    ->comment('Higher value = takes precedence when user has multiple roles');
+
+                $table->integer('tenant_id')->nullable()->index();
+
                 $table->timestamps();
 
                 $table->unique(['name', 'guard_name']);
+                $table->index('scope');
+                $table->index(['scope', 'tenant_id']);
+                $table->index('is_active');
             });
         }
 
-        // Create model_has_roles pivot table (users <-> roles)
+        // ── model_has_roles ────────────────────────────────────────────────────
         if (! Schema::hasTable('model_has_roles')) {
             Schema::create('model_has_roles', function (Blueprint $table) {
                 $table->unsignedBigInteger('role_id');
@@ -48,16 +72,19 @@ return new class extends Migration
                     ->on('roles')
                     ->onDelete('cascade');
 
-                $table->index(['model_id', 'model_type'], 'model_has_roles_model_id_model_type_index');
+                $table->index(
+                    ['model_id', 'model_type'],
+                    'model_has_roles_model_id_model_type_index'
+                );
 
-                $table->primary(['role_id', 'model_id', 'model_type'], 'model_has_roles_role_model_type_primary');
+                $table->primary(
+                    ['role_id', 'model_id', 'model_type'],
+                    'model_has_roles_role_model_type_primary'
+                );
             });
         }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('model_has_roles');

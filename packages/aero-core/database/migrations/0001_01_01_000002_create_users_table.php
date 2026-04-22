@@ -4,13 +4,22 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Canonical users table migration.
+ *
+ * Consolidates:
+ *  - 0001_01_01_000002_create_users_table.php                    (base)
+ *  - 2024_01_16_000002_add_two_factor_columns_to_users_table.php (absorbed – cols already present)
+ *  - 2025_12_03_150826_add_phone_verification_to_users_table.php (absorbed)
+ *
+ * Also creates: password_reset_tokens, sessions,
+ *               user_sessions_tracking, authentication_events
+ */
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
+        // ── users ──────────────────────────────────────────────────────────────
         if (! Schema::hasTable('users')) {
             Schema::create('users', function (Blueprint $table) {
                 $table->id();
@@ -20,12 +29,12 @@ return new class extends Migration
                 $table->string('password');
                 $table->boolean('force_password_reset')->default(false);
 
-                // Two-Factor Authentication (from Fortify)
+                // ── Two-Factor Authentication ──────────────────────────────────
                 $table->text('two_factor_secret')->nullable();
                 $table->text('two_factor_recovery_codes')->nullable();
                 $table->timestamp('two_factor_confirmed_at')->nullable();
 
-                // OAuth / Social Login
+                // ── OAuth / Social Login ───────────────────────────────────────
                 $table->string('oauth_provider')->nullable();
                 $table->string('oauth_provider_id')->nullable();
                 $table->string('oauth_token')->nullable();
@@ -35,7 +44,7 @@ return new class extends Migration
 
                 $table->string('name');
 
-                // Account Status
+                // ── Account Status ─────────────────────────────────────────────
                 $table->boolean('active')->default(true);
                 $table->boolean('is_active')->default(true);
                 $table->timestamp('account_locked_at')->nullable();
@@ -43,7 +52,7 @@ return new class extends Migration
 
                 $table->softDeletes();
 
-                // Basic Profile Info
+                // ── Basic Profile Info ─────────────────────────────────────────
                 $table->date('date_of_joining')->nullable();
                 $table->date('birthday')->nullable();
                 $table->string('gender')->nullable();
@@ -55,7 +64,7 @@ return new class extends Migration
                 $table->string('employment_of_spouse')->nullable();
                 $table->integer('number_of_children')->nullable();
 
-                // Salary & Benefits (kept for backward compatibility)
+                // ── Salary & Benefits (backward-compat) ────────────────────────
                 $table->string('salary_basis')->nullable();
                 $table->decimal('salary_amount', 10, 2)->nullable();
                 $table->string('payment_type')->nullable();
@@ -70,24 +79,30 @@ return new class extends Migration
                 $table->string('additional_esi_rate')->nullable();
                 $table->string('total_esi_rate')->nullable();
 
-                // Authentication Timestamps
+                // ── Authentication Timestamps ──────────────────────────────────
                 $table->timestamp('email_verified_at')->nullable();
+
+                // Absorbed from: add_phone_verification_to_users_table
+                $table->timestamp('phone_verified_at')->nullable();
+                $table->string('phone_verification_code', 6)->nullable();
+                $table->timestamp('phone_verification_sent_at')->nullable();
+
                 $table->timestamp('last_login_at')->nullable();
                 $table->string('last_login_ip', 45)->nullable();
                 $table->integer('login_count')->default(0);
 
-                // User Preferences
+                // ── User Preferences ───────────────────────────────────────────
                 $table->json('notification_preferences')->nullable();
                 $table->boolean('security_notifications')->default(true);
 
                 $table->rememberToken();
                 $table->timestamps();
 
-                // Indexes
                 $table->index(['oauth_provider', 'oauth_provider_id']);
             });
         }
 
+        // ── password_reset_tokens ──────────────────────────────────────────────
         if (! Schema::hasTable('password_reset_tokens')) {
             Schema::create('password_reset_tokens', function (Blueprint $table) {
                 $table->string('email')->primary();
@@ -96,6 +111,7 @@ return new class extends Migration
             });
         }
 
+        // ── sessions ───────────────────────────────────────────────────────────
         if (! Schema::hasTable('sessions')) {
             Schema::create('sessions', function (Blueprint $table) {
                 $table->string('id')->primary();
@@ -107,7 +123,7 @@ return new class extends Migration
             });
         }
 
-        // User Sessions Tracking (enhanced session management)
+        // ── user_sessions_tracking ─────────────────────────────────────────────
         if (! Schema::hasTable('user_sessions_tracking')) {
             Schema::create('user_sessions_tracking', function (Blueprint $table) {
                 $table->id();
@@ -134,7 +150,7 @@ return new class extends Migration
             });
         }
 
-        // Authentication Events (security audit log)
+        // ── authentication_events ──────────────────────────────────────────────
         if (! Schema::hasTable('authentication_events')) {
             Schema::create('authentication_events', function (Blueprint $table) {
                 $table->id();
@@ -155,9 +171,6 @@ return new class extends Migration
         }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('authentication_events');
