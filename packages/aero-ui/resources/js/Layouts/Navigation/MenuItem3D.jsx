@@ -206,7 +206,7 @@ const MenuItem3D = React.memo(({
 
   const renderButton = () => {
     if (hasSubMenu) return <button type="button" {...sharedProps}>{ButtonContent}</button>;
-    if (itemUrl) return <Link href={itemUrl} method={item.method || 'get'} preserveState preserveScroll {...sharedProps}>{ButtonContent}</Link>;
+    if (itemUrl) return <Link href={itemUrl} method={item.method || 'get'} preserveState preserveScroll cacheFor="1m" {...sharedProps}>{ButtonContent}</Link>;
     return <button type="button" {...sharedProps} disabled>{ButtonContent}</button>;
   };
 

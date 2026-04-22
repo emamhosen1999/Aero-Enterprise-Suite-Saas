@@ -1,7 +1,6 @@
-import React from 'react';
-import { Card, CardHeader, CardBody, Chip } from "@heroui/react";
+import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardBody, Chip, Skeleton } from "@heroui/react";
 import { UsersIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon } from "@heroicons/react/24/outline";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658'];
 
@@ -12,6 +11,9 @@ export default function HeadcountWidget({ data }) {
     // Prepare chart data
     const departmentData = data.by_department?.slice(0, 10) || [];
     const designationData = data.by_designation?.slice(0, 8) || [];
+    const [RC, setRC] = useState(null);
+    useEffect(() => { import('recharts').then(m => setRC(m)); }, []);
+    const { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = RC ?? {};
 
     return (
         <Card className="h-full">
@@ -53,6 +55,7 @@ export default function HeadcountWidget({ data }) {
                 {departmentData.length > 0 && (
                     <div>
                         <h4 className="text-sm font-semibold mb-3">By Department</h4>
+                        {!RC ? <Skeleton className="h-[250px] w-full rounded-lg" /> : (
                         <ResponsiveContainer width="100%" height={250}>
                             <BarChart data={departmentData}>
                                 <CartesianGrid strokeDasharray="3 3" />
@@ -68,6 +71,7 @@ export default function HeadcountWidget({ data }) {
                                 <Bar dataKey="count" fill="#0ea5e9" radius={[8, 8, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
+                        )}
                     </div>
                 )}
 
@@ -75,6 +79,7 @@ export default function HeadcountWidget({ data }) {
                 {designationData.length > 0 && (
                     <div>
                         <h4 className="text-sm font-semibold mb-3">By Designation</h4>
+                        {!RC ? <Skeleton className="h-[200px] w-full rounded-lg" /> : (
                         <ResponsiveContainer width="100%" height={200}>
                             <PieChart>
                                 <Pie
@@ -94,6 +99,7 @@ export default function HeadcountWidget({ data }) {
                                 <Tooltip />
                             </PieChart>
                         </ResponsiveContainer>
+                        )}
                     </div>
                 )}
             </CardBody>

@@ -1,11 +1,13 @@
-import React from 'react';
-import { Card, CardHeader, CardBody, Chip, Progress } from "@heroui/react";
+import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardBody, Chip, Progress, Skeleton } from "@heroui/react";
 import { ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 export default function TurnoverWidget({ data }) {
     const turnoverTrend = data.turnover_trend || [];
     const turnoverByDepartment = data.turnover_by_department?.slice(0, 8) || [];
+    const [RC, setRC] = useState(null);
+    useEffect(() => { import('recharts').then(m => setRC(m)); }, []);
+    const { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = RC ?? {};
 
     return (
         <Card className="h-full">
@@ -64,6 +66,7 @@ export default function TurnoverWidget({ data }) {
                 {turnoverTrend.length > 0 && (
                     <div>
                         <h4 className="text-sm font-semibold mb-3">Monthly Turnover Trend</h4>
+                        {!RC ? <Skeleton className="h-[200px] w-full rounded-lg" /> : (
                         <ResponsiveContainer width="100%" height={200}>
                             <LineChart data={turnoverTrend}>
                                 <CartesianGrid strokeDasharray="3 3" />
@@ -87,6 +90,16 @@ export default function TurnoverWidget({ data }) {
                 {turnoverByDepartment.length > 0 && (
                     <div>
                         <h4 className="text-sm font-semibold mb-3">Turnover by Department</h4>
+                        </ResponsiveContainer>
+                        )}
+                    </div>
+                )}
+
+                {/* Turnover by Department */}
+                {turnoverByDepartment.length > 0 && (
+                    <div>
+                        <h4 className="text-sm font-semibold mb-3">Turnover by Department</h4>
+                        {!RC ? <Skeleton className="h-[200px] w-full rounded-lg" /> : (
                         <ResponsiveContainer width="100%" height={200}>
                             <BarChart data={turnoverByDepartment}>
                                 <CartesianGrid strokeDasharray="3 3" />
@@ -102,6 +115,7 @@ export default function TurnoverWidget({ data }) {
                                 <Bar dataKey="count" fill="#f31260" radius={[8, 8, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
+                        )}
                     </div>
                 )}
             </CardBody>

@@ -139,6 +139,27 @@ class BenefitsController extends Controller
         ]);
     }
 
+    public function openEnrollment(Request $request): \Inertia\Response
+    {
+        $employee = $this->resolveAuthenticatedEmployee($request);
+        $today = now()->toDateString();
+        $activePeriod = $this->getActiveOpenEnrollmentPeriod($today);
+        $currentEnrollments = $this->getCurrentEmployeeEnrollments($employee);
+
+        return \Inertia\Inertia::render('HRM/SelfService/OpenEnrollment', [
+            'title'               => 'Benefits Open Enrollment',
+            'employee'            => [
+                'id'            => $employee->id,
+                'employee_code' => $employee->employee_code,
+                'full_name'     => $employee->full_name,
+            ],
+            'active_period'       => $activePeriod ? $this->formatOpenEnrollmentPeriod($activePeriod, $today) : null,
+            'available_plans'     => $this->getAvailableBenefitPlans($employee, $activePeriod),
+            'current_enrollments' => $currentEnrollments,
+            'can_submit'          => $activePeriod !== null,
+        ]);
+    }
+
     public function selfServiceEnrollmentPayload(Request $request): JsonResponse
     {
         $employee = $this->resolveAuthenticatedEmployee($request);
@@ -148,14 +169,14 @@ class BenefitsController extends Controller
 
         return response()->json([
             'employee' => [
-                'id' => $employee->id,
+                'id'            => $employee->id,
                 'employee_code' => $employee->employee_code,
-                'full_name' => $employee->full_name,
+                'full_name'     => $employee->full_name,
             ],
-            'active_period' => $activePeriod ? $this->formatOpenEnrollmentPeriod($activePeriod, $today) : null,
-            'available_plans' => $this->getAvailableBenefitPlans($employee, $activePeriod),
+            'active_period'       => $activePeriod ? $this->formatOpenEnrollmentPeriod($activePeriod, $today) : null,
+            'available_plans'     => $this->getAvailableBenefitPlans($employee, $activePeriod),
             'current_enrollments' => $currentEnrollments,
-            'can_submit' => $activePeriod !== null,
+            'can_submit'          => $activePeriod !== null,
         ]);
     }
 

@@ -1,11 +1,13 @@
-import React from 'react';
-import { Card, CardHeader, CardBody, Chip, Progress } from "@heroui/react";
+import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardBody, Chip, Progress, Skeleton } from "@heroui/react";
 import { CalendarDaysIcon } from "@heroicons/react/24/outline";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 export default function AttendanceWidget({ data }) {
     const dailyTrend = data.daily_trend || [];
     const byDepartment = data.by_department?.slice(0, 8) || [];
+    const [RC, setRC] = useState(null);
+    useEffect(() => { import('recharts').then(m => setRC(m)); }, []);
+    const { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = RC ?? {};
 
     return (
         <Card className="h-full">
@@ -85,6 +87,7 @@ export default function AttendanceWidget({ data }) {
                 {dailyTrend.length > 0 && (
                     <div>
                         <h4 className="text-sm font-semibold mb-3">Daily Attendance Trend</h4>
+                        {!RC ? <Skeleton className="h-[200px] w-full rounded-lg" /> : (
                         <ResponsiveContainer width="100%" height={200}>
                             <AreaChart data={dailyTrend}>
                                 <CartesianGrid strokeDasharray="3 3" />
@@ -114,6 +117,7 @@ export default function AttendanceWidget({ data }) {
                                 />
                             </AreaChart>
                         </ResponsiveContainer>
+                        )}
                     </div>
                 )}
 

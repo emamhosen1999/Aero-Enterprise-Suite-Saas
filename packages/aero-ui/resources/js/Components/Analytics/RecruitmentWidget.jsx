@@ -1,7 +1,6 @@
-import React from 'react';
-import { Card, CardHeader, CardBody, Chip, Progress } from "@heroui/react";
+import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardBody, Chip, Progress, Skeleton } from "@heroui/react";
 import { BriefcaseIcon } from "@heroicons/react/24/outline";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
@@ -9,6 +8,9 @@ export default function RecruitmentWidget({ data }) {
     const applicationTrend = data.application_trend || [];
     const applicationsBySource = data.applications_by_source || [];
     const jobsByDepartment = data.jobs_by_department?.slice(0, 8) || [];
+    const [RC, setRC] = useState(null);
+    useEffect(() => { import('recharts').then(m => setRC(m)); }, []);
+    const { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = RC ?? {};
 
     return (
         <Card className="h-full">
@@ -92,6 +94,7 @@ export default function RecruitmentWidget({ data }) {
                 {applicationTrend.length > 0 && (
                     <div>
                         <h4 className="text-sm font-semibold mb-3">Application & Hiring Trend</h4>
+                        {!RC ? <Skeleton className="h-[200px] w-full rounded-lg" /> : (
                         <ResponsiveContainer width="100%" height={200}>
                             <LineChart data={applicationTrend}>
                                 <CartesianGrid strokeDasharray="3 3" />
@@ -115,6 +118,7 @@ export default function RecruitmentWidget({ data }) {
                                 />
                             </LineChart>
                         </ResponsiveContainer>
+                        )}
                     </div>
                 )}
 
@@ -122,6 +126,7 @@ export default function RecruitmentWidget({ data }) {
                 {applicationsBySource.length > 0 && (
                     <div>
                         <h4 className="text-sm font-semibold mb-3">Applications by Source</h4>
+                        {!RC ? <Skeleton className="h-[200px] w-full rounded-lg" /> : (
                         <ResponsiveContainer width="100%" height={200}>
                             <PieChart>
                                 <Pie
@@ -141,6 +146,7 @@ export default function RecruitmentWidget({ data }) {
                                 <Tooltip />
                             </PieChart>
                         </ResponsiveContainer>
+                        )}
                     </div>
                 )}
 
@@ -148,6 +154,7 @@ export default function RecruitmentWidget({ data }) {
                 {jobsByDepartment.length > 0 && (
                     <div>
                         <h4 className="text-sm font-semibold mb-3">Open Jobs by Department</h4>
+                        {!RC ? <Skeleton className="h-[200px] w-full rounded-lg" /> : (
                         <ResponsiveContainer width="100%" height={200}>
                             <BarChart data={jobsByDepartment}>
                                 <CartesianGrid strokeDasharray="3 3" />
@@ -163,6 +170,7 @@ export default function RecruitmentWidget({ data }) {
                                 <Bar dataKey="count" fill="#9353d3" radius={[8, 8, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
+                        )}
                     </div>
                 )}
             </CardBody>

@@ -1,11 +1,13 @@
-import React from 'react';
-import { Card, CardHeader, CardBody, Chip } from "@heroui/react";
+import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardBody, Chip, Skeleton } from "@heroui/react";
 import { BanknotesIcon } from "@heroicons/react/24/outline";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 export default function PayrollWidget({ data }) {
     const monthlyTrend = data.monthly_trend || [];
     const byDepartment = data.by_department?.slice(0, 8) || [];
+    const [RC, setRC] = useState(null);
+    useEffect(() => { import('recharts').then(m => setRC(m)); }, []);
+    const { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = RC ?? {};
 
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('en-US', {
@@ -65,6 +67,7 @@ export default function PayrollWidget({ data }) {
                 {monthlyTrend.length > 0 && (
                     <div>
                         <h4 className="text-sm font-semibold mb-3">Monthly Payroll Trend</h4>
+                        {!RC ? <Skeleton className="h-[200px] w-full rounded-lg" /> : (
                         <ResponsiveContainer width="100%" height={200}>
                             <LineChart data={monthlyTrend}>
                                 <CartesianGrid strokeDasharray="3 3" />
@@ -87,6 +90,7 @@ export default function PayrollWidget({ data }) {
                                 />
                             </LineChart>
                         </ResponsiveContainer>
+                        )}
                     </div>
                 )}
 
@@ -94,6 +98,7 @@ export default function PayrollWidget({ data }) {
                 {byDepartment.length > 0 && (
                     <div>
                         <h4 className="text-sm font-semibold mb-3">Payroll by Department</h4>
+                        {!RC ? <Skeleton className="h-[250px] w-full rounded-lg" /> : (
                         <ResponsiveContainer width="100%" height={250}>
                             <BarChart data={byDepartment}>
                                 <CartesianGrid strokeDasharray="3 3" />
@@ -120,6 +125,7 @@ export default function PayrollWidget({ data }) {
                                 />
                             </BarChart>
                         </ResponsiveContainer>
+                        )}
                     </div>
                 )}
 

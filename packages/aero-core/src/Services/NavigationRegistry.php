@@ -128,7 +128,7 @@ class NavigationRegistry
         return [
             'name' => 'My Workspace',
             'icon' => 'UserIcon',
-            'priority' => 2, // After Dashboard (1), before module menus
+            'priority' => 2,
             'access' => 'self-service',
             'children' => $allItems,
         ];
@@ -215,7 +215,19 @@ class NavigationRegistry
                     fn ($child) => ! isset($child['module']) || in_array($child['module'], array_merge(['core', 'platform'], $subscribedModules), true)
                 ));
             }
-            $navigationItems[] = $dashboardNav;
+            
+            // Flatten dashboards: if multiple dashboards, add each as individual item with section
+            if (! empty($dashboardNav['children'])) {
+                // Multiple dashboards - flatten them
+                foreach ($dashboardNav['children'] as $dashboard) {
+                    $dashboard['section'] = 'dashboards';
+                    $navigationItems[] = $dashboard;
+                }
+            } else {
+                // Single dashboard - add as is with section
+                $dashboardNav['section'] = 'dashboards';
+                $navigationItems[] = $dashboardNav;
+            }
         }
 
         // 2. Add self-service navigation (priority 2) - "My Workspace" menu
@@ -228,12 +240,42 @@ class NavigationRegistry
                     fn ($child) => ! isset($child['module']) || in_array($child['module'], array_merge(['core', 'platform'], $subscribedModules), true)
                 ));
             }
+            
+            // Flatten self-service items: add each as individual item with section
             if (! empty($selfServiceNav['children'])) {
-                $navigationItems[] = $selfServiceNav;
+                foreach ($selfServiceNav['children'] as $item) {
+                    $item['section'] = 'my-workspace';
+                    $navigationItems[] = $item;
+                }
             }
         }
 
         $sortedModules = collect($this->navigationItems)->sortBy('priority');
+
+        // Count non-core, non-platform modules to determine if single module or multiple
+        $nonCoreModules = [];
+        foreach ($sortedModules as $moduleCode => $moduleData) {
+            // Filter by scope if specified
+            $moduleScope = $moduleData['scope'] ?? 'tenant';
+            if ($scope !== null && $moduleScope !== $scope) {
+                continue;
+            }
+
+            // Filter by subscription: core/platform always allowed, others must be subscribed
+            if ($subscribedModules !== null && $moduleCode !== 'core' && $moduleCode !== 'platform') {
+                if (! in_array($moduleCode, $subscribedModules, true)) {
+                    continue;
+                }
+            }
+
+            // Track non-core modules
+            if ($moduleCode !== 'core' && $moduleCode !== 'platform') {
+                $nonCoreModules[] = $moduleCode;
+            }
+        }
+        
+        $isSingleModule = count($nonCoreModules) === 1;
+        $singleModuleCode = $isSingleModule ? $nonCoreModules[0] : null;
 
         foreach ($sortedModules as $moduleCode => $moduleData) {
             // Filter by scope if specified
@@ -263,6 +305,8 @@ class NavigationRegistry
                             if ($this->isSelfServiceItem($child)) {
                                 continue;
                             }
+                            // Add section for administration items
+                            $child['section'] = 'administration';
                             $navigationItems[] = $child;
                         }
                     } else {
@@ -274,12 +318,27 @@ class NavigationRegistry
                         if ($this->isSelfServiceItem($item)) {
                             continue;
                         }
+                        // Add section for administration items
+                        $item['section'] = 'administration';
                         $navigationItems[] = $item;
                     }
                 } else {
-                    // Non-core modules: keep as parent with children (submodules)
-                    // This creates "Human Resources" with Employees, Attendance, etc. as children
-                    $navigationItems[] = $item;
+                    if ($isSingleModule && $moduleCode === $singleModuleCode) {
+                        // Single module: flatten its children directly under the module section
+                        if (! empty($item['children'])) {
+                            foreach ($item['children'] as $child) {
+                                $child['section'] = $moduleCode;
+                                $navigationItems[] = $child;
+                            }
+                        } else {
+                            $item['section'] = $moduleCode;
+                            $navigationItems[] = $item;
+                        }
+                    } else {
+                        // Multiple modules: keep as collapsible parent under 'modules' section
+                        $item['section'] = 'modules';
+                        $navigationItems[] = $item;
+                    }
                 }
             }
         }
@@ -409,7 +468,7 @@ class NavigationRegistry
 
         return [
             'name' => 'Dashboards',
-            'path' => '/dashboard', // Default path for parent
+            'path' => '/dashboard',
             'icon' => 'HomeIcon',
             'priority' => 1,
             'children' => $children,

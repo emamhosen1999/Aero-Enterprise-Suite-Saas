@@ -237,10 +237,74 @@ const SidebarContent = React.memo(({
   onToggleMenu,
   onNavigate,
 }) => {
-  const { mainItems, settingsItems } = useMemo(() => 
+  const sections = useMemo(() => 
     groupMenuItems(menuItems), [menuItems]
   );
   const { preferences } = useNavigationPersonalization();
+
+  // All sections are collapsible
+  const COLLAPSIBLE_SECTIONS = { has: () => true };
+
+  // Track which collapsible sections are collapsed (stored in localStorage)
+  const [collapsedSections, setCollapsedSections] = React.useState(() => {
+    try {
+      const stored = localStorage.getItem('nav_collapsed_sections');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+
+  const toggleSection = useCallback((sectionKey) => {
+    setCollapsedSections(prev => {
+      const next = new Set(prev);
+      if (next.has(sectionKey)) {
+        next.delete(sectionKey);
+      } else {
+        next.add(sectionKey);
+      }
+      try {
+        localStorage.setItem('nav_collapsed_sections', JSON.stringify([...next]));
+      } catch {}
+      return next;
+    });
+  }, []);
+
+  // Section display names and configurations
+  const sectionConfig = {
+    dashboards: { label: 'Dashboards', color: 'var(--theme-foreground, #11181C)' },
+    'my-workspace': { label: 'My Workspace', color: 'var(--theme-foreground, #11181C)' },
+    modules: { label: 'Modules', color: 'var(--theme-foreground, #11181C)' },
+    administration: { label: 'Administration', color: 'var(--theme-foreground, #11181C)' },
+    settings: { label: 'Settings', color: 'color-mix(in srgb, var(--theme-foreground, #11181C) 45%, transparent)' },
+    main: { label: 'Navigation', color: 'var(--theme-foreground, #11181C)' },
+  };
+
+  // Convert module code to label (e.g., 'hrm' -> 'Human Resources')
+  const getModuleLabel = (moduleCode) => {
+    const labels = {
+      hrm: 'Human Resources',
+      finance: 'Finance',
+      crm: 'CRM',
+      project: 'Project Management',
+      ims: 'Inventory Management',
+      pos: 'Point of Sale',
+      scm: 'Supply Chain Management',
+      dms: 'Document Management',
+      quality: 'Quality Management',
+      rfi: 'RFI',
+      compliance: 'Compliance',
+      cms: 'Content Management',
+      commerce: 'Commerce',
+      analytics: 'Analytics',
+      education: 'Education',
+      healthcare: 'Healthcare',
+      'field-service': 'Field Service',
+      'real-estate': 'Real Estate',
+      manufacturing: 'Manufacturing',
+    };
+    return labels[moduleCode] || moduleCode.charAt(0).toUpperCase() + moduleCode.slice(1).replace(/-/g, ' ');
+  };
 
   // Resolve pinned nav items from flat paths -> nav tree
   const pinnedItems = useMemo(() => {
@@ -258,16 +322,20 @@ const SidebarContent = React.memo(({
     return paths.map(p => flat.find(i => getMenuItemUrl(i) === p)).filter(Boolean);
   }, [preferences?.pinned_items, menuItems]);
   
-  const filteredMainItems = useMemo(() => 
-    filterMenuItems(mainItems, searchTerm), [mainItems, searchTerm]
-  );
-  
-  const filteredSettingsItems = useMemo(() => 
-    filterMenuItems(settingsItems, searchTerm), [settingsItems, searchTerm]
-  );
+  // Filter sections by search term
+  const filteredSections = useMemo(() => {
+    const filtered = {};
+    Object.entries(sections).forEach(([sectionKey, items]) => {
+      const filteredItems = filterMenuItems(items, searchTerm);
+      if (filteredItems.length > 0) {
+        filtered[sectionKey] = filteredItems;
+      }
+    });
+    return filtered;
+  }, [sections, searchTerm]);
   
   const renderMenuItems = useCallback((items, groupName = '') => {
-    return items.map((item, index) => {
+    return items.map((item) => {
       const itemId = getMenuItemId(item, groupName);
       const itemUrl = getMenuItemUrl(item);
       const active = itemUrl && activePath === itemUrl;
@@ -294,13 +362,57 @@ const SidebarContent = React.memo(({
       );
     });
   }, [expandedMenus, activePath, searchTerm, collapsed, onToggleMenu, onNavigate]);
+
+  // Render section header — collapsible if in COLLAPSIBLE_SECTIONS set
+  const renderSectionHeader = (sectionKey) => {
+    let config = sectionConfig[sectionKey];
+    if (!config) {
+      config = { label: getModuleLabel(sectionKey), color: 'var(--theme-foreground, #11181C)' };
+    }
+
+    const isCollapsible = COLLAPSIBLE_SECTIONS.has(sectionKey);
+    const isSectionCollapsed = collapsedSections.has(sectionKey);
+
+    return (
+      <div
+        className={`flex items-center gap-2 px-2 py-1.5 mb-2 rounded ${isCollapsible ? 'cursor-pointer select-none hover:bg-default-100/50' : ''}`}
+        onClick={isCollapsible ? () => toggleSection(sectionKey) : undefined}
+        style={{ borderRadius: 'var(--borderRadius, 8px)' }}
+      >
+        <motion.div
+          className="w-4 h-[2px] rounded-full shrink-0"
+          style={{ background: `linear-gradient(90deg, ${config.color}, transparent)` }}
+        />
+        <span className="text-[10px] font-bold uppercase tracking-[0.12em] flex-1"
+          style={{ color: config.color }}
+        >
+          {config.label}
+        </span>
+        {isCollapsible ? (
+          <motion.div
+            animate={{ rotate: isSectionCollapsed ? -90 : 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ color: config.color }}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </motion.div>
+        ) : (
+          <div className="flex-1 h-px" style={{ background: `linear-gradient(90deg, var(--theme-divider, #E4E4E7)40, transparent)` }} />
+        )}
+      </div>
+    );
+  };
   
   if (collapsed) {
-    // Icon-only mode - show tooltip on hover
+    // Icon-only mode - flatten all sections and show tooltips
+    const allItems = Object.values(sections).flat();
+    const filteredItems = filterMenuItems(allItems, searchTerm);
+    
     return (
       <ScrollShadow className="flex-1 py-2 px-2">
         <div className="space-y-1">
-          {filteredMainItems.map((item, index) => {
+          {filteredItems.map((item) => {
             const itemId = getMenuItemId(item, 'main');
             const itemUrl = getMenuItemUrl(item);
             const active = itemUrl && activePath === itemUrl;
@@ -329,9 +441,7 @@ const SidebarContent = React.memo(({
                         onNavigate(item);
                       }
                     }}
-                    style={{
-                      borderRadius: 'var(--borderRadius, 8px)',
-                    }}
+                    style={{ borderRadius: 'var(--borderRadius, 8px)' }}
                   >
                     {item.icon && React.cloneElement(item.icon, { className: 'w-5 h-5' })}
                   </Button>
@@ -390,50 +500,34 @@ const SidebarContent = React.memo(({
         </div>
       )}
 
-      {/* Main Navigation */}
-      {filteredMainItems.length > 0 && (
-        <div className="mb-3">
-          <div className="flex items-center gap-2 px-2 py-1.5 mb-2">
-            <motion.div
-              className="w-4 h-[2px] rounded-full"
-              style={{ background: 'linear-gradient(90deg, color-mix(in srgb, var(--theme-foreground, #11181C) 45%, transparent), color-mix(in srgb, var(--theme-foreground, #11181C) 30%, transparent))' }}
-            />
-            <span className="text-[10px] font-bold uppercase tracking-[0.12em]"
-              style={{ color: 'color-mix(in srgb, var(--theme-foreground, #11181C) 45%, transparent)' }}
-            >
-              Navigation
-            </span>
-            <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg, var(--theme-divider, #E4E4E7)40, transparent)' }} />
+      {/* Render sections dynamically */}
+      {Object.entries(filteredSections).map(([sectionKey, items]) => {
+        const isSectionCollapsed = collapsedSections.has(sectionKey) && !searchTerm;
+
+        return (
+          <div key={sectionKey} className="mb-3">
+            {renderSectionHeader(sectionKey)}
+            <AnimatePresence initial={false}>
+              {!isSectionCollapsed && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2, ease: 'easeInOut' }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <div className="space-y-0.5">
+                    {renderMenuItems(items, sectionKey)}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-          <div className="space-y-0.5">
-            {renderMenuItems(filteredMainItems, 'main')}
-          </div>
-        </div>
-      )}
-      
-      {/* Settings Group */}
-      {filteredSettingsItems.length > 0 && (
-        <div className="mb-3">
-          <div className="flex items-center gap-2 px-2 py-1.5 mb-2">
-            <motion.div
-              className="w-4 h-[2px] rounded-full"
-              style={{ background: 'linear-gradient(90deg, color-mix(in srgb, var(--theme-foreground, #11181C) 45%, transparent), color-mix(in srgb, var(--theme-foreground, #11181C) 30%, transparent))' }}
-            />
-            <span className="text-[10px] font-bold uppercase tracking-[0.12em]"
-              style={{ color: 'color-mix(in srgb, var(--theme-foreground, #11181C) 45%, transparent)' }}
-            >
-              Settings
-            </span>
-            <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg, var(--theme-divider, #E4E4E7)40, transparent)' }} />
-          </div>
-          <div className="space-y-0.5">
-            {renderMenuItems(filteredSettingsItems, 'settings')}
-          </div>
-        </div>
-      )}
+        );
+      })}
       
       {/* Empty state */}
-      {filteredMainItems.length === 0 && filteredSettingsItems.length === 0 && (
+      {Object.keys(filteredSections).length === 0 && (
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <MagnifyingGlassIcon 
             className="w-10 h-10 mb-2"

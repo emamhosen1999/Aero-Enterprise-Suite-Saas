@@ -54,23 +54,10 @@ const Benefits = ({ title, benefits: initialBenefits = [] }) => {
         return () => window.removeEventListener('resize', check);
     }, []);
 
-    const fetchBenefits = useCallback(async () => {
-        setLoading(true);
-        try {
-            const response = await axios.get(route('selfservice.benefits'));
-            if (response.status === 200) {
-                const d = response.data;
-                setBenefits(Array.isArray(d) ? d : (d.data || []));
-            }
-        } catch (error) {
-            showToast.promise(Promise.reject(error), { error: 'Failed to load benefits' });
-        } finally { setLoading(false); }
-    }, []);
-
     const fetchOpenEnrollment = useCallback(async () => {
         setOpenEnrollmentLoading(true);
         try {
-            const response = await axios.get(route('hrm.selfservice.benefits.open-enrollment'));
+            const response = await axios.get(route('hrm.selfservice.benefits.open-enrollment.payload'));
             if (response.status === 200) {
                 const payload = response.data?.data || response.data || {};
                 setOpenEnrollment({
@@ -96,9 +83,8 @@ const Benefits = ({ title, benefits: initialBenefits = [] }) => {
     }, []);
 
     useEffect(() => {
-        fetchBenefits();
         fetchOpenEnrollment();
-    }, [fetchBenefits, fetchOpenEnrollment]);
+    }, [fetchOpenEnrollment]);
 
     const handleRequestChange = () => {
         setSubmitting(true);
@@ -168,7 +154,6 @@ const Benefits = ({ title, benefits: initialBenefits = [] }) => {
                     resolve([response.data?.message || 'Enrollment submitted successfully']);
                     setEnrollmentModalOpen(false);
                     setEnrollmentForm(EMPTY_ENROLLMENT_FORM);
-                    fetchBenefits();
                     fetchOpenEnrollment();
                 }
             } catch (error) {

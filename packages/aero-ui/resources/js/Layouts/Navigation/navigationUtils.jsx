@@ -170,26 +170,45 @@ export const highlightMatch = (text, searchTerm) => {
  * Group menu items by category
  */
 export const groupMenuItems = (items) => {
-  const mainItems = [];
-  const settingsItems = [];
-  const otherGroups = {};
+  const sections = {};
+  
+  // Sections that always appear first (in this order)
+  const prioritySections = ['dashboards', 'my-workspace'];
+  // Sections that always appear last (in this order)
+  const tailSections = ['administration', 'settings', 'main'];
   
   items.forEach(item => {
-    const category = item.category || item.group || 'main';
-    
-    if (category === 'main' || !category) {
-      mainItems.push(item);
-    } else if (category === 'settings') {
-      settingsItems.push(item);
-    } else {
-      if (!otherGroups[category]) {
-        otherGroups[category] = [];
-      }
-      otherGroups[category].push(item);
+    const section = item.section || item.category || item.group || 'main';
+    if (!sections[section]) {
+      sections[section] = [];
+    }
+    sections[section].push(item);
+  });
+  
+  const orderedSections = {};
+  
+  // First: priority sections (dashboards, my-workspace)
+  prioritySections.forEach(section => {
+    if (sections[section]) {
+      orderedSections[section] = sections[section];
     }
   });
   
-  return { mainItems, settingsItems, otherGroups };
+  // Middle: dynamic module sections (anything that's not priority or tail)
+  Object.keys(sections).forEach(section => {
+    if (!prioritySections.includes(section) && !tailSections.includes(section)) {
+      orderedSections[section] = sections[section];
+    }
+  });
+  
+  // Last: tail sections (administration, settings, main)
+  tailSections.forEach(section => {
+    if (sections[section]) {
+      orderedSections[section] = sections[section];
+    }
+  });
+  
+  return orderedSections;
 };
 
 /**

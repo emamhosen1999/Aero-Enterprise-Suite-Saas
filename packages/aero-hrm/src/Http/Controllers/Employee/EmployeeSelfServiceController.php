@@ -12,7 +12,7 @@ use Aero\HRM\Models\EmployeeCareerProgression;
 use Aero\HRM\Models\EmployeePersonalDocument;
 use Aero\HRM\Models\HrDocument;
 use Aero\HRM\Models\Leave;
-use Aero\HRM\Models\Payslip;
+use Aero\HRM\Models\Payroll;
 use Aero\HRM\Models\PerformanceReview;
 use Aero\HRM\Models\TrainingEnrollment;
 use Illuminate\Http\Request;
@@ -75,9 +75,7 @@ class EmployeeSelfServiceController extends Controller
     {
         $user = Auth::user();
 
-        $benefits = Benefit::whereHas('employees', function ($q) use ($user) {
-            $q->where('user_id', $user->id);
-        })
+        $benefits = Benefit::whereHas('employees', fn ($q) => $q->where('users.id', $user->id))
             ->get()
             ->map(fn ($b) => [
                 'id' => $b->id,
@@ -152,14 +150,14 @@ class EmployeeSelfServiceController extends Controller
     {
         $user = Auth::user();
 
-        $payslips = Payslip::where('user_id', $user->id)
+        $payslips = Payroll::where('user_id', $user->id)
             ->where('status', '!=', 'draft')
             ->orderBy('pay_period_end', 'desc')
             ->take(12)
             ->get()
             ->map(fn ($p) => [
                 'id' => $p->id,
-                'period' => $p->pay_period_start?->format('M d') . ' - ' . $p->pay_period_end?->format('M d, Y'),
+                'period' => $p->pay_period_start?->format('M d').' - '.$p->pay_period_end?->format('M d, Y'),
                 'gross_pay' => (float) $p->gross_salary,
                 'net_pay' => (float) $p->net_salary,
                 'deductions' => (float) $p->total_deductions,
@@ -175,10 +173,19 @@ class EmployeeSelfServiceController extends Controller
     public function performance(): Response
     {
         $user = Auth::user();
+        $employee = Employee::where('user_id', $user->id)->first();
 
-        $reviews = PerformanceReview::where('employee_id', $user->id)
+        if ($employee === null) {
+            return Inertia::render('HRM/SelfService/Performance', [
+                'title' => 'My Performance',
+                'reviews' => [],
+            ]);
+        }
+
+        $reviews = PerformanceReview::where('employee_id', $employee->id)
             ->with(['reviewer', 'template'])
-            ->orderBy('review_date', 'desc')
+            ->orderByDesc('review_end_date')
+            ->orderByDesc('created_at')
             ->take(10)
             ->get()
             ->map(fn ($r) => [
@@ -187,7 +194,9 @@ class EmployeeSelfServiceController extends Controller
                 'reviewer' => $r->reviewer?->name,
                 'overall_rating' => $r->overall_rating,
                 'status' => $r->status,
-                'review_date' => $r->review_date?->format('Y-m-d'),
+                'review_date' => $r->completed_at?->format('Y-m-d')
+                    ?? $r->review_end_date?->format('Y-m-d')
+                    ?? $r->created_at?->format('Y-m-d'),
             ]);
 
         return Inertia::render('HRM/SelfService/Performance', [

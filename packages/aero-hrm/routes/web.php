@@ -501,7 +501,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/self-service/profile', [EmployeeSelfServiceController::class, 'updateProfile'])->name('selfservice.profile.update');
         Route::get('/self-service/documents', [EmployeeSelfServiceController::class, 'documents'])->name('selfservice.documents');
         Route::get('/self-service/benefits', [EmployeeSelfServiceController::class, 'benefits'])->name('selfservice.benefits');
-        Route::get('/self-service/benefits/open-enrollment', [BenefitsController::class, 'selfServiceEnrollmentPayload'])->name('selfservice.benefits.open-enrollment');
+        Route::get('/self-service/benefits/open-enrollment', [BenefitsController::class, 'openEnrollment'])->name('selfservice.benefits.open-enrollment');
+        Route::get('/self-service/benefits/open-enrollment/payload', [BenefitsController::class, 'selfServiceEnrollmentPayload'])->name('selfservice.benefits.open-enrollment.payload');
         Route::post('/self-service/benefits/open-enrollment', [BenefitsController::class, 'submitSelfServiceEnrollment'])->name('selfservice.benefits.open-enrollment.submit');
         Route::get('/self-service/time-off', [EmployeeSelfServiceController::class, 'timeOff'])->name('selfservice.timeoff');
         Route::post('/self-service/time-off', [EmployeeSelfServiceController::class, 'requestTimeOff'])->name('selfservice.timeoff.request');
