@@ -18,6 +18,7 @@ return new class extends Migration
                 $table->string('phone')->unique()->nullable();
                 $table->string('email')->unique();
                 $table->string('password');
+                $table->boolean('force_password_reset')->default(false);
 
                 // Two-Factor Authentication (from Fortify)
                 $table->text('two_factor_secret')->nullable();
