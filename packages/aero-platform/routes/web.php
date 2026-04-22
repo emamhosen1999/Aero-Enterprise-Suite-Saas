@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Aero\Platform\Http\Controllers\Billing\BillingController;
+use Aero\Platform\Http\Controllers\PublicPageController;
 use Aero\Platform\Http\Controllers\RegistrationController;
 use Aero\Platform\Http\Controllers\RegistrationPageController;
 use Aero\Platform\Http\Controllers\Webhooks\SslCommerzWebhookController;
@@ -43,54 +44,8 @@ Route::middleware('platform.domain')->group(function () {
     // STATIC LANDING PAGES
     // =========================================================================
     // All pages are static Inertia pages - no CMS or dynamic content management
-    
-    Route::get('/', function () {
-        return \Inertia\Inertia::render('Platform/Public/Landing', [
-            'title' => 'Home',
-        ]);
-    })->name('platform.home');
-    
-    Route::get('/pricing', function () {
-        return \Inertia\Inertia::render('Platform/Public/Pricing', [
-            'title' => 'Pricing',
-        ]);
-    })->name('platform.pricing');
-    
-    Route::get('/features', function () {
-        return \Inertia\Inertia::render('Platform/Public/Features', [
-            'title' => 'Features',
-        ]);
-    })->name('platform.features');
 
-    Route::get('/standalone', function () {
-        return \Inertia\Inertia::render('Platform/Public/Standalone', [
-            'title' => 'Standalone / On-Premise',
-        ]);
-    })->name('platform.standalone');
-    
-    Route::get('/about', function () {
-        return \Inertia\Inertia::render('Platform/Public/About', [
-            'title' => 'About',
-        ]);
-    })->name('platform.about');
-    
-    Route::get('/support', function () {
-        return \Inertia\Inertia::render('Platform/Public/Support', [
-            'title' => 'Support',
-        ]);
-    })->name('platform.support');
-    
-    Route::get('/resources', function () {
-        return \Inertia\Inertia::render('Platform/Public/Resources', [
-            'title' => 'Resources',
-        ]);
-    })->name('platform.resources');
-    
-    Route::get('/status', function () {
-        return \Inertia\Inertia::render('Platform/Public/Status', [
-            'title' => 'Status',
-        ]);
-    })->name('platform.status');
+    Route::get('/', [PublicPageController::class, 'home'])->name('platform.home');
 
     // Redirect /login to /signup (no login on platform domain - login is on tenant/admin domains)
     Route::redirect('login', '/signup', 302);
@@ -158,136 +113,7 @@ Route::middleware('platform.domain')->group(function () {
             ->name('resume');
     });
 
-    // =========================================================================
-    // INSTALLATION WIZARD
-    // =========================================================================
-    // NOTE: Installation routes are now defined in routes/installation.php
-    // and use the unified UnifiedInstallationController from aero-core.
-    // This provides a consistent UI between SaaS and Standalone modes.
-    // See: packages/aero-platform/routes/installation.php
-
-    // =========================================================================
-    // STATIC LEGAL PAGES
-    // =========================================================================
-    Route::get('/legal/privacy', function () {
-        return \Inertia\Inertia::render('Platform/Public/Legal/Privacy', [
-            'title' => 'Privacy Policy',
-        ]);
-    })->name('platform.legal.privacy');
-
-    Route::get('/legal/terms', function () {
-        return \Inertia\Inertia::render('Platform/Public/Legal/Terms', [
-            'title' => 'Terms of Service',
-        ]);
-    })->name('platform.legal.terms');
-
-    Route::get('/legal/cookies', function () {
-        return \Inertia\Inertia::render('Platform/Public/Legal/Cookies', [
-            'title' => 'Cookie Policy',
-        ]);
-    })->name('platform.legal.cookies');
-
-    // =========================================================================
-    // STATIC CONTENT PAGES
-    // =========================================================================
-    Route::get('/contact', function () {
-        return \Inertia\Inertia::render('Platform/Public/Contact', [
-            'title' => 'Contact Us',
-        ]);
-    })->name('platform.contact');
-
-    Route::get('/demo', function () {
-        return \Inertia\Inertia::render('Platform/Public/Demo', [
-            'title' => 'Demo',
-        ]);
-    })->name('platform.demo');
-
-    Route::get('/blog', function () {
-        return \Inertia\Inertia::render('Platform/Public/Blog', [
-            'title' => 'Blog',
-        ]);
-    })->name('platform.blog');
-
-    Route::get('/docs', function () {
-        return \Inertia\Inertia::render('Platform/Public/Docs', [
-            'title' => 'Documentation',
-        ]);
-    })->name('platform.docs');
-
-    Route::get('/careers', function () {
-        return \Inertia\Inertia::render('Platform/Public/Careers', [
-            'title' => 'Careers',
-        ]);
-    })->name('platform.careers');
-
-    // =========================================================================
-    // PAYMENT WEBHOOKS (outside CSRF protection - handled by service provider)
-    // =========================================================================
-
-    Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook'])
-        ->name('stripe.webhook');
-
-    Route::prefix('sslcommerz')->name('sslcommerz.')->group(function () {
-        Route::post('/ipn', [SslCommerzWebhookController::class, 'ipn'])->name('ipn');
-        Route::post('/success', [SslCommerzWebhookController::class, 'success'])->name('success');
-        Route::post('/fail', [SslCommerzWebhookController::class, 'fail'])->name('fail');
-        Route::post('/cancel', [SslCommerzWebhookController::class, 'cancel'])->name('cancel');
-    });
-
-    Route::post('/checkout/{plan}', [BillingController::class, 'checkout'])
-        ->name('platform.checkout');
-
-    // =========================================================================
-    // NEWSLETTER SUBSCRIPTION (Public)
-    // =========================================================================
-    Route::prefix('newsletter')->name('newsletter.')->group(function () {
-        Route::post('/subscribe', [\Aero\Platform\Http\Controllers\Public\NewsletterController::class, 'subscribe'])
-            ->middleware('throttle:10,1')
-            ->name('subscribe');
-        Route::get('/confirm/{token}', [\Aero\Platform\Http\Controllers\Public\NewsletterController::class, 'confirm'])
-            ->name('confirm');
-        Route::get('/unsubscribe/{token}', [\Aero\Platform\Http\Controllers\Public\NewsletterController::class, 'unsubscribe'])
-            ->name('unsubscribe');
-        Route::post('/unsubscribe/{token}', [\Aero\Platform\Http\Controllers\Public\NewsletterController::class, 'processUnsubscribe'])
-            ->name('unsubscribe.process');
-    });
-
-    // =========================================================================
-    // AFFILIATE PROGRAM (Public)
-    // =========================================================================
-    Route::get('/ref/{code}', [\Aero\Platform\Http\Controllers\Public\AffiliateController::class, 'trackReferral'])
-        ->name('affiliate.referral');
-    Route::get('/affiliates', [\Aero\Platform\Http\Controllers\Public\AffiliateController::class, 'landing'])
-        ->name('affiliate.landing');
-    Route::get('/affiliates/apply', [\Aero\Platform\Http\Controllers\Public\AffiliateController::class, 'showApplication'])
-        ->name('affiliate.apply');
-    Route::post('/affiliates/apply', [\Aero\Platform\Http\Controllers\Public\AffiliateController::class, 'submitApplication'])
-        ->middleware('throttle:5,60')
-        ->name('affiliate.apply.submit');
-
-    // =========================================================================
-    // SOCIAL AUTHENTICATION (Public OAuth Flow)
-    // =========================================================================
-    Route::prefix('auth')->name('social.')->group(function () {
-        Route::get('/{provider}', [\Aero\Platform\Http\Controllers\Public\SocialAuthController::class, 'redirect'])
-            ->name('redirect');
-        Route::get('/{provider}/callback', [\Aero\Platform\Http\Controllers\Public\SocialAuthController::class, 'callback'])
-            ->name('callback');
-    });
-
-    // =========================================================================
-    // LEAD CAPTURE FORMS (Public)
-    // =========================================================================
-    Route::prefix('leads')->name('leads.')->middleware('throttle:10,1')->group(function () {
-        Route::post('/contact', [\Aero\Platform\Http\Controllers\Public\LeadController::class, 'contact'])
-            ->name('contact');
-        Route::post('/demo', [\Aero\Platform\Http\Controllers\Public\LeadController::class, 'demoRequest'])
-            ->name('demo');
-        Route::post('/pricing', [\Aero\Platform\Http\Controllers\Public\LeadController::class, 'pricingInquiry'])
-            ->name('pricing');
-        Route::post('/capture', [\Aero\Platform\Http\Controllers\Public\LeadController::class, 'genericCapture'])
-            ->name('capture');
-    });
+  
 
     Route::prefix('api')->middleware('api')->group(function () {
         require __DIR__.'/api.php';
