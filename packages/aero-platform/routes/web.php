@@ -46,6 +46,8 @@ Route::middleware('platform.domain')->group(function () {
     // All pages are static Inertia pages - no CMS or dynamic content management
 
     Route::get('/', [PublicPageController::class, 'home'])->name('platform.home');
+    Route::get('/pricing', [PublicPageController::class, 'pricing'])->name('platform.pricing');
+    Route::get('/features', [PublicPageController::class, 'features'])->name('platform.features');
 
     // Redirect /login to /signup (no login on platform domain - login is on tenant/admin domains)
     Route::redirect('login', '/signup', 302);

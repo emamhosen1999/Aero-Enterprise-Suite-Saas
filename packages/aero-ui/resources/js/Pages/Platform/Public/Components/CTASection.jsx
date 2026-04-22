@@ -1,10 +1,12 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { ctaVariants } from "../utils/motionVariants";
+import { usePublicTheme } from "../utils/publicTheme.jsx";
 
 export default function CTASection() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
+  const { isDark } = usePublicTheme();
 
   return (
     <section ref={ref} className="relative py-20 px-6 lg:px-10 xl:px-16 overflow-hidden">
@@ -44,13 +46,13 @@ export default function CTASection() {
               <p className="label-mono" style={{ color: "var(--cyan-aeos)" }}>
                 START TODAY
               </p>
-              <h2 className="display-section text-white leading-none">
+              <h2 className="display-section leading-none" style={{ color: isDark ? undefined : "#0F172A" }}>
                 Ready to modernize
                 <br />
                 your <span className="text-gradient-full">enterprise stack?</span>
               </h2>
               <p className="text-base leading-relaxed"
-                 style={{ color: "var(--text-muted)", fontFamily: "'DM Sans',sans-serif" }}>
+                 style={{ color: isDark ? "rgba(255,255,255,0.45)" : "#64748B", fontFamily: "'DM Sans',sans-serif" }}>
                 Get a personalized demo tailored to your organization's size, modules of interest, and technical requirements. No lock-in, no surprises.
               </p>
 
@@ -67,7 +69,7 @@ export default function CTASection() {
                          fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                     </svg>
-                    <span className="text-sm" style={{ color: "rgba(255,255,255,0.65)", fontFamily: "'DM Sans',sans-serif" }}>
+                    <span className="text-sm" style={{ color: isDark ? "rgba(255,255,255,0.65)" : "#374151", fontFamily: "'DM Sans',sans-serif" }}>
                       {item}
                     </span>
                   </div>
@@ -77,8 +79,8 @@ export default function CTASection() {
 
             {/* Right: form-ish card */}
             <div className="w-full lg:w-80 flex-shrink-0 flex flex-col gap-4 p-6 rounded-2xl"
-                 style={{ background: "rgba(3,4,10,0.7)", border: "1px solid rgba(0,229,255,0.12)" }}>
-              <p className="font-semibold text-white text-sm" style={{ fontFamily: "'Syne',sans-serif" }}>
+                 style={{ background: isDark ? "rgba(3,4,10,0.7)" : "rgba(255,255,255,0.9)", border: "1px solid rgba(0,229,255,0.12)" }}>
+              <p className="font-semibold text-sm" style={{ color: isDark ? "#ffffff" : "#0F172A", fontFamily: "'Syne',sans-serif" }}>
                 Request a Demo
               </p>
 
@@ -93,13 +95,13 @@ export default function CTASection() {
                   placeholder={placeholder}
                   className="w-full px-4 py-2.5 rounded-lg text-sm outline-none transition-all"
                   style={{
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    color: "#E8EDF5",
+                    background: isDark ? "rgba(255,255,255,0.04)" : "#FFFFFF",
+                    border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(100,116,139,0.2)"}`,
+                    color: isDark ? "#E8EDF5" : "#0F172A",
                     fontFamily: "'DM Sans',sans-serif",
                   }}
                   onFocus={e => e.target.style.borderColor = "rgba(0,229,255,0.4)"}
-                  onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.1)"}
+                  onBlur={e => e.target.style.borderColor = isDark ? "rgba(255,255,255,0.1)" : "rgba(100,116,139,0.2)"}
                 />
               ))}
 
@@ -107,13 +109,13 @@ export default function CTASection() {
               <select
                 className="w-full px-4 py-2.5 rounded-lg text-sm outline-none appearance-none cursor-pointer"
                 style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  color: "#8892A4",
+                  background: isDark ? "rgba(255,255,255,0.04)" : "#FFFFFF",
+                  border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(100,116,139,0.2)"}`,
+                  color: isDark ? "#8892A4" : "#64748B",
                   fontFamily: "'DM Sans',sans-serif",
                 }}
                 onFocus={e => e.target.style.borderColor = "rgba(0,229,255,0.4)"}
-                onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.1)"}
+                onBlur={e => e.target.style.borderColor = isDark ? "rgba(255,255,255,0.1)" : "rgba(100,116,139,0.2)"}
               >
                 <option value="">Team size</option>
                 <option>50–200 employees</option>
@@ -130,7 +132,7 @@ export default function CTASection() {
                 Book Demo Slot
               </motion.button>
 
-              <p className="text-center text-[0.7rem]" style={{ color: "var(--text-muted)" }}>
+              <p className="text-center text-[0.7rem]" style={{ color: isDark ? "rgba(255,255,255,0.45)" : "#64748B" }}>
                 No credit card required. Responds within 2 business hours.
               </p>
             </div>

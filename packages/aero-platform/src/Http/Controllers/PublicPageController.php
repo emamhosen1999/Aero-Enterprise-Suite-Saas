@@ -13,7 +13,21 @@ class PublicPageController extends Controller
     public function home(Request $request): Response
     {
         return Inertia::render('Platform/Public/Home', [
-            'title' => 'AEOS Enterprise Suite — Modern ERP Platform',
+            'title' => 'Modern ERP Platform',
+        ]);
+    }
+
+    public function pricing(Request $request): Response
+    {
+        return Inertia::render('Platform/Public/Pricing', [
+            'title' => 'Pricing — aeos365',
+        ]);
+    }
+
+    public function features(Request $request): Response
+    {
+        return Inertia::render('Platform/Public/Features', [
+            'title' => 'Features — aeos365',
         ]);
     }
 }

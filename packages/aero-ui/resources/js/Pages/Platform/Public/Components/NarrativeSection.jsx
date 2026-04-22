@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { NARRATIVE_STEPS } from "../utils/pageData";
+import { usePublicTheme } from "../utils/publicTheme.jsx";
 
 // ─── NarrativeSection ─────────────────────────────────────────────────────────
 // Sticky scroll narrative: as user scrolls through the tall container,
@@ -8,6 +9,7 @@ import { NARRATIVE_STEPS } from "../utils/pageData";
 export default function NarrativeSection() {
   const containerRef = useRef(null);
   const [activeStep, setActiveStep] = useState(0);
+  const { isDark } = usePublicTheme();
 
   // Track scroll within this section
   const { scrollYProgress } = useScroll({
@@ -55,7 +57,7 @@ export default function NarrativeSection() {
                 <p className="label-mono mb-2" style={{ color: "var(--cyan-aeos)" }}>
                   THE ARCHITECTURE
                 </p>
-                <h2 className="display-section text-white">
+                <h2 className="display-section" style={{ color: isDark ? undefined : "#0F172A" }}>
                   How AEOS
                   <br />
                   <span className="text-gradient-full">Works</span>
@@ -74,9 +76,9 @@ export default function NarrativeSection() {
                         : "transparent",
                       borderColor: i === activeStep
                         ? "rgba(0,229,255,0.2)"
-                        : "rgba(255,255,255,0.04)",
+                        : isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.06)",
                     }}
-                    style={{ border: "1px solid rgba(255,255,255,0.04)" }}
+                    style={{ border: `1px solid ${isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.06)"}` }}
                   >
                     {/* Step number */}
                     <motion.div
@@ -84,8 +86,8 @@ export default function NarrativeSection() {
                       animate={{
                         background: i === activeStep
                           ? "linear-gradient(135deg, #00E5FF, #6366F1)"
-                          : "rgba(255,255,255,0.06)",
-                        color: i === activeStep ? "#03040A" : "rgba(255,255,255,0.3)",
+                          : isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.08)",
+                        color: i === activeStep ? "#03040A" : isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.35)",
                       }}
                       transition={{ duration: 0.3 }}
                       style={{ fontFamily: "'JetBrains Mono',monospace" }}
@@ -109,7 +111,7 @@ export default function NarrativeSection() {
 
               {/* Scroll progress bar */}
               <div className="h-1 rounded-full overflow-hidden mt-2"
-                   style={{ background: "rgba(255,255,255,0.06)" }}>
+                   style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.1)" }}>
                 <motion.div
                   className="h-full rounded-full"
                   style={{
@@ -147,8 +149,8 @@ export default function NarrativeSection() {
 
                     {/* Title */}
                     <div>
-                      <h3 className="text-white text-3xl font-bold leading-tight"
-                          style={{ fontFamily: "'Syne',sans-serif" }}>
+                      <h3 className="text-3xl font-bold leading-tight"
+                          style={{ fontFamily: "'Syne',sans-serif", color: isDark ? "#ffffff" : "#0F172A" }}>
                         {step.title}
                       </h3>
                       <h3 className="text-3xl font-bold leading-tight text-gradient-cyan"
@@ -159,7 +161,7 @@ export default function NarrativeSection() {
 
                     {/* Body */}
                     <p className="text-base leading-relaxed max-w-lg"
-                       style={{ color: "var(--text-muted)", fontFamily: "'DM Sans',sans-serif" }}>
+                       style={{ color: isDark ? "rgba(255,255,255,0.45)" : "#64748B", fontFamily: "'DM Sans',sans-serif" }}>
                       {step.body}
                     </p>
 
@@ -181,6 +183,7 @@ export default function NarrativeSection() {
 
 // ─── Micro Architecture Diagram per step ──────────────────────────────────────
 function NarrativeDiagram({ step }) {
+  const { isDark } = usePublicTheme();
   const diagrams = [
     // Step 0: Module blocks
     <div key={0} className="flex items-center gap-2 flex-wrap">
@@ -208,10 +211,10 @@ function NarrativeDiagram({ step }) {
     <div key={1} className="flex gap-3">
       {["Tenant A", "Tenant B", "Tenant C"].map((t, i) => (
         <div key={t} className="flex-1 p-2 rounded-lg flex flex-col gap-1"
-             style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+             style={{ background: isDark ? "rgba(255,255,255,0.03)" : "#FFFFFF", border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "rgba(100,116,139,0.15)"}` }}>
           <p className="text-[0.6rem] font-bold" style={{ color: ["var(--cyan-aeos)","var(--amber-aeos)","#6366F1"][i] }}>{t}</p>
-          <div className="h-6 rounded" style={{ background: "rgba(255,255,255,0.05)" }} />
-          <div className="h-6 rounded" style={{ background: "rgba(255,255,255,0.05)" }} />
+          <div className="h-6 rounded" style={{ background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)" }} />
+          <div className="h-6 rounded" style={{ background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)" }} />
         </div>
       ))}
     </div>,
@@ -237,9 +240,9 @@ function NarrativeDiagram({ step }) {
     <div key={3} className="flex flex-col gap-1.5">
       {[
         { depth: 0, label: "Tenant Config", color: "var(--cyan-aeos)" },
-        { depth: 1, label: "Custom Fields (12)", color: "rgba(255,255,255,0.5)" },
-        { depth: 1, label: "Approval Chains (3)", color: "rgba(255,255,255,0.5)" },
-        { depth: 1, label: "Role Definitions (8)", color: "rgba(255,255,255,0.5)" },
+        { depth: 1, label: "Custom Fields (12)", color: isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.55)" },
+        { depth: 1, label: "Approval Chains (3)", color: isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.55)" },
+        { depth: 1, label: "Role Definitions (8)", color: isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.55)" },
       ].map(({ depth, label, color }) => (
         <div key={label} className="flex items-center gap-2" style={{ paddingLeft: `${depth * 16}px` }}>
           {depth > 0 && <span className="text-[0.6rem]" style={{ color: "rgba(0,229,255,0.3)" }}>└─</span>}

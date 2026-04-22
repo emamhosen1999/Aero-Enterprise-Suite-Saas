@@ -3,11 +3,13 @@ import { motion, useInView } from "framer-motion";
 import { STATS } from "../utils/pageData";
 import { statsContainer, statItem } from "../utils/motionVariants";
 import { useCountUp } from "../utils/hooks";
+import { usePublicTheme } from "../utils/publicTheme.jsx";
 
 // ─── Single stat counter ──────────────────────────────────────────────────────
 function StatCounter({ stat, inView }) {
   const decimals = stat.value % 1 !== 0 ? 2 : 0;
   const count = useCountUp(stat.value, inView, 2200, decimals);
+  const { isDark } = usePublicTheme();
 
   return (
     <motion.div
@@ -22,7 +24,7 @@ function StatCounter({ stat, inView }) {
       <div className="flex items-start">
         {stat.prefix && (
           <span className="text-2xl font-mono font-semibold mt-2 mr-1"
-                style={{ color: "rgba(255,255,255,0.4)", fontFamily: "'JetBrains Mono',monospace" }}>
+                style={{ color: isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)", fontFamily: "'JetBrains Mono',monospace" }}>
             {stat.prefix}
           </span>
         )}
@@ -37,7 +39,7 @@ function StatCounter({ stat, inView }) {
 
       {/* Label */}
       <p className="text-sm font-medium"
-         style={{ color: "var(--text-muted)", fontFamily: "'DM Sans',sans-serif" }}>
+         style={{ color: isDark ? "rgba(255,255,255,0.45)" : "#64748B", fontFamily: "'DM Sans',sans-serif" }}>
         {stat.label}
       </p>
     </motion.div>
@@ -48,6 +50,7 @@ function StatCounter({ stat, inView }) {
 export default function StatsSection() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
+  const { isDark } = usePublicTheme();
 
   return (
     <section ref={ref} className="relative py-20 px-6 lg:px-10 xl:px-16 overflow-hidden">
@@ -55,7 +58,7 @@ export default function StatsSection() {
       {/* ── Background Panel ── */}
       <div className="absolute inset-x-6 lg:inset-x-16 inset-y-6 rounded-3xl"
            style={{
-             background: "rgba(13,17,32,0.6)",
+             background: isDark ? "rgba(13,17,32,0.6)" : "#F1F5F9",
              border: "1px solid rgba(0,229,255,0.08)",
              boxShadow: "0 0 80px rgba(0,229,255,0.04)",
            }} />
@@ -75,7 +78,7 @@ export default function StatsSection() {
           <p className="label-mono mb-3" style={{ color: "var(--cyan-aeos)" }}>
             BY THE NUMBERS
           </p>
-          <h2 className="display-section text-white">
+          <h2 className="display-section" style={{ color: isDark ? undefined : "#0F172A" }}>
             Platform <span className="text-gradient-amber">at Scale</span>
           </h2>
         </motion.div>
@@ -96,7 +99,7 @@ export default function StatsSection() {
         {/* Subtext */}
         <motion.p
           className="text-center text-sm mt-6"
-          style={{ color: "var(--text-muted)", fontFamily: "'DM Sans',sans-serif" }}
+          style={{ color: isDark ? "rgba(255,255,255,0.45)" : "#64748B", fontFamily: "'DM Sans',sans-serif" }}
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: 1 } : {}}
           transition={{ delay: 0.8, duration: 0.6 }}

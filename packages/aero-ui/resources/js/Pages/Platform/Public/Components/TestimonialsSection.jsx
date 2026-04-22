@@ -3,6 +3,7 @@ import { motion, AnimatePresence, useInView } from "framer-motion";
 import { TESTIMONIALS } from "../utils/pageData";
 import { slideVariants, staggerContainer, scaleIn } from "../utils/motionVariants";
 import { useTestimonialSlider } from "../utils/hooks";
+import { usePublicTheme } from "../utils/publicTheme.jsx";
 
 // ─── Star Rating ──────────────────────────────────────────────────────────────
 function Stars({ count = 5 }) {
@@ -18,7 +19,7 @@ function Stars({ count = 5 }) {
 }
 
 // ─── Featured Testimonial (large, center) ────────────────────────────────────
-function FeaturedCard({ testimonial, direction }) {
+function FeaturedCard({ testimonial, direction, isDark }) {
   return (
     <motion.div
       custom={direction}
@@ -39,14 +40,14 @@ function FeaturedCard({ testimonial, direction }) {
           <Stars count={testimonial.rating} />
 
           <blockquote
-            className="text-xl lg:text-2xl font-medium leading-relaxed text-white"
-            style={{ fontFamily: "'DM Sans',sans-serif", fontStyle: "italic" }}
+            className="text-xl lg:text-2xl font-medium leading-relaxed"
+            style={{ color: isDark ? "#ffffff" : "#0F172A", fontFamily: "'DM Sans',sans-serif", fontStyle: "italic" }}
           >
             "{testimonial.quote}"
           </blockquote>
 
           <div className="flex items-center gap-4 pt-2 border-t"
-               style={{ borderTopColor: "rgba(255,255,255,0.06)" }}>
+               style={{ borderTopColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.08)" }}>
             {/* Avatar */}
             <div
               className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
@@ -60,10 +61,10 @@ function FeaturedCard({ testimonial, direction }) {
               {testimonial.avatar}
             </div>
             <div>
-              <p className="text-white font-semibold text-sm" style={{ fontFamily: "'DM Sans',sans-serif" }}>
+              <p className="font-semibold text-sm" style={{ color: isDark ? "#ffffff" : "#0F172A", fontFamily: "'DM Sans',sans-serif" }}>
                 {testimonial.name}
               </p>
-              <p className="text-sm" style={{ color: "var(--text-muted)", fontFamily: "'DM Sans',sans-serif" }}>
+              <p className="text-sm" style={{ color: isDark ? "rgba(255,255,255,0.45)" : "#64748B", fontFamily: "'DM Sans',sans-serif" }}>
                 {testimonial.role} · {testimonial.company}
               </p>
             </div>
@@ -78,6 +79,7 @@ function FeaturedCard({ testimonial, direction }) {
 export default function TestimonialsSection() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
+  const { isDark } = usePublicTheme();
   const { index, direction, goTo, next, prev } = useTestimonialSlider(TESTIMONIALS.length, 6000);
 
   return (
@@ -96,7 +98,7 @@ export default function TestimonialsSection() {
           transition={{ duration: 0.7 }}
         >
           <p className="label-mono mb-3" style={{ color: "var(--cyan-aeos)" }}>CLIENT STORIES</p>
-          <h2 className="display-section text-white mb-4">
+          <h2 className="display-section mb-4" style={{ color: isDark ? undefined : "#0F172A" }}>
             Teams That Ship
             <br />
             <span className="text-gradient-cyan">Faster With AEOS</span>
@@ -122,7 +124,7 @@ export default function TestimonialsSection() {
               >
                 <Stars count={t.rating} />
                 <p className="mt-3 text-sm leading-relaxed"
-                   style={{ color: "rgba(255,255,255,0.7)", fontFamily: "'DM Sans',sans-serif", fontStyle: "italic" }}>
+                   style={{ color: isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.7)", fontFamily: "'DM Sans',sans-serif", fontStyle: "italic" }}>
                   "{t.quote.substring(0, 90)}…"
                 </p>
                 <div className="flex items-center gap-2 mt-3">
@@ -130,7 +132,7 @@ export default function TestimonialsSection() {
                        style={{ background: `${t.avatarColor}20`, color: t.avatarColor }}>
                     {t.avatar}
                   </div>
-                  <p className="text-xs font-medium text-white" style={{ fontFamily: "'DM Sans',sans-serif" }}>
+                  <p className="text-xs font-medium" style={{ color: isDark ? "#ffffff" : "#0F172A", fontFamily: "'DM Sans',sans-serif" }}>
                     {t.name}
                   </p>
                 </div>
@@ -150,8 +152,7 @@ export default function TestimonialsSection() {
                 <FeaturedCard
                   key={TESTIMONIALS[index].id}
                   testimonial={TESTIMONIALS[index]}
-                  direction={direction}
-                />
+                  direction={direction}                  isDark={isDark}                />
               </AnimatePresence>
             </div>
 
@@ -166,7 +167,7 @@ export default function TestimonialsSection() {
                     style={{
                       width: i === index ? "24px" : "8px",
                       height: "8px",
-                      background: i === index ? "var(--cyan-aeos)" : "rgba(255,255,255,0.2)",
+                      background: i === index ? "var(--cyan-aeos)" : isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)",
                     }}
                   />
                 ))}
@@ -177,7 +178,7 @@ export default function TestimonialsSection() {
                     key={i}
                     onClick={fn}
                     className="w-9 h-9 rounded-full flex items-center justify-center"
-                    style={{ border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.6)" }}
+                    style={{ border: `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`, color: isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.5)" }}
                     whileHover={{ borderColor: "rgba(0,229,255,0.4)", color: "var(--cyan-aeos)" }}
                     whileTap={{ scale: 0.92 }}
                   >
@@ -209,7 +210,7 @@ export default function TestimonialsSection() {
               >
                 <Stars count={t.rating} />
                 <p className="mt-3 text-sm leading-relaxed"
-                   style={{ color: "rgba(255,255,255,0.7)", fontFamily: "'DM Sans',sans-serif", fontStyle: "italic" }}>
+                   style={{ color: isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.7)", fontFamily: "'DM Sans',sans-serif", fontStyle: "italic" }}>
                   "{t.quote.substring(0, 90)}…"
                 </p>
                 <div className="flex items-center gap-2 mt-3">
@@ -217,7 +218,7 @@ export default function TestimonialsSection() {
                        style={{ background: `${t.avatarColor}20`, color: t.avatarColor }}>
                     {t.avatar}
                   </div>
-                  <p className="text-xs font-medium text-white" style={{ fontFamily: "'DM Sans',sans-serif" }}>
+                  <p className="text-xs font-medium" style={{ color: isDark ? "#ffffff" : "#0F172A", fontFamily: "'DM Sans',sans-serif" }}>
                     {t.name}
                   </p>
                 </div>

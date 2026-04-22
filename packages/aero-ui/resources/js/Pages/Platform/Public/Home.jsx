@@ -10,11 +10,11 @@ import StatsSection from './Components/StatsSection';
 import CTASection from './Components/CTASection';
 import TestimonialsSection from './Components/TestimonialsSection';
 
-export default function Home({ title = 'AEOS Enterprise Suite — Modern ERP Platform' }) {
+export default function Home({ title = 'aeos365 — Modern ERP Platform' }) {
     return (
         <>
             <Head title={title} />
-            <div style={{ background: '#03040A', color: '#E8EDF5', minHeight: '100vh' }}>
+            <div className="public-page">
                 <PublicLayout>
                     {/* 1. Immersive Hero with mouse-parallax + floating mockup */}
                     <HeroSection />

@@ -1,13 +1,14 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useMouseParallax } from "../utils/hooks";
+import { usePublicTheme } from "../utils/publicTheme.jsx";
 import {
   heroContainer, heroLabel, heroTitle, heroSubtitle,
   heroButtons, heroMockup, parallaxConfigs,
 } from "../utils/motionVariants";
 
 // ─── Platform Mockup Window ───────────────────────────────────────────────────
-function PlatformMockup() {
+function PlatformMockup({ isDark }) {
   return (
     <div className="mockup-window w-full">
       {/* Title bar */}
@@ -19,14 +20,14 @@ function PlatformMockup() {
           <div className="h-5 rounded-md px-3 flex items-center justify-center"
                style={{ background: "rgba(0,229,255,0.06)", border: "1px solid rgba(0,229,255,0.12)" }}>
             <span className="label-mono text-[0.6rem]" style={{ color: "var(--text-muted)" }}>
-              app.aeos.io/dashboard
+              demo.aeos365.com/dashboard
             </span>
           </div>
         </div>
       </div>
 
       {/* App content simulation */}
-      <div className="p-4" style={{ background: "rgba(7,11,20,0.98)", minHeight: "340px" }}>
+      <div className="p-4" style={{ background: isDark ? "rgba(7,11,20,0.98)" : "#FFFFFF", minHeight: "340px" }}>
 
         {/* Sidebar + Main layout */}
         <div className="flex gap-3 h-full">
@@ -43,7 +44,7 @@ function PlatformMockup() {
                 }}
               >
                 <div className="w-2.5 h-2.5 rounded-sm"
-                     style={{ background: i === 0 ? "var(--cyan-aeos)" : "rgba(255,255,255,0.2)" }} />
+                     style={{ background: i === 0 ? "var(--cyan-aeos)" : isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.15)" }} />
                 <span className="text-[0.65rem] font-medium"
                       style={{ color: i === 0 ? "var(--cyan-aeos)" : "var(--text-muted)", fontFamily: "'DM Sans',sans-serif" }}>
                   {item}
@@ -63,17 +64,17 @@ function PlatformMockup() {
                 { label: "Open Tickets",  value: "38",     delta: "-4",  color: "#6366F1" },
               ].map(({ label, value, delta, color }) => (
                 <div key={label} className="p-2.5 rounded-lg"
-                     style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                     style={{ background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.04)", border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.08)"}` }}>
                   <p className="text-[0.58rem] mb-1" style={{ color: "var(--text-muted)" }}>{label}</p>
                   <p className="text-sm font-bold" style={{ color, fontFamily: "'JetBrains Mono',monospace" }}>{value}</p>
-                  <p className="text-[0.56rem] mt-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>{delta}</p>
+                  <p className="text-[0.56rem] mt-0.5" style={{ color: isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.35)" }}>{delta}</p>
                 </div>
               ))}
             </div>
 
             {/* Chart area */}
             <div className="rounded-lg p-3 flex-1 relative overflow-hidden"
-                 style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                 style={{ background: isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.03)", border: `1px solid ${isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.06)"}` }}>
               <p className="text-[0.6rem] mb-2" style={{ color: "var(--text-muted)" }}>Headcount Trend — 12M</p>
               <svg viewBox="0 0 280 80" className="w-full" preserveAspectRatio="none">
                 <defs>
@@ -88,14 +89,14 @@ function PlatformMockup() {
                       fill="none" stroke="#00E5FF" strokeWidth="1.5" />
                 {/* Data points */}
                 {[[60,45],[120,32],[180,22],[240,14],[280,10]].map(([x, y], i) => (
-                  <circle key={i} cx={x} cy={y} r="2.5" fill="#03040A" stroke="#00E5FF" strokeWidth="1.5" />
+                  <circle key={i} cx={x} cy={y} r="2.5" fill={isDark ? "#03040A" : "#F8FAFC"} stroke="#00E5FF" strokeWidth="1.5" />
                 ))}
               </svg>
             </div>
 
             {/* Recent activity */}
             <div className="rounded-lg p-2.5"
-                 style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                 style={{ background: isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.03)", border: `1px solid ${isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.06)"}` }}>
               <p className="text-[0.6rem] mb-2" style={{ color: "var(--text-muted)" }}>Recent Activity</p>
               {[
                 { event: "Payroll batch #0412 queued", time: "2m ago", color: "var(--amber-aeos)" },
@@ -105,7 +106,7 @@ function PlatformMockup() {
                 <div key={event} className="flex items-center justify-between py-1">
                   <div className="flex items-center gap-2">
                     <div className="w-1.5 h-1.5 rounded-full" style={{ background: color }} />
-                    <span className="text-[0.6rem]" style={{ color: "rgba(255,255,255,0.7)", fontFamily: "'DM Sans',sans-serif" }}>{event}</span>
+                    <span className="text-[0.6rem]" style={{ color: isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.7)", fontFamily: "'DM Sans',sans-serif" }}>{event}</span>
                   </div>
                   <span className="text-[0.56rem]" style={{ color: "var(--text-muted)" }}>{time}</span>
                 </div>
@@ -121,6 +122,7 @@ function PlatformMockup() {
 // ─── HeroSection ──────────────────────────────────────────────────────────────
 export default function HeroSection() {
   const containerRef = useRef(null);
+  const { isDark } = usePublicTheme();
   const { mouseX, mouseY } = useMouseParallax(60, 18);
 
   // Scroll-linked transforms
@@ -243,7 +245,7 @@ export default function HeroSection() {
               <motion.p
                 variants={heroSubtitle}
                 className="text-lg leading-relaxed max-w-lg"
-                style={{ color: "var(--text-muted)", fontFamily: "'DM Sans',sans-serif" }}
+                style={{ color: isDark ? "rgba(255,255,255,0.45)" : "#64748B", fontFamily: "'DM Sans',sans-serif" }}
               >
                 AEOS unifies HR, Payroll, Analytics, and Operations into one coherent, multi-tenant platform. Built for enterprises that demand isolation, speed, and extensibility.
               </motion.p>
@@ -302,8 +304,8 @@ export default function HeroSection() {
                       </svg>
                     ))}
                   </div>
-                  <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
-                    Trusted by <strong className="text-white">250+</strong> enterprise teams
+                  <p className="text-xs mt-0.5" style={{ color: isDark ? "rgba(255,255,255,0.45)" : "#64748B" }}>
+                    Trusted by <strong style={{ color: isDark ? "#ffffff" : "#0F172A" }}>250+</strong> enterprise teams
                   </p>
                 </div>
               </motion.div>
@@ -328,22 +330,22 @@ export default function HeroSection() {
             {/* Floating badge: top-left */}
             <motion.div
               className="absolute -top-4 -left-4 z-20 px-3 py-2 rounded-xl flex items-center gap-2"
-              style={{ background: "rgba(7,11,20,0.95)", border: "1px solid rgba(0,229,255,0.2)", boxShadow: "0 8px 24px rgba(0,0,0,0.6)" }}
+              style={{ background: isDark ? "rgba(7,11,20,0.95)" : "rgba(255,255,255,0.95)", border: "1px solid rgba(0,229,255,0.2)", boxShadow: "0 8px 24px rgba(0,0,0,0.6)" }}
               animate={{ y: [0, -6, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             >
               <span className="w-2 h-2 rounded-full" style={{ background: "#22C55E", boxShadow: "0 0 6px #22C55E" }} />
-              <span className="text-xs text-white font-medium" style={{ fontFamily: "'DM Sans',sans-serif" }}>Live Processing</span>
+              <span className="text-xs font-medium" style={{ color: isDark ? "#ffffff" : "#0F172A", fontFamily: "'DM Sans',sans-serif" }}>Live Processing</span>
             </motion.div>
 
             {/* Floating badge: bottom-right */}
             <motion.div
               className="absolute -bottom-4 -right-4 z-20 px-3 py-2.5 rounded-xl"
-              style={{ background: "rgba(7,11,20,0.95)", border: "1px solid rgba(255,179,71,0.2)", boxShadow: "0 8px 24px rgba(0,0,0,0.6)" }}
+              style={{ background: isDark ? "rgba(7,11,20,0.95)" : "rgba(255,255,255,0.95)", border: "1px solid rgba(255,179,71,0.2)", boxShadow: "0 8px 24px rgba(0,0,0,0.6)" }}
               animate={{ y: [0, 6, 0] }}
               transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
             >
-              <p className="text-[0.6rem] mb-0.5" style={{ color: "var(--text-muted)" }}>Payroll Engine</p>
+              <p className="text-[0.6rem] mb-0.5" style={{ color: isDark ? "rgba(255,255,255,0.45)" : "#64748B" }}>Payroll Engine</p>
               <p className="text-sm font-bold" style={{ color: "var(--amber-aeos)", fontFamily: "'JetBrains Mono',monospace" }}>
                 $2.8M processed
               </p>
@@ -351,7 +353,7 @@ export default function HeroSection() {
 
             {/* The mockup itself */}
             <div className="animate-float" style={{ animationDuration: "7s" }}>
-              <PlatformMockup />
+              <PlatformMockup isDark={isDark} />
             </div>
           </motion.div>
         </div>

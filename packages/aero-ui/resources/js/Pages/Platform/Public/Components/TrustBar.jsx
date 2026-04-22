@@ -1,17 +1,18 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { TRUST_LOGOS } from "../utils/pageData";
+import { usePublicTheme } from "../utils/publicTheme.jsx";
 
 // Duplicate list for seamless loop
 const LOGOS_DOUBLED = [...TRUST_LOGOS, ...TRUST_LOGOS];
 
-function LogoBadge({ name }) {
+function LogoBadge({ name, isDark }) {
   return (
     <div
       className="flex items-center gap-2.5 px-6 py-3 rounded-xl mx-3 flex-shrink-0 transition-all duration-300 cursor-default"
       style={{
-        background: "rgba(255,255,255,0.03)",
-        border: "1px solid rgba(255,255,255,0.07)",
+        background: isDark ? "rgba(255,255,255,0.03)" : "rgba(100,116,139,0.06)",
+        border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "rgba(100,116,139,0.15)"}`,
       }}
     >
       {/* Generic geometric logo shape */}
@@ -22,7 +23,7 @@ function LogoBadge({ name }) {
       </div>
       <span
         className="text-sm font-medium whitespace-nowrap"
-        style={{ color: "rgba(255,255,255,0.45)", fontFamily: "'DM Sans',sans-serif", letterSpacing: "0.01em" }}
+        style={{ color: isDark ? "rgba(255,255,255,0.45)" : "#64748B", fontFamily: "'DM Sans',sans-serif", letterSpacing: "0.01em" }}
       >
         {name}
       </span>
@@ -33,15 +34,16 @@ function LogoBadge({ name }) {
 export default function TrustBar() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
+  const { isDark } = usePublicTheme();
 
   return (
     <section ref={ref} className="relative py-14 overflow-hidden">
       {/* Top/bottom fades */}
       <div className="absolute inset-0 pointer-events-none z-10">
         <div className="absolute inset-y-0 left-0 w-24 lg:w-40"
-             style={{ background: "linear-gradient(to right, #03040A, transparent)" }} />
+             style={{ background: `linear-gradient(to right, ${isDark ? "#03040A" : "#F8FAFC"}, transparent)` }} />
         <div className="absolute inset-y-0 right-0 w-24 lg:w-40"
-             style={{ background: "linear-gradient(to left, #03040A, transparent)" }} />
+             style={{ background: `linear-gradient(to left, ${isDark ? "#03040A" : "#F8FAFC"}, transparent)` }} />
       </div>
 
       {/* Divider lines */}
@@ -54,7 +56,7 @@ export default function TrustBar() {
         animate={inView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.6 }}
       >
-        <p className="label-mono text-[0.65rem]" style={{ color: "var(--text-muted)" }}>
+        <p className="label-mono text-[0.65rem]" style={{ color: isDark ? "rgba(255,255,255,0.45)" : "#64748B" }}>
           TRUSTED BY FORWARD-THINKING ENTERPRISES
         </p>
       </motion.div>
@@ -74,7 +76,7 @@ export default function TrustBar() {
           }}
         >
           {LOGOS_DOUBLED.map((name, i) => (
-            <LogoBadge key={`${name}-${i}`} name={name} />
+            <LogoBadge key={`${name}-${i}`} name={name} isDark={isDark} />
           ))}
         </div>
       </motion.div>
