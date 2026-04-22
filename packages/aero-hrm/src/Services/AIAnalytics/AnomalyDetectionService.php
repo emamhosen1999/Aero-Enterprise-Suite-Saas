@@ -69,7 +69,7 @@ class AnomalyDetectionService
      */
     public function detectForAllEmployees(): Collection
     {
-        $employees = Employee::where('employment_status', 'active')->get();
+        $employees = Employee::where('status', 'active')->get();
         $allAnomalies = collect();
 
         foreach ($employees as $employee) {

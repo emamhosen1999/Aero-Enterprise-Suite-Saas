@@ -138,7 +138,7 @@ class PulseSurvey extends Model
      */
     public function getEligibleEmployeesCount(): int
     {
-        $query = Employee::where('employment_status', 'active');
+        $query = Employee::where('status', 'active');
 
         if (! empty($this->target_departments)) {
             $query->whereIn('department_id', $this->target_departments);

@@ -474,13 +474,16 @@ class WorkplaceSafetyController extends Controller
         $this->authorize('viewAny', SafetyInspection::class);
 
         $incidents = DB::table('safety_incidents')
-            ->join('departments', 'safety_incidents.department_id', '=', 'departments.id')
-            ->join('users', 'safety_incidents.reported_by', '=', 'users.id')
+            ->leftJoin('departments', 'safety_incidents.department_id', '=', 'departments.id')
+            ->leftJoin('users', 'safety_incidents.reported_by', '=', 'users.id')
             ->select('safety_incidents.*', 'departments.name as department_name', 'users.name as reporter_name')
             ->orderBy('safety_incidents.created_at', 'desc')
             ->paginate(15);
 
-        return response()->json($incidents);
+        return Inertia::render('HRM/Safety/Incidents/Index', [
+            'title' => 'Safety Incidents',
+            'incidents' => $incidents,
+        ]);
     }
 
     /**

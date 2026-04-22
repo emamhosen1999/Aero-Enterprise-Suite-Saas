@@ -221,4 +221,106 @@ class EmployeeSelfServiceController extends Controller
             'careerPaths' => $careerPaths,
         ]);
     }
+
+    public function personalInformation(): Response
+    {
+        $user = Auth::user();
+        $employee = Employee::where('user_id', $user->id)
+            ->with(['emergencyContacts'])
+            ->first();
+
+        return Inertia::render('HRM/UserInformation', [
+            'title' => 'Personal Information',
+            'user' => $user,
+            'employee' => $employee ? [
+                'id' => $employee->id,
+                'first_name' => $employee->first_name,
+                'last_name' => $employee->last_name,
+                'birthday' => $employee->birthday?->format('Y-m-d'),
+                'gender' => $employee->gender,
+                'nationality' => $employee->nationality,
+                'marital_status' => $employee->marital_status,
+                'passport_no' => $employee->passport_no,
+                'emergency_contacts' => $employee->emergencyContacts->map(fn ($c) => [
+                    'id' => $c->id,
+                    'name' => $c->name,
+                    'relationship' => $c->relationship,
+                    'phone' => $c->phone,
+                    'email' => $c->email ?? null,
+                ])->toArray(),
+            ] : null,
+        ]);
+    }
+
+    public function updatePersonalInformation(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate([
+            'birthday'       => ['nullable', 'date'],
+            'gender'         => ['nullable', 'in:male,female,other,prefer_not_to_say'],
+            'nationality'    => ['nullable', 'string', 'max:100'],
+            'marital_status' => ['nullable', 'in:single,married,divorced,widowed'],
+            'passport_no'    => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $employee = Employee::where('user_id', Auth::id())->first();
+
+        if ($employee) {
+            $employee->update($validated);
+        }
+
+        return back()->with('success', 'Personal information updated successfully.');
+    }
+
+    public function bankInformation(): Response
+    {
+        $user = Auth::user();
+        $employee = Employee::where('user_id', $user->id)
+            ->with('bankDetail')
+            ->first();
+
+        return Inertia::render('HRM/UserBankInformation', [
+            'title' => 'Bank Information',
+            'employee' => $employee ? [
+                'id' => $employee->id,
+                'first_name' => $employee->first_name,
+                'last_name' => $employee->last_name,
+            ] : null,
+            'bankDetail' => $employee?->bankDetail ? [
+                'id' => $employee->bankDetail->id,
+                'bank_name' => $employee->bankDetail->bank_name,
+                'account_number' => $employee->bankDetail->account_number,
+                'account_holder_name' => $employee->bankDetail->account_holder_name,
+                'account_type' => $employee->bankDetail->account_type ?? null,
+                'branch_name' => $employee->bankDetail->branch_name ?? null,
+                'swift_code' => $employee->bankDetail->swift_code ?? null,
+                'iban' => $employee->bankDetail->iban ?? null,
+                'routing_number' => $employee->bankDetail->routing_number ?? null,
+            ] : null,
+        ]);
+    }
+
+    public function updateBankInformation(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate([
+            'bank_name'           => ['required', 'string', 'max:255'],
+            'account_number'      => ['required', 'string', 'max:100'],
+            'account_holder_name' => ['required', 'string', 'max:255'],
+            'account_type'        => ['nullable', 'string', 'max:50'],
+            'branch_name'         => ['nullable', 'string', 'max:255'],
+            'swift_code'          => ['nullable', 'string', 'max:50'],
+            'iban'                => ['nullable', 'string', 'max:50'],
+            'routing_number'      => ['nullable', 'string', 'max:50'],
+        ]);
+
+        $employee = Employee::where('user_id', Auth::id())->first();
+
+        if ($employee) {
+            $employee->bankDetail()->updateOrCreate(
+                ['user_id' => $employee->user_id],
+                $validated
+            );
+        }
+
+        return back()->with('success', 'Bank information updated successfully.');
+    }
 }

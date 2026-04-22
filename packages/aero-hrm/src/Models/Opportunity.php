@@ -2,49 +2,35 @@
 
 namespace Aero\HRM\Models;
 
-use Aero\Core\Models\User;
-use App\Models\OpportunityActivity;
-use App\Models\Tenant\CRM\Customer;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Opportunity extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
-        'customer_id',
         'title',
         'description',
-        'value',
+        'department_id',
+        'type',
         'status',
-        'stage',
-        'probability',
-        'expected_close_date',
-        'assigned_to',
-        'source',
+        'application_deadline',
+        'required_skills',
+        'requirements',
     ];
 
-    protected $casts = [
-        'expected_close_date' => 'date',
-        'value' => 'decimal:2',
-        'probability' => 'integer',
-    ];
-
-    // Relationships
-    public function customer()
+    protected function casts(): array
     {
-        return $this->belongsTo(Customer::class);
+        return [
+            'application_deadline' => 'date',
+            'required_skills' => 'array',
+        ];
     }
 
-    public function user()
+    public function department(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'assigned_to');
-    }
-
-    public function activities()
-    {
-        return $this->hasMany(OpportunityActivity::class);
+        return $this->belongsTo(Department::class);
     }
 }

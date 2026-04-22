@@ -14,7 +14,9 @@ class MarkWellbeingInterventionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'note' => ['required', 'string', 'max:2000'],
+            'note' => ['nullable', 'string', 'max:2000', 'required_without:notes'],
+            'notes' => ['nullable', 'string', 'max:2000', 'required_without:note'],
+            'intervention_type' => ['nullable', 'string', 'in:counselling,workload_reduction,leave_recommended,manager_meeting,wellness_program'],
             'follow_up_date' => ['nullable', 'date'],
         ];
     }
@@ -22,8 +24,11 @@ class MarkWellbeingInterventionRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'note.required' => 'Intervention note is required.',
+            'note.required_without' => 'Intervention note is required.',
+            'notes.required_without' => 'Intervention note is required.',
             'note.max' => 'Intervention note must not exceed 2000 characters.',
+            'notes.max' => 'Intervention note must not exceed 2000 characters.',
+            'intervention_type.in' => 'Intervention type is invalid.',
             'follow_up_date.date' => 'Follow-up date must be a valid date.',
         ];
     }

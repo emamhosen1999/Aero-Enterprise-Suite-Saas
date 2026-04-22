@@ -73,7 +73,7 @@ class AttritionPredictionService
     public function predictForAllEmployees(): Collection
     {
         $employees = Employee::query()
-            ->where('employment_status', 'active')
+            ->where('status', 'active')
             ->with(['department', 'designation', 'manager'])
             ->get();
 
@@ -159,7 +159,7 @@ class AttritionPredictionService
         // Get average salary for same designation
         $avgSalary = Employee::query()
             ->where('designation_id', $employee->designation_id)
-            ->where('employment_status', 'active')
+            ->where('status', 'active')
             ->whereHas('salaryStructure')
             ->with('salaryStructure')
             ->get()
@@ -256,7 +256,7 @@ class AttritionPredictionService
         if ($employee->manager_id) {
             $teamTurnover = Employee::query()
                 ->where('manager_id', $employee->manager_id)
-                ->where('employment_status', 'terminated')
+                ->where('status', 'terminated')
                 ->where('updated_at', '>=', now()->subYear())
                 ->count();
 

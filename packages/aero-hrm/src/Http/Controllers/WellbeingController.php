@@ -113,6 +113,10 @@ class WellbeingController extends Controller
             $employee = Employee::query()->findOrFail($id);
             $validated = $request->validated();
 
+            $note = trim((string) ($validated['note'] ?? $validated['notes'] ?? ''));
+            $interventionType = $validated['intervention_type'] ?? null;
+            $actionNote = $interventionType ? '['.$interventionType.'] '.$note : $note;
+
             $insight = AIInsight::query()
                 ->where('insight_type', 'burnout_warning')
                 ->where('employee_id', $employee->id)
@@ -127,13 +131,13 @@ class WellbeingController extends Controller
                     'employee_id' => $employee->id,
                     'department_id' => $employee->department_id,
                     'title' => 'Burnout intervention logged',
-                    'description' => $validated['note'],
-                    'recommended_actions' => [$validated['note']],
+                    'description' => $actionNote,
+                    'recommended_actions' => [$actionNote],
                     'confidence_score' => 50,
                     'status' => 'actioned',
                     'actioned_by' => auth()->id(),
                     'actioned_at' => now(),
-                    'action_taken' => $validated['note'],
+                    'action_taken' => $actionNote,
                     'insight_date' => now()->toDateString(),
                     'valid_until' => $validated['follow_up_date'] ?? null,
                 ]);
@@ -142,7 +146,7 @@ class WellbeingController extends Controller
                     'status' => 'actioned',
                     'actioned_by' => auth()->id(),
                     'actioned_at' => now(),
-                    'action_taken' => $validated['note'],
+                    'action_taken' => $actionNote,
                     'valid_until' => $validated['follow_up_date'] ?? $insight->valid_until,
                 ]);
             }

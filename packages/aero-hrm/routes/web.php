@@ -4,8 +4,10 @@ use Aero\HRM\Http\Controllers\AIAnalyticsController;
 use Aero\HRM\Http\Controllers\Asset\AssetCategoryController;
 use Aero\HRM\Http\Controllers\Asset\AssetController;
 use Aero\HRM\Http\Controllers\Attendance\AttendanceController;
+use Aero\HRM\Http\Controllers\Attendance\ShiftMarketplaceController;
 use Aero\HRM\Http\Controllers\CareerPathController;
 use Aero\HRM\Http\Controllers\CompensationPlanningController;
+use Aero\HRM\Http\Controllers\DEIAnalyticsController;
 use Aero\HRM\Http\Controllers\Disciplinary\ActionTypeController;
 use Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController;
 use Aero\HRM\Http\Controllers\Disciplinary\WarningController;
@@ -42,9 +44,12 @@ use Aero\HRM\Http\Controllers\Feedback360Controller;
 use Aero\HRM\Http\Controllers\GrievanceController;
 use Aero\HRM\Http\Controllers\HRMDashboardController;
 use Aero\HRM\Http\Controllers\Leave\BulkLeaveController;
+use Aero\HRM\Http\Controllers\Leave\LeaveAccrualController;
 use Aero\HRM\Http\Controllers\Leave\LeaveController;
 use Aero\HRM\Http\Controllers\OvertimeController;
 use Aero\HRM\Http\Controllers\Performance\GoalController;
+use Aero\HRM\Http\Controllers\Performance\PerformanceCalibrationController;
+use Aero\HRM\Http\Controllers\Performance\PerformanceImprovementPlanController;
 use Aero\HRM\Http\Controllers\Performance\PerformanceReviewController;
 use Aero\HRM\Http\Controllers\Performance\SkillMatrixController;
 use Aero\HRM\Http\Controllers\PulseSurveyController;
@@ -55,7 +60,6 @@ use Aero\HRM\Http\Controllers\Settings\LeaveSettingController;
 use Aero\HRM\Http\Controllers\SuccessionPlanningController;
 use Aero\HRM\Http\Controllers\TalentMarketplaceController;
 use Aero\HRM\Http\Controllers\WellbeingController;
-use Aero\HRM\Http\Controllers\Performance\PerformanceCalibrationController;
 use Aero\HRM\Http\Controllers\WorkforcePlanningController;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Designation;
@@ -140,19 +144,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/performance/stats', [PerformanceReviewController::class, 'stats'])->name('performance.stats');
         Route::get('/performance/create', [PerformanceReviewController::class, 'create'])->name('performance.create');
         Route::post('/performance', [PerformanceReviewController::class, 'store'])->name('performance.store');
-        Route::get('/performance/{id}', [PerformanceReviewController::class, 'show'])->name('performance.show');
-        Route::get('/performance/{id}/edit', [PerformanceReviewController::class, 'edit'])->name('performance.edit');
-        Route::put('/performance/{id}', [PerformanceReviewController::class, 'update'])->name('performance.update');
-        Route::delete('/performance/{id}', [PerformanceReviewController::class, 'destroy'])->name('performance.destroy');
+        Route::get('/performance/{id}', [PerformanceReviewController::class, 'show'])->whereNumber('id')->name('performance.show');
+        Route::get('/performance/{id}/edit', [PerformanceReviewController::class, 'edit'])->whereNumber('id')->name('performance.edit');
+        Route::put('/performance/{id}', [PerformanceReviewController::class, 'update'])->whereNumber('id')->name('performance.update');
+        Route::delete('/performance/{id}', [PerformanceReviewController::class, 'destroy'])->whereNumber('id')->name('performance.destroy');
 
         // Performance Templates
         Route::get('/performance/templates', [PerformanceReviewController::class, 'templates'])->name('performance.templates.index');
         Route::get('/performance/templates/create', [PerformanceReviewController::class, 'createTemplate'])->name('performance.templates.create');
         Route::post('/performance/templates', [PerformanceReviewController::class, 'storeTemplate'])->name('performance.templates.store');
-        Route::get('/performance/templates/{id}', [PerformanceReviewController::class, 'showTemplate'])->name('performance.templates.show');
-        Route::get('/performance/templates/{id}/edit', [PerformanceReviewController::class, 'editTemplate'])->name('performance.templates.edit');
-        Route::put('/performance/templates/{id}', [PerformanceReviewController::class, 'updateTemplate'])->name('performance.templates.update');
-        Route::delete('/performance/templates/{id}', [PerformanceReviewController::class, 'destroyTemplate'])->name('performance.templates.destroy');
+        Route::get('/performance/templates/{id}', [PerformanceReviewController::class, 'showTemplate'])->whereNumber('id')->name('performance.templates.show');
+        Route::get('/performance/templates/{id}/edit', [PerformanceReviewController::class, 'editTemplate'])->whereNumber('id')->name('performance.templates.edit');
+        Route::put('/performance/templates/{id}', [PerformanceReviewController::class, 'updateTemplate'])->whereNumber('id')->name('performance.templates.update');
+        Route::delete('/performance/templates/{id}', [PerformanceReviewController::class, 'destroyTemplate'])->whereNumber('id')->name('performance.templates.destroy');
 
         // =====================================================================
         // GOALS (OKR) Management
@@ -361,6 +365,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/time-off/employee-requests', [TimeOffManagementController::class, 'employeeRequests'])->name('timeoff.employee-requests');
     });
 
+    // ============================================================================
+    // Leave Accrual Rules
+    // ============================================================================
+    Route::prefix('leaves/accrual')->name('leaves.accrual.')->group(function () {
+        Route::get('/', [LeaveAccrualController::class, 'index'])->name('index')
+            ->middleware('hrmac:hrm.leaves.leave-accrual.view');
+        Route::post('/', [LeaveAccrualController::class, 'store'])->name('store')
+            ->middleware('hrmac:hrm.leaves.leave-accrual.create');
+        Route::post('/process', [LeaveAccrualController::class, 'processAccruals'])->name('process')
+            ->middleware('hrmac:hrm.leaves.leave-accrual.run');
+        Route::get('/history', [LeaveAccrualController::class, 'history'])->name('history');
+        Route::post('/manual-adjustment', [LeaveAccrualController::class, 'manualAdjustment'])->name('manual-adjustment')
+            ->middleware('hrmac:hrm.leaves.leave-accrual.update');
+        Route::put('/{rule}', [LeaveAccrualController::class, 'update'])->name('update')
+            ->middleware('hrmac:hrm.leaves.leave-accrual.update');
+        Route::delete('/{rule}', [LeaveAccrualController::class, 'destroy'])->name('destroy')
+            ->middleware('hrmac:hrm.leaves.leave-accrual.delete');
+    });
+
     // Legacy Time Off routes (for backward compatibility)
     Route::middleware(['hrmac:hrm.time-off'])->group(function () {
         Route::get('/time-off-legacy', [TimeOffController::class, 'index'])->name('timeoff-legacy.index');
@@ -377,6 +400,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['hrmac:hrm.employees.benefits'])->group(function () {
         Route::get('/benefits', [BenefitsController::class, 'index'])->name('benefits.index');
         Route::get('/benefits/stats', [BenefitsController::class, 'stats'])->name('benefits.stats');
+        Route::get('/benefits/open-enrollment-periods', [BenefitsController::class, 'openEnrollmentPeriods'])->name('benefits.open-enrollment-periods.index');
         Route::get('/benefits/enrollments', [BenefitsController::class, 'enrollments'])->name('benefits.enrollments.index');
         Route::post('/benefits/enrollments', [BenefitsController::class, 'storeEnrollment'])->name('benefits.enrollments.store');
         Route::post('/benefits/enrollments/{id}/approve', [BenefitsController::class, 'approveEnrollment'])->name('benefits.enrollments.approve');
@@ -477,12 +501,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/self-service/profile', [EmployeeSelfServiceController::class, 'updateProfile'])->name('selfservice.profile.update');
         Route::get('/self-service/documents', [EmployeeSelfServiceController::class, 'documents'])->name('selfservice.documents');
         Route::get('/self-service/benefits', [EmployeeSelfServiceController::class, 'benefits'])->name('selfservice.benefits');
+        Route::get('/self-service/benefits/open-enrollment', [BenefitsController::class, 'selfServiceEnrollmentPayload'])->name('selfservice.benefits.open-enrollment');
+        Route::post('/self-service/benefits/open-enrollment', [BenefitsController::class, 'submitSelfServiceEnrollment'])->name('selfservice.benefits.open-enrollment.submit');
         Route::get('/self-service/time-off', [EmployeeSelfServiceController::class, 'timeOff'])->name('selfservice.timeoff');
         Route::post('/self-service/time-off', [EmployeeSelfServiceController::class, 'requestTimeOff'])->name('selfservice.timeoff.request');
         Route::get('/self-service/trainings', [EmployeeSelfServiceController::class, 'trainings'])->name('selfservice.trainings');
         Route::get('/self-service/payslips', [EmployeeSelfServiceController::class, 'payslips'])->name('selfservice.payslips');
         Route::get('/self-service/performance', [EmployeeSelfServiceController::class, 'performance'])->name('selfservice.performance');
         Route::get('/self-service/career-path', [EmployeeSelfServiceController::class, 'careerPath'])->name('selfservice.careerpath');
+        Route::get('/self-service/personal-information', [EmployeeSelfServiceController::class, 'personalInformation'])->name('selfservice.personal-information');
+        Route::put('/self-service/personal-information', [EmployeeSelfServiceController::class, 'updatePersonalInformation'])->name('selfservice.personal-information.update');
+        Route::get('/self-service/bank-information', [EmployeeSelfServiceController::class, 'bankInformation'])->name('selfservice.bank-information');
+        Route::put('/self-service/bank-information', [EmployeeSelfServiceController::class, 'updateBankInformation'])->name('selfservice.bank-information.update');
     });
 
     // Payroll Management System
@@ -805,6 +835,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('settings/attendance-type/{id}/generate-qr', [AttendanceSettingController::class, 'generateQrCode'])->name('attendance-types.generateQr');
     });
 
+    // Shift Marketplace (Shift Swaps & Open Pickups)
+    Route::prefix('attendance/shift-marketplace')->name('attendance.shift-marketplace.')->group(function () {
+        Route::middleware(['hrmac:hrm.attendance.shift-marketplace.view'])->get('/', [ShiftMarketplaceController::class, 'index'])->name('index');
+        Route::middleware(['hrmac:hrm.attendance.shift-marketplace.create'])->post('/', [ShiftMarketplaceController::class, 'store'])->name('store');
+        Route::middleware(['hrmac:hrm.attendance.shift-marketplace.create'])->post('{swap}/accept', [ShiftMarketplaceController::class, 'accept'])->name('accept');
+        Route::middleware(['hrmac:hrm.attendance.shift-marketplace.approve'])->post('{swap}/approve', [ShiftMarketplaceController::class, 'approve'])->name('approve');
+        Route::middleware(['hrmac:hrm.attendance.shift-marketplace.reject'])->post('{swap}/reject', [ShiftMarketplaceController::class, 'reject'])->name('reject');
+        Route::middleware(['hrmac:hrm.attendance.shift-marketplace.create'])->post('{swap}/cancel', [ShiftMarketplaceController::class, 'cancel'])->name('cancel');
+        Route::get('{swap}', [ShiftMarketplaceController::class, 'show'])->name('show');
+    });
+
     // HR Module Settings - Redirect /settings to default settings page
     Route::middleware(['auth', 'verified', 'hrmac:hrm.settings'])->get('/settings', fn () => redirect()->route('hrm.settings.hr.onboarding'))->name('settings.index');
 
@@ -948,6 +989,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Engagement & Sentiment Analytics
         Route::get('/engagement', [AIAnalyticsController::class, 'engagementSentiment'])->name('engagement');
+
+        // Employee Net Promoter Score dashboard
+        Route::get('/enps', [AIAnalyticsController::class, 'enpsDashboard'])->name('enps');
 
         // AI Insights (cross-cutting alerts)
         Route::get('/insights', [AIAnalyticsController::class, 'insights'])->name('insights');
@@ -1184,4 +1228,50 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/talent-marketplace/{id}', [TalentMarketplaceController::class, 'updateOpportunity'])->name('talent-marketplace.update');
         Route::post('/talent-marketplace/{id}/close', [TalentMarketplaceController::class, 'closeOpportunity'])->name('talent-marketplace.close');
     });
+
+    // DEI Analytics
+    Route::middleware(['hrmac:hrm.workforce-planning.dei-analytics.view'])->group(function () {
+        Route::get('/dei-analytics', [DEIAnalyticsController::class, 'index'])->name('dei-analytics.index');
+    });
+
+    // =========================================================================
+    // Performance Improvement Plans (PIP)
+    // =========================================================================
+    Route::prefix('performance/improvement-plans')->name('performance.pip.')
+        ->middleware('hrmac:hrm.performance.improvement_plans.view')
+        ->group(function () {
+            Route::get('/', [PerformanceImprovementPlanController::class, 'index'])->name('index');
+            Route::get('/{pipPlan}', [PerformanceImprovementPlanController::class, 'show'])->name('show');
+            Route::get('/{pipPlan}/goals', [PerformanceImprovementPlanController::class, 'goals'])->name('goals');
+
+            Route::post('/', [PerformanceImprovementPlanController::class, 'store'])
+                ->withoutMiddleware('hrmac:hrm.performance.improvement_plans.view')
+                ->middleware('hrmac:hrm.performance.improvement_plans.create')
+                ->name('store');
+
+            Route::put('/{pipPlan}', [PerformanceImprovementPlanController::class, 'update'])
+                ->withoutMiddleware('hrmac:hrm.performance.improvement_plans.view')
+                ->middleware('hrmac:hrm.performance.improvement_plans.update')
+                ->name('update');
+
+            Route::patch('/{pipPlan}/status', [PerformanceImprovementPlanController::class, 'updateStatus'])
+                ->withoutMiddleware('hrmac:hrm.performance.improvement_plans.view')
+                ->middleware('hrmac:hrm.performance.improvement_plans.update')
+                ->name('update-status');
+
+            Route::delete('/{pipPlan}', [PerformanceImprovementPlanController::class, 'destroy'])
+                ->withoutMiddleware('hrmac:hrm.performance.improvement_plans.view')
+                ->middleware('hrmac:hrm.performance.improvement_plans.delete')
+                ->name('destroy');
+
+            Route::post('/{pipPlan}/goals', [PerformanceImprovementPlanController::class, 'storeGoal'])
+                ->withoutMiddleware('hrmac:hrm.performance.improvement_plans.view')
+                ->middleware('hrmac:hrm.performance.improvement_plans.update')
+                ->name('goals.store');
+
+            Route::put('/{pipPlan}/goals/{goal}', [PerformanceImprovementPlanController::class, 'updateGoal'])
+                ->withoutMiddleware('hrmac:hrm.performance.improvement_plans.view')
+                ->middleware('hrmac:hrm.performance.improvement_plans.update')
+                ->name('goals.update');
+        });
 });

@@ -75,7 +75,7 @@ class TalentMobilityService
     public function generateForAllEmployees(): Collection
     {
         $employees = Employee::query()
-            ->where('employment_status', 'active')
+            ->where('status', 'active')
             ->with(['department', 'designation', 'skills', 'performanceReviews'])
             ->get();
 
@@ -98,7 +98,7 @@ class TalentMobilityService
 
         // Find employees with matching skills
         $candidates = Employee::query()
-            ->where('employment_status', 'active')
+            ->where('status', 'active')
             ->where('designation_id', '!=', $designation->id)
             ->with(['skills', 'performanceReviews', 'department', 'designation'])
             ->get()

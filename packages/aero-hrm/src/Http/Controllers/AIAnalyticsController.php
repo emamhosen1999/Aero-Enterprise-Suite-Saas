@@ -3,8 +3,11 @@
 namespace Aero\HRM\Http\Controllers;
 
 use Aero\HRM\Models\AIInsight;
+use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\EmployeeRiskScore;
+use Aero\HRM\Models\PulseSurvey;
+use Aero\HRM\Models\PulseSurveyResponse;
 use Aero\HRM\Services\AIAnalytics\AnomalyDetectionService;
 use Aero\HRM\Services\AIAnalytics\AttritionPredictionService;
 use Aero\HRM\Services\AIAnalytics\BurnoutRiskService;
@@ -33,7 +36,7 @@ class AIAnalyticsController extends Controller
         $stats = $this->getDashboardStats();
         $recentInsights = AIInsight::query()
             ->with('employee', 'department')
-            ->where('is_resolved', false)
+            ->where('status', '!=', 'resolved')
             ->orderByDesc('created_at')
             ->limit(10)
             ->get();
@@ -142,7 +145,7 @@ class AIAnalyticsController extends Controller
     {
         $query = \Aero\HRM\Models\BehavioralAnomaly::query()
             ->with('employee.department')
-            ->where('is_resolved', false);
+            ->where('status', '!=', 'resolved');
 
         if ($request->filled('anomaly_type')) {
             $query->where('anomaly_type', $request->anomaly_type);
@@ -217,6 +220,122 @@ class AIAnalyticsController extends Controller
     }
 
     /**
+     * Employee Net Promoter Score dashboard.
+     */
+    public function enpsDashboard(Request $request): Response
+    {
+        $departmentId = $request->integer('department_id') ?: null;
+        $surveyId = $request->integer('survey_id') ?: null;
+
+        $baseQuery = PulseSurveyResponse::query()
+            ->where('is_complete', true)
+            ->whereNotNull('submitted_at');
+
+        if ($surveyId) {
+            $baseQuery->where('pulse_survey_id', $surveyId);
+        }
+
+        if ($departmentId) {
+            $baseQuery->whereHas('employee', fn ($q) => $q->where('department_id', $departmentId));
+        }
+
+        $responses = (clone $baseQuery)->get();
+
+        $scores = $responses
+            ->map(fn (PulseSurveyResponse $response) => $this->normalizeEnpsScore($response->overall_score, $response->sentiment))
+            ->filter(fn ($score) => $score !== null)
+            ->values();
+
+        $total = $scores->count();
+        $promoters = $scores->filter(fn ($score) => $score >= 9)->count();
+        $passives = $scores->filter(fn ($score) => $score >= 7 && $score < 9)->count();
+        $detractors = $scores->filter(fn ($score) => $score < 7)->count();
+
+        $enps = $total > 0
+            ? round((($promoters - $detractors) / $total) * 100, 1)
+            : 0.0;
+
+        $trend = $responses
+            ->groupBy(fn (PulseSurveyResponse $response) => $response->submitted_at?->format('Y-m') ?? 'Unknown')
+            ->map(function ($group, $month) {
+                $monthScores = collect($group)
+                    ->map(fn (PulseSurveyResponse $response) => $this->normalizeEnpsScore($response->overall_score, $response->sentiment))
+                    ->filter(fn ($score) => $score !== null)
+                    ->values();
+
+                $monthTotal = $monthScores->count();
+                $monthPromoters = $monthScores->filter(fn ($score) => $score >= 9)->count();
+                $monthDetractors = $monthScores->filter(fn ($score) => $score < 7)->count();
+
+                return [
+                    'month' => $month,
+                    'responses' => $monthTotal,
+                    'enps' => $monthTotal > 0 ? round((($monthPromoters - $monthDetractors) / $monthTotal) * 100, 1) : 0.0,
+                    'avg_score' => $monthTotal > 0 ? round($monthScores->avg(), 2) : 0.0,
+                ];
+            })
+            ->sortKeys()
+            ->values();
+
+        $departmentBreakdown = Department::query()
+            ->select(['id', 'name'])
+            ->get()
+            ->map(function (Department $department) use ($surveyId) {
+                $query = PulseSurveyResponse::query()
+                    ->where('is_complete', true)
+                    ->whereNotNull('submitted_at')
+                    ->whereHas('employee', fn ($q) => $q->where('department_id', $department->id));
+
+                if ($surveyId) {
+                    $query->where('pulse_survey_id', $surveyId);
+                }
+
+                $scores = $query->get()
+                    ->map(fn (PulseSurveyResponse $response) => $this->normalizeEnpsScore($response->overall_score, $response->sentiment))
+                    ->filter(fn ($score) => $score !== null)
+                    ->values();
+
+                if ($scores->isEmpty()) {
+                    return null;
+                }
+
+                $deptTotal = $scores->count();
+                $deptPromoters = $scores->filter(fn ($score) => $score >= 9)->count();
+                $deptDetractors = $scores->filter(fn ($score) => $score < 7)->count();
+
+                return [
+                    'department_id' => $department->id,
+                    'department_name' => $department->name,
+                    'responses' => $deptTotal,
+                    'enps' => round((($deptPromoters - $deptDetractors) / $deptTotal) * 100, 1),
+                    'avg_score' => round($scores->avg(), 2),
+                ];
+            })
+            ->filter()
+            ->sortByDesc('enps')
+            ->values();
+
+        return Inertia::render('HRM/AIAnalytics/ENPSDashboard', [
+            'title' => 'eNPS Dashboard',
+            'enps' => [
+                'score' => $enps,
+                'total_responses' => $total,
+                'promoters' => $promoters,
+                'promoters_pct' => $total > 0 ? round(($promoters / $total) * 100, 1) : 0,
+                'passives' => $passives,
+                'passives_pct' => $total > 0 ? round(($passives / $total) * 100, 1) : 0,
+                'detractors' => $detractors,
+                'detractors_pct' => $total > 0 ? round(($detractors / $total) * 100, 1) : 0,
+            ],
+            'trend' => $trend,
+            'departmentBreakdown' => $departmentBreakdown,
+            'surveys' => PulseSurvey::query()->select(['id', 'title'])->orderByDesc('created_at')->limit(50)->get(),
+            'departments' => Department::query()->select(['id', 'name'])->orderBy('name')->get(),
+            'filters' => $request->only(['department_id', 'survey_id']),
+        ]);
+    }
+
+    /**
      * AI Insights list
      */
     public function insights(Request $request): Response
@@ -233,7 +352,7 @@ class AIAnalyticsController extends Controller
         }
 
         if ($request->boolean('unresolved_only', true)) {
-            $query->where('is_resolved', false);
+            $query->where('status', '!=', 'resolved');
         }
 
         $insights = $query
@@ -307,10 +426,10 @@ class AIAnalyticsController extends Controller
     public function resolveInsight(AIInsight $insight, Request $request): JsonResponse
     {
         $insight->update([
-            'is_resolved' => true,
-            'resolved_at' => now(),
-            'resolved_by' => auth()->id(),
-            'resolution_notes' => $request->input('notes'),
+            'status' => 'resolved',
+            'actioned_at' => now(),
+            'actioned_by' => auth()->id(),
+            'action_taken' => $request->input('notes'),
         ]);
 
         return response()->json([
@@ -324,11 +443,10 @@ class AIAnalyticsController extends Controller
     public function resolveAnomaly(\Aero\HRM\Models\BehavioralAnomaly $anomaly, Request $request): JsonResponse
     {
         $anomaly->update([
-            'is_resolved' => true,
-            'resolved_at' => now(),
-            'resolved_by' => auth()->id(),
-            'resolution_action' => $request->input('action'),
-            'resolution_notes' => $request->input('notes'),
+            'status' => 'reviewed',
+            'reviewed_by' => auth()->id(),
+            'reviewed_at' => now(),
+            'review_notes' => $request->input('notes'),
         ]);
 
         return response()->json([
@@ -344,14 +462,35 @@ class AIAnalyticsController extends Controller
         $riskScores = EmployeeRiskScore::all();
 
         return [
-            'total_employees' => Employee::where('employment_status', 'active')->count(),
+            'total_employees' => Employee::where('status', 'active')->count(),
             'high_attrition_risk' => $riskScores->where('attrition_risk_score', '>=', 60)->count(),
             'high_burnout_risk' => $riskScores->where('burnout_risk_score', '>=', 60)->count(),
-            'unresolved_anomalies' => \Aero\HRM\Models\BehavioralAnomaly::where('is_resolved', false)->count(),
-            'unresolved_insights' => AIInsight::where('is_resolved', false)->count(),
+            'unresolved_anomalies' => \Aero\HRM\Models\BehavioralAnomaly::where('status', '!=', 'reviewed')->count(),
+            'unresolved_insights' => AIInsight::where('status', '!=', 'resolved')->count(),
             'pending_recommendations' => \Aero\HRM\Models\TalentMobilityRecommendation::where('status', 'pending')->count(),
             'average_engagement' => round($riskScores->avg('engagement_score') ?? 0, 1),
         ];
+    }
+
+    protected function normalizeEnpsScore(mixed $overallScore, ?string $sentiment): ?float
+    {
+        if (is_numeric($overallScore)) {
+            $score = (float) $overallScore;
+
+            // Legacy surveys used a 1-5 scale; normalize to 0-10 for eNPS.
+            if ($score > 0 && $score <= 5) {
+                $score *= 2;
+            }
+
+            return max(0.0, min(10.0, $score));
+        }
+
+        return match ($sentiment) {
+            'positive' => 9.0,
+            'neutral' => 8.0,
+            'negative' => 5.0,
+            default => null,
+        };
     }
 
     /**
@@ -377,11 +516,11 @@ class AIAnalyticsController extends Controller
     protected function getAnomalyTypes(): array
     {
         return [
-            'attendance_pattern' => 'Attendance Pattern',
-            'absence_frequency' => 'Absence Frequency',
-            'overtime_spike' => 'Overtime Spike',
-            'leave_pattern' => 'Leave Pattern',
-            'productivity_variance' => 'Productivity Variance',
+            'attendance_pattern',
+            'absence_frequency',
+            'overtime_spike',
+            'leave_pattern',
+            'productivity_variance',
         ];
     }
 
@@ -391,11 +530,12 @@ class AIAnalyticsController extends Controller
     protected function getInsightTypes(): array
     {
         return [
-            'attrition_warning' => 'Attrition Warning',
-            'burnout_warning' => 'Burnout Warning',
-            'engagement_warning' => 'Engagement Warning',
-            'behavioral_anomaly' => 'Behavioral Anomaly',
-            'talent_recommendation' => 'Talent Recommendation',
+            'attrition_warning',
+            'burnout_warning',
+            'engagement_warning',
+            'behavioral_anomaly',
+            'talent_recommendation',
         ];
     }
 }
+

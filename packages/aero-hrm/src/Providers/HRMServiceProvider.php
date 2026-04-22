@@ -2,8 +2,13 @@
 
 namespace Aero\HRM\Providers;
 
+use Aero\Core\Contracts\EmployeeServiceContract;
 use Aero\Core\Providers\AbstractModuleProvider;
+use Aero\Core\Services\DashboardRegistry;
+use Aero\Core\Services\DashboardWidgetRegistry;
+use Aero\Core\Services\ModuleRegistry;
 use Aero\Core\Services\UserRelationshipRegistry;
+use Aero\HRM\Console\Commands\SendOnboardingRemindersCommand;
 use Aero\HRM\Jobs\CheckBirthdaysJob;
 use Aero\HRM\Jobs\CheckExpiringContractsJob;
 use Aero\HRM\Jobs\CheckExpiringDocumentsJob;
@@ -17,7 +22,35 @@ use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\EmployeeEducation;
 use Aero\HRM\Models\EmployeeWorkExperience;
 use Aero\HRM\Models\Leave;
+use Aero\HRM\Models\SafetyInspection;
+use Aero\HRM\Models\SafetyTraining;
+use Aero\HRM\Observers\EmployeeQuotaObserver;
+use Aero\HRM\Policies\AttendancePolicy;
+use Aero\HRM\Policies\EmployeePolicy;
+use Aero\HRM\Policies\LeavePolicy;
+use Aero\HRM\Policies\SafetyInspectionPolicy;
+use Aero\HRM\Policies\SafetyTrainingPolicy;
+use Aero\HRM\Services\AIAnalytics\AttritionPredictionService;
+use Aero\HRM\Services\AIAnalytics\BurnoutRiskService;
+use Aero\HRM\Services\AIAnalytics\PerformancePredictionService;
+use Aero\HRM\Services\AIAnalytics\RecruitmentAnalyticsService;
+use Aero\HRM\Services\AIAnalytics\WorkforceAnalyticsService;
+use Aero\HRM\Services\AttendanceCalculationService;
+use Aero\HRM\Services\DEIAnalyticsService;
+use Aero\HRM\Services\EmployeeService;
+use Aero\HRM\Services\HRMetricsAggregatorService;
 use Aero\HRM\Services\HrmNotificationChannelResolver;
+use Aero\HRM\Services\LeaveBalanceService;
+use Aero\HRM\Services\PayrollCalculationService;
+use Aero\HRM\Widgets\MyGoalsWidget;
+use Aero\HRM\Widgets\MyLeaveBalanceWidget;
+use Aero\HRM\Widgets\OrganizationInfoWidget;
+use Aero\HRM\Widgets\PayrollSummaryWidget;
+use Aero\HRM\Widgets\PendingLeaveApprovalsWidget;
+use Aero\HRM\Widgets\PendingReviewsWidget;
+use Aero\HRM\Widgets\PunchStatusWidget;
+use Aero\HRM\Widgets\TeamAttendanceWidget;
+use Aero\HRM\Widgets\UpcomingHolidaysWidget;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Gate;
 
@@ -74,40 +107,43 @@ class HRMServiceProvider extends AbstractModuleProvider
 
         // Register EmployeeService - implements Core's EmployeeServiceContract
         // This enables cross-package employee data access without direct model coupling
-        $this->app->singleton(\Aero\HRM\Services\EmployeeService::class, function ($app) {
-            return new \Aero\HRM\Services\EmployeeService;
+        $this->app->singleton(EmployeeService::class, function ($app) {
+            return new EmployeeService;
         });
 
         // Also bind to the Core contract interface
         $this->app->singleton(
-            \Aero\Core\Contracts\EmployeeServiceContract::class,
-            \Aero\HRM\Services\EmployeeService::class
+            EmployeeServiceContract::class,
+            EmployeeService::class
         );
 
         // Register main HRM service
         $this->app->singleton('hrm', function ($app) {
-            return new \Aero\HRM\Services\HRMetricsAggregatorService;
+            return new HRMetricsAggregatorService;
         });
 
         // Register specific services
         $this->app->singleton('hrm.leave', function ($app) {
-            return new \Aero\HRM\Services\LeaveBalanceService;
+            return new LeaveBalanceService;
         });
 
         $this->app->singleton('hrm.attendance', function ($app) {
-            return new \Aero\HRM\Services\AttendanceCalculationService;
+            return new AttendanceCalculationService;
         });
 
         $this->app->singleton('hrm.payroll', function ($app) {
-            return new \Aero\HRM\Services\PayrollCalculationService;
+            return new PayrollCalculationService;
         });
 
+        // Register DEI Analytics Service
+        $this->app->singleton(DEIAnalyticsService::class);
+
         // Register AI Analytics Services
-        $this->app->singleton(\Aero\HRM\Services\AIAnalytics\AttritionPredictionService::class);
-        $this->app->singleton(\Aero\HRM\Services\AIAnalytics\BurnoutRiskService::class);
-        $this->app->singleton(\Aero\HRM\Services\AIAnalytics\PerformancePredictionService::class);
-        $this->app->singleton(\Aero\HRM\Services\AIAnalytics\RecruitmentAnalyticsService::class);
-        $this->app->singleton(\Aero\HRM\Services\AIAnalytics\WorkforceAnalyticsService::class);
+        $this->app->singleton(AttritionPredictionService::class);
+        $this->app->singleton(BurnoutRiskService::class);
+        $this->app->singleton(PerformancePredictionService::class);
+        $this->app->singleton(RecruitmentAnalyticsService::class);
+        $this->app->singleton(WorkforceAnalyticsService::class);
 
         // Merge HRM-specific configuration
         $hrmConfigPath = $this->getModulePath('config/hrm.php');
@@ -125,7 +161,7 @@ class HRMServiceProvider extends AbstractModuleProvider
         $this->registerPolicies();
 
         // Register model observers
-        \Aero\HRM\Models\Employee::observe(\Aero\HRM\Observers\EmployeeQuotaObserver::class);
+        Employee::observe(EmployeeQuotaObserver::class);
 
         // Register User model relationships dynamically
         $this->registerUserRelationships();
@@ -200,11 +236,11 @@ class HRMServiceProvider extends AbstractModuleProvider
     protected function registerDashboards(): void
     {
         // Only register if the registry is available
-        if (! $this->app->bound(\Aero\Core\Services\DashboardRegistry::class)) {
+        if (! $this->app->bound(DashboardRegistry::class)) {
             return;
         }
 
-        $registry = $this->app->make(\Aero\Core\Services\DashboardRegistry::class);
+        $registry = $this->app->make(DashboardRegistry::class);
 
         $registry->registerMany([
             [
@@ -235,26 +271,26 @@ class HRMServiceProvider extends AbstractModuleProvider
     protected function registerDashboardWidgets(): void
     {
         // Only register if the registry is available
-        if (! $this->app->bound(\Aero\Core\Services\DashboardWidgetRegistry::class)) {
+        if (! $this->app->bound(DashboardWidgetRegistry::class)) {
             return;
         }
 
-        $registry = $this->app->make(\Aero\Core\Services\DashboardWidgetRegistry::class);
+        $registry = $this->app->make(DashboardWidgetRegistry::class);
 
         // Register HRM widgets for Core Dashboard
         $registry->registerMany([
             // Leave & Attendance widgets
-            new \Aero\HRM\Widgets\PunchStatusWidget,
-            new \Aero\HRM\Widgets\MyLeaveBalanceWidget,
-            new \Aero\HRM\Widgets\PendingLeaveApprovalsWidget,
-            new \Aero\HRM\Widgets\UpcomingHolidaysWidget,
-            new \Aero\HRM\Widgets\OrganizationInfoWidget,
+            new PunchStatusWidget,
+            new MyLeaveBalanceWidget,
+            new PendingLeaveApprovalsWidget,
+            new UpcomingHolidaysWidget,
+            new OrganizationInfoWidget,
             // Performance Management widgets
-            new \Aero\HRM\Widgets\MyGoalsWidget,
-            new \Aero\HRM\Widgets\PendingReviewsWidget,
+            new MyGoalsWidget,
+            new PendingReviewsWidget,
             // Manager widgets
-            new \Aero\HRM\Widgets\TeamAttendanceWidget,
-            new \Aero\HRM\Widgets\PayrollSummaryWidget,
+            new TeamAttendanceWidget,
+            new PayrollSummaryWidget,
         ]);
     }
 
@@ -368,10 +404,11 @@ class HRMServiceProvider extends AbstractModuleProvider
     {
         // Register model policies if they exist
         $policies = [
-            \Aero\HRM\Models\Employee::class => \Aero\HRM\Policies\EmployeePolicy::class,
-            \Aero\HRM\Models\Leave::class => \Aero\HRM\Policies\LeavePolicy::class,
-            \Aero\HRM\Models\Attendance::class => \Aero\HRM\Policies\AttendancePolicy::class,
-            \Aero\HRM\Models\SafetyInspection::class => \Aero\HRM\Policies\SafetyInspectionPolicy::class,
+            Employee::class => EmployeePolicy::class,
+            Leave::class => LeavePolicy::class,
+            Attendance::class => AttendancePolicy::class,
+            SafetyInspection::class => SafetyInspectionPolicy::class,
+                    SafetyTraining::class => SafetyTrainingPolicy::class,
         ];
 
         foreach ($policies as $model => $policy) {
@@ -388,7 +425,7 @@ class HRMServiceProvider extends AbstractModuleProvider
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
-                \Aero\HRM\Console\Commands\SendOnboardingRemindersCommand::class,
+                SendOnboardingRemindersCommand::class,
             ]);
         }
     }
@@ -401,7 +438,7 @@ class HRMServiceProvider extends AbstractModuleProvider
         parent::register();
 
         // Register this module with the registry
-        $registry = $this->app->make(\Aero\Core\Services\ModuleRegistry::class);
+        $registry = $this->app->make(ModuleRegistry::class);
         $registry->register($this);
     }
 }

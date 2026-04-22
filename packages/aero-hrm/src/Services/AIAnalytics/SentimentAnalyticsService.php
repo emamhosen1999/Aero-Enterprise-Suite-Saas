@@ -192,7 +192,7 @@ class SentimentAnalyticsService
                 'employee_id' => $response->employee_id,
                 'source_type' => 'survey',
                 'source_id' => $survey->id,
-                'sentiment_score' => $sentiment['score'],
+                'overall_sentiment' => $sentiment['score'],
                 'sentiment_label' => $sentiment['label'],
                 'confidence_score' => $sentiment['confidence'],
                 'raw_text' => $response->response_text,
@@ -215,7 +215,7 @@ class SentimentAnalyticsService
     public function getDepartmentSentiment(int $departmentId): array
     {
         $employees = Employee::where('department_id', $departmentId)
-            ->where('employment_status', 'active')
+            ->where('status', 'active')
             ->pluck('id');
 
         $records = EmployeeSentimentRecord::query()
@@ -230,7 +230,7 @@ class SentimentAnalyticsService
             ];
         }
 
-        $avgScore = round($records->avg('sentiment_score'), 1);
+        $avgScore = round($records->avg('overall_sentiment'), 1);
 
         return [
             'department_id' => $departmentId,
@@ -267,7 +267,7 @@ class SentimentAnalyticsService
         foreach ($weeklyData as $week => $weekRecords) {
             $trends[] = [
                 'week' => $week,
-                'average_score' => round($weekRecords->avg('sentiment_score'), 1),
+                'average_score' => round($weekRecords->avg('overall_sentiment'), 1),
                 'record_count' => $weekRecords->count(),
                 'positive_ratio' => round($weekRecords->where('sentiment_label', 'positive')->count() / $weekRecords->count() * 100, 1),
             ];
@@ -293,7 +293,7 @@ class SentimentAnalyticsService
         return [
             'period_days' => $days,
             'total_records' => $records->count(),
-            'overall_average' => round($records->avg('sentiment_score') ?? 0, 1),
+            'overall_average' => round($records->avg('overall_sentiment') ?? 0, 1),
             'trend_direction' => $trendDirection,
             'weekly_data' => $trends,
         ];
@@ -311,7 +311,7 @@ class SentimentAnalyticsService
             ->with('employee.department')
             ->where('recorded_date', '>=', now()->subDays(60))
             ->select('employee_id')
-            ->selectRaw('AVG(sentiment_score) as avg_score')
+            ->selectRaw('AVG(overall_sentiment) as avg_score')
             ->groupBy('employee_id')
             ->having('avg_score', '<', 35)
             ->get();
@@ -326,18 +326,18 @@ class SentimentAnalyticsService
         }
 
         // Declining sentiment (comparing recent vs older)
-        $employees = Employee::where('employment_status', 'active')->pluck('id');
+        $employees = Employee::where('status', 'active')->pluck('id');
 
         foreach ($employees as $employeeId) {
             $recent = EmployeeSentimentRecord::query()
                 ->where('employee_id', $employeeId)
                 ->where('recorded_date', '>=', now()->subDays(30))
-                ->avg('sentiment_score');
+                ->avg('overall_sentiment');
 
             $older = EmployeeSentimentRecord::query()
                 ->where('employee_id', $employeeId)
                 ->whereBetween('recorded_date', [now()->subDays(90), now()->subDays(30)])
-                ->avg('sentiment_score');
+                ->avg('overall_sentiment');
 
             if ($recent !== null && $older !== null) {
                 $decline = $older - $recent;
@@ -387,7 +387,7 @@ class SentimentAnalyticsService
             $daysAgo = Carbon::parse($record->recorded_date)->diffInDays(now());
             $weight = max(0.5, 1 - ($daysAgo / 365));
 
-            $weightedSum += $record->sentiment_score * $weight;
+            $weightedSum += $record->overall_sentiment * $weight;
             $totalWeight += $weight;
         }
 
@@ -423,7 +423,7 @@ class SentimentAnalyticsService
             });
 
             if ($relevantRecords->isNotEmpty()) {
-                $dimensionScores[$dimension] = round($relevantRecords->avg('sentiment_score'), 1);
+                $dimensionScores[$dimension] = round($relevantRecords->avg('overall_sentiment'), 1);
             }
         }
 
@@ -469,8 +469,8 @@ class SentimentAnalyticsService
         $olderHalf = $sortedRecords->take($halfPoint);
         $newerHalf = $sortedRecords->skip($halfPoint);
 
-        $olderAvg = $olderHalf->avg('sentiment_score');
-        $newerAvg = $newerHalf->avg('sentiment_score');
+        $olderAvg = $olderHalf->avg('overall_sentiment');
+        $newerAvg = $newerHalf->avg('overall_sentiment');
         $change = $newerAvg - $olderAvg;
 
         if ($change > 5) {

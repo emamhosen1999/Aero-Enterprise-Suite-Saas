@@ -76,7 +76,7 @@ class WorkforcePlanningController extends Controller
         $totalPlans = WorkforcePlan::where('plan_year', $currentYear)->count();
         $activePlans = WorkforcePlan::where('status', 'active')->where('plan_year', $currentYear)->count();
 
-        $currentHeadcount = Employee::where('employment_status', 'active')->count();
+        $currentHeadcount = Employee::where('status', 'active')->count();
 
         $plannedHeadcount = WorkforcePlan::where('status', 'active')
             ->where('plan_year', $currentYear)
@@ -109,7 +109,7 @@ class WorkforcePlanningController extends Controller
         $validated = $request->validated();
 
         // Calculate current headcount
-        $query = Employee::where('employment_status', 'active');
+        $query = Employee::where('status', 'active');
         if ($validated['department_id']) {
             $query->where('department_id', $validated['department_id']);
         }
@@ -303,7 +303,7 @@ class WorkforcePlanningController extends Controller
         $departmentId = $request->input('department_id');
         $months = $request->input('months', 12);
 
-        $currentHeadcount = Employee::where('employment_status', 'active')
+        $currentHeadcount = Employee::where('status', 'active')
             ->when($departmentId, fn ($q) => $q->where('department_id', $departmentId))
             ->count();
 

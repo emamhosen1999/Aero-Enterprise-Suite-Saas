@@ -248,7 +248,7 @@ class SuccessionPlanningController extends Controller
         $plan = SuccessionPlan::findOrFail($planId);
         $existingIds = $plan->candidates()->pluck('employee_id');
 
-        $query = Employee::where('employment_status', 'active')
+        $query = Employee::where('status', 'active')
             ->whereNotIn('id', $existingIds)
             ->with(['department', 'designation']);
 

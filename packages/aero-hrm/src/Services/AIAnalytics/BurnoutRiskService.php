@@ -66,7 +66,7 @@ class BurnoutRiskService
      */
     public function calculateForAllEmployees(): Collection
     {
-        $employees = Employee::where('employment_status', 'active')
+        $employees = Employee::where('status', 'active')
             ->with(['department', 'designation'])
             ->get();
 
@@ -97,7 +97,7 @@ class BurnoutRiskService
     public function getTeamRiskSummary(int $managerId): array
     {
         $teamMembers = Employee::where('manager_id', $managerId)
-            ->where('employment_status', 'active')
+            ->where('status', 'active')
             ->with('riskScore')
             ->get();
 
@@ -406,7 +406,7 @@ class BurnoutRiskService
 
         // Department size (very small teams may have unclear boundaries)
         $deptSize = Employee::where('department_id', $employee->department_id)
-            ->where('employment_status', 'active')
+            ->where('status', 'active')
             ->count();
 
         if ($deptSize < 3) {
@@ -426,7 +426,7 @@ class BurnoutRiskService
         // Manager span of control
         if ($employee->manager_id) {
             $managerDirectReports = Employee::where('manager_id', $employee->manager_id)
-                ->where('employment_status', 'active')
+                ->where('status', 'active')
                 ->count();
 
             // Very large teams = less support per person

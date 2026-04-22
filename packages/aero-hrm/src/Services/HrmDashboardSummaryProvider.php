@@ -14,7 +14,7 @@ class HrmDashboardSummaryProvider implements ModuleSummaryProvider
     public function getDashboardSummary(): array
     {
         $totalEmployees = Employee::count();
-        $activeEmployees = Employee::where('employment_status', 'active')->count();
+        $activeEmployees = Employee::where('status', 'active')->count();
         $departments = Department::where('is_active', true)->count();
 
         $pendingLeaves = 0;
@@ -28,7 +28,7 @@ class HrmDashboardSummaryProvider implements ModuleSummaryProvider
             $alerts[] = "{$pendingLeaves} leave requests pending approval";
         }
 
-        $probationEnding = Employee::where('employment_status', 'active')
+        $probationEnding = Employee::where('status', 'active')
             ->whereNotNull('probation_end_date')
             ->whereBetween('probation_end_date', [now(), now()->addDays(30)])
             ->count();

@@ -24,14 +24,18 @@ class TalentMarketplaceController extends Controller
     {
         try {
             $opportunities = Opportunity::query()
+                ->with('department:id,name')
                 ->where('status', 'open')
                 ->orderByDesc('created_at')
                 ->get();
 
-            $employee = Employee::query()->find(auth()->id());
+            $employee = Employee::query()
+                ->where('user_id', auth()->id())
+                ->orWhere('id', auth()->id())
+                ->first();
             $myRecommendations = [];
 
-            if ($employee) {
+            if ($employee instanceof Employee) {
                 $myRecommendations = $this->talentMobilityService->generateRecommendations($employee);
             }
 
@@ -75,9 +79,20 @@ class TalentMarketplaceController extends Controller
 
             $validated = $request->validated();
 
+            $employee = Employee::query()
+                ->where('user_id', auth()->id())
+                ->orWhere('id', auth()->id())
+                ->first();
+
+            if (! $employee instanceof Employee) {
+                return response()->json([
+                    'message' => 'No employee profile found for the current user.',
+                ], 422);
+            }
+
             $application = TalentMobilityRecommendation::query()->updateOrCreate(
                 [
-                    'employee_id' => auth()->id(),
+                    'employee_id' => $employee->id,
                     'recommendation_type' => 'project_assignment',
                     'target_role_name' => $opportunity->title,
                     'status' => 'accepted',

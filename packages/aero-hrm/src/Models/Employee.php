@@ -52,7 +52,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property string|null $notes
  *
  * Personal Info (moved from User):
- * @property \Carbon\Carbon|null $birthday
+ * @property \Carbon\Carbon|null $date_of_birth
  * @property string|null $gender
  * @property string|null $nationality
  * @property string|null $religion
@@ -113,7 +113,7 @@ class Employee extends Model implements HasMedia
         'shift',
 
         // Personal info (employee-specific, not auth)
-        'birthday',
+        'date_of_birth',
         'gender',
         'nationality',
         'religion',
@@ -142,7 +142,7 @@ class Employee extends Model implements HasMedia
             'date_of_leaving' => 'date',
             'probation_end_date' => 'date',
             'confirmation_date' => 'date',
-            'birthday' => 'date',
+            'date_of_birth' => 'date',
             'passport_exp_date' => 'date',
             'basic_salary' => 'decimal:2',
             'number_of_children' => 'integer',
@@ -480,11 +480,11 @@ class Employee extends Model implements HasMedia
     }
 
     /**
-     * Get age from birthday.
+     * Get age from date of birth.
      */
     public function getAgeAttribute(): ?int
     {
-        return $this->birthday?->age;
+        return $this->date_of_birth?->age;
     }
 
     /**

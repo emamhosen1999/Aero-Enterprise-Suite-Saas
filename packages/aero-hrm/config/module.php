@@ -448,6 +448,18 @@ return [
                         ['code' => 'punch', 'name' => 'Punch In/Out'],
                     ],
                 ],
+                [
+                    'code' => 'shift-marketplace',
+                    'name' => 'Shift Marketplace',
+                    'type' => 'page',
+                    'route' => '/hrm/attendance/shift-marketplace',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Marketplace'],
+                        ['code' => 'create', 'name' => 'Create Swap Request'],
+                        ['code' => 'approve', 'name' => 'Approve Swap'],
+                        ['code' => 'reject', 'name' => 'Reject Swap'],
+                    ],
+                ],
             ],
         ],
 
@@ -527,8 +539,14 @@ return [
                     'code' => 'leave-accrual',
                     'name' => 'Leave Accrual Engine',
                     'type' => 'page',
-                    'route' => null, // Disabled: Not implemented yet
-                    'actions' => [['code' => 'run', 'name' => 'Run Leave Accrual']],
+                    'route' => '/hrm/leaves/accrual',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Accrual Rules'],
+                        ['code' => 'create', 'name' => 'Create Accrual Rule'],
+                        ['code' => 'update', 'name' => 'Update Accrual Rule'],
+                        ['code' => 'delete', 'name' => 'Delete Accrual Rule'],
+                        ['code' => 'run', 'name' => 'Run Leave Accrual'],
+                    ],
                 ],
             ],
         ],
@@ -934,6 +952,18 @@ return [
                         ['code' => 'manage', 'name' => 'Manage Calibration Sessions'],
                     ],
                 ],
+                [
+                    'code' => 'improvement_plans',
+                    'name' => 'Performance Improvement Plans',
+                    'type' => 'page',
+                    'route' => '/hrm/performance/improvement-plans',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Improvement Plans'],
+                        ['code' => 'create', 'name' => 'Create Improvement Plan'],
+                        ['code' => 'update', 'name' => 'Update Improvement Plan'],
+                        ['code' => 'delete', 'name' => 'Delete Improvement Plan'],
+                    ],
+                ],
             ],
         ],
 
@@ -1302,6 +1332,16 @@ return [
                         ['code' => 'view', 'name' => 'View Marketplace'],
                         ['code' => 'apply', 'name' => 'Apply to Opportunity'],
                         ['code' => 'manage', 'name' => 'Manage Opportunities'],
+                    ],
+                ],
+                [
+                    'code' => 'dei-analytics',
+                    'name' => 'DEI Analytics',
+                    'type' => 'page',
+                    'route' => '/hrm/dei-analytics',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View DEI Analytics'],
+                        ['code' => 'manage', 'name' => 'Manage DEI Analytics'],
                     ],
                 ],
             ],
@@ -1677,6 +1717,15 @@ return [
                     'route' => '/hrm/ai-analytics/talent-mobility',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Talent Mobility'],
+                    ],
+                ],
+                [
+                    'code' => 'enps-dashboard',
+                    'name' => 'eNPS Dashboard',
+                    'type' => 'page',
+                    'route' => '/hrm/ai-analytics/enps',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View eNPS Dashboard'],
                     ],
                 ],
             ],
