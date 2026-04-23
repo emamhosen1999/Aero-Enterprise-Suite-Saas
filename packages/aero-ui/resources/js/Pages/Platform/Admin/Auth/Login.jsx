@@ -622,17 +622,17 @@ export default function Login({
                     className={`w-full ${isMobile ? 'max-w-sm' : 'max-w-md'}`}
                 >
                     <Card
-                        className="backdrop-blur-xl border-none shadow-2xl"
+                        className="aero-card backdrop-blur-xl border-none shadow-2xl"
                         style={{
                             background: `linear-gradient(to bottom right, 
                                 color-mix(in srgb, var(--theme-content1, #FAFAFA) 98%, transparent), 
                                 color-mix(in srgb, var(--theme-content2, #F4F4F5) 95%, transparent)
                             )`,
-                            borderColor: 'color-mix(in srgb, var(--theme-divider, #E4E4E7) 50%, transparent)',
+                            borderColor: 'color-mix(in srgb, var(--theme-primary, #006FEE) 14%, var(--theme-divider, #E4E4E7) 86%)',
                             borderWidth: 'var(--borderWidth, 2px)',
                             borderStyle: 'solid',
                             borderRadius: `var(--borderRadius, ${isMobile ? '20px' : '24px'})`,
-                            fontFamily: 'var(--fontFamily, "Inter")',
+                            fontFamily: 'var(--fontFamily, "DM Sans")',
                             transform: `scale(var(--scale, 1))`,
                             boxShadow: `
                                 0 20px 40px color-mix(in srgb, var(--theme-shadow, #000000) 15%, transparent),
@@ -702,7 +702,7 @@ export default function Login({
                                                 borderWidth: 'var(--borderWidth, 2px)',
                                                 borderStyle: 'solid',
                                                 borderRadius: `var(--borderRadius, 12px)`,
-                                                fontFamily: 'var(--fontFamily, "Inter")',
+                                                fontFamily: 'var(--fontFamily, "DM Sans")',
                                                 transform: `scale(var(--scale, 1))`
                                             }}
                                         >
@@ -761,7 +761,7 @@ export default function Login({
                                                 borderWidth: 'var(--borderWidth, 2px)',
                                                 borderStyle: 'solid',
                                                 borderRadius: `var(--borderRadius, 16px)`,
-                                                fontFamily: 'var(--fontFamily, "Inter")',
+                                                fontFamily: 'var(--fontFamily, "DM Sans")',
                                                 transform: `scale(var(--scale, 1))`,
                                                 boxShadow: `
                                                     0 10px 25px color-mix(in srgb, var(--theme-danger, #EF4444) 15%, transparent),
@@ -1084,7 +1084,7 @@ export default function Login({
                                                 : `0 8px 24px color-mix(in srgb, var(--theme-primary, #006FEE) 30%, transparent)`,
                                             transform: uiState.isSubmitting ? 'scale(0.98)' : `scale(var(--scale, 1))`,
                                             borderRadius: `var(--borderRadius, 12px)`,
-                                            fontFamily: 'var(--fontFamily, "Inter")',
+                                            fontFamily: 'var(--fontFamily, "DM Sans")',
                                             borderWidth: 'var(--borderWidth, 2px)',
                                             borderStyle: 'solid',
                                             borderColor: 'transparent'

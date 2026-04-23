@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { PublicI18nProvider, usePublicI18n } from '../utils/publicI18n.jsx';
 import { PublicThemeProvider, usePublicTheme } from '../utils/publicTheme.jsx';
@@ -158,10 +159,73 @@ function LanguageSelector() {
     );
 }
 
-function RegistrationLayoutInner({ children, steps = [], currentStep = 'account' }) {
+function RegistrationLayoutInner({ children, steps = [], currentStep = 'account', savedData = {} }) {
     const { t } = usePublicI18n();
     const { isDark } = usePublicTheme();
     const activeIndex = Math.max(steps.findIndex((step) => step.key === currentStep), 0);
+
+    const isStepComplete = (stepKey) => {
+        const account = savedData?.account || {};
+        const details = savedData?.details || {};
+        const verification = savedData?.verification || {};
+        const plan = savedData?.plan || {};
+        const trial = savedData?.trial || {};
+
+        if (stepKey === 'account') {
+            return Boolean(account.type);
+        }
+
+        if (stepKey === 'details') {
+            return Boolean(details.name && details.email && details.subdomain);
+        }
+
+        if (stepKey === 'verify-email') {
+            return Boolean(verification.email_verified || verification.skipped_due_to_debug || verification.skipped_due_to_maintenance);
+        }
+
+        if (stepKey === 'verify-phone') {
+            return Boolean(verification.phone_verified || verification.skipped_due_to_debug || verification.skipped_due_to_maintenance);
+        }
+
+        if (stepKey === 'plan') {
+            return Boolean(plan.plan_id || (Array.isArray(plan.modules) && plan.modules.length > 0));
+        }
+
+        if (stepKey === 'payment') {
+            return Boolean(trial.accept_terms || savedData?.payment?.completed);
+        }
+
+        if (stepKey === 'provisioning') {
+            return Boolean(savedData?.provisioning?.tenant_id || verification.tenant_id);
+        }
+
+        return false;
+    };
+
+    const lastContiguousCompleteIndex = (() => {
+        let lastIndex = -1;
+
+        for (let index = 0; index < steps.length; index += 1) {
+            if (isStepComplete(steps[index].key)) {
+                lastIndex = index;
+                continue;
+            }
+
+            break;
+        }
+
+        return lastIndex;
+    })();
+
+    const maxAllowedIndex = Math.max(activeIndex, lastContiguousCompleteIndex + 1);
+
+    const handleStepNavigate = (step, index) => {
+        if (!step?.route || index > maxAllowedIndex) {
+            return;
+        }
+
+        router.visit(route(step.route));
+    };
 
     return (
         <div className="public-page min-h-screen">
@@ -191,6 +255,7 @@ function RegistrationLayoutInner({ children, steps = [], currentStep = 'account'
                                 {steps.map((step, index) => {
                                     const isActive = step.key === currentStep;
                                     const isDone = index < activeIndex;
+                                    const canNavigate = index <= maxAllowedIndex;
 
                                     return (
                                         <li key={step.key} className="flex items-center gap-3">
@@ -207,9 +272,16 @@ function RegistrationLayoutInner({ children, steps = [], currentStep = 'account'
                                             >
                                                 {index + 1}
                                             </span>
-                                            <span className={isActive ? 'font-medium text-[var(--pub-text)]' : 'text-[var(--pub-text-muted)]'}>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleStepNavigate(step, index)}
+                                                disabled={!canNavigate}
+                                                className={`text-left transition-colors ${isActive ? 'font-medium text-[var(--pub-text)]' : 'text-[var(--pub-text-muted)]'} ${canNavigate ? 'hover:text-[var(--pub-text)]' : 'cursor-not-allowed opacity-50'}`}
+                                                aria-label={step.label}
+                                                title={canNavigate ? step.label : 'Complete previous step first'}
+                                            >
                                                 {step.label}
-                                            </span>
+                                            </button>
                                         </li>
                                     );
                                 })}
@@ -224,11 +296,11 @@ function RegistrationLayoutInner({ children, steps = [], currentStep = 'account'
     );
 }
 
-export default function RegistrationLayout({ children, steps = [], currentStep = 'account' }) {
+export default function RegistrationLayout({ children, steps = [], currentStep = 'account', savedData = {} }) {
     return (
         <PublicThemeProvider>
             <PublicI18nProvider>
-                <RegistrationLayoutInner steps={steps} currentStep={currentStep}>
+                <RegistrationLayoutInner steps={steps} currentStep={currentStep} savedData={savedData}>
                     {children}
                 </RegistrationLayoutInner>
             </PublicI18nProvider>

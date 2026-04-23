@@ -39,6 +39,8 @@ return [
         'enabled' => env('PLATFORM_REGISTRATION_ENABLED', true),
         'require_email_verification' => env('PLATFORM_REQUIRE_EMAIL_VERIFICATION', true),
         'require_phone_verification' => env('PLATFORM_REQUIRE_PHONE_VERIFICATION', false),
+        'pending_lock_minutes' => env('PLATFORM_REGISTRATION_PENDING_LOCK_MINUTES', 30),
+        'resume_reclaim_window_hours' => env('PLATFORM_REGISTRATION_RECLAIM_WINDOW_HOURS', 24),
     ],
 
     // Billing settings

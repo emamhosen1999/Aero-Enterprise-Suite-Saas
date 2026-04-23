@@ -2,12 +2,15 @@
 
 namespace Aero\Platform\Models;
 
+use Aero\Platform\Database\Factories\TenantFactory;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use Laravel\Cashier\Billable;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
@@ -29,7 +32,7 @@ use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
  * @property \ArrayObject $data Flexible metadata storage (owner_name, address, etc.)
  * @property string $status Tenant status: pending, provisioning, active, failed, cancelled, suspended, archived
  * @property bool $maintenance_mode Whether tenant is in maintenance mode
- * @property \Carbon\Carbon|null $trial_ends_at Trial period end date
+ * @property Carbon|null $trial_ends_at Trial period end date
  * @property string|null $plan_id Foreign key to plans table
  * @property string|null $stripe_id Stripe Customer ID
  * @property string|null $pm_type Payment method type (card, etc.)
@@ -82,7 +85,11 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
     public const REG_STEP_PLAN = 'plan';
 
+    public const REG_STEP_TRIAL = 'trial';
+
     public const REG_STEP_PAYMENT = 'payment';
+
+    public const REG_STEP_PROVISIONING = 'provisioning';
 
     /**
      * Custom columns that are stored directly on the tenants table
@@ -166,9 +173,9 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     /**
      * Create a new factory instance for the model.
      */
-    protected static function newFactory(): \Aero\Platform\Database\Factories\TenantFactory
+    protected static function newFactory(): TenantFactory
     {
-        return \Aero\Platform\Database\Factories\TenantFactory::new();
+        return TenantFactory::new();
     }
 
     // =========================================================================
@@ -667,7 +674,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
                 return null;
             }
 
-            $result = \Illuminate\Support\Facades\DB::select(
+            $result = DB::select(
                 'SELECT
                     SUM(data_length + index_length) AS size_bytes,
                     COUNT(*) AS table_count

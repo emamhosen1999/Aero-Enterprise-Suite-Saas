@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useForm } from '@inertiajs/react';
+import { formatQuotaValue, normalizePlanQuotas } from '../../utils/planCanonical';
 
 export default function StepPlan({ plans = [], modules = [], savedData = {} }) {
     const selectedPlan = savedData?.plan?.plan_id || '';
@@ -44,6 +45,7 @@ export default function StepPlan({ plans = [], modules = [], savedData = {} }) {
             <div className="grid gap-4 md:grid-cols-2">
                 {plans.map((plan) => {
                     const isActive = String(form.data.plan_id) === String(plan.id);
+                    const planQuotas = normalizePlanQuotas(plan);
 
                     return (
                         <button
@@ -67,6 +69,16 @@ export default function StepPlan({ plans = [], modules = [], savedData = {} }) {
                                     ? `$${Number(plan.yearly_price || 0)}/yr`
                                     : `$${Number(plan.monthly_price || 0)}/mo`}
                             </p>
+
+                            {planQuotas.length > 0 && (
+                                <div className="mt-3 flex flex-wrap gap-1.5">
+                                    {planQuotas.slice(0, 4).map((quota) => (
+                                        <span key={quota.key} className="rounded-full border border-white/10 bg-white/10 px-2 py-0.5 text-xs text-white/80">
+                                            {quota.label}: {formatQuotaValue(quota)}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
                         </button>
                     );
                 })}

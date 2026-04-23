@@ -1,8 +1,14 @@
 import { useForm } from '@inertiajs/react';
+import { Button, Checkbox, Chip } from '@heroui/react';
+import { formatQuotaValue, normalizePlanFeatures, normalizePlanModules, normalizePlanQuotas } from '../../utils/planCanonical';
 
 export default function StepPayment({ savedData = {}, plans = [], trialDays = 14, baseDomain }) {
     const selectedPlanId = savedData?.plan?.plan_id;
     const selectedPlan = plans.find((plan) => String(plan.id) === String(selectedPlanId));
+    const accountType = savedData?.account?.type || 'company';
+    const planQuotas = normalizePlanQuotas(selectedPlan || {});
+    const planFeatures = normalizePlanFeatures(selectedPlan || {});
+    const planModules = normalizePlanModules(selectedPlan || {});
 
     const form = useForm({
         accept_terms: savedData?.trial?.accept_terms || false,
@@ -26,17 +32,31 @@ export default function StepPayment({ savedData = {}, plans = [], trialDays = 14
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-                <SummaryCard title="Company" value={savedData?.details?.name || '-'} />
-                <SummaryCard title="Email" value={savedData?.details?.email || '-'} />
+                <SummaryCard title={accountType === 'individual' ? 'Full Name' : 'Company'} value={savedData?.details?.name || '-'} />
+                <SummaryCard title={accountType === 'individual' ? 'Work Email' : 'Company Email'} value={savedData?.details?.email || '-'} />
                 <SummaryCard title="Plan" value={selectedPlan?.name || 'Custom Modules'} />
                 <SummaryCard title="Billing Cycle" value={savedData?.plan?.billing_cycle || 'monthly'} />
             </div>
 
+            {planQuotas.length > 0 && (
+                <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                    <p className="font-medium">Plan Quotas</p>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                        {planQuotas.map((quota) => (
+                            <div key={quota.key} className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
+                                <p className="text-xs uppercase tracking-wide text-[var(--pub-text-muted)]">{quota.label}</p>
+                                <p className="text-sm text-white">{formatQuotaValue(quota)}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
                 <p className="font-medium">Selected Modules</p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                    {selectedModules.length > 0 ? (
-                        selectedModules.map((code) => (
+                    {(selectedModules.length > 0 ? selectedModules : planModules).length > 0 ? (
+                        (selectedModules.length > 0 ? selectedModules : planModules).map((code) => (
                             <span key={code} className="rounded-full bg-cyan-500/15 px-3 py-1 text-xs text-cyan-200">
                                 {code}
                             </span>
@@ -47,33 +67,43 @@ export default function StepPayment({ savedData = {}, plans = [], trialDays = 14
                 </div>
             </div>
 
-            <div className="space-y-3 rounded-xl border border-white/10 bg-white/[0.02] p-4">
-                <label className="flex items-start gap-2 text-sm">
-                    <input
-                        type="checkbox"
-                        checked={form.data.accept_terms}
-                        onChange={(e) => form.setData('accept_terms', e.target.checked)}
-                    />
-                    <span>I accept the Terms of Service and Privacy Policy.</span>
-                </label>
+            {planFeatures.length > 0 && (
+                <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                    <p className="font-medium">Included Features</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                        {planFeatures.map((feature) => (
+                            <Chip key={feature} size="sm" variant="flat" color="primary">
+                                {feature}
+                            </Chip>
+                        ))}
+                    </div>
+                </div>
+            )}
 
-                <label className="flex items-start gap-2 text-sm text-[var(--pub-text-muted)]">
-                    <input
-                        type="checkbox"
-                        checked={form.data.notify_updates}
-                        onChange={(e) => form.setData('notify_updates', e.target.checked)}
-                    />
-                    <span>Send me product updates and release notes.</span>
-                </label>
+            <div className="space-y-3 rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                <Checkbox
+                    isSelected={form.data.accept_terms}
+                    onValueChange={(value) => form.setData('accept_terms', value)}
+                >
+                    I accept the Terms of Service and Privacy Policy.
+                </Checkbox>
+
+                <Checkbox
+                    isSelected={form.data.notify_updates}
+                    onValueChange={(value) => form.setData('notify_updates', value)}
+                    className="text-[var(--pub-text-muted)]"
+                >
+                    Send me product updates and release notes.
+                </Checkbox>
 
                 {form.errors.accept_terms && <p className="text-sm text-red-300">{form.errors.accept_terms}</p>}
             </div>
 
             <div className="flex items-center justify-between gap-4">
                 <p className="text-sm text-[var(--pub-text-muted)]">Trial includes {trialDays} days with full feature access.</p>
-                <button type="submit" className="btn-primary px-6 py-3" disabled={form.processing}>
+                <Button type="submit" color="primary" className="px-6" isLoading={form.processing}>
                     Start Free Trial
-                </button>
+                </Button>
             </div>
         </form>
     );

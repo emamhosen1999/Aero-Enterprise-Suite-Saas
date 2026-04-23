@@ -253,7 +253,9 @@ export default function HeroSection() {
               {/* Buttons */}
               <motion.div variants={heroButtons} className="flex flex-wrap items-center gap-3 mt-2">
                 <motion.a
-                  href="/demo"
+                  href="https://demo.aeos365.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="btn-primary flex items-center gap-2"
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
@@ -264,6 +266,7 @@ export default function HeroSection() {
                   <span>See Live Demo</span>
                 </motion.a>
                 <motion.a
+                  component="Link"
                   href="/docs"
                   className="btn-ghost flex items-center gap-2"
                   whileHover={{ scale: 1.03 }}

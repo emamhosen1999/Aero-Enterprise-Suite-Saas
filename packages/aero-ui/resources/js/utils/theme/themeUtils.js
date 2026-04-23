@@ -59,7 +59,7 @@ export const getStandardCardStyle = () => ({
   border: `var(--borderWidth, 2px) solid transparent`,
   borderRadius: `var(--borderRadius, 12px)`,
   color: `var(--theme-foreground, #11181C)`,
-  fontFamily: `var(--fontFamily, "Inter")`,
+  fontFamily: `var(--fontFamily, "DM Sans")`,
   transform: `scale(var(--scale, 1))`,
   transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)'
 });

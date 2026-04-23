@@ -2,6 +2,7 @@
 
 namespace Aero\Platform\Models;
 
+use Aero\Platform\Database\Factories\PlanFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -27,7 +28,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Plan extends Model
 {
-    /** @use HasFactory<\Aero\Platform\Database\Factories\PlanFactory> */
+    /** @use HasFactory<PlanFactory> */
     use HasFactory, HasUuids, SoftDeletes;
 
     /**
@@ -41,9 +42,9 @@ class Plan extends Model
     /**
      * Create a new factory instance for the model.
      */
-    protected static function newFactory(): \Aero\Platform\Database\Factories\PlanFactory
+    protected static function newFactory(): PlanFactory
     {
-        return \Aero\Platform\Database\Factories\PlanFactory::new();
+        return PlanFactory::new();
     }
 
     /**
@@ -145,6 +146,14 @@ class Plan extends Model
             ->withPivot('limits', 'is_enabled')
             ->withTimestamps()
             ->wherePivot('is_enabled', true);
+    }
+
+    /**
+     * Get canonical quota rows for this plan.
+     */
+    public function planQuotas(): HasMany
+    {
+        return $this->hasMany(PlanQuota::class)->orderBy('sort_order');
     }
 
     // =========================================================================
@@ -318,6 +327,54 @@ class Plan extends Model
     public function getModulesCountAttribute(): int
     {
         return $this->modules()->count();
+    }
+
+    /**
+     * Get canonical quotas projected from normalized rows or legacy limits.
+     *
+     * @return array<int, array{key: string, value: mixed, unit: string|null, metadata: array<string, mixed>}>
+     */
+    public function getCanonicalQuotasAttribute(): array
+    {
+        $rows = $this->relationLoaded('planQuotas')
+            ? $this->planQuotas
+            : $this->planQuotas()->get();
+
+        if ($rows->isNotEmpty()) {
+            return $rows->map(function (PlanQuota $quota) {
+                return [
+                    'key' => (string) $quota->key,
+                    'value' => $quota->value,
+                    'unit' => $quota->unit,
+                    'metadata' => is_array($quota->metadata) ? $quota->metadata : [],
+                ];
+            })->values()->all();
+        }
+
+        $limits = is_array($this->limits) ? $this->limits : [];
+
+        if (! array_key_exists('max_users', $limits) && $this->max_users !== null) {
+            $limits['max_users'] = $this->max_users;
+        }
+        if (! array_key_exists('max_storage_gb', $limits) && $this->max_storage_gb !== null) {
+            $limits['max_storage_gb'] = $this->max_storage_gb;
+        }
+
+        $quotas = [];
+        foreach ($limits as $key => $value) {
+            if (! is_scalar($value) && $value !== null) {
+                continue;
+            }
+
+            $quotas[] = [
+                'key' => (string) $key,
+                'value' => $value,
+                'unit' => str_ends_with((string) $key, '_gb') ? 'gb' : 'count',
+                'metadata' => [],
+            ];
+        }
+
+        return $quotas;
     }
 
     /**

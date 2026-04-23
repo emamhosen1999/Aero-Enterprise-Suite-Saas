@@ -63,7 +63,13 @@ class RegistrationController extends Controller
             ->whereIn('status', [Tenant::STATUS_PENDING, Tenant::STATUS_FAILED])
             ->first();
 
+        $resumeRoute = null;
+
         if ($existingTenant) {
+            if ($this->isResumableTenantAttempt($existingTenant)) {
+                $resumeRoute = $this->resolveResumeRouteFromRegistrationStep($existingTenant->registration_step);
+            }
+
             // Resume: update the existing tenant with new details
             $existingTenant->update([
                 'name' => $validated['name'],
@@ -72,7 +78,7 @@ class RegistrationController extends Controller
                 'subdomain' => $subdomain,
                 'type' => $this->registrationSession->getStep('account')['type'] ?? 'company',
                 'status' => Tenant::STATUS_PENDING, // Reset to pending if was failed
-                'registration_step' => Tenant::REG_STEP_DETAILS,
+                'registration_step' => $this->normalizeRegistrationStep($existingTenant->registration_step),
             ]);
 
             // Store tenant ID in session for continuity
@@ -127,13 +133,18 @@ class RegistrationController extends Controller
             return redirect($planUrl);
         }
 
-        // Go directly to email verification (admin setup moved to after provisioning)
-        $verifyUrl = route('platform.register.verify-email');
+        $redirectRoute = $resumeRoute ?? 'platform.register.verify-email';
+        $redirectUrl = route($redirectRoute);
+
         if ($request->wantsJson()) {
-            return response()->json(['redirect' => $verifyUrl, 'message' => 'Details saved. Please verify your email.']);
+            $message = $resumeRoute
+                ? 'Details saved. Your previous registration progress has been restored.'
+                : 'Details saved. Please verify your email.';
+
+            return response()->json(['redirect' => $redirectUrl, 'message' => $message]);
         }
 
-        return redirect($verifyUrl);
+        return redirect($redirectUrl);
     }
 
     /**
@@ -500,6 +511,10 @@ class RegistrationController extends Controller
             // Admin will be created after provisioning on tenant domain
             ProvisionTenant::dispatch($tenant)->afterCommit();
 
+            $tenant->update([
+                'registration_step' => Tenant::REG_STEP_PROVISIONING,
+            ]);
+
             // Store idempotency key to prevent duplicate submissions (valid for 1 hour)
             Cache::put($idempotencyKey, $tenant->id, now()->addHour());
         } catch (QueryException $e) {
@@ -682,6 +697,57 @@ class RegistrationController extends Controller
             Tenant::where('id', $verification['tenant_id'])
                 ->update(['registration_step' => $step]);
         }
+    }
+
+    /**
+     * Map persisted registration step to an allowed route in current taxonomy.
+     */
+    private function resolveResumeRouteFromRegistrationStep(?string $registrationStep): ?string
+    {
+        $step = $this->normalizeRegistrationStep($registrationStep);
+
+        $stepMap = [
+            Tenant::REG_STEP_ACCOUNT_TYPE => 'platform.register.index',
+            Tenant::REG_STEP_DETAILS => 'platform.register.details',
+            Tenant::REG_STEP_VERIFY_EMAIL => 'platform.register.verify-email',
+            Tenant::REG_STEP_VERIFY_PHONE => 'platform.register.verify-phone',
+            Tenant::REG_STEP_PLAN => 'platform.register.plan',
+            Tenant::REG_STEP_PAYMENT => 'platform.register.payment',
+            Tenant::REG_STEP_TRIAL => 'platform.register.payment',
+            Tenant::REG_STEP_PROVISIONING => 'platform.register.payment',
+        ];
+
+        return $stepMap[$step] ?? null;
+    }
+
+    private function normalizeRegistrationStep(?string $step): string
+    {
+        if (! is_string($step) || $step === '') {
+            return Tenant::REG_STEP_VERIFY_EMAIL;
+        }
+
+        return match ($step) {
+            Tenant::REG_STEP_ADMIN => Tenant::REG_STEP_VERIFY_EMAIL,
+            'verification' => Tenant::REG_STEP_VERIFY_EMAIL,
+            default => $step,
+        };
+    }
+
+    private function isResumableTenantAttempt(Tenant $tenant): bool
+    {
+        if ($tenant->status === Tenant::STATUS_PENDING) {
+            $lockMinutes = max((int) config('platform.registration.pending_lock_minutes', 30), 1);
+
+            return $tenant->updated_at?->lte(now()->subMinutes($lockMinutes)) ?? false;
+        }
+
+        if ($tenant->status === Tenant::STATUS_FAILED) {
+            $reclaimHours = max((int) config('platform.registration.resume_reclaim_window_hours', 24), 1);
+
+            return $tenant->updated_at?->lte(now()->subHours($reclaimHours)) ?? false;
+        }
+
+        return false;
     }
 
     /**

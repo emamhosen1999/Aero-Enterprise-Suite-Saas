@@ -9,6 +9,7 @@ use Aero\Core\Support\SafeRedirect;
 use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\Tenant;
 use Aero\Platform\Services\Monitoring\Tenant\TenantRegistrationSession;
+use Aero\Platform\Services\PlanCanonicalService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -32,7 +33,8 @@ class RegistrationPageController extends Controller
 
     public function __construct(
         private TenantRegistrationSession $registrationSession,
-        private ModuleDiscoveryService $moduleDiscovery
+        private ModuleDiscoveryService $moduleDiscovery,
+        private PlanCanonicalService $planCanonicalService,
     ) {}
 
     public function accountType(): Response
@@ -129,9 +131,11 @@ class RegistrationPageController extends Controller
         // Fetch plans and enrich with discovered module data
         $plans = Plan::where('is_active', true)
             ->orderBy('sort_order')
+            ->with('planQuotas')
             ->get()
             ->map(function ($plan) use ($discoveredModules) {
-                $limits = $plan->limits ?? [];
+                $dto = $this->planCanonicalService->toDto($plan);
+                $limits = $dto['limits'] ?? [];
                 $moduleCodes = $plan->module_codes ?? [];
 
                 // Enrich module codes with full module info from discovered modules
@@ -155,14 +159,7 @@ class RegistrationPageController extends Controller
                     ->values();
 
                 return [
-                    'id' => $plan->id,
-                    'name' => $plan->name,
-                    'slug' => $plan->slug,
-                    'description' => $plan->description,
-                    'monthly_price' => $plan->monthly_price,
-                    'yearly_price' => $plan->yearly_price,
-                    'is_featured' => $plan->is_featured,
-                    'features' => $plan->features ?? [],
+                    ...$dto,
                     'limits' => $limits,
                     'badge' => $limits['badge'] ?? null,
                     'modules' => $enrichedModules,
@@ -224,8 +221,10 @@ class RegistrationPageController extends Controller
 
         // Fetch plans and enrich with discovered module data
         $plans = Plan::where('is_active', true)
+            ->with('planQuotas')
             ->get()
             ->map(function ($plan) use ($discoveredModules) {
+                $dto = $this->planCanonicalService->toDto($plan);
                 $moduleCodes = $plan->module_codes ?? [];
 
                 // Enrich module codes with full module info from discovered modules
@@ -246,11 +245,7 @@ class RegistrationPageController extends Controller
                     ->values();
 
                 return [
-                    'id' => $plan->id,
-                    'name' => $plan->name,
-                    'slug' => $plan->slug,
-                    'monthly_price' => $plan->monthly_price,
-                    'yearly_price' => $plan->yearly_price,
+                    ...$dto,
                     'modules' => $enrichedModules,
                 ];
             });

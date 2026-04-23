@@ -27,7 +27,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
         <div 
             className="min-h-screen flex items-center justify-center p-1 sm:p-2 relative overflow-hidden"
             style={{
-                fontFamily: `var(--fontFamily, 'Inter')`,
+                fontFamily: `var(--fontFamily, 'DM Sans')`,
                 transform: `scale(var(--scale, 1))`,
                 transformOrigin: 'center center',
                 // Use transparent background to allow the global theme background to show through
@@ -103,13 +103,13 @@ const AuthLayout = ({ children, title, subtitle }) => {
                         className="w-full max-w-[420px]"
                     >
                         <Card 
-                            className="p-3 sm:p-4 md:p-6 relative overflow-visible w-full rounded-2xl sm:rounded-3xl"
+                            className="aero-card p-3 sm:p-4 md:p-6 relative overflow-visible w-full rounded-2xl sm:rounded-3xl"
                             style={{
                                 borderRadius: `var(--borderRadius, 24px)`,
                                 borderWidth: `var(--borderWidth, 2px)`,
                                 borderStyle: 'solid',
-                                borderColor: 'color-mix(in srgb, var(--theme-divider, #E4E4E7) 50%, transparent)',
-                                fontFamily: `var(--fontFamily, 'Inter')`,
+                                borderColor: 'color-mix(in srgb, var(--theme-primary, #006FEE) 14%, var(--theme-divider, #E4E4E7) 86%)',
+                                fontFamily: `var(--fontFamily, 'DM Sans')`,
                                 transform: `scale(var(--scale, 1))`,
                                 background: `linear-gradient(to bottom right, 
                                     color-mix(in srgb, var(--theme-content1, #FAFAFA) 98%, transparent), 
@@ -167,7 +167,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
                                             backgroundClip: 'text',
                                             WebkitBackgroundClip: 'text',
                                             WebkitTextFillColor: 'transparent',
-                                            fontFamily: `var(--fontFamily, 'Inter')`
+                                            fontFamily: `var(--fontFamily, 'DM Sans')`
                                         }}
                                     >
                                         {title}
@@ -177,7 +177,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
                                             className="text-foreground-600 text-sm sm:text-base leading-relaxed px-1 sm:px-0"
                                             style={{
                                                 color: 'color-mix(in srgb, var(--theme-foreground, #11181C) 70%, transparent)',
-                                                fontFamily: `var(--fontFamily, 'Inter')`
+                                                fontFamily: `var(--fontFamily, 'DM Sans')`
                                             }}
                                         >
                                             {subtitle}

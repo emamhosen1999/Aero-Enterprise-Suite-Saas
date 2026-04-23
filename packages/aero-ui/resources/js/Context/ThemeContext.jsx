@@ -233,7 +233,7 @@ export const ThemeProvider = ({ children }) => {
         mode: 'light',
         isDark: false,
         cardStyle: 'modern',
-        typography: { fontFamily: 'Inter', fontSize: 'base' },
+        typography: { fontFamily: 'DM Sans', fontSize: 'base' },
         background: { type: 'color', value: '' },
         colors: {},
         layout: {},

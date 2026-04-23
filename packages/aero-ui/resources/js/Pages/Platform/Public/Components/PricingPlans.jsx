@@ -1,8 +1,41 @@
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
+import { Link } from '@inertiajs/react';
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { usePublicTheme } from "../utils/publicTheme.jsx";
 import { fadeUp, staggerContainer, scaleIn } from "../utils/motionVariants.js";
 import { PRICING_PLANS } from "../utils/pageData.js";
+import { formatQuotaValue, normalizePlanFeatures, normalizePlanModules, normalizePlanQuotas } from '../utils/planCanonical';
+
+function titleCase(input = '') {
+  return String(input)
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function buildPlanCardModel(plan, index) {
+  const modules = normalizePlanModules(plan);
+  const features = normalizePlanFeatures(plan);
+  const quotas = normalizePlanQuotas(plan);
+  const tier = (plan.tier || '').toLowerCase();
+
+  return {
+    id: plan.id || plan.slug || `plan-${index}`,
+    name: plan.name || titleCase(plan.slug || `Plan ${index + 1}`),
+    tagline: plan.description || 'Flexible plan for modern teams',
+    monthlyPrice: plan.monthly_price ?? null,
+    annualPrice: plan.yearly_price ?? null,
+    currency: '$',
+    highlight: Boolean(plan.is_featured),
+    badge: tier ? titleCase(tier) : null,
+    cta: tier === 'enterprise' ? 'Contact Sales' : 'Start Free Trial',
+    accentColor: plan.is_featured ? 'var(--indigo-aeos, #6366F1)' : 'var(--cyan-aeos, #00E5FF)',
+    modules,
+    perks: [
+      ...features,
+      ...quotas.slice(0, 4).map((quota) => `${quota.label}: ${formatQuotaValue(quota)}`),
+    ].slice(0, 8),
+  };
+}
 
 // ─── Checkmark Icon ────────────────────────────────────────────────────────────
 function CheckIcon({ color }) {
@@ -213,32 +246,32 @@ function PlanCard({ plan, isAnnual, isDark, index }) {
       )}
 
       {/* CTA Button */}
-      <motion.a
-        href={plan.id === "enterprise" ? "#" : "/signup"}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.97 }}
-        className="block w-full py-2.5 text-sm font-semibold text-center rounded-xl transition-all mb-5"
-        style={
-          plan.highlight
-            ? {
-                background: "var(--indigo-aeos, #6366F1)",
-                color: "#FFFFFF",
-                border: "none",
-                fontFamily: "'DM Sans', sans-serif",
-                boxShadow: "0 4px 14px rgba(99,102,241,0.35)",
-                textDecoration: "none",
-              }
-            : {
-                background: "transparent",
-                color: plan.accentColor,
-                border: `1px solid ${plan.accentColor}`,
-                fontFamily: "'DM Sans', sans-serif",
-                textDecoration: "none",
-              }
-        }
-      >
-        {plan.cta}
-      </motion.a>
+      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} className="mb-5">
+        <Link
+          href={plan.id === 'enterprise' ? '/contact' : '/signup'}
+          className="block w-full rounded-xl py-2.5 text-center text-sm font-semibold transition-all"
+          style={
+            plan.highlight
+              ? {
+                  background: "var(--indigo-aeos, #6366F1)",
+                  color: "#FFFFFF",
+                  border: "none",
+                  fontFamily: "'DM Sans', sans-serif",
+                  boxShadow: "0 4px 14px rgba(99,102,241,0.35)",
+                  textDecoration: "none",
+                }
+              : {
+                  background: "transparent",
+                  color: plan.accentColor,
+                  border: `1px solid ${plan.accentColor}`,
+                  fontFamily: "'DM Sans', sans-serif",
+                  textDecoration: "none",
+                }
+          }
+        >
+          {plan.cta}
+        </Link>
+      </motion.div>
 
       {/* Divider */}
       <div
@@ -303,10 +336,17 @@ function PlanCard({ plan, isAnnual, isDark, index }) {
 }
 
 // ─── PricingPlans ──────────────────────────────────────────────────────────────
-export default function PricingPlans({ isAnnual }) {
+export default function PricingPlans({ isAnnual, plans = [] }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
   const { isDark } = usePublicTheme();
+  const displayPlans = useMemo(() => {
+    if (Array.isArray(plans) && plans.length > 0) {
+      return plans.map((plan, index) => buildPlanCardModel(plan, index));
+    }
+
+    return PRICING_PLANS;
+  }, [plans]);
 
   return (
     <section ref={ref} className="py-8 px-6 lg:px-10">
@@ -317,7 +357,7 @@ export default function PricingPlans({ isAnnual }) {
           animate={inView ? "visible" : "hidden"}
           className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6"
         >
-          {PRICING_PLANS.map((plan, i) => (
+          {displayPlans.map((plan, i) => (
             <PlanCard
               key={plan.id}
               plan={plan}

@@ -30,7 +30,7 @@ export default function RegistrationPage(props) {
     return (
         <>
             <Head title="Registration" />
-            <RegistrationLayout steps={steps} currentStep={currentStep}>
+            <RegistrationLayout steps={steps} currentStep={currentStep} savedData={savedData}>
                 {currentStep === 'account' && <StepAccountType savedData={savedData} />}
                 {currentStep === 'details' && (
                     <StepDetails

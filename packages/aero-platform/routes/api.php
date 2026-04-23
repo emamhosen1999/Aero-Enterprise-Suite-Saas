@@ -3,6 +3,12 @@
 declare(strict_types=1);
 
 use Aero\Platform\Http\Controllers\Api\ProductCatalogController;
+use Aero\Platform\Http\Controllers\Api\RegistrationIdentityController;
+use Aero\Platform\Http\Controllers\Api\ResumeRegistrationController;
+use Aero\Platform\Http\Controllers\ErrorLogController;
+use Aero\Platform\Http\Controllers\PlanController;
+use Aero\Platform\Http\Controllers\Public\MarketingEventController;
+use Aero\Platform\Http\Controllers\Public\SocialAuthController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -44,7 +50,7 @@ Route::prefix('products')->name('api.products.')->group(function () {
 
 Route::prefix('platform/v1')->name('api.platform.v1.')->group(function () {
     // Error Reporting API - receives errors from standalone installations
-    Route::post('/error-logs', [\Aero\Platform\Http\Controllers\ErrorLogController::class, 'receiveRemoteError'])
+    Route::post('/error-logs', [ErrorLogController::class, 'receiveRemoteError'])
         ->name('error-logs.receive')
         ->middleware('throttle:60,1');
 
@@ -55,25 +61,36 @@ Route::prefix('platform/v1')->name('api.platform.v1.')->group(function () {
     ]))->name('health');
 
     // Public plans list (for registration page)
-    Route::get('/plans', [\Aero\Platform\Http\Controllers\PlanController::class, 'publicIndex'])
+    Route::get('/plans', [PlanController::class, 'publicIndex'])
         ->name('plans.public');
 
     // Social auth provider discovery (registration/login UI)
-    Route::get('/social/providers', [\Aero\Platform\Http\Controllers\Public\SocialAuthController::class, 'providers'])
+    Route::get('/social/providers', [SocialAuthController::class, 'providers'])
         ->name('social.providers');
 
     // Public marketing CTA event ingestion
-    Route::post('/marketing-events', [\Aero\Platform\Http\Controllers\Public\MarketingEventController::class, 'store'])
+    Route::post('/marketing-events', [MarketingEventController::class, 'store'])
         ->middleware('throttle:120,1')
         ->name('marketing-events.store');
 
-    // Check subdomain availability (registration flow)
-    Route::post('/check-subdomain', [\Aero\Platform\Http\Controllers\TenantController::class, 'checkSubdomain'])
+    // Legacy subdomain availability endpoint (kept for backward compatibility)
+    Route::post('/check-subdomain', [RegistrationIdentityController::class, 'checkSubdomain'])
         ->middleware('throttle:30,1')
         ->name('check-subdomain');
 
+    // Registration identity checks
+    Route::prefix('registration')->name('registration.')->group(function () {
+        Route::post('check-subdomain', [RegistrationIdentityController::class, 'checkSubdomain'])
+            ->middleware('throttle:30,1')
+            ->name('check-subdomain');
+
+        Route::post('check-email', [RegistrationIdentityController::class, 'checkEmail'])
+            ->middleware('throttle:30,1')
+            ->name('check-email');
+    });
+
     // Resume Registration API - save progress and send magic link
-    Route::post('/registration/save-progress', [\Aero\Platform\Http\Controllers\Api\ResumeRegistrationController::class, 'saveProgress'])
+    Route::post('/registration/save-progress', [ResumeRegistrationController::class, 'saveProgress'])
         ->middleware('throttle:5,1')
         ->name('registration.save-progress');
 });

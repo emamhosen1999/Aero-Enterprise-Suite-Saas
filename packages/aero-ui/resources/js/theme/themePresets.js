@@ -20,7 +20,7 @@ export const THEME_PRESETS = {
       mode: 'light',
       cardStyle: 'modern',
       typography: {
-        fontFamily: 'Inter',
+        fontFamily: 'DM Sans',
         fontSize: '16px'
       },
       background: {
@@ -44,7 +44,7 @@ export const THEME_PRESETS = {
       mode: 'light',
       cardStyle: 'corporate',
       typography: {
-        fontFamily: 'Inter',
+        fontFamily: 'DM Sans',
         fontSize: '16px'
       },
       background: BACKGROUND_PRESETS['cool-blue']
@@ -65,7 +65,7 @@ export const THEME_PRESETS = {
       mode: 'light',
       cardStyle: 'soft',
       typography: {
-        fontFamily: 'Inter',
+        fontFamily: 'DM Sans',
         fontSize: '16px'
       },
       background: BACKGROUND_PRESETS['warm-white']
@@ -86,7 +86,7 @@ export const THEME_PRESETS = {
       mode: 'light',
       cardStyle: 'glass',
       typography: {
-        fontFamily: 'Inter',
+        fontFamily: 'DM Sans',
         fontSize: '16px'
       },
       background: BACKGROUND_PRESETS['sunset']
@@ -107,7 +107,7 @@ export const THEME_PRESETS = {
       mode: 'light',
       cardStyle: 'neo',
       typography: {
-        fontFamily: 'Inter',
+        fontFamily: 'DM Sans',
         fontSize: '16px'
       },
       background: {
@@ -155,7 +155,7 @@ export const THEME_PRESETS = {
       mode: 'light',
       cardStyle: 'bordered',
       typography: {
-        fontFamily: 'Inter',
+        fontFamily: 'DM Sans',
         fontSize: '18px'
       },
       background: {
@@ -179,7 +179,7 @@ export const THEME_PRESETS = {
       mode: 'light',
       cardStyle: 'glass',
       typography: {
-        fontFamily: 'Inter',
+        fontFamily: 'DM Sans',
         fontSize: '16px'
       },
       background: BACKGROUND_PRESETS['ocean']
@@ -200,7 +200,7 @@ export const THEME_PRESETS = {
       mode: 'light',
       cardStyle: 'elevated',
       typography: {
-        fontFamily: 'Inter',
+        fontFamily: 'DM Sans',
         fontSize: '16px'
       },
       background: {
@@ -227,7 +227,7 @@ export const THEME_PRESETS = {
       mode: 'light',
       cardStyle: 'minimal',
       typography: {
-        fontFamily: 'Inter',
+        fontFamily: 'DM Sans',
         fontSize: '16px'
       },
       background: BACKGROUND_PRESETS['dots']

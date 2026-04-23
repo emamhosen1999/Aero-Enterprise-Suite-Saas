@@ -49,7 +49,7 @@ export const getDefaultTheme = () => ({
   mode: 'system',
   cardStyle: 'modern',
   typography: {
-    fontFamily: 'Inter',
+    fontFamily: 'DM Sans',
     fontSize: '16px'
   },
   background: {
@@ -145,7 +145,7 @@ export const migrateTheme = () => {
     mode: 'system',
     cardStyle: 'modern',
     typography: {
-      fontFamily: 'Inter',
+      fontFamily: 'DM Sans',
       fontSize: '16px'
     },
     background: {

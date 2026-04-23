@@ -6,13 +6,19 @@ namespace Aero\Platform\Http\Controllers;
 
 use Aero\Platform\Http\Requests\StorePlanRequest;
 use Aero\Platform\Http\Requests\UpdatePlanRequest;
+use Aero\Platform\Models\Module;
 use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\Subscription;
+use Aero\Platform\Services\PlanCanonicalService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class PlanController extends Controller
 {
+    public function __construct(
+        private PlanCanonicalService $planCanonicalService,
+    ) {}
+
     /**
      * Get all plans with their modules (admin).
      */
@@ -26,7 +32,7 @@ class PlanController extends Controller
 
         $query = Plan::with(['modules' => function ($query) {
             $query->select('modules.id', 'modules.code', 'modules.name', 'modules.is_core');
-        }]);
+        }, 'planQuotas']);
 
         $search = $request->input('search');
         if (is_string($search) && $search !== '') {
@@ -58,27 +64,9 @@ class PlanController extends Controller
         $paginator = $shouldPaginate ? $plansQuery->paginate($perPage) : null;
         $plansCollection = $shouldPaginate ? $paginator->getCollection() : $statsCollection;
 
-        $plans = $plansCollection->map(function ($plan) {
-            return [
-                'id' => $plan->id,
-                'name' => $plan->name,
-                'slug' => $plan->slug,
-                'description' => $plan->description,
-                'monthly_price' => $plan->monthly_price,
-                'yearly_price' => $plan->yearly_price,
-                'trial_days' => $plan->trial_days,
-                'is_active' => $plan->is_active,
-                'is_featured' => $plan->is_featured,
-                'features' => $plan->features ?? [],
-                'limits' => $plan->limits ?? [],
-                'modules' => $plan->modules->map(fn ($m) => [
-                    'id' => $m->id,
-                    'code' => $m->code,
-                    'name' => $m->name,
-                    'is_core' => $m->is_core,
-                ]),
-            ];
-        })->values();
+        $plans = $plansCollection
+            ->map(fn (Plan $plan) => $this->planCanonicalService->toDto($plan))
+            ->values();
 
         return response()->json([
             'success' => true,
@@ -129,26 +117,22 @@ class PlanController extends Controller
             ->with(['modules' => function ($query) {
                 $query->where('is_public', true)
                     ->select('modules.id', 'modules.code', 'modules.name', 'modules.description');
-            }])
+            }, 'planQuotas'])
             ->orderBy('sort_order')
             ->get()
-            ->map(function ($plan) {
-                return [
-                    'id' => $plan->id,
-                    'name' => $plan->name,
-                    'slug' => $plan->slug,
-                    'description' => $plan->description,
-                    'monthly_price' => $plan->monthly_price,
-                    'yearly_price' => $plan->yearly_price,
-                    'trial_days' => $plan->trial_days,
-                    'is_featured' => $plan->is_featured,
-                    'features' => $plan->features ?? [],
-                    'modules' => $plan->modules->map(fn ($m) => [
-                        'code' => $m->code,
-                        'name' => $m->name,
-                        'description' => $m->description,
-                    ]),
-                ];
+            ->map(function (Plan $plan) {
+                $dto = $this->planCanonicalService->toDto($plan);
+
+                $dto['modules'] = collect($dto['modules'])
+                    ->map(fn (array $module) => [
+                        'code' => $module['code'],
+                        'name' => $module['name'],
+                        'description' => $module['description'],
+                    ])
+                    ->values()
+                    ->all();
+
+                return $dto;
             });
 
         return response()->json([
@@ -162,11 +146,11 @@ class PlanController extends Controller
      */
     public function show(Plan $plan): JsonResponse
     {
-        $plan->load(['modules']);
+        $plan->load(['modules', 'planQuotas']);
 
         return response()->json([
             'success' => true,
-            'plan' => $plan,
+            'plan' => $this->planCanonicalService->toDto($plan),
         ]);
     }
 
@@ -177,11 +161,17 @@ class PlanController extends Controller
     {
         $validated = $request->validated();
 
+        if (isset($validated['quotas']) && ! array_key_exists('limits', $validated)) {
+            $validated['limits'] = $this->planCanonicalService->projectQuotasToLegacyLimits($validated['quotas']);
+        }
+
         $plan = Plan::create($validated);
+
+        $this->planCanonicalService->syncCanonicalQuotas($plan, $validated);
 
         // Sync modules if provided
         if (isset($validated['module_codes']) && is_array($validated['module_codes'])) {
-            $modules = \Aero\Platform\Models\Module::whereIn('code', $validated['module_codes'])->pluck('id');
+            $modules = Module::whereIn('code', $validated['module_codes'])->pluck('id');
             $plan->modules()->sync($modules);
         }
 
@@ -199,7 +189,7 @@ class PlanController extends Controller
 
         return response()->json([
             'success' => true,
-            'plan' => $plan->load('modules'),
+            'plan' => $this->planCanonicalService->toDto($plan->load(['modules', 'planQuotas'])),
             'message' => 'Plan created successfully.',
         ], 201);
     }
@@ -210,13 +200,23 @@ class PlanController extends Controller
     public function update(UpdatePlanRequest $request, Plan $plan): JsonResponse
     {
         $validated = $request->validated();
+
+        if (isset($validated['quotas']) && ! array_key_exists('limits', $validated)) {
+            $validated['limits'] = array_merge(
+                is_array($plan->limits) ? $plan->limits : [],
+                $this->planCanonicalService->projectQuotasToLegacyLimits($validated['quotas'])
+            );
+        }
+
         $oldValues = $plan->only(['name', 'tier', 'monthly_price', 'yearly_price', 'is_active']);
 
         $plan->update($validated);
 
+        $this->planCanonicalService->syncCanonicalQuotas($plan, $validated);
+
         // Sync modules if provided
         if (isset($validated['module_codes']) && is_array($validated['module_codes'])) {
-            $modules = \Aero\Platform\Models\Module::whereIn('code', $validated['module_codes'])->pluck('id');
+            $modules = Module::whereIn('code', $validated['module_codes'])->pluck('id');
             $plan->modules()->sync($modules);
         }
 
@@ -233,7 +233,7 @@ class PlanController extends Controller
 
         return response()->json([
             'success' => true,
-            'plan' => $plan->fresh(['modules']),
+            'plan' => $this->planCanonicalService->toDto($plan->fresh(['modules', 'planQuotas'])),
             'message' => 'Plan updated successfully.',
         ]);
     }
