@@ -37,4 +37,18 @@ class PublicPageController extends Controller
             'title' => 'Enterprise — aeos365',
         ]);
     }
+
+    public function about(Request $request): Response
+    {
+        return Inertia::render('Platform/Public/About', [
+            'title' => 'About — aeos365',
+        ]);
+    }
+
+    public function docs(Request $request): Response
+    {
+        return Inertia::render('Platform/Public/Docs', [
+            'title' => 'Documentation — aeos365',
+        ]);
+    }
 }

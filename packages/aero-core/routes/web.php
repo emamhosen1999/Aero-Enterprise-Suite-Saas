@@ -12,19 +12,22 @@ use Aero\Core\Http\Controllers\Auth\EmailVerificationController;
 use Aero\Core\Http\Controllers\Auth\InvitationController;
 use Aero\Core\Http\Controllers\Auth\NewPasswordController;
 use Aero\Core\Http\Controllers\Auth\PasswordResetLinkController;
+use Aero\Core\Http\Controllers\Auth\SessionController;
 use Aero\Core\Http\Controllers\Auth\TwoFactorController;
 use Aero\Core\Http\Controllers\DashboardController;
-use Aero\Core\Http\Controllers\Notification\NotificationController;
 use Aero\Core\Http\Controllers\Navigation\UserNavigationController;
+use Aero\Core\Http\Controllers\Notification\NotificationController;
 use Aero\Core\Http\Controllers\Profile\NotificationPreferenceController;
 use Aero\Core\Http\Controllers\Profile\UserProfileImageController;
+use Aero\Core\Http\Controllers\Settings\IpWhitelistController;
 use Aero\Core\Http\Controllers\Settings\NotificationSettingController;
+use Aero\Core\Http\Controllers\Settings\PasswordPolicyController;
 use Aero\Core\Http\Controllers\Settings\SystemSettingController;
 use Aero\Core\Http\Controllers\Upload\FileManagerController;
+use Aero\Core\Http\Middleware\EnsureTenantContext;
 use Aero\Core\Models\User;
 use Aero\Core\Services\PlatformErrorReporter;
 use Aero\HRMAC\Contracts\RoleModuleAccessInterface;
-use Aero\Platform\Http\Controllers\TenantOnboardingController;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -32,6 +35,7 @@ use Illuminate\Support\Facades\Route;
 
 // Note: TenantOnboardingController is referenced dynamically if platform package is installed
 // We don't use a 'use' statement here since it may not exist
+// Note: TenantSubscriptionController is also referenced dynamically for the same reason
 
 /*
 |--------------------------------------------------------------------------
@@ -181,14 +185,14 @@ Route::get('/', function () {
 
     // Fallback for standalone mode or when HRMAC isn't loaded
     return redirect()->route('core.dashboard');
-})->middleware([\Aero\Core\Http\Middleware\EnsureTenantContext::class, 'auth:web']);
+})->middleware([EnsureTenantContext::class, 'auth:web']);
 
 // ============================================================================
 // HOME ROUTE - Alias for root route, redirects to dashboard
 // ============================================================================
 Route::get('/home', function () {
     return redirect()->route('core.dashboard');
-})->middleware([\Aero\Core\Http\Middleware\EnsureTenantContext::class, 'auth:web'])->name('core.home');
+})->middleware([EnsureTenantContext::class, 'auth:web'])->name('core.home');
 
 // ============================================================================
 // PLATFORM IMPERSONATION TOKEN ROUTES (No Auth - token IS the authentication)
@@ -226,6 +230,20 @@ if (class_exists('Aero\Platform\Http\Controllers\TenantOnboardingController')) {
         Route::post('/complete', [TenantOnboardingController::class, 'complete'])->name('complete');
         Route::post('/skip', [TenantOnboardingController::class, 'skip'])->name('skip');
         Route::post('/update-step', [TenantOnboardingController::class, 'updateStep'])->name('update-step');
+    });
+}
+
+// ============================================================================
+// TENANT SUBSCRIPTION ROUTES (Auth required - SaaS mode only)
+// ============================================================================
+if (class_exists('Aero\Platform\Http\Controllers\Tenant\TenantSubscriptionController')) {
+    $subscriptionController = 'Aero\Platform\Http\Controllers\Tenant\TenantSubscriptionController';
+    Route::middleware(['auth:web'])->prefix('subscription')->name('tenant.subscription.')->group(function () use ($subscriptionController) {
+        Route::get('/', [$subscriptionController, 'index'])->name('index')->middleware('hrmac:core.subscription.plans.view');
+        Route::get('/plans', [$subscriptionController, 'plans'])->name('plans')->middleware('hrmac:core.subscription.plans.view');
+        Route::post('/change-plan', [$subscriptionController, 'changePlan'])->name('change-plan')->middleware('hrmac:core.subscription.plans.upgrade');
+        Route::get('/usage', [$subscriptionController, 'usage'])->name('usage')->middleware('hrmac:core.subscription.plans.view');
+        Route::get('/invoices', [$subscriptionController, 'invoices'])->name('invoices')->middleware('hrmac:core.subscription.plans.view');
     });
 }
 
@@ -472,6 +490,22 @@ Route::middleware('auth:web')->group(function () {
             Route::post('/test-channel', [NotificationSettingController::class, 'testChannel'])->name('test-channel');
         });
 
+        // Password Policy Settings
+        Route::prefix('password-policy')->name('password-policy.')->middleware('hrmac:core.settings.security.edit')->group(function () {
+            Route::get('/', [PasswordPolicyController::class, 'index'])->name('index');
+            Route::put('/', [PasswordPolicyController::class, 'update'])->name('update');
+            Route::post('/test', [PasswordPolicyController::class, 'test'])->name('test');
+        });
+
+        // IP Access Control
+        Route::prefix('ip-whitelist')->name('ip-whitelist.')->middleware('hrmac:core.settings.security.edit')->group(function () {
+            Route::get('/', [IpWhitelistController::class, 'index'])->name('index');
+            Route::put('/', [IpWhitelistController::class, 'update'])->name('update');
+            Route::post('/add-ip', [IpWhitelistController::class, 'addIp'])->name('add-ip');
+            Route::delete('/remove-ip', [IpWhitelistController::class, 'removeIp'])->name('remove-ip');
+            Route::post('/test-ip', [IpWhitelistController::class, 'testIp'])->name('test-ip');
+        });
+
         // Domain Management (SaaS mode only - requires aero-platform)
         Route::prefix('domains')->name('domains.')->group(function () {
             // Only register domain routes if Platform is installed
@@ -500,6 +534,16 @@ Route::middleware('auth:web')->group(function () {
                 return response()->json(['message' => 'Usage tracking not available'], 404);
             })->name('index');
         });
+    });
+
+    // ========================================================================
+    // SESSION MANAGEMENT ROUTES
+    // ========================================================================
+    Route::prefix('security/sessions')->name('core.security.sessions.')->middleware('hrmac:core.authentication.sessions.view')->group(function () {
+        Route::get('/', [SessionController::class, 'index'])->name('index');
+        Route::get('/paginate', [SessionController::class, 'paginate'])->name('paginate');
+        Route::delete('/{sessionId}', [SessionController::class, 'terminate'])->name('terminate')->middleware('hrmac:core.authentication.sessions.terminate');
+        Route::delete('/', [SessionController::class, 'terminateAll'])->name('terminate-all')->middleware('hrmac:core.authentication.sessions.terminate_all');
     });
 
     // ========================================================================

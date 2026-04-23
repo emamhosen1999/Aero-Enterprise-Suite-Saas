@@ -1,5 +1,5 @@
 ﻿import React, { useState } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { 
     Card, 
     CardBody, 
@@ -38,7 +38,7 @@ export default function SubscriptionPlans({ plans = [], currentPlan, billingCycl
 
         setLoading(plan.id);
         
-        router.post(`/subscription/change-plan`, {
+        router.post(route('tenant.subscription.change-plan'), {
             plan_id: plan.id,
             billing_cycle: billingCycle
         }, {

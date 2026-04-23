@@ -28,7 +28,7 @@ export const WIDGET_REGISTRY = {
     'Widgets/Core/RecentActivityWidget': () => import('./Core/RecentActivityWidget'),
     
     // HRM widgets
-    'Components/PunchStatusCard': () => import('@/Components/PunchStatusCard'),
+    'Components/PunchStatusCard': () => import('@/Components/Dashboard/PunchStatusCard'),
     'Components/Leave/PendingApprovalsWidget': () => import('@/Components/Leave/PendingApprovalsWidget'),
     'Widgets/HRM/MyLeaveBalanceWidget': () => import('./HRM/MyLeaveBalanceWidget'),
     'Widgets/HRM/UpcomingHolidaysWidget': () => import('./HRM/UpcomingHolidaysWidget'),

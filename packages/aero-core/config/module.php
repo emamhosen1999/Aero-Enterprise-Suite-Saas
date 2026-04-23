@@ -157,6 +157,56 @@ return [
 
         /*
         |--------------------------------------------------------------------------
+        | 1.2 Subscription & Billing (SaaS mode only - requires aero-platform)
+        |--------------------------------------------------------------------------
+        */
+        [
+            'code' => 'subscription',
+            'name' => 'Subscription & Billing',
+            'description' => 'Tenant self-service subscription management (SaaS mode only)',
+            'icon' => 'CreditCardIcon',
+            'route' => '/subscription',
+            'priority' => 2,
+            'show_in_nav' => false,
+            'plan' => 'saas',
+
+            'components' => [
+                [
+                    'code' => 'plans',
+                    'name' => 'Subscription Plans',
+                    'type' => 'page',
+                    'route' => '/subscription/plans',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Plans'],
+                        ['code' => 'upgrade', 'name' => 'Upgrade Plan'],
+                        ['code' => 'downgrade', 'name' => 'Downgrade Plan'],
+                        ['code' => 'cancel', 'name' => 'Cancel Subscription'],
+                    ],
+                ],
+                [
+                    'code' => 'usage',
+                    'name' => 'Usage & Quotas',
+                    'type' => 'page',
+                    'route' => '/subscription/usage',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Usage'],
+                    ],
+                ],
+                [
+                    'code' => 'invoices',
+                    'name' => 'Invoices & Billing History',
+                    'type' => 'page',
+                    'route' => '/subscription/invoices',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Invoices'],
+                        ['code' => 'download', 'name' => 'Download Invoice'],
+                    ],
+                ],
+            ],
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
         | 1.2 User Management
         |--------------------------------------------------------------------------
         */
@@ -528,6 +578,26 @@ return [
                         ['code' => 'view', 'name' => 'View Integrations'],
                         ['code' => 'configure', 'name' => 'Configure Integration'],
                         ['code' => 'manage_keys', 'name' => 'Manage API Keys'],
+                    ],
+                ],
+                [
+                    'code' => 'password_policy',
+                    'name' => 'Password Policy',
+                    'type' => 'page',
+                    'route' => '/settings/password-policy',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Password Policy'],
+                        ['code' => 'edit', 'name' => 'Edit Password Policy'],
+                    ],
+                ],
+                [
+                    'code' => 'ip_whitelist',
+                    'name' => 'IP Access Control',
+                    'type' => 'page',
+                    'route' => '/settings/ip-whitelist',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View IP Whitelist'],
+                        ['code' => 'edit', 'name' => 'Edit IP Whitelist'],
                     ],
                 ],
             ],
