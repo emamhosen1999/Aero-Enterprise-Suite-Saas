@@ -10,7 +10,7 @@ import EnterpriseFAQ from './Components/EnterpriseFAQ';
 import EnterpriseCTA from './Components/EnterpriseCTA';
 import './styles/public.css';
 
-export default function Enterprise({ title = 'Enterprise — aeos365' }) {
+export default function Enterprise({ title }) {
     return (
         <>
             <Head title={title} />

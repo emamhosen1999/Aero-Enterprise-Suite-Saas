@@ -13,42 +13,91 @@ class PublicPageController extends Controller
     public function home(Request $request): Response
     {
         return Inertia::render('Platform/Public/Home', [
-            'title' => 'Modern ERP Platform',
+            'title' => 'Home',
         ]);
     }
 
     public function pricing(Request $request): Response
     {
         return Inertia::render('Platform/Public/Pricing', [
-            'title' => 'Pricing — aeos365',
+            'title' => 'Pricing',
         ]);
     }
 
     public function features(Request $request): Response
     {
         return Inertia::render('Platform/Public/Features', [
-            'title' => 'Features — aeos365',
+            'title' => 'Features',
         ]);
     }
 
     public function enterprise(Request $request): Response
     {
         return Inertia::render('Platform/Public/Enterprise', [
-            'title' => 'Enterprise — aeos365',
+            'title' => 'Enterprise',
         ]);
     }
 
     public function about(Request $request): Response
     {
         return Inertia::render('Platform/Public/About', [
-            'title' => 'About — aeos365',
+            'title' => 'About',
         ]);
     }
 
     public function docs(Request $request): Response
     {
         return Inertia::render('Platform/Public/Docs', [
-            'title' => 'Documentation — aeos365',
+            'title' => 'Documentation',
+        ]);
+    }
+
+    public function contact(Request $request): Response
+    {
+        return Inertia::render('Platform/Public/Contact', [
+            'title' => 'Contact Us — aeos365',
+        ]);
+    }
+
+    public function blog(Request $request): Response
+    {
+        return Inertia::render('Platform/Public/Blog', [
+            'title' => 'Blog',
+        ]);
+    }
+
+    public function privacy(Request $request): Response
+    {
+        return Inertia::render('Platform/Public/LegalPrivacy', [
+            'title' => 'Privacy Policy',
+        ]);
+    }
+
+    public function terms(Request $request): Response
+    {
+        return Inertia::render('Platform/Public/LegalTerms', [
+            'title' => 'Terms of Service',
+        ]);
+    }
+
+    public function cookies(Request $request): Response
+    {
+        return Inertia::render('Platform/Public/LegalCookies', [
+            'title' => 'Cookie Policy',
+        ]);
+    }
+
+    public function security(Request $request): Response
+    {
+        return Inertia::render('Platform/Public/LegalSecurity', [
+            'title' => 'Security Policy',
+        ]);
+    }
+
+    public function docsApi(Request $request): Response
+    {
+        return Inertia::render('Platform/Public/DocsApi', [
+            'title' => 'API Documentation',
         ]);
     }
 }

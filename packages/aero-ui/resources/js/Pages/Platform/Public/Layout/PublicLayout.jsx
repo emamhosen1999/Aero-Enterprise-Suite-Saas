@@ -158,11 +158,13 @@ function Header() {
   const isActive = (href) => href === "/" ? currentPath === "/" : currentPath === href || currentPath.startsWith(href + "/");
 
   const translatedNavLinks = [
+    { label: t("nav_home"),   href: "/"   },
     { label: t("nav_features"),   href: "/features"   },
     { label: t("nav_pricing"),    href: "/pricing"     },
     { label: t("nav_enterprise"), href: "/enterprise"  },
     { label: t("nav_about"),      href: "/about"       },
     { label: t("nav_docs"),       href: "/docs"        },
+    { label: t("nav_contact"),    href: "/contact"     },
   ];
 
   const textColor      = isDark ? "var(--pub-text-muted)" : "#475569";
@@ -230,7 +232,7 @@ function Header() {
             <LanguageSelector />
             <ThemeToggle />
             <Link
-              href="/login"
+              href="/signup"
               className="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200"
               style={{
                 color: textColor,
@@ -246,11 +248,11 @@ function Header() {
                 e.currentTarget.style.borderColor = isDark ? "rgba(255,255,255,0.1)" : "rgba(100,116,139,0.2)";
               }}
             >
-              {t("sign_in")}
+              {t("sign_up")}
             </Link>
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Link href="/demo" className="btn-primary text-sm py-2 px-4 flex items-center gap-2">
-                <span>{t("request_demo")}</span>
+              <Link href="https://demo.aeos365.com" target="_blank" rel="noopener noreferrer" className="btn-primary text-sm py-2 px-4 flex items-center gap-2">
+                <span>{t("try_demo")}</span>
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>
@@ -332,8 +334,8 @@ function Header() {
                 </motion.div>
               ))}
               <div className="flex gap-3 mt-4">
-                <Link href="/login" className="btn-ghost text-sm flex-1 text-center" onClick={() => setMobileOpen(false)}>{t("sign_in")}</Link>
-                <Link href="/demo" className="btn-primary text-sm flex-1 text-center" onClick={() => setMobileOpen(false)}>{t("request_demo")}</Link>
+                <Link href="/signup" className="btn-ghost text-sm flex-1 text-center" onClick={() => setMobileOpen(false)}>{t("sign_up")}</Link>
+                <Link href="https://demo.aeos365.com" target="_blank" rel="noopener noreferrer" className="btn-primary text-sm flex-1 text-center" onClick={() => setMobileOpen(false)}>{t("try_demo")}</Link>
               </div>
             </div>
           </motion.div>

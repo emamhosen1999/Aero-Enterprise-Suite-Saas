@@ -8,7 +8,7 @@ import ComparisonTable from './Components/ComparisonTable';
 import PricingFAQ from './Components/PricingFAQ';
 import PricingCTA from './Components/PricingCTA';
 
-export default function Pricing({ title = 'Pricing' }) {
+export default function Pricing({ title }) {
     const [isAnnual, setIsAnnual] = useState(false);
 
     return (

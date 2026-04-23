@@ -8,7 +8,7 @@ import PlatformPillars from './Components/PlatformPillars';
 import PublicLayout from './Layout/PublicLayout';
 import './styles/public.css';
 
-export default function Features({ title = 'Features' }) {
+export default function Features({ title  }) {
     const [activeCategory, setActiveCategory] = useState('all');
     const [selectedModule, setSelectedModule] = useState(null);
 

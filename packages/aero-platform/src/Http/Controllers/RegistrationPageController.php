@@ -37,7 +37,7 @@ class RegistrationPageController extends Controller
 
     public function accountType(): Response
     {
-        return $this->render('Platform/Public/Register/AccountType', 'account', [
+        return $this->renderStep('account', [
             'trialDays' => (int) config('platform.trial_days', 14),
         ]);
     }
@@ -52,7 +52,7 @@ class RegistrationPageController extends Controller
         $account = $this->registrationSession->get()['account'] ?? [];
         $details = $this->registrationSession->get()['details'] ?? [];
 
-        return $this->render('Platform/Public/Register/Details', 'details', [
+        return $this->renderStep('details', [
             'accountType' => $account['type'] ?? null,
             'baseDomain' => config('platform.central_domain'),
             'existingSubdomain' => $details['subdomain'] ?? null, // Pass existing subdomain to skip check
@@ -76,7 +76,7 @@ class RegistrationPageController extends Controller
 
         $details = $this->registrationSession->get()['details'] ?? [];
 
-        return $this->render('Platform/Public/Register/VerifyEmail', 'verify-email', [
+        return $this->renderStep('verify-email', [
             'email' => $details['email'] ?? '',
             'companyName' => $details['name'] ?? '',
         ]);
@@ -99,7 +99,7 @@ class RegistrationPageController extends Controller
 
         $details = $this->registrationSession->get()['details'] ?? [];
 
-        return $this->render('Platform/Public/Register/VerifyPhone', 'verify-phone', [
+        return $this->renderStep('verify-phone', [
             'phone' => $details['phone'] ?? '',
             'companyName' => $details['name'] ?? '',
         ]);
@@ -184,7 +184,7 @@ class RegistrationPageController extends Controller
             ->sortBy('priority')
             ->values();
 
-        return $this->render('Platform/Public/Register/SelectPlan', 'plan', [
+        return $this->renderStep('plan', [
             'plans' => $plans,
             'modules' => $modules,
             'modulePricing' => config('platform.registration.module_pricing', ['monthly' => 20, 'yearly' => 200]),
@@ -266,7 +266,7 @@ class RegistrationPageController extends Controller
             })
             ->values();
 
-        return $this->render('Platform/Public/Register/Payment', 'payment', [
+        return $this->renderStep('payment', [
             'trialDays' => (int) config('platform.trial_days', 14),
             'baseDomain' => config('platform.central_domain'),
             'plans' => $plans,
@@ -282,7 +282,7 @@ class RegistrationPageController extends Controller
      */
     public function provisioning(Tenant $tenant): Response
     {
-        return Inertia::render('Platform/Public/Register/Provisioning', [
+        return $this->renderStep('provisioning', [
             'tenant' => [
                 'id' => $tenant->id,
                 'name' => $tenant->name,
@@ -291,8 +291,6 @@ class RegistrationPageController extends Controller
                 'provisioning_step' => $tenant->provisioning_step,
             ],
             'baseDomain' => config('platform.central_domain'),
-            'steps' => $this->steps,
-            'currentStep' => 'provisioning',
         ]);
     }
 
@@ -345,10 +343,15 @@ class RegistrationPageController extends Controller
             return SafeRedirect::toRoute('platform.register.index', [], 'platform.register.index');
         }
 
-        return $this->render('Platform/Public/Register/Success', 'success', [
+        return $this->renderStep('success', [
             'result' => $result,
             'baseDomain' => config('platform.central_domain'),
         ]);
+    }
+
+    private function renderStep(string $currentStep, array $props = []): Response
+    {
+        return $this->render('Platform/Public/Register/RegistrationPage', $currentStep, $props);
     }
 
     private function render(string $component, string $currentStep, array $props = []): Response

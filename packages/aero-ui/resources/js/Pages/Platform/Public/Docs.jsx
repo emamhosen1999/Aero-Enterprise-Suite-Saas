@@ -9,7 +9,7 @@ import DocsCommunity from './Components/DocsCommunity';
 import DocsCTA from './Components/DocsCTA';
 import './styles/public.css';
 
-export default function Docs({ title = 'Documentation — aeos365' }) {
+export default function Docs({ title }) {
     return (
         <>
             <Head title={title} />

@@ -8,7 +8,8 @@ import AboutTeam from './Components/AboutTeam';
 import AboutCTA from './Components/AboutCTA';
 import './styles/public.css';
 
-export default function About({ title = 'About — aeos365' }) {
+export default function About({ title }) {
+
     return (
         <>
             <Head title={title} />
