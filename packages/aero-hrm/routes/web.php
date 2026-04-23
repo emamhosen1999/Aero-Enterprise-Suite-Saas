@@ -510,10 +510,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/self-service/payslips', [EmployeeSelfServiceController::class, 'payslips'])->name('selfservice.payslips');
         Route::get('/self-service/performance', [EmployeeSelfServiceController::class, 'performance'])->name('selfservice.performance');
         Route::get('/self-service/career-path', [EmployeeSelfServiceController::class, 'careerPath'])->name('selfservice.careerpath');
-        Route::get('/self-service/personal-information', [EmployeeSelfServiceController::class, 'personalInformation'])->name('selfservice.personal-information');
-        Route::put('/self-service/personal-information', [EmployeeSelfServiceController::class, 'updatePersonalInformation'])->name('selfservice.personal-information.update');
-        Route::get('/self-service/bank-information', [EmployeeSelfServiceController::class, 'bankInformation'])->name('selfservice.bank-information');
-        Route::put('/self-service/bank-information', [EmployeeSelfServiceController::class, 'updateBankInformation'])->name('selfservice.bank-information.update');
+        Route::get('/self-service/personal-information', [EmployeeSelfServiceController::class, 'personalInformation'])
+            ->middleware('hrmac:hrm.employee-self-service.my-personal-information.view')
+            ->name('selfservice.personal-information');
+        Route::put('/self-service/personal-information', [EmployeeSelfServiceController::class, 'updatePersonalInformation'])
+            ->middleware('hrmac:hrm.employee-self-service.my-personal-information.update')
+            ->name('selfservice.personal-information.update');
+        Route::get('/self-service/bank-information', [EmployeeSelfServiceController::class, 'bankInformation'])
+            ->middleware('hrmac:hrm.employee-self-service.my-bank-information.view')
+            ->name('selfservice.bank-information');
+        Route::put('/self-service/bank-information', [EmployeeSelfServiceController::class, 'updateBankInformation'])
+            ->middleware('hrmac:hrm.employee-self-service.my-bank-information.update')
+            ->name('selfservice.bank-information.update');
     });
 
     // Payroll Management System

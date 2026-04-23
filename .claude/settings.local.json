@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-hrm/config/module.php)",
+      "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-finance/config/module.php)"
+    ]
+  }
+}
