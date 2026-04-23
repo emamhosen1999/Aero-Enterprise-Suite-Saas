@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import UnifiedInstallationLayout from '@/Layouts/UnifiedInstallationLayout';
 import { 
@@ -23,7 +23,7 @@ import {
     EyeSlashIcon
 } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 
 /**
  * Complete Page - Installation successful

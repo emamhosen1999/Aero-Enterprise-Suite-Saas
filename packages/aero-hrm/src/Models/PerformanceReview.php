@@ -43,29 +43,42 @@ class PerformanceReview extends Model
     protected $fillable = [
         'employee_id',
         'reviewer_id',
-        'review_period_start',
-        'review_period_end',
-        'review_date',
-        'status',
-        'overall_rating',
-        'goals_achieved',
-        'strengths',
-        'areas_for_improvement',
-        'comments',
-        'acknowledgment_date',
-        'employee_comments',
-        'next_review_date',
-        'department_id',
         'template_id',
+        'department_id',
+
+        // Column names match the consolidated migration
+        'review_period',
+        'review_start_date',
+        'review_end_date',
+        'due_date',
+
+        // Assessment JSON blobs
+        'self_assessment',
+        'manager_assessment',
+        'peer_feedback',
+
+        'overall_rating',
+        'strengths',
+        'areas_of_improvement',
+        'goals_for_next_period',
+        'training_recommendations',
+        'comments',
+
+        'status',
+        'completed_at',
+        'acknowledged_at',
     ];
 
     protected $casts = [
-        'review_period_start' => 'date',
-        'review_period_end' => 'date',
-        'review_date' => 'date',
-        'acknowledgment_date' => 'date',
-        'next_review_date' => 'date',
-        'overall_rating' => 'float',
+        'review_start_date'   => 'date',
+        'review_end_date'     => 'date',
+        'due_date'            => 'date',
+        'completed_at'        => 'datetime',
+        'acknowledged_at'     => 'datetime',
+        'overall_rating'      => 'float',
+        'self_assessment'     => 'array',
+        'manager_assessment'  => 'array',
+        'peer_feedback'       => 'array',
     ];
 
     /**

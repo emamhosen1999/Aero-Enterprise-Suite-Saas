@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import {
     Button,
@@ -22,8 +22,8 @@ import {
 } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App.jsx';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
-import StatsCards from '@/Components/StatsCards.jsx';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import StatsCards from '@/Components/UI/StatsCards';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const getEnpsColor = (score) => {
     if (score >= 50) return 'success';

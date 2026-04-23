@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { Head } from '@inertiajs/react';
 import axios from 'axios';
 import {
@@ -36,9 +36,9 @@ import {
     BoltIcon,
     ShieldCheckIcon,
 } from '@heroicons/react/24/outline';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 import App from '@/Layouts/App';
-import PageHeader from '@/Components/PageHeader';
+import PageHeader from '@/Components/Common/PageHeader';
 
 const RateLimitConfig = ({ auth }) => {
     const [configs, setConfigs] = useState([]);

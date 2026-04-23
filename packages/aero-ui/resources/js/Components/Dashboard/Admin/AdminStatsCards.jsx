@@ -1,9 +1,9 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import {
     UserGroupIcon, UserIcon, UserPlusIcon,
     ShieldCheckIcon, ArrowTrendingUpIcon, ClockIcon,
 } from '@heroicons/react/24/outline';
-import StatsCards from '@/Components/StatsCards';
+import StatsCards from '@/Components/UI/StatsCards';
 
 const AdminStatsCards = ({ stats = {}, loading = false }) => {
     const statsData = useMemo(() => [

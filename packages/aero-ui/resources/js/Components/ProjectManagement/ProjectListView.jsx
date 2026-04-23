@@ -1,6 +1,6 @@
-import React from 'react';
+﻿import React from 'react';
 import { router } from '@inertiajs/react';
-import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routing/routeUtils';
 import {
     Table,
     TableHeader,
@@ -41,7 +41,7 @@ import {
     TrashIcon,
     ArrowsUpDownIcon,
 } from "@heroicons/react/24/outline";
-import ProfileAvatar from '@/Components/ProfileAvatar';
+import ProfileAvatar from '@/Components/Profile/ProfileAvatar';
 
 const ProjectListView = ({
     projects = [],

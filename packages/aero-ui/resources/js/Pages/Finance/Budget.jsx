@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
 import App from '@/Layouts/App';
 import StandardPageLayout from '@/Layouts/StandardPageLayout';
-import StatsCards from '@/Components/StatsCards';
+import StatsCards from '@/Components/UI/StatsCards';
 import { 
     Table, 
     TableHeader, 
@@ -33,8 +33,8 @@ import {
     XCircleIcon,
     CurrencyDollarIcon
 } from '@heroicons/react/24/outline';
-import { useHRMAC } from '@/Hooks/useHRMAC';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const Budget = ({ auth, budgets = [], departments = [] }) => {
     // HRMAC permissions

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+﻿import React, { useCallback, useMemo, useState } from 'react';
 import { Head, usePage, useForm } from '@inertiajs/react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -35,7 +35,7 @@ import BlockPalette from '@/Components/Cms/BlockPalette';
 import BlockSettings from '@/Components/Cms/BlockSettings';
 import PageSettings from '@/Components/Cms/PageSettings';
 import BlockEditor from '@/Components/Cms/BlockEditor';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 
 const Edit = ({ title, page, blocks: initialBlocks, blockTypes, blockCategories, layouts }) => {
   const { auth } = usePage().props;

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import {
     Button,
@@ -27,10 +27,10 @@ import {
 import axios from 'axios';
 import App from '@/Layouts/App.jsx';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
-import StatsCards from '@/Components/StatsCards.jsx';
-import { useHRMAC } from '@/Hooks/useHRMAC';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
-import { showToast } from '@/utils/toastUtils.jsx';
+import StatsCards from '@/Components/UI/StatsCards';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
+import { showToast } from '@/utils/ui/toastUtils';
 
 const getSeverityColor = (severity) => {
     switch (severity) {

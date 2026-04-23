@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { router } from '@inertiajs/react';
 import {
     Card,
@@ -21,8 +21,8 @@ import {
     CheckCircleIcon,
     XCircleIcon,
 } from "@heroicons/react/24/outline";
-import { showToast } from '@/utils/toastUtils';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { showToast } from '@/utils/ui/toastUtils';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const ChannelConfiguration = ({ channels: initialChannels = {} }) => {
     const [channels, setChannels] = useState(initialChannels);

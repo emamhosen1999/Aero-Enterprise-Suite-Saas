@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Head, usePage, router } from "@inertiajs/react";
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -39,8 +39,8 @@ import {
     DropdownMenu,
     DropdownItem
 } from "@heroui/react";
-import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import {useThemeRadius} from '@/Hooks/theme/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 import {
     CubeIcon,
     PlusIcon,
@@ -67,10 +67,10 @@ import {
     GlobeAltIcon,
     Squares2X2Icon
 } from "@heroicons/react/24/outline";
-import StatsCards from '@/Components/Common/StatsCards';
+import StatsCards from '@/Components/UI/StatsCards';
 import App from '@/Layouts/App';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 
 // Component type icons mapping
 const componentTypeIcons = {

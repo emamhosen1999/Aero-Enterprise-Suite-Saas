@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
-import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routing/routeUtils';
 import { motion } from 'framer-motion';
 import {
     Table,
@@ -32,9 +32,9 @@ import {
     ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
-import PageHeader from "@/Components/PageHeader.jsx";
-import { useHRMAC } from '@/Hooks/useHRMAC';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import PageHeader from "@/Components/Common/PageHeader";
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const StockManagement = ({ auth, items = { data: [], current_page: 1, last_page: 1, per_page: 10, total: 0 }, warehouses = [], categories = [], filters: initialFilters = {} }) => {
     // Responsive state

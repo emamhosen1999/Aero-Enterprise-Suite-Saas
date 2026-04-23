@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { 
   Card, 
   CardBody, 
@@ -22,7 +22,7 @@ import {
   UserIcon,
   HashtagIcon
 } from "@heroicons/react/24/outline";
-import ProfileAvatar from './ProfileAvatar';
+import ProfileAvatar from '@/Components/Profile/ProfileAvatar';
 import { motion } from 'framer-motion';
 
 const EnhancedProfileCard = ({ 

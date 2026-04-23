@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { 
     Card, 
@@ -24,7 +24,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
 import App from '@/Layouts/App';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 
 /**
  * Tenant Subscription Dashboard

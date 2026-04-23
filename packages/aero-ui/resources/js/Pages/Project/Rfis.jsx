@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+﻿import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 import { 
     BriefcaseIcon, 
     PlusIcon,
@@ -36,9 +36,9 @@ import {
     SelectItem,
     ButtonGroup
 } from "@heroui/react";
-import StatsCards from "@/Components/StatsCards.jsx";
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import StatsCards from "@/Components/UI/StatsCards";
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 import RfiForm from "@/Forms/HRM/RfiForm.jsx";
 import DeleteRfiForm from "@/Forms/HRM/DeleteRfiForm.jsx";
 import EnhancedRfisExportForm from "@/Forms/HRM/EnhancedRfisExportForm.jsx";

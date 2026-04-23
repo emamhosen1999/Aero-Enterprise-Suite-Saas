@@ -1,8 +1,8 @@
-/**
+﻿/**
  * Toast Context - Using react-toastify instead of PrimeReact
  * 
  * NOTE: This is a legacy context for backward compatibility.
- * Prefer using showToast from '@/utils/toastUtils' directly.
+ * Prefer using showToast from '@/utils/ui/toastUtils' directly.
  */
 import React, { createContext, useContext } from 'react';
 import { toast } from 'react-toastify';

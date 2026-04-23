@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
     Modal,
     ModalContent,
@@ -28,7 +28,7 @@ import {
     DocumentDuplicateIcon,
 } from '@heroicons/react/24/outline';
 import { router } from '@inertiajs/react';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 
 /**
  * Format file size to human readable

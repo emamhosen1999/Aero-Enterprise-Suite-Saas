@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+﻿import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button, Progress, Card, CardBody, Chip } from '@heroui/react';
 import {
@@ -10,7 +10,7 @@ import {
     CheckCircleIcon,
     ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
-import { useChunkedUpload } from '@/Hooks/useChunkedUpload';
+import { useChunkedUpload } from '@/Hooks/utils/useChunkedUpload';
 
 /**
  * Format bytes to human readable size.

@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+﻿import React, {useMemo} from 'react';
 import {usePage} from "@inertiajs/react";
 import {
     Button,
@@ -33,7 +33,7 @@ import {
     XCircleIcon
 } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
-import NoDataMessage from '@/Components/NoDataMessage';
+import NoDataMessage from '@/Components/UI/NoDataMessage';
 
 const DepartmentTable = ({ 
     departments, 

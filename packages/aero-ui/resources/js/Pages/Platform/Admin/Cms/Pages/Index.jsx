@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+﻿import React, { useMemo, useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
@@ -32,8 +32,8 @@ import {
   EyeIcon,
 } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App';
-import StatsCards from '@/Components/StatsCards';
-import { showToast } from '@/utils/toastUtils';
+import StatsCards from '@/Components/UI/StatsCards';
+import { showToast } from '@/utils/ui/toastUtils';
 
 const Index = ({ title, pages, filters, stats }) => {
   const [search, setSearch] = useState(filters.search || '');

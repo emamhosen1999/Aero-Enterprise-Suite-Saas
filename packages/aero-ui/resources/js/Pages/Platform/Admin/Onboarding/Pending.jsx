@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+﻿import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
@@ -43,10 +43,10 @@ import {
     EnvelopeIcon,
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
-import StatsCards from "@/Components/StatsCards.jsx";
-import { showToast } from '@/utils/toastUtils';
+import StatsCards from "@/Components/UI/StatsCards";
+import { showToast } from '@/utils/ui/toastUtils';
 import axios from 'axios';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const Pending = ({ registrations: initialRegistrations, stats: initialStats, filters: initialFilters, auth }) => {
     const [isMobile, setIsMobile] = useState(false);

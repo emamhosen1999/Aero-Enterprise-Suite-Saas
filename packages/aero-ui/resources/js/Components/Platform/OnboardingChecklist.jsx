@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import { Link } from '@inertiajs/react';
 import { Card, CardBody, Progress, Chip, Button } from '@heroui/react';
 import {
@@ -12,7 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid';
 import { useTheme } from '@/Context/ThemeContext.jsx';
-import { hasRoute, safeRoute } from '@/utils/routeUtils';
+import { hasRoute, safeRoute } from '@/utils/routing/routeUtils';
 
 /**
  * Onboarding Tasks Configuration

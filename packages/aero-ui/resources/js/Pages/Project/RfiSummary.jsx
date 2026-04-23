@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { Card, CardBody } from '@heroui/react';
 import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App.jsx';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 
 const RfiSummary = ({ title = 'RFI Summary' }) => {
     const { auth } = usePage().props;

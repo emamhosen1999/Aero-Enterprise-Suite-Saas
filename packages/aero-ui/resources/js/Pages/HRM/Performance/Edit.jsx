@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Head, usePage, router } from '@inertiajs/react';
 import { Button, Input, Select, SelectItem, Textarea, Card, CardBody, CardHeader } from "@heroui/react";
 import { 
@@ -6,9 +6,9 @@ import {
     ArrowLeftIcon
 } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
-import { showToast } from '@/utils/toastUtils.jsx';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { showToast } from '@/utils/ui/toastUtils';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 import axios from 'axios';
 
 const EditPerformanceReview = ({ review, employees, reviewers, departments, templates }) => {

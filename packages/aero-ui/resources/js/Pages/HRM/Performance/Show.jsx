@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import { Button, Card, CardBody, CardHeader, Chip, Divider } from "@heroui/react";
 import { 
@@ -11,8 +11,8 @@ import {
     BriefcaseIcon
 } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 import { router } from '@inertiajs/react';
 
 const ShowPerformanceReview = ({ review }) => {

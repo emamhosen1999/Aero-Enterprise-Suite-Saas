@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 import { Head, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { Button, Card, CardBody, CardHeader, Input, Select, SelectItem, Chip, Tooltip } from "@heroui/react";
@@ -17,13 +17,13 @@ import {
     TrashIcon
 } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
-import StatsCards from '@/Components/StatsCards.jsx';
-import SmartContractsTable from '@/Tables/SmartContractsTable.jsx';
+import StatsCards from '@/Components/UI/StatsCards';
+import SmartContractsTable from '@/Tables/Blockchain/SmartContractsTable.jsx';
 import DeployContractModal from '@/Components/Modals/DeployContractModal.jsx';
 import ContractInteractionModal from '@/Components/Modals/ContractInteractionModal.jsx';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils.jsx';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { showToast } from '@/utils/ui/toastUtils';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 import { router } from '@inertiajs/react';
 
 const SmartContractsManagement = ({ title }) => {

@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+﻿import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {motion} from 'framer-motion';
 import {
     Button,
@@ -34,8 +34,8 @@ import {
     TrashIcon
 } from "@heroicons/react/24/outline";
 import {differenceInDays, format, isAfter, isBefore} from 'date-fns';
-import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import {useMediaQuery} from '@/Hooks/utils/useMediaQuery';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 // Theme utility function
 const themeRadius = useThemeRadius();

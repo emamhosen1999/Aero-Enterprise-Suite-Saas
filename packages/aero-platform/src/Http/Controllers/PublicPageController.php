@@ -30,4 +30,11 @@ class PublicPageController extends Controller
             'title' => 'Features — aeos365',
         ]);
     }
+
+    public function enterprise(Request $request): Response
+    {
+        return Inertia::render('Platform/Public/Enterprise', [
+            'title' => 'Enterprise — aeos365',
+        ]);
+    }
 }

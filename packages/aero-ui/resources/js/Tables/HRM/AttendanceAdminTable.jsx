@@ -1,5 +1,5 @@
-import React, {useMemo} from 'react';
-import {getProfileAvatarTokens} from '@/Components/ProfileAvatar';
+﻿import React, {useMemo} from 'react';
+import {getProfileAvatarTokens} from '@/Components/Profile/ProfileAvatar';
 import {
     Card,
     CardBody,
@@ -16,7 +16,7 @@ import {
     Tooltip,
     User
 } from "@heroui/react";
-import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
+import {useMediaQuery} from '@/Hooks/utils/useMediaQuery';
 
 import {CalendarDaysIcon, DocumentChartBarIcon, UserIcon} from '@heroicons/react/24/outline';
 import {
@@ -26,7 +26,7 @@ import {
     XCircleIcon as XSolid
 } from '@heroicons/react/24/solid';
 import dayjs from 'dayjs';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 // Theme utility function
 const themeRadius = useThemeRadius();

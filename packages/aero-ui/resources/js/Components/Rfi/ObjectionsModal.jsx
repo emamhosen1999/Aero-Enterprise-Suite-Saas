@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+﻿import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
     Modal,
     ModalContent,
@@ -37,8 +37,8 @@ import {
     PhotoIcon,
     ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
-import { showToast } from '@/utils/toastUtils';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { showToast } from '@/utils/ui/toastUtils';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 import axios from 'axios';
 import { router } from '@inertiajs/react';
 

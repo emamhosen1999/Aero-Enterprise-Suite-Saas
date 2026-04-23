@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 import { Head, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { Button, Card, CardBody, CardHeader, Input, Select, SelectItem, Chip, Tooltip } from "@heroui/react";
@@ -15,12 +15,12 @@ import {
     ArrowDownIcon
 } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
-import StatsCards from '@/Components/StatsCards.jsx';
-import TransactionsTable from '@/Tables/TransactionsTable.jsx';
+import StatsCards from '@/Components/UI/StatsCards';
+import TransactionsTable from '@/Tables/Blockchain/TransactionsTable.jsx';
 import SendTransactionModal from '@/Components/Modals/SendTransactionModal.jsx';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils.jsx';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { showToast } from '@/utils/ui/toastUtils';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const TransactionsManagement = ({ title }) => {
     const { auth } = usePage().props;

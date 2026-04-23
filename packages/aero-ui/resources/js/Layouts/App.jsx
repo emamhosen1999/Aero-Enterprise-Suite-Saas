@@ -1,4 +1,4 @@
-/**
+﻿/**
  * App Layout - Main application layout with new navigation system
  * 
  * Features:
@@ -18,26 +18,26 @@ import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { NavigationProvider, Sidebar, Header, useNavigation } from "@/Layouts/Navigation";
-import Breadcrumb from "@/Components/Breadcrumb.jsx";
+import Breadcrumb from "@/Components/UI/Breadcrumb";
 import BottomNav from "@/Layouts/BottomNav.jsx";
-import ThemeSettingDrawer from "@/Components/ThemeSettingDrawer.jsx";
-import UpdateNotification from '@/Components/UpdateNotification.jsx';
+import ThemeSettingDrawer from "@/Components/Theme/ThemeSettingDrawer";
+import UpdateNotification from '@/Components/Feedback/UpdateNotification';
 import ImpersonationBanner from '@/Components/Admin/ImpersonationBanner.jsx';
 import SubscriptionAlertBanner from '@/Components/Platform/SubscriptionAlertBanner.jsx';
 import CommandPalette from '@/Components/Navigation/CommandPalette.jsx';
 import MaintenanceModeBanner from '@/Components/Platform/MaintenanceModeBanner.jsx';
-import { useVersionManager } from '@/Hooks/useVersionManager.js';
-import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
-import { useKeyboardNavigation } from '@/Hooks/useKeyboardNavigation.js';
-import { useAINavigation } from '@/Hooks/useAINavigation.js';
+import { useVersionManager } from '@/Hooks/utils/useVersionManager';
+import { useMediaQuery } from '@/Hooks/utils/useMediaQuery';
+import { useKeyboardNavigation } from '@/Hooks/navigation/useKeyboardNavigation';
+import { useAINavigation } from '@/Hooks/navigation/useAINavigation';
 import { TranslationProvider } from '@/Context/TranslationContext';
 import { GlobalAutoTranslator } from '@/Context/GlobalAutoTranslator';
 import { AppStateProvider } from '@/Context/AppStateContext';
 import { useTheme } from '@/Context/ThemeContext';
-import { useBranding } from '@/Hooks/useBranding';
+import { useBranding } from '@/Hooks/theme/useBranding';
 import { resolveEffectiveMode } from '@/theme/index';
 
-import '@/utils/serviceWorkerManager.js';
+import '@/utils/service-worker/serviceWorkerManager.js';
 
 // ===== MEMOIZED PAGE CONTENT =====
 const PageContent = React.memo(({ children, url }) => (
@@ -245,7 +245,7 @@ const App = React.memo(({ children }) => {
     let mounted = true;
     const loadFirebase = async () => {
       try {
-        const { initFirebase } = await import("@/utils/firebaseInit.js");
+        const { initFirebase } = await import("@/utils/analytics/firebaseInit.js");
         if (mounted) {
           await initFirebase();
           layoutInitialized.current = true;

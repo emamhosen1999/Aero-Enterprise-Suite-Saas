@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import UnifiedInstallationLayout from '@/Layouts/UnifiedInstallationLayout';
 import { 
@@ -28,8 +28,8 @@ import {
     XCircleIcon
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { showToast } from '@/utils/ui/toastUtils';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 /**
  * Settings Page (Mode-Aware)

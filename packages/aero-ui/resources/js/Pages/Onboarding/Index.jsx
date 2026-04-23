@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useEffect } from 'react';
+﻿import React, { useState, useMemo, useEffect } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
-import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routing/routeUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Button,
@@ -37,11 +37,11 @@ import {
     Sparkles,
     SkipForward,
 } from 'lucide-react';
-import { showToast, toastStyles } from '@/utils/toastUtils';
+import { showToast, toastStyles } from '@/utils/ui/toastUtils';
 import { useTheme } from '@/Context/ThemeContext.jsx';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 // Helper function to convert theme borderRadius to HeroUI radius values
 const themeRadius = useThemeRadius();

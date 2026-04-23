@@ -1,6 +1,6 @@
-import React, { useEffect, useCallback } from 'react';
+﻿import React, { useEffect, useCallback } from 'react';
 import { router } from '@inertiajs/react';
-import { showToast } from '@/utils/toastUtils.jsx';
+import { showToast } from '@/utils/ui/toastUtils';
 
 /**
  * Keyboard Shortcuts Hook and Component

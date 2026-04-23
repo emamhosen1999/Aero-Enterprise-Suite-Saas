@@ -1,10 +1,10 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+﻿import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import axios from 'axios';
 import App from '@/Layouts/App';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 import { motion, AnimatePresence } from 'framer-motion';
-import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
+import {useThemeRadius} from '@/Hooks/theme/useThemeRadius';
 import { 
   Button, 
   Chip, 

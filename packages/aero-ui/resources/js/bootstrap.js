@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { attachDeviceId, handleDeviceMismatch } from './utils/deviceAuth';
+﻿import axios from 'axios';
+import { attachDeviceId, handleDeviceMismatch } from './utils/security/deviceAuth';
 
 window.axios = axios;
 

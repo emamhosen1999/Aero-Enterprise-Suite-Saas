@@ -1,9 +1,9 @@
-import React from 'react';
+﻿import React from 'react';
 import { Card, CardBody, CardHeader, Progress, Chip, Button } from '@heroui/react';
 import { CreditCardIcon, ArrowUpIcon, SparklesIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { getThemedCardStyle } from '@/Components/UI/ThemedCard';
 import { router } from '@inertiajs/react';
-import { hasRoute } from '@/utils/routeUtils';
+import { hasRoute } from '@/utils/routing/routeUtils';
 
 const planMeta = {
     free:         { color: 'default',   gradient: 'from-default-100 to-default-50',   badge: '🆓' },

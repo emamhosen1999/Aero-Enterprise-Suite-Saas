@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+﻿import React, { useMemo, useState, useEffect } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
@@ -25,9 +25,9 @@ import {
     ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
-import StatsCards from '@/Components/StatsCards.jsx';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import StatsCards from '@/Components/UI/StatsCards';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 
 const MyTasks = ({ title, tasks, stats, filters, error }) => {
     const { auth } = usePage().props;

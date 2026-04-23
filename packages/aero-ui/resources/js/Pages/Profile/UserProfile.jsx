@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+﻿import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
     ButtonGroup,
     Button,
@@ -49,15 +49,15 @@ import {
     ArrowPathIcon
 } from "@heroicons/react/24/outline";
 import {Head, usePage, router} from "@inertiajs/react";
-import { useHRMAC } from '@/Hooks/useHRMAC';
-import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routing/routeUtils';
 import App from "@/Layouts/App.jsx";
-import PageHeader from "@/Components/PageHeader.jsx";
-import StatsCards from "@/Components/StatsCards.jsx";
-import EnhancedProfileCard from "@/Components/EnhancedProfileCard.jsx";
-import ProfileSection from "@/Components/ProfileSection.jsx";
-import InfoRow from "@/Components/InfoRow.jsx";
-import EnhancedModal from "@/Components/EnhancedModal.jsx";
+import PageHeader from "@/Components/Common/PageHeader";
+import StatsCards from "@/Components/UI/StatsCards";
+import EnhancedProfileCard from "@/Components/Profile/EnhancedProfileCard";
+import ProfileSection from "@/Components/Profile/ProfileSection";
+import InfoRow from "@/Components/UI/InfoRow";
+import EnhancedModal from "@/Components/Modals/EnhancedModal";
 import ProfileForm from '@/Forms/HRM/ProfileForm.jsx';
 import PersonalInformationForm from "@/Forms/HRM/PersonalInformationForm.jsx";
 import EmergencyContactForm from "@/Forms/HRM/EmergencyContactForm.jsx";
@@ -66,9 +66,9 @@ import FamilyMemberForm from "@/Forms/HRM/FamilyMemberForm.jsx";
 import EducationInformationDialog from "@/Forms/HRM/EducationInformationForm.jsx";
 import ExperienceInformationForm from "@/Forms/HRM/ExperienceInformationForm.jsx";
 import SalaryInformationForm from "@/Forms/HRM/SalaryInformationForm.jsx";
-import ProjectCard from "@/Components/ProjectCard.jsx";
+import ProjectCard from "@/Components/ProjectManagement/ProjectCard";
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 import dayjs from 'dayjs';
 import { motion, AnimatePresence } from 'framer-motion';
 

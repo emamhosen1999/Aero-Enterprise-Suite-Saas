@@ -1,11 +1,11 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import { Head } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { RocketLaunchIcon, UserGroupIcon, ClockIcon, ChartBarIcon, ServerStackIcon } from "@heroicons/react/24/outline";
 import { Card, CardBody, CardHeader, Chip } from "@heroui/react";
 import App from "@/Layouts/App.jsx";
 import DynamicWidgetRenderer from '@/Components/DynamicWidgets/DynamicWidgetRenderer';
-import StatsCards from "@/Components/StatsCards.jsx";
+import StatsCards from "@/Components/UI/StatsCards";
 
 /**
  * Platform Onboarding Dashboard - Dynamic Widget Architecture

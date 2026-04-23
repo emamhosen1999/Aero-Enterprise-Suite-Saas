@@ -1,7 +1,7 @@
-import React, {useEffect, useState} from 'react';
+﻿import React, {useEffect, useState} from 'react';
 import {Card, CardHeader, Divider, Select} from '@heroui/react';
-import {showToast} from "@/utils/toastUtils"; // Using consistent toast utility
-import { safeRoute } from "@/utils/routeUtils";
+import {showToast} from "@/utils/ui/toastUtils"; // Using consistent toast utility
+import { safeRoute } from "@/utils/routing/routeUtils";
 
 
 const SalaryInformationForm = ({user, setUser}) => {

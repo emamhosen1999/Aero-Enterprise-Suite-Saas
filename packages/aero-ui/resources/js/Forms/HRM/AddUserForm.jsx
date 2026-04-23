@@ -1,4 +1,4 @@
-import {
+﻿import {
     Box,
     CircularProgress,
     DialogActions,
@@ -18,10 +18,10 @@ import ClearIcon from '@mui/icons-material/Clear';
 import { Modal, ModalContent } from "@heroui/react";
 import {PhotoCamera} from "@mui/icons-material";
 
-import ProfileAvatar from '@/Components/ProfileAvatar';
+import ProfileAvatar from '@/Components/Profile/ProfileAvatar';
 
 import LoadingButton from "@mui/lab/LoadingButton";
-import { showToast } from "@/utils/toastUtils";
+import { showToast } from "@/utils/ui/toastUtils";
 import {TextField, SelectItem, Select} from "@mui/material";
 import PasswordIcon from "@mui/icons-material/Password";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";

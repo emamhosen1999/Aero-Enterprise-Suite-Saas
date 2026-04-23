@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { 
     Button, 
     Modal, 
@@ -11,7 +11,7 @@ import {
 } from '@heroui/react';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 import { route } from 'ziggy-js';
 
 export default function ApprovalActions({ leave, onApprovalComplete }) {

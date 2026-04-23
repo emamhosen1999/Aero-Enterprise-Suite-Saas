@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { Head } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
@@ -22,9 +22,9 @@ import {
     CheckCircleIcon,
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 import axios from 'axios';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const Settings = ({ settings: initialSettings, plans, auth }) => {
     const [isMobile, setIsMobile] = useState(false);

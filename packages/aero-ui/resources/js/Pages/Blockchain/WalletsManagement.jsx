@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 import { Head, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { Button, Card, CardBody, CardHeader, Input, Select, SelectItem, Chip, Tooltip, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/react";
@@ -16,12 +16,12 @@ import {
     BanknotesIcon
 } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
-import StatsCards from '@/Components/StatsCards.jsx';
-import WalletsTable from '@/Tables/WalletsTable.jsx';
+import StatsCards from '@/Components/UI/StatsCards';
+import WalletsTable from '@/Tables/Blockchain/WalletsTable.jsx';
 import CreateWalletModal from '@/Components/Modals/CreateWalletModal.jsx';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils.jsx';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { showToast } from '@/utils/ui/toastUtils';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 import { router } from '@inertiajs/react';
 
 const WalletsManagement = ({ title }) => {

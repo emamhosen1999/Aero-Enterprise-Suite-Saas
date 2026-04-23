@@ -1,7 +1,7 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {getProfileAvatarTokens} from '@/Components/ProfileAvatar';
+﻿import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {getProfileAvatarTokens} from '@/Components/Profile/ProfileAvatar';
 import {motion} from 'framer-motion';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 import {
     Button as HeroButton,
     Card,
@@ -23,7 +23,7 @@ import {
 } from "@heroui/react";
 import {usePage} from "@inertiajs/react";
 import dayjs from "dayjs";
-import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
+import {useMediaQuery} from '@/Hooks/utils/useMediaQuery';
 import {
     CalendarDaysIcon,
     CheckCircleIcon,
@@ -39,7 +39,7 @@ import {
 import axios from 'axios';
 
 import {AbsentUsersInlineCard} from '@/Components/TimeSheet/AbsentUsersInlineCard';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, externalFilterData, externalEmployee, onMarkAsPresent }) => {
     const { auth } = usePage().props;

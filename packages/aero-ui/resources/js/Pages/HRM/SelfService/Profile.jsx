@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Head } from '@inertiajs/react';
 import {
     Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader,
@@ -8,11 +8,11 @@ import {
     UserIcon, PencilSquareIcon, PhoneIcon, AcademicCapIcon, ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils.jsx';
+import { showToast } from '@/utils/ui/toastUtils';
 import App from '@/Layouts/App.jsx';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
-import { useHRMAC } from '@/Hooks/useHRMAC';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const GENDERS = ['male', 'female', 'other', 'prefer_not_to_say'];
 

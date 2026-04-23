@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import App from '@/Layouts/App';
 import { ticketQueues, supportTickets } from '@/Pages/Platform/Admin/data/mockData.js';
@@ -26,7 +26,7 @@ import {
   TableRow,
   TableCell,
 } from '@heroui/react';
-import { showToast } from '@/utils/toastUtils.jsx';
+import { showToast } from '@/utils/ui/toastUtils';
 
 const statusColorMap = {
   open: 'warning',

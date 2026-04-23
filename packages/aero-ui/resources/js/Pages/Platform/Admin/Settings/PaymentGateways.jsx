@@ -1,8 +1,8 @@
-import React from 'react';
+﻿import React from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import App from '@/Layouts/App';
 import { paymentProfiles } from '@/Pages/Platform/Admin/data/mockData.js';
-import { showToast } from '@/utils/toastUtils.jsx';
+import { showToast } from '@/utils/ui/toastUtils';
 import {
   Button,
   Card,

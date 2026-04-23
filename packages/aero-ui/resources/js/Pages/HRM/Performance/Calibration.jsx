@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
@@ -32,10 +32,10 @@ import {
     UserGroupIcon,
 } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App.jsx';
-import StatsCards from '@/Components/StatsCards.jsx';
-import { useHRMAC } from '@/Hooks/useHRMAC';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
-import { showToast } from '@/utils/toastUtils.jsx';
+import StatsCards from '@/Components/UI/StatsCards';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
+import { showToast } from '@/utils/ui/toastUtils';
 import axios from 'axios';
 
 const ratingColorMap = {

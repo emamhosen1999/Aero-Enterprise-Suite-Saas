@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import { Card, CardBody, CardHeader, Skeleton } from '@heroui/react';
 import { motion } from 'framer-motion';
-import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
+import { useMediaQuery } from '@/Hooks/utils/useMediaQuery';
 
 const getThemedPageCardStyle = () => ({
   border: `var(--borderWidth, 2px) solid transparent`,

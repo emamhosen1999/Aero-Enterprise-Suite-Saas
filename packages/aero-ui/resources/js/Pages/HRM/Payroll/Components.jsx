@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import {
     Button,
@@ -33,11 +33,11 @@ import {
     MinusCircleIcon
 } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
-import { showToast } from '@/utils/toastUtils';
-import StatsCards from '@/Components/StatsCards';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
+import { showToast } from '@/utils/ui/toastUtils';
+import StatsCards from '@/Components/UI/StatsCards';
 import { router } from '@inertiajs/react';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 
 const Components = ({ title, allowances, deductions }) => {
     const themeRadius = useThemeRadius();

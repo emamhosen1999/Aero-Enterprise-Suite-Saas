@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+﻿import React, {useEffect, useState} from 'react';
 import {
     Box,
     Button,
@@ -24,7 +24,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import AddIcon from '@mui/icons-material/Add';
 import LoadingButton from "@mui/lab/LoadingButton";
 
-import {showToast} from "@/utils/toastUtils";
+import {showToast} from "@/utils/ui/toastUtils";
 import {Modal, ModalContent} from "@heroui/react";
 import {usePage} from "@inertiajs/react";
 import axios from 'axios';

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+﻿import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
@@ -35,11 +35,11 @@ import {
     EyeIcon,
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
-import StatsCards from "@/Components/StatsCards.jsx";
-import { showToast } from '@/utils/toastUtils';
+import StatsCards from "@/Components/UI/StatsCards";
+import { showToast } from '@/utils/ui/toastUtils';
 import axios from 'axios';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 
 const Provisioning = ({ queue: initialQueue, stats: initialStats, stepProgress: initialStepProgress, filters: initialFilters }) => {
     const [isMobile, setIsMobile] = useState(false);

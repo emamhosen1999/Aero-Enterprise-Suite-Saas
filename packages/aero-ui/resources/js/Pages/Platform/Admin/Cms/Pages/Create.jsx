@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+﻿import React, { useMemo, useState } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import {
   Button,
@@ -12,7 +12,7 @@ import {
 } from '@heroui/react';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 
 const Create = ({ title, layouts, parentPages }) => {
   const { data, setData, post, processing, errors } = useForm({

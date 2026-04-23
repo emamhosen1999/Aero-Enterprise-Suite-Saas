@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+﻿import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Head, usePage, router, Link } from "@inertiajs/react";
-import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routing/routeUtils';
 import { motion } from 'framer-motion';
 import { 
   Button, 
@@ -41,15 +41,15 @@ import {
 import App from "@/Layouts/App.jsx";
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 
-import StatsCards from "@/Components/StatsCards.jsx";
+import StatsCards from "@/Components/UI/StatsCards";
 import EmployeeTable from "@/Tables/HRM/EmployeeTable.jsx";
-import ProfileAvatar from "@/Components/ProfileAvatar.jsx";
+import ProfileAvatar from "@/Components/Profile/ProfileAvatar";
 import PendingOnboardingSection from "@/Components/HRM/PendingOnboardingSection.jsx";
 
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { showToast } from '@/utils/ui/toastUtils';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 
 
 const EmployeesList = ({ title, departments, designations, attendanceTypes }) => {

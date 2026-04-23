@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { 
     PhotoIcon,
     TrashIcon,
@@ -17,7 +17,7 @@ import {
     ModalContent,
     Avatar
 } from '@heroui/react';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 
 // Use the global axios instance which has CSRF configuration
 const axios = window.axios;

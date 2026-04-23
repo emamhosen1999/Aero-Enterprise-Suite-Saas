@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import { Head } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
@@ -27,8 +27,8 @@ import {
     ArrowDownIcon,
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
-import { useHRMAC } from '@/Hooks/useHRMAC';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const StockAdjustments = ({ adjustments = [], warehouses = [], auth }) => {
     // TODO: Replace with actual HRMAC module path once hierarchy is defined

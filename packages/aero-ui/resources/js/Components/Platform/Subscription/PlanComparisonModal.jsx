@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Chip, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@heroui/react';
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 export default function PlanComparisonModal({ isOpen, onClose, plans, currentPlan, onSelectPlan }) {
     const [selectedCurrency, setSelectedCurrency] = useState('USD');

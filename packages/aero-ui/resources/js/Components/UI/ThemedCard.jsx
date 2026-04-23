@@ -1,6 +1,6 @@
-import React from 'react';
+﻿import React from 'react';
 import { Card, CardBody, CardHeader } from '@heroui/react';
-import { getStandardCardStyle, getStandardCardHeaderStyle } from '../../utils/themeUtils';
+import { getStandardCardStyle, getStandardCardHeaderStyle } from '../../utils/theme/themeUtils';
 
 /**
  * Get themed card style - USE getStandardCardStyle() instead

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+﻿import React, { useState, useCallback, useRef } from 'react';
 import {
     Modal,
     ModalContent,
@@ -22,8 +22,8 @@ import {
     PhotoIcon,
     DocumentTextIcon,
 } from "@heroicons/react/24/outline";
-import { showToast } from '@/utils/toastUtils';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { showToast } from '@/utils/ui/toastUtils';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 import axios from 'axios';
 
 /**

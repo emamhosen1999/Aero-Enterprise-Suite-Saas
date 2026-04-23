@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import App from '@/Layouts/App';
 import axios from 'axios';
@@ -20,8 +20,8 @@ import {
     useDisclosure,
 } from '@heroui/react';
 import { EnvelopeIcon, DevicePhoneMobileIcon } from '@heroicons/react/24/outline';
-import { showToast } from '@/utils/toastUtils';
-import { hasRoute } from '@/utils/routeUtils';
+import { showToast } from '@/utils/ui/toastUtils';
+import { hasRoute } from '@/utils/routing/routeUtils';
 
 const fieldClass = 'grid grid-cols-1 md:grid-cols-2 gap-4';
 

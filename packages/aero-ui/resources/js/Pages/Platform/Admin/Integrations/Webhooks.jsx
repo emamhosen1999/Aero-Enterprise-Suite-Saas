@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Head } from '@inertiajs/react';
 import { Card, CardBody, CardHeader } from "@heroui/react";
 import { LinkIcon } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
-import PageHeader from "@/Components/PageHeader.jsx";
+import PageHeader from "@/Components/Common/PageHeader";
 
 const Webhooks = ({ auth }) => {
     const [isMobile, setIsMobile] = useState(false);

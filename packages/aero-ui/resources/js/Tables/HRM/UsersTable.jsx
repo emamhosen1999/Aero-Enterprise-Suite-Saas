@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useEffect } from "react";
+﻿import React, { useState, useMemo, useEffect } from "react";
 import { Link, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils';
-import { getProfileAvatarTokens } from '@/Components/ProfileAvatar';
+import { showToast } from '@/utils/ui/toastUtils';
+import { getProfileAvatarTokens } from '@/Components/Profile/ProfileAvatar';
 import { 
   Table, 
   TableBody, 
@@ -25,7 +25,7 @@ import {
   Select,
   SelectItem,
 } from "@heroui/react";
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 import {
   PencilIcon,
   TrashIcon,

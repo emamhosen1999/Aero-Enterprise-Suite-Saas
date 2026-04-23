@@ -1,4 +1,4 @@
-/**
+﻿/**
  * HeroUI Theme System - v2.1
  * Enhanced theme application with background presets and utilities
  * 
@@ -16,7 +16,7 @@
 
 import { getCardStyle } from './cardStyles';
 import { applyBackground } from './backgroundPresets';
-import { getStandardCardStyle } from '../utils/themeUtils';
+import { getStandardCardStyle } from '../utils/theme/themeUtils';
 
 /**
  * Get the current theme's primary color from CSS variable or fallback

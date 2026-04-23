@@ -1,8 +1,8 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import { Card, CardBody, CardHeader, Button, Chip, Divider } from '@heroui/react';
 import { BuildingOffice2Icon, PhoneIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { useTheme } from '@/Context/ThemeContext.jsx';
-import { hasRoute, safeRoute } from '@/utils/routeUtils';
+import { hasRoute, safeRoute } from '@/utils/routing/routeUtils';
 
 /**
  * Enterprise Plan Card Component

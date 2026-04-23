@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+﻿import React, {useEffect, useState} from 'react';
 import {
     Button,
     Input,
@@ -14,8 +14,8 @@ import {
 } from '@heroui/react';
 import {Briefcase, Building2} from 'lucide-react';
 import axios from 'axios';
-import {showToast} from '@/utils/toastUtils';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import {showToast} from '@/utils/ui/toastUtils';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const DepartmentForm = ({ open, onClose, onSuccess, department = null, managers = [], parentDepartments = [] }) => {
     const [loading, setLoading] = useState(false);

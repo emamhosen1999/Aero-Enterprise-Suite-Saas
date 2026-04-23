@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+﻿import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Button, Badge, Tooltip, Card, Chip, Avatar } from "@heroui/react";
 import { 
   HomeIcon, 
@@ -16,7 +16,7 @@ import {
 import { Link, usePage, router } from "@inertiajs/react";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/Context/ThemeContext';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 
 /**
  * Enhanced Bottom Navigation Component for Mobile ERP System

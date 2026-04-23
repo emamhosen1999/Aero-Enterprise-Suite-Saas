@@ -1,6 +1,6 @@
-import React from 'react';
+﻿import React from 'react';
 import { Button, Divider } from "@heroui/react";
-import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
+import { useMediaQuery } from '@/Hooks/utils/useMediaQuery';
 
 
 /**

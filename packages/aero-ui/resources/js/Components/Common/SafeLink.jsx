@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SafeLink Component
  * 
  * A safe wrapper around Inertia's Link component that validates route existence
@@ -9,7 +9,7 @@
 
 import React from 'react';
 import { Link } from '@inertiajs/react';
-import { hasRoute, safeRoute } from '@/utils/routeUtils';
+import { hasRoute, safeRoute } from '@/utils/routing/routeUtils';
 import { Tooltip } from '@heroui/react';
 
 /**

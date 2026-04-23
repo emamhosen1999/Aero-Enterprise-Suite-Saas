@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Head, useForm, usePage, router } from '@inertiajs/react';
 import axios from 'axios';
 import App from '@/Layouts/App';
@@ -16,7 +16,7 @@ import {
     Spinner,
     Divider,
 } from '@heroui/react';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 import {
     ShieldCheckIcon,
     KeyIcon,

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * NavigationProvider - Central state management for navigation system
  * 
  * Provides:
@@ -11,7 +11,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import { usePage } from '@inertiajs/react';
-import { getIcon } from '@/Configs/navigationUtils.jsx';
+import { getIcon } from '@/Config/navigationUtils';
 import { getMenuItemId } from './navigationUtils.jsx';
 
 // Navigation Context

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useForm, router } from '@inertiajs/react';
 import { Button, Checkbox, CheckboxGroup, Input, Switch, Textarea, Chip, Spinner } from '@heroui/react';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 import axios from 'axios';
 
 const addOnOptions = ['Advanced Analytics', 'API Access', 'Custom Branding', 'Priority Support'];

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { 
     Card, 
@@ -29,7 +29,7 @@ import {
     ExclamationCircleIcon
 } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 
 /**
  * Invoice List Page

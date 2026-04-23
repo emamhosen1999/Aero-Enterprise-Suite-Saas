@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { router } from '@inertiajs/react';
 import {
   Card,
@@ -37,7 +37,7 @@ import {
   CheckCircleIcon,
   XCircleIcon,
 } from '@heroicons/react/24/outline';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 import TaskTemplateForm from './TaskTemplateForm';
 
 export default function TaskTemplateManager({ departments = [], initialFilters = {} }) {

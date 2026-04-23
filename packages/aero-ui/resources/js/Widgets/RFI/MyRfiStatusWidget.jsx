@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Card, CardBody, CardHeader, Chip, Skeleton, Progress, Button } from '@heroui/react';
 import { 
     DocumentTextIcon,
@@ -9,7 +9,7 @@ import {
     ArrowRightIcon
 } from '@heroicons/react/24/outline';
 import { router } from '@inertiajs/react';
-import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routing/routeUtils';
 import { route } from 'ziggy-js';
 import axios from 'axios';
 

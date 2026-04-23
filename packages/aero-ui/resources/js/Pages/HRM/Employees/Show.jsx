@@ -1,10 +1,10 @@
-import React, {useCallback, useEffect, useState} from 'react';
+﻿import React, {useCallback, useEffect, useState} from 'react';
 import {Head, usePage} from '@inertiajs/react';
 import axios from 'axios';
 import {Card, CardBody, CardHeader, Input, Tab, Tabs,} from "@heroui/react";
 import App from "@/Layouts/App.jsx";
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
-import StatsCards from '@/Components/StatsCards.jsx';
+import StatsCards from '@/Components/UI/StatsCards';
 import AttendanceEmployeeTable from "@/Tables/HRM/AttendanceEmployeeTable.jsx";
 import AttendanceCalendar from "@/Components/HRM/Attendance/AttendanceCalendar.jsx";
 import {
@@ -18,8 +18,8 @@ import {
     UserIcon,
     XCircleIcon
 } from '@heroicons/react/24/outline';
-import { useHRMAC } from '@/Hooks/useHRMAC';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const AttendanceEmployee = React.memo(({ title, totalWorkingDays, presentDays, absentDays, lateArrivals }) => {
     const { auth } = usePage().props;

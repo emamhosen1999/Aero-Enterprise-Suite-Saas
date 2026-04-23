@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import App from '@/Layouts/App';
 import { supportTickets, ticketThreads } from '@/Pages/Platform/Admin/data/mockData.js';
@@ -19,7 +19,7 @@ import {
   Textarea,
   User,
 } from '@heroui/react';
-import { showToast } from '@/utils/toastUtils.jsx';
+import { showToast } from '@/utils/ui/toastUtils';
 
 const mainCardStyle = {
   border: `var(--borderWidth, 2px) solid transparent`,

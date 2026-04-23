@@ -1,12 +1,12 @@
-import React, { useMemo, useState, useEffect } from 'react';
+﻿import React, { useMemo, useState, useEffect } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { SparklesIcon } from "@heroicons/react/24/outline";
 import { Card, CardBody } from "@heroui/react";
 import App from "@/Layouts/App.jsx";
 import DynamicWidgetRenderer from "@/Components/DynamicWidgets/DynamicWidgetRenderer.jsx";
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 
 /**
  * Project Dashboard - For Project Management

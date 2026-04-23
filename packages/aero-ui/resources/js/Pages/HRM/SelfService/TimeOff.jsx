@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import {
     Button, Chip, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader,
@@ -6,12 +6,12 @@ import {
 } from "@heroui/react";
 import { CalendarDaysIcon, CheckCircleIcon, ClockIcon, PlusIcon, XCircleIcon } from "@heroicons/react/24/outline";
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils.jsx';
+import { showToast } from '@/utils/ui/toastUtils';
 import App from '@/Layouts/App.jsx';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
-import StatsCards from '@/Components/StatsCards.jsx';
-import { useHRMAC } from '@/Hooks/useHRMAC';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import StatsCards from '@/Components/UI/StatsCards';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const EMPTY_FORM = { leave_type_id: '', start_date: '', end_date: '', reason: '' };
 

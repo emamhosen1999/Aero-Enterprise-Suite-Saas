@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
     Card,
     CardHeader,
@@ -22,7 +22,7 @@ import {
     CheckIcon,
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 
 /**
  * Two-Factor Authentication Settings Component

@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
-import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routing/routeUtils';
 import {
     Table,
     TableHeader,
@@ -28,11 +28,11 @@ import {
     DocumentArrowDownIcon,
     CalculatorIcon,
 } from "@heroicons/react/24/outline";
-import {useHRMAC} from '@/Hooks/useHRMAC';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import {useHRMAC} from '@/Hooks/access/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 import App from "@/Layouts/App.jsx";
 import StandardPageLayout from '@/Layouts/StandardPageLayout';
-import StatsCards from '@/Components/StatsCards';
+import StatsCards from '@/Components/UI/StatsCards';
 
 const GeneralLedger = ({ auth, entries = { data: [], current_page: 1, last_page: 1, per_page: 10, total: 0 }, accounts = [], filters: initialFilters = {} }) => {
     // HRMAC permissions

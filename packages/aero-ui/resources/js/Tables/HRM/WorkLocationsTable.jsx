@@ -1,7 +1,7 @@
-import React, {useCallback} from "react";
-import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
+﻿import React, {useCallback} from "react";
+import {useMediaQuery} from '@/Hooks/utils/useMediaQuery';
 import {router, usePage} from "@inertiajs/react";
-import {showToast} from '@/utils/toastUtils';
+import {showToast} from '@/utils/ui/toastUtils';
 
 import {
     Button,
@@ -36,7 +36,7 @@ import {
     TrashIcon,
     UserIcon,
 } from '@heroicons/react/24/outline';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 import {
     CheckCircleIcon as CheckCircleSolid,
     ExclamationTriangleIcon as ExclamationTriangleSolid,

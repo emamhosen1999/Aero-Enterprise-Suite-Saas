@@ -1,16 +1,16 @@
-import './bootstrap';
+﻿import './bootstrap';
 import '../css/app.css';
 import React from 'react';
 import {createRoot} from 'react-dom/client';
 import {createInertiaApp, router} from '@inertiajs/react';
 import {resolvePageComponent} from 'laravel-vite-plugin/inertia-helpers';
 import axios from 'axios';
-import LoadingIndicator from './Components/LoadingIndicator';
+import LoadingIndicator from './Components/Loading/LoadingIndicator';
 import UnifiedError from './Pages/Shared/Errors/UnifiedError';
 import { ThemeProvider } from './Context/ThemeContext';
 import { HeroUIProvider } from '@heroui/react';
 import './theme/index.js';
-import { initializeDeviceAuth } from './utils/deviceAuth';
+import { initializeDeviceAuth } from './utils/security/deviceAuth';
 
 // Expose Inertia router globally for error handlers and external use
 if (typeof window !== 'undefined') {

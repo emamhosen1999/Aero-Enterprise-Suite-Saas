@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+﻿import React, { useCallback, useEffect, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
@@ -22,8 +22,8 @@ import {
     WifiIcon,
 } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App.jsx';
-import { showToast } from '@/utils/toastUtils.jsx';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { showToast } from '@/utils/ui/toastUtils';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 // ---------------------------------------------------------------------------
 // Shared style helpers (same pattern as Platform.jsx / Settings pages)

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
@@ -32,7 +32,7 @@ import {
     TrashIcon,
     ArrowsRightLeftIcon,
 } from "@heroicons/react/24/outline";
-import {useHRMAC} from '@/Hooks/useHRMAC';
+import {useHRMAC} from '@/Hooks/access/useHRMAC';
 import App from "@/Layouts/App.jsx";
 
 const Warehouses = ({ warehouses = [], auth }) => {

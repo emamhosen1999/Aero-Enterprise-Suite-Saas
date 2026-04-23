@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import {
   Modal,
   ModalContent,
@@ -12,7 +12,7 @@ import {
   Textarea
 } from "@heroui/react";
 import { WalletIcon } from "@heroicons/react/24/outline";
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const CreateWalletModal = ({ 
   isOpen, 

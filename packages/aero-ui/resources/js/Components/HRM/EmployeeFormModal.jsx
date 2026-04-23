@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -33,7 +33,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { Modal, ModalContent } from '@heroui/react';
 
-import ProfileAvatar from '@/Components/ProfileAvatar';
+import ProfileAvatar from '@/Components/Profile/ProfileAvatar';
 
 const EmployeeFormModal = ({ 
     open, 

@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 import {
     Button,
     Card,
@@ -39,12 +39,12 @@ import {
     ArchiveBoxIcon,
 } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
-import StatsCards from '@/Components/StatsCards.jsx';
+import StatsCards from '@/Components/UI/StatsCards';
 import { ThemedCard, ThemedCardHeader, ThemedCardBody } from '@/Components/UI/ThemedCard';
-import { getStatusColor, useResponsiveBreakpoints } from '@/utils/themeUtils';
+import { getStatusColor, useResponsiveBreakpoints } from '@/utils/theme/themeUtils';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils.jsx';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { showToast } from '@/utils/ui/toastUtils';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const CmsIndex = ({ title }) => {
     const { auth } = usePage().props;

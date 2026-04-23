@@ -1,4 +1,4 @@
-import {
+﻿import {
     Button,
     Input,
     Modal,
@@ -12,10 +12,10 @@ import {
 } from "@heroui/react";
 import React, {useEffect, useState} from "react";
 import {Camera, X} from 'lucide-react';
-import {showToast} from "@/utils/toastUtils";
-import { safeRoute } from "@/utils/routeUtils";
+import {showToast} from "@/utils/ui/toastUtils";
+import { safeRoute } from "@/utils/routing/routeUtils";
 import { router } from "@inertiajs/react";
-import ProfileAvatar from '@/Components/ProfileAvatar';
+import ProfileAvatar from '@/Components/Profile/ProfileAvatar';
 
 // Helper function to format date for HTML date input (YYYY-MM-DD)
 const formatDateForInput = (dateValue) => {

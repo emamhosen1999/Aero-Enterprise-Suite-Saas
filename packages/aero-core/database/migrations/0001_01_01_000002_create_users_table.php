@@ -91,9 +91,26 @@ return new class extends Migration
                 $table->string('last_login_ip', 45)->nullable();
                 $table->integer('login_count')->default(0);
 
-                // ── User Preferences ───────────────────────────────────────────
+                // ── User Preferences & Extended Profile ──────────────────────────────
                 $table->json('notification_preferences')->nullable();
                 $table->boolean('security_notifications')->default(true);
+
+                // ── Extended profile (used by User model) ─────────────────────
+                $table->string('profile_image')->nullable();
+                $table->text('about')->nullable();
+                $table->string('locale', 10)->nullable();
+                $table->string('timezone', 50)->nullable();
+
+                // ── Device management ──────────────────────────────────────────
+                $table->boolean('single_device_login_enabled')->default(false);
+                $table->timestamp('device_reset_at')->nullable();
+                $table->string('device_reset_reason')->nullable();
+
+                // ── Push notifications ─────────────────────────────────────────
+                $table->string('fcm_token')->nullable();
+
+                // ── Preferences (JSON bag) ─────────────────────────────────────
+                $table->json('preferences')->nullable();
 
                 $table->rememberToken();
                 $table->timestamps();

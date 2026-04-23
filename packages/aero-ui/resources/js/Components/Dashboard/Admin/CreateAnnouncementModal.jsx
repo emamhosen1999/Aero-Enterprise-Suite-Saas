@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
     Modal, ModalContent, ModalHeader, ModalBody, ModalFooter,
     Button, Input, Textarea, Select, SelectItem,
 } from '@heroui/react';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 
 const types = [
     { key: 'info', label: 'Info' },

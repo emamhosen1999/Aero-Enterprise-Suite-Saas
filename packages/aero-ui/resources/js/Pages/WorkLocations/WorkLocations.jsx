@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+﻿import React, { useState, useCallback, useMemo } from 'react';
 import { 
     MapPinIcon, 
     PlusIcon,
@@ -17,15 +17,15 @@ import {
     Input, 
     Button,
 } from "@heroui/react";
-import StatsCards from "@/Components/StatsCards.jsx";
-import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
-import useThemeRadius from '@/Hooks/useThemeRadius.js';
+import StatsCards from "@/Components/UI/StatsCards";
+import { useMediaQuery } from '@/Hooks/utils/useMediaQuery';
+import useThemeRadius from '@/Hooks/theme/useThemeRadius';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import WorkLocationForm from "@/Forms/HRM/WorkLocationForm.jsx";
 import DeleteWorkLocationForm from "@/Forms/HRM/DeleteWorkLocationForm.jsx";
 import axios from "axios";
-import { showToast } from "@/utils/toastUtils";
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { showToast } from "@/utils/ui/toastUtils";
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 
 const WorkLocations = React.memo(({ auth, title, jurisdictions, users }) => {
     const isMobile = useMediaQuery('(max-width: 640px)');

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
@@ -20,8 +20,8 @@ import {
     DocumentArrowDownIcon,
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
-import StatsCards from "@/Components/StatsCards.jsx";
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import StatsCards from "@/Components/UI/StatsCards";
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const Analytics = ({ 
     stats: initialStats, 

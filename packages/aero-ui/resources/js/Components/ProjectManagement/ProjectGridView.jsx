@@ -1,6 +1,6 @@
-import React from 'react';
+﻿import React from 'react';
 import { router } from '@inertiajs/react';
-import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routing/routeUtils';
 import {
     Grid,
     Card,

@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+﻿import React, {useMemo} from 'react';
 import {Head} from '@inertiajs/react';
 import {Button, Chip, Divider} from '@heroui/react';
 import {
@@ -12,7 +12,7 @@ import {
     UserIcon,
 } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 
 /**
  * Payslip Component

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import UnifiedInstallationLayout from '@/Layouts/UnifiedInstallationLayout';
 import { 
@@ -21,7 +21,7 @@ import {
     ArrowPathIcon
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 
 /**
  * Requirements Check Page

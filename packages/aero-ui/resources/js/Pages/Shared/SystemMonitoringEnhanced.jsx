@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Head, usePage } from "@inertiajs/react";
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 import { 
   Card,
   CardBody,
@@ -82,7 +82,7 @@ import {
     RadialBar,
     Legend
 } from 'recharts';
-import { showToast } from "@/utils/toastUtils";
+import { showToast } from "@/utils/ui/toastUtils";
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 

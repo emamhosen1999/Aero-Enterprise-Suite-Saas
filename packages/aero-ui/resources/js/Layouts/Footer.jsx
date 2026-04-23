@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Button, Divider } from "@heroui/react";
 import { Link, usePage, router } from '@inertiajs/react';
 import { 
@@ -7,9 +7,9 @@ import {
   EnvelopeIcon,
   PhoneIcon 
 } from '@heroicons/react/24/outline';
-import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
+import { useMediaQuery } from '@/Hooks/utils/useMediaQuery';
 import { useTheme } from '@/Context/ThemeContext.jsx';
-import { useBranding } from '@/Hooks/useBranding';
+import { useBranding } from '@/Hooks/theme/useBranding';
 import { Card } from '@heroui/react';
 import { publicNavLinks, footerColumns } from '@/Config/publicNavigation';
 

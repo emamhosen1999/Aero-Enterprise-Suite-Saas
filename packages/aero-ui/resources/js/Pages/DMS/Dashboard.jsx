@@ -1,11 +1,11 @@
-import React, { useMemo, useEffect, useState } from 'react';
+﻿import React, { useMemo, useEffect, useState } from 'react';
 import { Head } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App';
 import DynamicWidgetRenderer from '@/Components/DynamicWidgets/DynamicWidgetRenderer';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 
 /**
  * DMS Dashboard - Dynamic Widgets Only

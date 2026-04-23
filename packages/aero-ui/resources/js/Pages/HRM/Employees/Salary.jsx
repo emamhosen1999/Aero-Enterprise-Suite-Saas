@@ -1,6 +1,6 @@
-import React, {useState} from 'react';
+﻿import React, {useState} from 'react';
 import {Head, router} from '@inertiajs/react';
-import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routing/routeUtils';
 import {
     Button,
     Card,
@@ -25,9 +25,9 @@ import {
     UserIcon,
 } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App';
-import {showToast} from '@/utils/toastUtils';
+import {showToast} from '@/utils/ui/toastUtils';
 import axios from 'axios';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 
 export default function EmployeeSalary({ title, employee, salaryStructures, allComponents, summary }) {
     // TODO: Replace with actual HRMAC module path once hierarchy is defined

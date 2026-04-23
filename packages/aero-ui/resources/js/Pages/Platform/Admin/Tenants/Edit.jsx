@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
@@ -23,9 +23,9 @@ import {
     CreditCardIcon,
     CheckIcon,
 } from "@heroicons/react/24/outline";
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 import App from "@/Layouts/App.jsx";
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const Edit = ({ auth, tenantId, title }) => {
     // Theme radius helper (REQUIRED)

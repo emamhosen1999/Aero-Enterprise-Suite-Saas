@@ -1,9 +1,9 @@
-import * as React from 'react';
+﻿import * as React from 'react';
 import { usePage, router } from '@inertiajs/react';
 import { useState, useCallback, useEffect } from 'react';
 
-import { useScrollTrigger } from '@/Hooks/useScrollTrigger.js';
-import { useBranding } from '@/Hooks/useBranding';
+import { useScrollTrigger } from '@/Hooks/performance/useScrollTrigger';
+import { useBranding } from '@/Hooks/theme/useBranding';
 import { useTheme } from '@/Context/ThemeContext';
 
 // Import separated header components for optimization

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+﻿import React, {useEffect, useState} from 'react';
 import {
     Box,
     Button,
@@ -13,7 +13,7 @@ import {
     Typography
 } from '@mui/material';
 import {XMarkIcon} from '@heroicons/react/24/outline';
-import {showToast} from '@/utils/toastUtils';
+import {showToast} from '@/utils/ui/toastUtils';
 import axios from 'axios';
 
 const AddEditTrainingForm = ({ open, onClose, training = null, fetchData, currentPage, perPage, filterData }) => {

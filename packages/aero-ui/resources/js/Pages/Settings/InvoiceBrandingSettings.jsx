@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+﻿import React, { useState, useRef } from 'react';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import App from '@/Layouts/App';
 import {
@@ -12,7 +12,7 @@ import {
     Image,
     Chip,
 } from '@heroui/react';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 import {
     PhotoIcon,
     SwatchIcon,

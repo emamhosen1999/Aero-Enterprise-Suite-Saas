@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useRef } from 'react';
+﻿import React, { useEffect, useState, useRef } from 'react';
 import { usePage } from '@inertiajs/react';
 import { Card, CardBody, Progress } from '@heroui/react';
 import { ToastContainer } from 'react-toastify';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 import 'react-toastify/dist/ReactToastify.css';
 
 const InstallationLayout = ({ children, currentStep = 1, totalSteps = 8, installationComplete = false }) => {

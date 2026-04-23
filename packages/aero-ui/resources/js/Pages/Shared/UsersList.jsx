@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Shared Users List Component
  * 
  * Used by both Tenant Users Management and Platform Admin Users Management.
@@ -10,7 +10,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Head, router, usePage } from "@inertiajs/react";
 import { motion } from 'framer-motion';
-import { hasRoute, safeRoute, safeNavigate } from '@/utils/routeUtils';
+import { hasRoute, safeRoute, safeNavigate } from '@/utils/routing/routeUtils';
 import { 
   Button,
   Chip,
@@ -65,15 +65,15 @@ import {
   DeviceTabletIcon
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
-import StatsCards from "@/Components/StatsCards.jsx";
+import StatsCards from "@/Components/UI/StatsCards";
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
-import UsersTable from '@/Tables/UsersTable.jsx';
-import AddEditUserForm from "@/Forms/AddEditUserForm.jsx";
-import InviteUserForm from "@/Forms/InviteUserForm.jsx";
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import UsersTable from '@/Tables/Admin/UsersTable.jsx';
+import AddEditUserForm from "@/Forms/Users/AddEditUserForm.jsx";
+import InviteUserForm from "@/Forms/Users/InviteUserForm.jsx";
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 
 /**
  * Route helper that returns the appropriate route based on context

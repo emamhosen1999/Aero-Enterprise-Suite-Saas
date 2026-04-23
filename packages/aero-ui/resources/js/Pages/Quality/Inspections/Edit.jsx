@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     Button,
@@ -16,9 +16,9 @@ import {
 } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App.jsx';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
-import { useHRMAC } from '@/Hooks/useHRMAC';
-import { showToast } from '@/utils/toastUtils.jsx';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
+import { showToast } from '@/utils/ui/toastUtils';
 
 const InspectionsEdit = ({ title, inspection = {}, inspectors = [], projects = [] }) => {
     const { auth } = usePage().props;

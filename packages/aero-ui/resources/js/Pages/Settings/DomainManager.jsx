@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+﻿import React, { useState, useCallback, useMemo } from 'react';
 import { Head, usePage, router } from '@inertiajs/react';
 import App from '@/Layouts/App';
 import {
@@ -39,7 +39,7 @@ import {
     CheckCircleIcon as CheckCircleSolid,
     StarIcon as StarSolid,
 } from '@heroicons/react/24/solid';
-import { showToast } from '@/utils/toastUtils.jsx';
+import { showToast } from '@/utils/ui/toastUtils';
 import axios from 'axios';
 
 // Consistent styling from existing settings pages

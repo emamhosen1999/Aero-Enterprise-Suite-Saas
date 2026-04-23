@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useState } from 'react';
+﻿import React, { useCallback, useEffect, useState } from 'react';
 import { Card, CardBody, CardHeader, Select, SelectItem, Skeleton, Chip, Badge } from "@heroui/react";
 import { GlobeAltIcon } from "@heroicons/react/24/outline";
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils.jsx';
+import { showToast } from '@/utils/ui/toastUtils';
 
 const MultilingualBlockTest = ({ pageId = 1 }) => {
     const locales = [

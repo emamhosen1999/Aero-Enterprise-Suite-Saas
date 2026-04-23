@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
-import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routing/routeUtils';
 import App from '@/Layouts/App';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
-import StatsCards from '@/Components/StatsCards.jsx';
+import StatsCards from '@/Components/UI/StatsCards';
 import { 
     Table, 
     TableHeader, 
@@ -32,8 +32,8 @@ import {
     CubeIcon
 } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
-import { useHRMAC } from '@/Hooks/useHRMAC';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const FixedAssets = ({ auth, assets = [], categories = [], locations = [] }) => {
     // HRMAC permissions - TODO: Update with actual module hierarchy path

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Sidebar - Main sidebar navigation component
  * 
  * Features:
@@ -48,9 +48,9 @@ import {
   navigateToItem,
   hasRoute,
 } from './navigationUtils.jsx';
-import { useBranding } from '@/Hooks/useBranding';
-import ProfileAvatar from '@/Components/ProfileAvatar';
-import { useNavigationPersonalization } from '@/Hooks/useNavigationPersonalization.js';
+import { useBranding } from '@/Hooks/theme/useBranding';
+import ProfileAvatar from '@/Components/Profile/ProfileAvatar';
+import { useNavigationPersonalization } from '@/Hooks/navigation/useNavigationPersonalization.js';
 
 // Safe route helper that returns fallback if route doesn't exist
 const safeRoute = (routeName, fallback = '#') => {

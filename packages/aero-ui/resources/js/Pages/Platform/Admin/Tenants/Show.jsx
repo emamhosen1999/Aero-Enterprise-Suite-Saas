@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
@@ -42,10 +42,10 @@ import {
     ExclamationCircleIcon,
     ArrowUturnLeftIcon,
 } from "@heroicons/react/24/outline";
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 import App from "@/Layouts/App.jsx";
-import StatsCards from '@/Components/StatsCards';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import StatsCards from '@/Components/UI/StatsCards';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const Show = ({ auth, tenantId, title, can_impersonate }) => {
     // Theme radius helper (REQUIRED)

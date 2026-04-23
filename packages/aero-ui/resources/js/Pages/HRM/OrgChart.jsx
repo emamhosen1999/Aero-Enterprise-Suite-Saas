@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
@@ -19,11 +19,11 @@ import {
     ChevronRightIcon,
     UserCircleIcon
 } from "@heroicons/react/24/outline";
-import {useHRMAC} from '@/Hooks/useHRMAC';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import {useHRMAC} from '@/Hooks/access/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 import App from '@/Layouts/App.jsx';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
-import StatsCards from '@/Components/StatsCards.jsx';
+import StatsCards from '@/Components/UI/StatsCards';
 
 // Department Node component for the org chart
 const DepartmentNode = ({ department, allDepartments, level = 0, expandedNodes, toggleNode }) => {

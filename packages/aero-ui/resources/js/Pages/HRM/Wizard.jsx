@@ -1,6 +1,6 @@
-import React, {useState} from 'react';
+﻿import React, {useState} from 'react';
 import {Head, router, useForm} from '@inertiajs/react';
-import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routing/routeUtils';
 import {AnimatePresence, motion} from 'framer-motion';
 import {
     Button,
@@ -29,8 +29,8 @@ import {
     UserIcon,
 } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App';
-import {showToast} from '@/utils/toastUtils';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import {showToast} from '@/utils/ui/toastUtils';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 
 export default function EmployeeOnboardingWizard({ 
     title, 

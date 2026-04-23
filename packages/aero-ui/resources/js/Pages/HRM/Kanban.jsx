@@ -1,6 +1,6 @@
-import React, {useEffect, useState} from 'react';
+﻿import React, {useEffect, useState} from 'react';
 import {Head, router} from '@inertiajs/react';
-import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routing/routeUtils';
 import {closestCorners, DndContext, DragOverlay, PointerSensor, useSensor, useSensors} from '@dnd-kit/core';
 import {Button, Card, CardBody, Chip, Input, Select, SelectItem,} from '@heroui/react';
 import {
@@ -12,9 +12,9 @@ import {
     UserIcon,
 } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App';
-import {showToast} from '@/utils/toastUtils';
-import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import {showToast} from '@/utils/ui/toastUtils';
+import {useThemeRadius} from '@/Hooks/theme/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 import axios from 'axios';
 import KanbanColumn from '@/Components/Recruitment/KanbanColumn';
 import CandidateCard from '@/Components/Recruitment/CandidateCard';

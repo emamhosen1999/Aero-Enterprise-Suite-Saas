@@ -1,10 +1,10 @@
-/**
+﻿/**
  * Navigation Utilities
  * Helper functions for the navigation system
  */
 
 import { router } from '@inertiajs/react';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 /**
  * Normalize any URL or path to a clean pathname.

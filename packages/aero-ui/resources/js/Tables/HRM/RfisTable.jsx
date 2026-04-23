@@ -1,11 +1,11 @@
-import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
-import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
+﻿import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import { useMediaQuery } from '@/Hooks/utils/useMediaQuery';
 import { usePage, router } from "@inertiajs/react";
-import { showToast } from '@/utils/toastUtils';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { showToast } from '@/utils/ui/toastUtils';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 import { debounce } from "lodash";
-import StatsCards from '@/Components/Common/StatsCards';
-import ProfileAvatar, { getProfileAvatarTokens } from '@/Components/ProfileAvatar';
+import StatsCards from '@/Components/UI/StatsCards';
+import ProfileAvatar, { getProfileAvatarTokens } from '@/Components/Profile/ProfileAvatar';
 
 import {
     Table,
@@ -69,7 +69,7 @@ import {
 } from '@heroicons/react/24/solid';
 import axios from 'axios';
 import { jsPDF } from "jspdf";
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const RfisTable = ({ 
     allData, 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+﻿import React, { useEffect, useState, useMemo } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { 
@@ -11,11 +11,11 @@ import {
     CurrencyDollarIcon, UserGroupIcon, CubeIcon, CheckCircleIcon,
     ChartBarIcon, ClockIcon, ArrowTrendingUpIcon, SparklesIcon
 } from '@heroicons/react/24/outline';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 import axios from 'axios';
 import App from '@/Layouts/App.jsx';
-import StatsCards from '@/Components/StatsCards.jsx';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import StatsCards from '@/Components/UI/StatsCards';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const PlanShow = ({ plan: initialPlan, modules = [], title = 'Plan Details' }) => {
     const { auth } = usePage().props;

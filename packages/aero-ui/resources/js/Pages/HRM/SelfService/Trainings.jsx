@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils.jsx';
+import { showToast } from '@/utils/ui/toastUtils';
 import {
     Button, Chip, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem,
     Table, TableHeader, TableColumn, TableBody, TableRow, TableCell,
@@ -9,9 +9,9 @@ import {
 import { AcademicCapIcon, BookOpenIcon, CheckBadgeIcon, ClockIcon, EllipsisVerticalIcon, EyeIcon } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
-import StatsCards from '@/Components/StatsCards.jsx';
-import { useHRMAC } from '@/Hooks/useHRMAC';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import StatsCards from '@/Components/UI/StatsCards';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const Trainings = ({ title, trainings = [] }) => {
     useThemeRadius();

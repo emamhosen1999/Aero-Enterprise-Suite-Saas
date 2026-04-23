@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { Head } from '@inertiajs/react';
 import App from '@/Layouts/App';
 import axios from 'axios';
@@ -30,8 +30,8 @@ import {
   Skeleton,
   Switch,
 } from '@heroui/react';
-import { showToast } from '@/utils/toastUtils';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { showToast } from '@/utils/ui/toastUtils';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 // Theme-aware card styling
 const getCardStyle = () => ({

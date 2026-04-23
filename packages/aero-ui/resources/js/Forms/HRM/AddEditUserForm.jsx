@@ -1,4 +1,4 @@
-import {
+﻿import {
     Button,
     Spinner,
     Select,
@@ -15,10 +15,10 @@ import {
 import React, { useEffect, useState } from "react";
 import { X, Camera, Eye, EyeOff, Lock } from 'lucide-react';
 import { useForm } from 'laravel-precognition-react';
-import { showToast } from "@/utils/toastUtils";
+import { showToast } from "@/utils/ui/toastUtils";
 import { UserIcon } from "@heroicons/react/24/solid";
-import ProfileAvatar from '@/Components/ProfileAvatar';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import ProfileAvatar from '@/Components/Profile/ProfileAvatar';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 /**
  * Helper to get routes based on context

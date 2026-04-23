@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     Avatar,
@@ -42,9 +42,9 @@ import {
     UserIcon,
 } from "@heroicons/react/24/outline";
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
-import { showToast } from '@/utils/toastUtils.jsx';
-import { useHRMAC } from '@/Hooks/useHRMAC';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { showToast } from '@/utils/ui/toastUtils';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 import { motion } from 'framer-motion';
 
 const DocumentView = ({ document, versions = [] }) => {

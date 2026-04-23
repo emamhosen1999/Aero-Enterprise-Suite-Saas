@@ -14,19 +14,15 @@ class Benefit extends Model
     protected $fillable = [
         'name',
         'description',
-        'type', // health, dental, vision, retirement, insurance, perks, etc.
-        'provider',
-        'cost',
-        'eligibility_criteria',
-        'start_date',
-        'end_date',
-        'status', // active, inactive
+        'type',         // health, retirement, insurance, leave, other
+        'value',        // matches migration column
+        'value_type',   // fixed | percentage
+        'is_active',
     ];
 
     protected $casts = [
-        'cost' => 'float',
-        'start_date' => 'date',
-        'end_date' => 'date',
+        'value'     => 'float',
+        'is_active' => 'boolean',
     ];
 
     /**

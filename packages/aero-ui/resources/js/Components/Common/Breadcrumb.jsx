@@ -1,10 +1,10 @@
-import React from 'react';
+﻿import React from 'react';
 import { Breadcrumbs, BreadcrumbItem } from '@heroui/react';
 import { HomeIcon } from '@heroicons/react/24/outline';
 import { Link, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import { getDashboardUrl } from '@/utils/moduleAccessUtils';
-import { hasRoute, safeRoute } from '@/utils/routeUtils';
+import { getDashboardUrl } from '@/utils/routing/moduleAccessUtils';
+import { hasRoute, safeRoute } from '@/utils/routing/routeUtils';
 import { getPages } from '@/Props/pages.jsx';
 import { getSettingsPages } from '@/Props/settings.jsx';
 

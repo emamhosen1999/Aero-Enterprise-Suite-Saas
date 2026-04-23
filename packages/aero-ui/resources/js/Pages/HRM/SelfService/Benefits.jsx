@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Head } from '@inertiajs/react';
 import {
     Button, Chip, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader,
@@ -6,13 +6,13 @@ import {
     Input, Card, CardHeader, CardBody,
 } from "@heroui/react";
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils.jsx';
+import { showToast } from '@/utils/ui/toastUtils';
 import { GiftIcon, CheckCircleIcon, ClockIcon, PlusIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
-import StatsCards from '@/Components/StatsCards.jsx';
-import { useHRMAC } from '@/Hooks/useHRMAC';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import StatsCards from '@/Components/UI/StatsCards';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const BENEFIT_TYPES = ['Health Insurance', 'Life Insurance', 'Dental', 'Vision', 'Retirement/401k', 'Disability', 'Other'];
 const EMPTY_FORM = { benefit_type: '', notes: '' };

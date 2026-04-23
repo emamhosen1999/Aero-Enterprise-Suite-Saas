@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { Card, CardBody, CardHeader } from "@heroui/react";
@@ -15,7 +15,7 @@ import {
     IdentificationIcon,
 } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const PORTAL_SECTIONS = [
     {

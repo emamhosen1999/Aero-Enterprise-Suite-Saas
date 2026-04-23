@@ -48,6 +48,7 @@ Route::middleware('platform.domain')->group(function () {
     Route::get('/', [PublicPageController::class, 'home'])->name('platform.home');
     Route::get('/pricing', [PublicPageController::class, 'pricing'])->name('platform.pricing');
     Route::get('/features', [PublicPageController::class, 'features'])->name('platform.features');
+    Route::get('/enterprise', [PublicPageController::class, 'enterprise'])->name('platform.enterprise');
 
     // Redirect /login to /signup (no login on platform domain - login is on tenant/admin domains)
     Route::redirect('login', '/signup', 302);

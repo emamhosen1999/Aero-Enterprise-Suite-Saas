@@ -1,12 +1,12 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { Card, CardBody, CardHeader, Skeleton } from "@heroui/react";
 import { HomeIcon } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
-import StatsCards from '@/Components/StatsCards.jsx';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import StatsCards from '@/Components/UI/StatsCards';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 import DynamicWidgetRenderer from '@/Components/DynamicWidgets/DynamicWidgetRenderer';
 
 // Dashboard sub-components

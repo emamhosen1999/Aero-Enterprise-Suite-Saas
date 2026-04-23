@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Card, CardBody, CardHeader, Button, Chip, Skeleton, Divider } from '@heroui/react';
 import { 
     ClockIcon, 
@@ -8,7 +8,7 @@ import {
     ArrowRightIcon 
 } from '@heroicons/react/24/outline';
 import { router } from '@inertiajs/react';
-import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routing/routeUtils';
 import axios from 'axios';
 
 export default function PendingApprovalsWidget() {

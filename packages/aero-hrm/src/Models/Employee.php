@@ -51,13 +51,28 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property string|null $shift
  * @property string|null $notes
  *
- * Personal Info (moved from User):
+ * Employment date extras:
+ * @property \Carbon\Carbon|null $joining_date
+ * @property int|null $probation_period_months
+ * @property \Carbon\Carbon|null $contract_start_date
+ * @property \Carbon\Carbon|null $contract_end_date
+ *
+ * Personal Info:
+ * @property \Carbon\Carbon|null $birthday
  * @property \Carbon\Carbon|null $date_of_birth
  * @property string|null $gender
  * @property string|null $nationality
  * @property string|null $religion
  * @property string|null $marital_status
  * @property string|null $blood_group
+ *
+ * Identity documents:
+ * @property string|null $passport_no
+ * @property \Carbon\Carbon|null $passport_expiry
+ * @property string|null $visa_no
+ * @property \Carbon\Carbon|null $visa_expiry
+ * @property string|null $emirates_id
+ * @property \Carbon\Carbon|null $emirates_id_expiry
  *
  * Accessors:
  * @property-read string $name
@@ -96,23 +111,28 @@ class Employee extends Model implements HasMedia
         'designation_id',
         'manager_id',
 
-        // Employee identifiers
+        // ── Employee identifiers ───────────────────────────────────────────────
         'employee_code',
 
-        // Employment dates
+        // ── Employment dates ───────────────────────────────────────────────────
         'date_of_joining',
+        'joining_date',           // alias kept for backward compat
         'date_of_leaving',
         'probation_end_date',
+        'probation_period_months',
+        'contract_start_date',
+        'contract_end_date',
         'confirmation_date',
 
-        // Employment details
+        // ── Employment details ─────────────────────────────────────────────────
         'employment_type',
         'status',
         'basic_salary',
         'work_location',
         'shift',
 
-        // Personal info (employee-specific, not auth)
+        // ── Personal / Demographic info ────────────────────────────────────────
+        'birthday',
         'date_of_birth',
         'gender',
         'nationality',
@@ -120,15 +140,15 @@ class Employee extends Model implements HasMedia
         'marital_status',
         'blood_group',
 
-        // Identity documents
+        // ── Identity documents ─────────────────────────────────────────────────
         'passport_no',
-        'passport_exp_date',
+        'passport_expiry',        // canonical column name in migration
+        'visa_no',
+        'visa_expiry',
+        'emirates_id',
+        'emirates_id_expiry',
 
-        // Spouse info (if married)
-        'employment_of_spouse',
-        'number_of_children',
-
-        // Notes
+        // ── Notes ──────────────────────────────────────────────────────────────
         'notes',
     ];
 
@@ -138,14 +158,24 @@ class Employee extends Model implements HasMedia
     protected function casts(): array
     {
         return [
-            'date_of_joining' => 'date',
-            'date_of_leaving' => 'date',
-            'probation_end_date' => 'date',
-            'confirmation_date' => 'date',
-            'date_of_birth' => 'date',
-            'passport_exp_date' => 'date',
-            'basic_salary' => 'decimal:2',
-            'number_of_children' => 'integer',
+            // Employment dates
+            'date_of_joining'        => 'date',
+            'joining_date'           => 'date',
+            'date_of_leaving'        => 'date',
+            'probation_end_date'     => 'date',
+            'probation_period_months'=> 'integer',
+            'contract_start_date'    => 'date',
+            'contract_end_date'      => 'date',
+            'confirmation_date'      => 'date',
+            // Personal
+            'birthday'               => 'date',
+            'date_of_birth'          => 'date',
+            // Documents
+            'passport_expiry'        => 'date',
+            'visa_expiry'            => 'date',
+            'emirates_id_expiry'     => 'date',
+            // Salary
+            'basic_salary'           => 'decimal:2',
         ];
     }
 

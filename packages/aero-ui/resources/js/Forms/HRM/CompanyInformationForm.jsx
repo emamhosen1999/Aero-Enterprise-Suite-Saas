@@ -1,6 +1,6 @@
-import React, {useEffect, useState} from 'react';
+﻿import React, {useEffect, useState} from 'react';
 import {Card, CardHeader, Select,} from '@heroui/react';
-import {showToast} from "@/utils/toastUtils";
+import {showToast} from "@/utils/ui/toastUtils";
 
 import {getCountries} from '@/Props/countries.jsx'
 

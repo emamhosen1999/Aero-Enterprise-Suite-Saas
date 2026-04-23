@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
@@ -49,10 +49,10 @@ import {
     CalendarDaysIcon,
     DocumentArrowDownIcon,
 } from '@heroicons/react/24/outline';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 import App from '@/Layouts/App';
-import StatsCards from '@/Components/StatsCards';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import StatsCards from '@/Components/UI/StatsCards';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 
 const TenantManagement = ({ title }) => {

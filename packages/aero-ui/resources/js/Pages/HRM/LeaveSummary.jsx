@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+﻿import React, {useCallback, useMemo, useState} from 'react';
 import {Head, router} from '@inertiajs/react';
 import {route} from 'ziggy-js';
 import {motion} from 'framer-motion';
@@ -36,11 +36,11 @@ import {
     TableRow,
     Tabs
 } from "@heroui/react";
-import StatsCards from "@/Components/StatsCards.jsx";
+import StatsCards from "@/Components/UI/StatsCards";
 import LeaveAnalytics from "@/Components/Leave/LeaveAnalytics.jsx";
 import {useTheme} from '@/Context/ThemeContext.jsx';
-import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
-import {useHRMAC} from '@/Hooks/useHRMAC';
+import {useThemeRadius} from '@/Hooks/theme/useThemeRadius';
+import {useHRMAC} from '@/Hooks/access/useHRMAC';
 import App from "@/Layouts/App.jsx";
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import axios from 'axios';

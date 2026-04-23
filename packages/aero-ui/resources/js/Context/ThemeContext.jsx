@@ -1,9 +1,9 @@
-import React, { createContext, useContext, useState, useLayoutEffect } from 'react';
+﻿import React, { createContext, useContext, useState, useLayoutEffect } from 'react';
 import { applyThemeToDocument, resolveEffectiveMode, VALID_MODES } from '../theme/index';
 import { getCardStyle, getCardStyleOptions, CARD_STYLES, validateThemeContrast } from '../theme/cardStyles';
 import { getThemePresetOptions, applyThemePreset } from '../theme/themePresets';
 import { BACKGROUND_PRESETS } from '../theme/backgroundPresets';
-import { getThemeRadius, getStatusColor, STATUS_COLORS } from '../utils/themeUtils';
+import { getThemeRadius, getStatusColor, STATUS_COLORS } from '../utils/theme/themeUtils';
 import { 
   normalizeTheme, 
   validateTheme, 
@@ -12,7 +12,7 @@ import {
   getDefaultTheme,
   THEME_STORAGE_KEY,
   VALID_MODES as SAFE_THEME_MODES
-} from '../utils/safeTheme';
+} from '../utils/theme/safeTheme';
 
 const ThemeContext = createContext();
 

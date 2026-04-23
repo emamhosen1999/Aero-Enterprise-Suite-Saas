@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     Button,
@@ -26,10 +26,10 @@ import {
     UserGroupIcon,
 } from "@heroicons/react/24/outline";
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
-import StatsCards from '@/Components/StatsCards.jsx';
-import { showToast } from '@/utils/toastUtils.jsx';
-import { useHRMAC } from '@/Hooks/useHRMAC';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import StatsCards from '@/Components/UI/StatsCards';
+import { showToast } from '@/utils/ui/toastUtils';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 import { motion } from 'framer-motion';
 
 const SharedDocuments = ({ documents = { data: [], current_page: 1, last_page: 1 } }) => {

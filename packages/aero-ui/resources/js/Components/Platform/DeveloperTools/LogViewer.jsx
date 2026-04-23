@@ -1,7 +1,7 @@
-import React from 'react';
+﻿import React from 'react';
 import { Card, CardBody, CardHeader, Select, SelectItem, Input, Button, Chip, Switch, Checkbox } from '@heroui/react';
 import { MagnifyingGlassIcon, ArrowDownTrayIcon, TrashIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 import axios from 'axios';
 
 export default function LogViewer() {

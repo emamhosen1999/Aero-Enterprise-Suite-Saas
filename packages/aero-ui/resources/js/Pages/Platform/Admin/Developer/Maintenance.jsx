@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+﻿import React, { useState, useCallback } from 'react';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import App from '@/Layouts/App';
 import {
@@ -34,8 +34,8 @@ import {
   PhoneIcon,
 } from '@heroicons/react/24/outline';
 import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid';
-import { showToast } from '@/utils/toastUtils.jsx';
-import { hasRoute } from '@/utils/routeUtils';
+import { showToast } from '@/utils/ui/toastUtils';
+import { hasRoute } from '@/utils/routing/routeUtils';
 
 // Consistent styling from existing admin pages
 const mainCardStyle = {

@@ -1,8 +1,8 @@
-import React, { useState, useCallback } from 'react';
+﻿import React, { useState, useCallback } from 'react';
 import { Button, Card, CardBody, CardHeader, Chip, Spinner } from "@heroui/react";
 import { DevicePhoneMobileIcon, TrashIcon, ShieldCheckIcon } from "@heroicons/react/24/outline";
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils.jsx';
+import { showToast } from '@/utils/ui/toastUtils';
 
 /**
  * TrustedDevicesCard Component

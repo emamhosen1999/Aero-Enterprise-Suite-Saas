@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem, Textarea, Checkbox, Progress, Card, CardBody, Chip } from "@heroui/react";
 import { CheckCircleIcon, ClockIcon, XCircleIcon } from '@heroicons/react/24/outline';
-import { TIMEZONES } from '@/utils/timezones';
-import { showToast } from '@/utils/toastUtils';
+import { TIMEZONES } from '@/utils/date/timezones';
+import { showToast } from '@/utils/ui/toastUtils';
 import { router } from '@inertiajs/react';
 import axios from 'axios';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 export default function OnboardingWizard({ open, onClose, plans = [], templates = [] }) {
     const [currentStep, setCurrentStep] = useState(1);

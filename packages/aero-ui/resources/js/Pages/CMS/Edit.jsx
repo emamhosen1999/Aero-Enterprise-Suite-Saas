@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -45,7 +45,7 @@ import BlockSettings from '@/Components/Cms/BlockSettings';
 import PageSettings from '@/Components/Cms/PageSettings';
 import BlockRenderer from '@/Blocks/BlockRenderer';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils.jsx';
+import { showToast } from '@/utils/ui/toastUtils';
 
 // Block categories for the palette
 const BLOCK_CATEGORIES = [

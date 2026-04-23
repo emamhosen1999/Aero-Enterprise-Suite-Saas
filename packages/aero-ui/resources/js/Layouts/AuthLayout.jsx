@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/Context/ThemeContext';
 import { Card } from '@heroui/react';
-import { useBranding } from '@/Hooks/useBranding';
+import { useBranding } from '@/Hooks/theme/useBranding';
 import MaintenanceModeBanner from '@/Components/Platform/MaintenanceModeBanner.jsx';
 
 

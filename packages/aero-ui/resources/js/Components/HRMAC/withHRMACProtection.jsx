@@ -1,4 +1,4 @@
-/**
+﻿/**
  * withHRMACProtection Higher-Order Component
  * 
  * Automatically protects a page component with HRMAC access checks.
@@ -8,9 +8,9 @@
 
 import React from 'react';
 import { usePage, router } from '@inertiajs/react';
-import { hasAccess, isSuperAdmin } from '@/utils/moduleAccessUtils';
+import { hasAccess, isSuperAdmin } from '@/utils/routing/moduleAccessUtils';
 import { Card, CardBody, CardHeader, Button, Chip } from '@heroui/react';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 import {
     LockClosedIcon, 
     HomeIcon,

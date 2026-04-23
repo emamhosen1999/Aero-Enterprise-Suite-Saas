@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from "react";
+﻿import React, {useCallback, useState} from "react";
 import {
     BriefcaseIcon,
     CalendarDaysIcon,
@@ -12,11 +12,11 @@ import {
     TrashIcon,
     UserIcon
 } from '@heroicons/react/24/outline';
-import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import {useMediaQuery} from '@/Hooks/utils/useMediaQuery';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 import {usePage} from "@inertiajs/react";
-import {showToast} from '@/utils/toastUtils';
-import {getProfileAvatarTokens} from '@/Components/ProfileAvatar';
+import {showToast} from '@/utils/ui/toastUtils';
+import {getProfileAvatarTokens} from '@/Components/Profile/ProfileAvatar';
 import {
     Button,
     Card,
@@ -48,7 +48,7 @@ import {
 import axios from 'axios';
 import {PhoneOff} from "lucide-react";
 import ApprovalActions from '@/Components/Leave/ApprovalActions.jsx';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 
 const LeaveEmployeeTable = React.forwardRef(({

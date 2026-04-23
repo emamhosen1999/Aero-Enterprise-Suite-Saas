@@ -1,7 +1,7 @@
-import React from 'react';
+﻿import React from 'react';
 import { useForm } from '@inertiajs/react';
 import { Button, Input, Textarea, Checkbox, CheckboxGroup } from '@heroui/react';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 
 const plans = [
   { value: 'starter', label: 'Starter' },

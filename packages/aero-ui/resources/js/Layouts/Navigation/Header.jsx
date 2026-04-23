@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Header — Premium glassmorphic header
  *
  * Visual language matches Sidebar (blur, saturation, accent strips, glow rings).
@@ -42,9 +42,9 @@ import {
 
 import { useNavigation } from './NavigationProvider';
 import { getMenuItemUrl, isItemActive, navigateToItem, getMenuItemId, hasRoute, normalizePath } from './navigationUtils.jsx';
-import { useBranding } from '@/Hooks/useBranding';
-import ProfileAvatar from '@/Components/ProfileAvatar';
-import LanguageSwitcher from '@/Components/LanguageSwitcher';
+import { useBranding } from '@/Hooks/theme/useBranding';
+import ProfileAvatar from '@/Components/Profile/ProfileAvatar';
+import LanguageSwitcher from '@/Components/Navigation/LanguageSwitcher';
 import { useTheme } from '@/Context/ThemeContext';
 
 const safeRoute = (routeName, fallback = '#') => {

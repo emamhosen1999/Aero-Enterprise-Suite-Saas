@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+﻿import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -30,12 +30,12 @@ import {
     Tooltip,
     Spinner
 } from '@heroui/react';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 import { useTheme } from '@/Context/ThemeContext';
-import { getDeviceId, getDeviceHeaders } from '@/utils/deviceAuth';
+import { getDeviceId, getDeviceHeaders } from '@/utils/security/deviceAuth';
 import SocialLoginButtons from '@/Components/Auth/SocialLoginButtons';
-import { useBranding } from '@/Hooks/useBranding';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useBranding } from '@/Hooks/theme/useBranding';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 /**
  * Enterprise Login Component for ERP System

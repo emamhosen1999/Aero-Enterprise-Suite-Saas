@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import UnifiedInstallationLayout from '@/Layouts/UnifiedInstallationLayout';
 import { Card, CardHeader, CardBody, CardFooter, Button, Chip } from '@heroui/react';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 import { 
     RocketLaunchIcon, 
     ServerIcon, 

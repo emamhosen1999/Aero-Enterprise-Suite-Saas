@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+﻿import React, {useEffect, useState} from 'react';
 import {
     Button,
     Chip,
@@ -13,10 +13,10 @@ import {
     Textarea
 } from "@heroui/react";
 import {CalendarIcon, MapPinIcon, UserIcon, UsersIcon} from 'lucide-react';
-import {showToast} from "@/utils/toastUtils";
+import {showToast} from "@/utils/ui/toastUtils";
 import {usePage} from "@inertiajs/react";
 import axios from 'axios';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const TrainingForm = ({
     open,

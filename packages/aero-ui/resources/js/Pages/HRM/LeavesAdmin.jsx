@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+﻿import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Head, usePage} from '@inertiajs/react';
 import {motion} from 'framer-motion';
 import {Button, ButtonGroup, Card, CardBody, CardHeader, Chip, Input, Select, SelectItem, Spinner} from "@heroui/react";
@@ -19,7 +19,7 @@ import {
 import {MagnifyingGlassIcon} from '@heroicons/react/24/solid';
 import App from '@/Layouts/App.jsx';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
-import StatsCards from '@/Components/StatsCards.jsx';
+import StatsCards from '@/Components/UI/StatsCards';
 import LeaveEmployeeTable from '@/Tables/HRM/LeaveEmployeeTable.jsx';
 import LeaveForm from '@/Forms/HRM/LeaveForm.jsx';
 import DeleteLeaveForm from '@/Forms/HRM/DeleteLeaveForm.jsx';
@@ -27,9 +27,9 @@ import BulkLeaveModal from '@/Components/HRM/BulkLeave/BulkLeaveModal.jsx';
 import BulkDeleteModal from '@/Components/HRM/BulkDelete/BulkDeleteModal.jsx';
 import dayjs from 'dayjs';
 import axios from 'axios';
-import {showToast} from '@/utils/toastUtils.jsx';
-import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import {showToast} from '@/utils/ui/toastUtils';
+import {useThemeRadius} from '@/Hooks/theme/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 
 
 const LeavesAdmin = ({ title, allUsers }) => {

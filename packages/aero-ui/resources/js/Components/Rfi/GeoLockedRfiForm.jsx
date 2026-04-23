@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+﻿import React, { useCallback, useEffect, useState } from 'react';
 import {
     Modal,
     ModalContent,
@@ -22,7 +22,7 @@ import {
     ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils.jsx';
+import { showToast } from '@/utils/ui/toastUtils';
 import { useForm } from '@inertiajs/react';
 
 /**

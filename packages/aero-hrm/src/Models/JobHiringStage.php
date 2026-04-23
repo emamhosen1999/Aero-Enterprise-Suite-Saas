@@ -15,6 +15,7 @@ class JobHiringStage extends Model
         'name',
         'description',
         'sequence',
+        'stage_order',       // kept for backward compat — mirrors sequence
         'is_active',
         'required_actions',
         'requires_approval',

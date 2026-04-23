@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
@@ -28,8 +28,8 @@ import {
     UserIcon,
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
-import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import {useThemeRadius} from '@/Hooks/theme/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 
 const TicketsIndex = ({ tickets = [], agents = [], auth }) => {
     const { auth: pageAuth } = usePage().props;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Head, usePage, router } from "@inertiajs/react";
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -65,13 +65,13 @@ import {
     GlobeAltIcon,
     Squares2X2Icon
 } from "@heroicons/react/24/outline";
-import StatsCards from '@/Components/StatsCards';
+import StatsCards from '@/Components/UI/StatsCards';
 import App from '@/Layouts/App';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils';
-import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
-import useMediaQuery from '@/Hooks/useMediaQuery';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { showToast } from '@/utils/ui/toastUtils';
+import {useThemeRadius} from '@/Hooks/theme/useThemeRadius';
+import useMediaQuery from '@/Hooks/utils/useMediaQuery';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 
 // Component type icons mapping
 const componentTypeIcons = {

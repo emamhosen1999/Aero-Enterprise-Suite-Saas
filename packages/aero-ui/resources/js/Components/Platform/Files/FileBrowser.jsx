@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { router } from '@inertiajs/react';
 import {
     Card,
@@ -43,7 +43,7 @@ import {
     PencilIcon,
     ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 
 export default function FileBrowser({ files = [], currentPath = '/', onUpload, onPathChange }) {
     const [viewMode, setViewMode] = useState('list'); // list, grid, tree

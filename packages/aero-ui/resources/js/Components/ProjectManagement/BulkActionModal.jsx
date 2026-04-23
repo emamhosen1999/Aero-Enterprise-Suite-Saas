@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import { router } from '@inertiajs/react';
-import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routing/routeUtils';
 import {
     Modal,
     ModalContent,
@@ -42,8 +42,8 @@ import {
     ExclamationTriangleIcon,
     InformationCircleIcon,
 } from '@heroicons/react/24/outline';
-import { showToast } from '@/utils/toastUtils';
-import ProfileAvatar from '@/Components/ProfileAvatar';
+import { showToast } from '@/utils/ui/toastUtils';
+import ProfileAvatar from '@/Components/Profile/ProfileAvatar';
 
 const BulkActionModal = ({ 
     isOpen, 

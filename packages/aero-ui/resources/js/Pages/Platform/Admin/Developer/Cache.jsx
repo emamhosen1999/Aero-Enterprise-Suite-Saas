@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Head } from '@inertiajs/react';
 import { Card, CardBody, CardHeader, Button, Chip } from "@heroui/react";
 import { CircleStackIcon, TrashIcon } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
-import PageHeader from "@/Components/PageHeader.jsx";
-import StatsCards from "@/Components/StatsCards.jsx";
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import PageHeader from "@/Components/Common/PageHeader";
+import StatsCards from "@/Components/UI/StatsCards";
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const Cache = ({ auth }) => {
     const [isMobile, setIsMobile] = useState(false);

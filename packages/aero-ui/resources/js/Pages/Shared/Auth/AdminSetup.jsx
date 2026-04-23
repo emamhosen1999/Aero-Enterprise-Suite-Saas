@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+﻿import React, { useEffect, useState, useMemo } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import { 
     Button, 
@@ -16,7 +16,7 @@ import {
     LockClosedIcon, 
     BuildingOfficeIcon
 } from '@heroicons/react/24/outline';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 
 /**
  * AdminSetup - Create initial admin user for newly provisioned tenant

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import {
     Button,
@@ -34,10 +34,10 @@ import App from '@/Layouts/App.jsx';
 import { motion } from 'framer-motion';
 import { getThemedCardStyle } from '@/Components/UI/ThemedCard.jsx';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils.jsx';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
-import { useHRMAC } from '@/Hooks/useHRMAC';
-import StatsCards from '@/Components/StatsCards.jsx';
+import { showToast } from '@/utils/ui/toastUtils';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
+import StatsCards from '@/Components/UI/StatsCards';
 
 const ExpenseCategoriesIndex = ({ title }) => {
     const { auth } = usePage().props;

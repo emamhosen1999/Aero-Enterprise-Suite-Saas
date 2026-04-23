@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import {
     Card,
     CardBody,
@@ -28,9 +28,9 @@ import {
     DocumentTextIcon,
     Cog6ToothIcon
 } from '@heroicons/react/24/outline';
-import { showToast } from "@/utils/toastUtils";
-import StatsCards from '@/Components/StatsCards.jsx';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { showToast } from "@/utils/ui/toastUtils";
+import StatsCards from '@/Components/UI/StatsCards';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const HRMSettings = ({ title, activeTab = 0 }) => {
     const [selectedTab, setSelectedTab] = useState(String(activeTab));

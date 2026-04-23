@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { Head } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { BanknotesIcon } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
 import DynamicWidgetRenderer from '@/Components/DynamicWidgets/DynamicWidgetRenderer';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 
 /**
  * Finance Dashboard - Dynamic Widgets Only

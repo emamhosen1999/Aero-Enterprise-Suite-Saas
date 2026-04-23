@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import App from '@/Layouts/App';
 import axios from 'axios';
@@ -35,8 +35,8 @@ import {
     ClockIcon,
     ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
-import { showToast } from '@/utils/toastUtils';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { showToast } from '@/utils/ui/toastUtils';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const NotificationSettings = ({ title }) => {
     const { auth } = usePage().props;

@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Head, usePage, router } from '@inertiajs/react';
-import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routing/routeUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Button,
@@ -31,12 +31,12 @@ import {
 } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App';
 import PageHeader from '@/Components/Common/PageHeader';
-import StatsCards from '@/Components/Common/StatsCards';
+import StatsCards from '@/Components/UI/StatsCards';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 import dayjs from 'dayjs';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 
 const EventsIndex = ({ events: initialEvents, filters: initialFilters }) => {
     const { auth } = usePage().props;

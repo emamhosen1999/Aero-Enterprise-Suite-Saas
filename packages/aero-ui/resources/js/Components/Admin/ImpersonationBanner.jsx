@@ -1,6 +1,6 @@
-import React from 'react';
+﻿import React from 'react';
 import { usePage, router } from '@inertiajs/react';
-import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routing/routeUtils';
 import { Button } from '@heroui/react';
 import { motion, AnimatePresence } from 'framer-motion';
 

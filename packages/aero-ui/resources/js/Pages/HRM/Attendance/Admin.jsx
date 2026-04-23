@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+﻿import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Head} from '@inertiajs/react';
 import { 
     Button, 
@@ -24,14 +24,14 @@ import {
     XCircleIcon
 } from "@heroicons/react/24/outline";
 import {MagnifyingGlassIcon} from '@heroicons/react/24/solid';
-import StatsCards from '@/Components/StatsCards.jsx';
+import StatsCards from '@/Components/UI/StatsCards';
 import App from "@/Layouts/App.jsx";
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import AttendanceAdminTable from '@/Tables/HRM/AttendanceAdminTable.jsx';
-import { useHRMAC } from '@/Hooks/useHRMAC';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 import axios from "axios";
-import { showToast } from "@/utils/toastUtils";
+import { showToast } from "@/utils/ui/toastUtils";
 import dayjs from "dayjs";
 
 const AttendanceAdmin = React.memo(({title}) => {

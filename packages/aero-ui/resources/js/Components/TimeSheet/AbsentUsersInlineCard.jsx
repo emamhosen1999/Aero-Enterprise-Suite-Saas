@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import {
     Input,
     Button,
@@ -22,9 +22,9 @@ import {
 } from '@heroicons/react/24/outline';
 
 
-import PageHeader from '@/Components/PageHeader';
-import ProfileAvatar from '@/Components/ProfileAvatar';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import PageHeader from '@/Components/Common/PageHeader';
+import ProfileAvatar from '@/Components/Profile/ProfileAvatar';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 
 // Inline AbsentUsersCard component for the combined layout

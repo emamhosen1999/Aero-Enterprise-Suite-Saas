@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import {
     Button,
@@ -20,9 +20,9 @@ import {
     ArrowLeftIcon
 } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
-import { useHRMAC } from '@/Hooks/useHRMAC';
-import { showToast } from '@/utils/toastUtils';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
+import { showToast } from '@/utils/ui/toastUtils';
 import { router } from '@inertiajs/react';
 
 const CreatePayroll = ({ title, employees, allowanceTypes, deductionTypes }) => {

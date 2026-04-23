@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { router } from '@inertiajs/react';
 import {
     Card,
@@ -33,8 +33,8 @@ import {
     EllipsisVerticalIcon,
     DocumentDuplicateIcon,
 } from "@heroicons/react/24/outline";
-import { showToast } from '@/utils/toastUtils';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { showToast } from '@/utils/ui/toastUtils';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const NotificationTemplates = ({ templates: initialTemplates = [], channels = [] }) => {
     const [templates, setTemplates] = useState(initialTemplates);

@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import { Card, CardHeader, CardBody, Input, Slider, Switch, Select, SelectItem, Button } from '@heroui/react';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 
-import PageHeader from '@/Components/PageHeader';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import PageHeader from '@/Components/Common/PageHeader';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 export default function Settings({ title, settings: initialSettings }) {
     const [settings, setSettings] = useState(initialSettings || {

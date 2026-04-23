@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import App from '@/Layouts/App';
@@ -21,11 +21,11 @@ import {
     useDisclosure,
 } from '@heroui/react';
 import { EnvelopeIcon, DevicePhoneMobileIcon, CurrencyDollarIcon, MoonIcon, SunIcon } from '@heroicons/react/24/outline';
-import { showToast } from '@/utils/toastUtils';
-import { hasRoute } from '@/utils/routeUtils';
+import { showToast } from '@/utils/ui/toastUtils';
+import { hasRoute } from '@/utils/routing/routeUtils';
 import { Select, SelectItem } from '@heroui/react';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 
 const fieldClass = 'grid grid-cols-1 md:grid-cols-2 gap-4';
 

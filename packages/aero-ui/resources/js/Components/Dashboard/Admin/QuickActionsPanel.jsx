@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Card, CardBody, CardHeader, Button, Divider } from '@heroui/react';
 import {
     BoltIcon, UserPlusIcon, EnvelopeIcon, ShieldCheckIcon,
@@ -6,7 +6,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { getThemedCardStyle } from '@/Components/UI/ThemedCard';
 import { router } from '@inertiajs/react';
-import { hasRoute } from '@/utils/routeUtils';
+import { hasRoute } from '@/utils/routing/routeUtils';
 
 const iconMap = {
     UserPlusIcon: <UserPlusIcon className="w-4 h-4" />,

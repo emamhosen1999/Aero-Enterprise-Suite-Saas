@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Head, useForm, usePage, router } from '@inertiajs/react';
 import App from '@/Layouts/App';
 import axios from 'axios';
@@ -18,7 +18,7 @@ import {
   useDisclosure,
 } from '@heroui/react';
 import { Cog6ToothIcon, EnvelopeIcon, DevicePhoneMobileIcon } from '@heroicons/react/24/outline';
-import { showToast } from '@/utils/toastUtils.jsx';
+import { showToast } from '@/utils/ui/toastUtils';
 
 const mainCardStyle = {
   border: `var(--borderWidth, 2px) solid transparent`,

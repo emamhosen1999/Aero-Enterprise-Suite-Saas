@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { Head, usePage } from "@inertiajs/react";
 import { motion } from 'framer-motion';
 import {
@@ -39,11 +39,11 @@ import {
   DocumentTextIcon
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
-import StatsCards from "@/Components/StatsCards.jsx";
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import StatsCards from "@/Components/UI/StatsCards";
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 
 const FileManagerIndex = () => {
   const { title } = usePage().props;

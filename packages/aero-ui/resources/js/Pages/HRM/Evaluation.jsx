@@ -1,6 +1,6 @@
-import React from 'react';
+﻿import React from 'react';
 import {Head, router, useForm} from '@inertiajs/react';
-import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routing/routeUtils';
 import {
     Avatar,
     Button,
@@ -16,9 +16,9 @@ import {
 } from '@heroui/react';
 import {ArrowLeftIcon} from '@heroicons/react/24/outline';
 import App from '@/Layouts/App';
-import PageHeader from '@/Components/PageHeader';
-import {showToast} from '@/utils/toastUtils';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import PageHeader from '@/Components/Common/PageHeader';
+import {showToast} from '@/utils/ui/toastUtils';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 
 /**
  * Candidate Evaluation Form

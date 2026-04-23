@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Head, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { Card, CardBody, CardHeader, Button, Chip } from "@heroui/react";
@@ -7,7 +7,7 @@ import {
     MapPinIcon, UserIcon, DocumentTextIcon
 } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const statusColorMap = {
     scheduled: 'primary',

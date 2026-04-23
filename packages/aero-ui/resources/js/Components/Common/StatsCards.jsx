@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { 
     UserGroupIcon, 
     KeyIcon, 
@@ -6,7 +6,7 @@ import {
     ChartBarIcon 
 } from '@heroicons/react/24/outline';
 
-import StatsCards from '@/Components/StatsCards.jsx';
+import StatsCards from '@/Components/UI/StatsCards';
 
 const RolePermissionStatsCards = ({ stats = {} }) => {
     const items = [

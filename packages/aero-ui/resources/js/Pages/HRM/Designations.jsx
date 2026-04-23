@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+﻿import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Head, usePage} from '@inertiajs/react';
 import {Button, Card, Input, Select, SelectItem, Spinner} from "@heroui/react";
 import {
@@ -9,17 +9,17 @@ import {
     UserGroupIcon,
     XCircleIcon
 } from '@heroicons/react/24/outline';
-import StatsCards from '@/Components/StatsCards.jsx';
+import StatsCards from '@/Components/UI/StatsCards';
 import App from '@/Layouts/App.jsx';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import DesignationTable from '@/Tables/HRM/DesignationTable.jsx';
 import DesignationForm from '@/Forms/HRM/DesignationForm.jsx';
 import DeleteDesignationForm from '@/Forms/HRM/DeleteDesignationForm.jsx';
-import {usePermissions} from '@/Hooks/usePermissions.js';
-import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
+import {usePermissions} from '@/Hooks/access/usePermissions';
+import {useThemeRadius} from '@/Hooks/theme/useThemeRadius';
 import axios from 'axios';
-import {showToast} from '@/utils/toastUtils.jsx';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import {showToast} from '@/utils/ui/toastUtils';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 
 const Designations = ({ title, initialDesignations, departments, managers, parentDesignations, allDesignations, stats: initialStats, filters: initialFilters }) => {
     const { auth } = usePage().props;

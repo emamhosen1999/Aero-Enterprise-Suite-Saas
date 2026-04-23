@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
-import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routing/routeUtils';
 import { motion } from 'framer-motion';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 import App from '@/Layouts/App';
-import StatsCards from '@/Components/Common/StatsCards';
+import StatsCards from '@/Components/UI/StatsCards';
 import {
     Select,
     SelectItem,
@@ -38,7 +38,7 @@ import {
     Legend,
     ResponsiveContainer
 } from 'recharts';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 
 const Analytics = ({ auth, event, analytics }) => {
     const { auth: pageAuth } = usePage().props;

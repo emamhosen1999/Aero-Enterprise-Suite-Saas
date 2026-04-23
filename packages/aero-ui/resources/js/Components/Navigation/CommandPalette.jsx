@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+﻿import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { router, usePage, Link } from '@inertiajs/react';
-import { hasRoute, safeNavigate } from '@/utils/routeUtils';
+import { hasRoute, safeNavigate } from '@/utils/routing/routeUtils';
 import { useNavigation } from '@/Layouts/Navigation/NavigationProvider';
 import {
   Modal,

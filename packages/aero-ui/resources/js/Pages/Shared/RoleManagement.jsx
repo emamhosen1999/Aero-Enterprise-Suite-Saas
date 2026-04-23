@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+﻿import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Head, usePage, router } from "@inertiajs/react";
 import { motion } from 'framer-motion';
 import { 
@@ -24,7 +24,7 @@ import {
   Switch
 } from "@heroui/react";
 import { useTheme } from '@/Context/ThemeContext.jsx';
-import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
+import {useThemeRadius} from '@/Hooks/theme/useThemeRadius';
 import { 
   UserGroupIcon, 
   ShieldCheckIcon,
@@ -40,13 +40,13 @@ import {
   XCircleIcon,
   KeyIcon 
 } from "@heroicons/react/24/outline";
-import StatsCards from '@/Components/Common/StatsCards';
-import RolesTable from '@/Tables/RolesTable.jsx';
-import UserRolesTable from '@/Tables/UserRolesTable.jsx';
+import StatsCards from '@/Components/UI/StatsCards';
+import RolesTable from '@/Tables/Admin/RolesTable.jsx';
+import UserRolesTable from '@/Tables/Admin/UserRolesTable.jsx';
 import App from '@/Layouts/App';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { showToast } from '@/utils/ui/toastUtils';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 
 // Utility functions
 const normalizeArray = (arr) => Array.isArray(arr) ? [...arr] : [];

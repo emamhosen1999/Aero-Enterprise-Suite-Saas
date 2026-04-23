@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
     Modal,
     ModalContent,
@@ -26,7 +26,7 @@ import {
     ChevronUpIcon,
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 
 export default function BulkOnboardModal({
     open,

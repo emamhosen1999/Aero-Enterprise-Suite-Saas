@@ -10,7 +10,7 @@ import StatsSection from './Components/StatsSection';
 import CTASection from './Components/CTASection';
 import TestimonialsSection from './Components/TestimonialsSection';
 
-export default function Home({ title = 'aeos365 — Modern ERP Platform' }) {
+export default function Home({ title = 'Modern ERP Platform' }) {
     return (
         <>
             <Head title={title} />

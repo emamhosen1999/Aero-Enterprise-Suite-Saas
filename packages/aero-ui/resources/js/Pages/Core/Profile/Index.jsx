@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { Card, CardBody, CardHeader, Button } from '@heroui/react';
 import App from '@/Layouts/App.jsx';
 import { ShieldCheckIcon, UserIcon } from '@heroicons/react/24/outline';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 
 const ProfileIndex = ({ title = 'My Profile', user }) => {
   const themeRadius = useThemeRadius();

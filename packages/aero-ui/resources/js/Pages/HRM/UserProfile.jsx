@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+﻿import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Button, ButtonGroup, Card, CardBody, Chip, Input, Select, Spinner, Tab, Tabs} from "@heroui/react";
 
 import {
@@ -35,13 +35,13 @@ import {
     UsersIcon
 } from "@heroicons/react/24/outline";
 import {Head, usePage, router} from "@inertiajs/react";
-import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routing/routeUtils';
 import App from "@/Layouts/App.jsx";
-import PageHeader from "@/Components/PageHeader.jsx";
-import StatsCards from "@/Components/StatsCards.jsx";
-import EnhancedProfileCard from "@/Components/EnhancedProfileCard.jsx";
-import ProfileSection from "@/Components/ProfileSection.jsx";
-import InfoRow from "@/Components/InfoRow.jsx";
+import PageHeader from "@/Components/Common/PageHeader";
+import StatsCards from "@/Components/UI/StatsCards";
+import EnhancedProfileCard from "@/Components/Profile/EnhancedProfileCard";
+import ProfileSection from "@/Components/Profile/ProfileSection";
+import InfoRow from "@/Components/UI/InfoRow";
 import ProfileForm from "@/Forms/HRM/ProfileForm.jsx";
 import PersonalInformationForm from "@/Forms/HRM/PersonalInformationForm.jsx";
 import EmergencyContactForm from "@/Forms/HRM/EmergencyContactForm.jsx";
@@ -51,9 +51,9 @@ import EducationInformationDialog from "@/Forms/HRM/EducationInformationForm.jsx
 import ExperienceInformationForm from "@/Forms/HRM/ExperienceInformationForm.jsx";
 import SalaryInformationForm from "@/Forms/HRM/SalaryInformationForm.jsx";
 import axios from 'axios';
-import {showToast} from '@/utils/toastUtils';
+import {showToast} from '@/utils/ui/toastUtils';
 import dayjs from 'dayjs';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 import {AnimatePresence, motion} from 'framer-motion';
 
 const projects = [

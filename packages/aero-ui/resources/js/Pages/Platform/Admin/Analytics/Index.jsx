@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Head } from '@inertiajs/react';
 import App from '@/Layouts/App';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 import {
   ChartBarSquareIcon,
   ArrowTrendingUpIcon,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
     Card,
     CardBody,
@@ -12,7 +12,7 @@ import {
 } from '@heroui/react';
 import { EnvelopeIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils';
+import { showToast } from '@/utils/ui/toastUtils';
 
 const AdvancedContactFormBlock = ({ data = {} }) => {
     const [formData, setFormData] = useState({});

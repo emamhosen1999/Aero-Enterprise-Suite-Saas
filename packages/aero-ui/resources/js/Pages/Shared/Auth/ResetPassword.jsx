@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { 
@@ -11,8 +11,8 @@ import {
 } from '@heroicons/react/24/outline';
 import { Input, Button, Card, Progress } from '@heroui/react';
 import { useTheme } from '@/Context/ThemeContext';
-import { useBranding } from '@/Hooks/useBranding';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useBranding } from '@/Hooks/theme/useBranding';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 /**
  * Reset Password Component

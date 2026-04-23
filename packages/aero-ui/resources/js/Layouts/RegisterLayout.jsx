@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo } from 'react';
+﻿import React, { useEffect, useMemo } from 'react';
 import { Link } from '@inertiajs/react';
 import SafeLink from '@/Components/Common/SafeLink';
-import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routing/routeUtils';
 import { useTheme } from '@/Context/ThemeContext.jsx';
-import { useBranding } from '@/Hooks/useBranding.js';
+import { useBranding } from '@/Hooks/theme/useBranding';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';

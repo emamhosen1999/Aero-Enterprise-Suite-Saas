@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { SparklesIcon } from '@heroicons/react/24/outline';
 import { Card, CardBody } from '@heroui/react';
 import App from "@/Layouts/App.jsx";
 import ModuleSummaryWidget from "@/Components/Dashboard/ModuleSummaryWidget.jsx";
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 
 // Static dashboard widgets
 import WelcomeWidget from '@/Widgets/Core/WelcomeWidget';

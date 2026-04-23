@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+﻿import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Head, usePage} from '@inertiajs/react';
 import {motion} from 'framer-motion';
 import {Button, ButtonGroup, Card, CardBody, Chip, Input, Pagination, Select, SelectItem, Spinner} from "@heroui/react";
@@ -19,18 +19,18 @@ import {
     UsersIcon,
     XCircleIcon
 } from '@heroicons/react/24/outline';
-import StatsCards from '@/Components/StatsCards.jsx';
+import StatsCards from '@/Components/UI/StatsCards';
 import App from '@/Layouts/App.jsx';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import DepartmentTable from '@/Tables/HRM/DepartmentTable.jsx';
 import DepartmentForm from '@/Forms/HRM/DepartmentForm.jsx';
 import DeleteDepartmentForm from '@/Forms/HRM/DeleteDepartmentForm.jsx';
 import {useTheme} from '@/Context/ThemeContext.jsx';
-import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
+import {useThemeRadius} from '@/Hooks/theme/useThemeRadius';
 import axios from 'axios';
-import {showToast} from '@/utils/toastUtils.jsx';
+import {showToast} from '@/utils/ui/toastUtils';
 import dayjs from 'dayjs';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 
 const Departments = ({ title, departments: initialDepartments, managers, parentDepartments, stats: initialStats, filters: initialFilters }) => {
     const { auth } = usePage().props;

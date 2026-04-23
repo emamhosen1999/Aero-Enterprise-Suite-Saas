@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import { usePage, router } from '@inertiajs/react';
 import { Card, CardBody, Button, Chip } from '@heroui/react';
 import {
@@ -7,8 +7,8 @@ import {
     DocumentTextIcon, AcademicCapIcon, ShieldCheckIcon, ChartBarIcon,
     ArrowUpRightIcon, LockClosedIcon,
 } from '@heroicons/react/24/outline';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
-import { hasRoute } from '@/utils/routeUtils';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
+import { hasRoute } from '@/utils/routing/routeUtils';
 
 /**
  * Module metadata — icon, color, description, route.

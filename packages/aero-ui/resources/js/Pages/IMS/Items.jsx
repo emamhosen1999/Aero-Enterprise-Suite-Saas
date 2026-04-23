@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
@@ -32,8 +32,8 @@ import {
     QrCodeIcon,
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
-import { useHRMAC } from '@/Hooks/useHRMAC';
-import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const Items = ({ items = [], categories = [], brands = [], auth }) => {
     // HRMAC permissions - TODO: Update with actual module hierarchy paths once defined

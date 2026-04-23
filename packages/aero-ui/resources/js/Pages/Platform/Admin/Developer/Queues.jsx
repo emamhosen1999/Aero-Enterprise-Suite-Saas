@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Head } from '@inertiajs/react';
 import { Card, CardBody, CardHeader, Chip } from "@heroui/react";
 import { QueueListIcon } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
-import PageHeader from "@/Components/PageHeader.jsx";
-import StatsCards from "@/Components/StatsCards.jsx";
+import PageHeader from "@/Components/Common/PageHeader";
+import StatsCards from "@/Components/UI/StatsCards";
 
 const Queues = ({ auth }) => {
     const [isMobile, setIsMobile] = useState(false);

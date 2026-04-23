@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useHRMAC } from '@/Hooks/useHRMAC';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useHRMAC } from '@/Hooks/access/useHRMAC';
 import { Head, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { Button, Card, CardBody, CardHeader, Select, SelectItem, Tabs, Tab } from "@heroui/react";
@@ -14,14 +14,14 @@ import {
     DocumentArrowDownIcon
 } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
-import StatsCards from '@/Components/StatsCards.jsx';
+import StatsCards from '@/Components/UI/StatsCards';
 import NetworkAnalyticsChart from '@/Components/Charts/NetworkAnalyticsChart.jsx';
 import TransactionVolumeChart from '@/Components/Charts/TransactionVolumeChart.jsx';
 import TokenAnalyticsChart from '@/Components/Charts/TokenAnalyticsChart.jsx';
-import BlockchainMetricsTable from '@/Tables/BlockchainMetricsTable.jsx';
+import BlockchainMetricsTable from '@/Tables/Blockchain/BlockchainMetricsTable.jsx';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils.jsx';
-import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { showToast } from '@/utils/ui/toastUtils';
+import { useThemeRadius } from '@/Hooks/theme/useThemeRadius';
 
 const BlockchainAnalytics = ({ title }) => {
     const { auth } = usePage().props;

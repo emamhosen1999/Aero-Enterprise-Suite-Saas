@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useCallback } from 'react';
+﻿import React, { useState, useMemo, useCallback } from 'react';
 import { Head, router } from '@inertiajs/react';
-import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routing/routeUtils';
 import App from '@/Layouts/App';
 import {
     Card,
@@ -37,8 +37,8 @@ import {
     XCircleIcon,
     ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
-import StatsCards from '@/Components/StatsCards';
-import { showToast } from '@/utils/toastUtils';
+import StatsCards from '@/Components/UI/StatsCards';
+import { showToast } from '@/utils/ui/toastUtils';
 
 const statusColorMap = {
     open: 'warning',
