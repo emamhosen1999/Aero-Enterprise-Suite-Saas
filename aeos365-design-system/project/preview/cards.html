@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>aeos365 — Cards & Glass</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+  body { margin: 0; padding: 56px; min-height: 100vh; position: relative; overflow-x: hidden; }
+  .bg-mesh { position: fixed; inset: 0; background: var(--aeos-grad-mesh), #03040A; pointer-events: none; z-index: -1; }
+  .bg-grid-overlay { position: fixed; inset: 0; background-image: linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px); background-size: 48px 48px; opacity: 0.4; pointer-events: none; z-index: -1; }
+  .stage { max-width: 1280px; margin: 0 auto; display: grid; gap: 48px; }
+  .kicker { font-family: var(--aeos-font-mono); font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--aeos-cyan); margin-bottom: 16px; }
+  h1 { font-family: var(--aeos-font-display); font-weight: 800; font-size: 2.4rem; letter-spacing: -0.02em; margin: 0; }
+  .lead { color: var(--aeos-ink-muted); margin-top: 8px; max-width: 600px; line-height: 1.6; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .label-tag { font-family: var(--aeos-font-mono); font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--aeos-cyan); margin-bottom: 12px; }
+  .demo-card { padding: 28px; }
+  .demo-card h4 { font-family: var(--aeos-font-display); font-weight: 600; font-size: 1.15rem; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .demo-card p { font-size: 0.9rem; line-height: 1.55; color: var(--aeos-ink-muted); margin: 0; }
+  .icon-tile { width: 44px; height: 44px; border-radius: 10px; background: rgba(0,229,255,0.10); border: 1px solid rgba(0,229,255,0.22); display: flex; align-items: center; justify-content: center; color: var(--aeos-cyan); margin-bottom: 16px; }
+  .icon-tile svg { width: 22px; height: 22px; }
+  .icon-tile-amber { background: rgba(255,179,71,0.10); border-color: rgba(255,179,71,0.22); color: var(--aeos-amber); }
+  .icon-tile-indigo { background: rgba(99,102,241,0.12); border-color: rgba(99,102,241,0.28); color: var(--aeos-indigo); }
+</style>
+</head>
+<body class="aeos">
+  <div class="bg-mesh"></div>
+  <div class="bg-grid-overlay"></div>
+
+  <div class="stage">
+    <header>
+      <div class="kicker">aeos365 / surfaces</div>
+      <h1>Five depth registers — pick by <span class="aeos-text-gradient-cyan">information weight</span>.</h1>
+      <p class="lead">Page → Card → Glass → Bento → CTA-glass. Each adds tint, blur, or glow until the surface earns its prominence.</p>
+    </header>
+
+    <!-- Glass cards -->
+    <section>
+      <div class="kicker">.aeos-glass · 70% slate · 16px blur</div>
+      <div class="grid-3">
+        <div class="aeos-glass demo-card">
+          <div class="icon-tile">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+          </div>
+          <div class="label-tag">Headcount</div>
+          <h4>Workforce planning</h4>
+          <p>Scenario-model headcount across departments and tenants without leaving the dashboard.</p>
+        </div>
+        <div class="aeos-glass demo-card">
+          <div class="icon-tile icon-tile-amber">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375M21 6c.621 0 1.125-.504 1.125-1.125V4.5"/></svg>
+          </div>
+          <div class="label-tag" style="color:var(--aeos-amber);">Payroll</div>
+          <h4>Multi-currency batches</h4>
+          <p>Run, audit, and dispute payroll batches across 47 jurisdictions in a single ledger.</p>
+        </div>
+        <div class="aeos-glass demo-card">
+          <div class="icon-tile icon-tile-indigo">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
+          </div>
+          <div class="label-tag" style="color:var(--aeos-indigo);">Analytics</div>
+          <h4>Real-time pulse</h4>
+          <p>Sparkline KPIs + drill-through to raw events. Five-second refresh on every tile.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Glass strong -->
+    <section>
+      <div class="kicker">.aeos-glass-strong · 85% obsidian · 24px blur</div>
+      <div class="grid-2">
+        <div class="aeos-glass-strong demo-card" style="padding: 36px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <span class="aeos-badge aeos-badge-cyan aeos-badge-dot">LIVE</span>
+            <span class="aeos-label-mono">Q4 · 2026</span>
+          </div>
+          <div class="aeos-stat-number" style="font-size: 3.2rem;">$2,847,392</div>
+          <div style="display:flex;align-items:baseline;gap:14px;margin-top:6px;">
+            <h4 style="margin:0;">Payroll processed this cycle</h4>
+            <span style="font-family:var(--aeos-font-mono);font-size:0.78rem;color:var(--aeos-success);">+12.4%</span>
+          </div>
+          <p style="margin-top:14px;">Across 1,247 employees in 12 entities. Net of statutory deductions, in tenant base currency.</p>
+        </div>
+        <div class="aeos-glass-strong demo-card" style="padding: 36px;">
+          <div class="label-tag">System health</div>
+          <h4 style="font-size:1.4rem;margin-bottom:16px;">All services nominal</h4>
+          <div style="display:grid;gap:10px;">
+            <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding:10px 14px;border-radius:8px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.18);">
+              <span style="display:flex;align-items:center;gap:10px;"><span style="width:6px;height:6px;border-radius:50%;background:#22C55E;box-shadow:0 0 6px #22C55E;"></span>Auth · core</span>
+              <span class="aeos-mono-num" style="color:var(--aeos-ink-muted);">12ms p99</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding:10px 14px;border-radius:8px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.18);">
+              <span style="display:flex;align-items:center;gap:10px;"><span style="width:6px;height:6px;border-radius:50%;background:#22C55E;box-shadow:0 0 6px #22C55E;"></span>Payroll engine</span>
+              <span class="aeos-mono-num" style="color:var(--aeos-ink-muted);">87ms p99</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding:10px 14px;border-radius:8px;background:rgba(255,179,71,0.06);border:1px solid rgba(255,179,71,0.22);">
+              <span style="display:flex;align-items:center;gap:10px;"><span style="width:6px;height:6px;border-radius:50%;background:var(--aeos-amber);box-shadow:0 0 6px var(--aeos-amber);"></span>Analytics ETL</span>
+              <span class="aeos-mono-num" style="color:var(--aeos-amber);">elevated · 340ms</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA glass -->
+    <section>
+      <div class="kicker">.aeos-cta-glass · full-spectrum gradient wash</div>
+      <div class="aeos-cta-glass" style="padding: 56px; text-align: center;">
+        <span class="aeos-badge aeos-badge-mono aeos-badge-dot" style="margin-bottom: 20px;">SOC 2 · TYPE II</span>
+        <h2 class="aeos-display-section" style="margin: 0 0 16px;">Deploy your first tenant in <span class="aeos-text-gradient-cyan">14 minutes</span>.</h2>
+        <p class="aeos-body-lg" style="margin: 0 auto 32px; max-width: 560px;">Provision an isolated database, seed your modules, invite your team. White-glove onboarding included on Enterprise tier.</p>
+        <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;">
+          <button class="aeos-btn aeos-btn-primary aeos-btn-lg">Start trial</button>
+          <button class="aeos-btn aeos-btn-ghost aeos-btn-lg">Book demo</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Flat card -->
+    <section>
+      <div class="kicker">.aeos-card · workhorse container</div>
+      <div class="grid-3">
+        <div class="aeos-card">
+          <div class="label-tag">Tenant</div>
+          <h4 style="margin: 0 0 12px;">Acme Holdings GmbH</h4>
+          <div style="display:grid;gap:6px;font-size:0.8rem;color:var(--aeos-ink-muted);">
+            <div style="display:flex;justify-content:space-between;"><span>Region</span><span class="aeos-mono-num">eu-central-1</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>Plan</span><span style="color:var(--aeos-cyan);">Enterprise</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>Seats</span><span class="aeos-mono-num">2,400 / 3,000</span></div>
+          </div>
+        </div>
+        <div class="aeos-card-elevated">
+          <div class="label-tag">Tenant</div>
+          <h4 style="margin: 0 0 12px;">Helix Bio Ltd.</h4>
+          <div style="display:grid;gap:6px;font-size:0.8rem;color:var(--aeos-ink-muted);">
+            <div style="display:flex;justify-content:space-between;"><span>Region</span><span class="aeos-mono-num">us-east-1</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>Plan</span><span style="color:var(--aeos-cyan);">Growth</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>Seats</span><span class="aeos-mono-num">487 / 500</span></div>
+          </div>
+        </div>
+        <div class="aeos-card" style="border-style: dashed; display: flex; align-items: center; justify-content: center; min-height: 140px; cursor: pointer;">
+          <div style="text-align: center; color: var(--aeos-ink-muted);">
+            <div style="font-size:1.5rem;color:var(--aeos-cyan);">+</div>
+            <div style="font-size:0.85rem; margin-top: 6px;">Provision new tenant</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

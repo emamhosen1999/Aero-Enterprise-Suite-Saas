@@ -1,18 +1,28 @@
-﻿import React, { createContext, useContext, useState, useLayoutEffect } from 'react';
+import React, { createContext, useContext, useState, useLayoutEffect, useMemo, useCallback } from 'react';
 import { applyThemeToDocument, resolveEffectiveMode, VALID_MODES } from '../theme/index';
-import { getCardStyle, getCardStyleOptions, CARD_STYLES, validateThemeContrast } from '../theme/cardStyles';
-import { getThemePresetOptions, applyThemePreset } from '../theme/themePresets';
-import { BACKGROUND_PRESETS } from '../theme/backgroundPresets';
-import { getThemeRadius, getStatusColor, STATUS_COLORS } from '../utils/theme/themeUtils';
-import { 
-  normalizeTheme, 
-  validateTheme, 
-  migrateTheme, 
-  cleanupLegacyKeys,
-  getDefaultTheme,
-  THEME_STORAGE_KEY,
-  VALID_MODES as SAFE_THEME_MODES
-} from '../utils/theme/safeTheme';
+
+/**
+ * aeos365 Theme Provider — v3 (Foundation Pass)
+ *
+ * The provider used to manage tenant-driven color presets, card-style
+ * variants, font choices, density, and a four-step dark scale (light / dim /
+ * dark / midnight). The aeos365 design system locks all of those decisions:
+ * one brand, one font triad, one dark-canonical palette. So the API surface
+ * here is dramatically simpler.
+ *
+ * Public state:
+ *   { mode, isDark, reduceMotion }
+ * Public actions:
+ *   { setMode, toggleMode, setReduceMotion, resetTheme }
+ *
+ * Legacy fields (themeSettings, cardStyle, typography, background, colors,
+ * layout, cardClasses, *Options, applyPreset, getThemeRadius, getStatusColor,
+ * STATUS_COLORS, CARD_STYLES) are kept as no-op shims that return aeos-on-brand
+ * defaults so pre-migration consumers keep rendering. Each call site should
+ * eventually drop these in favour of `var(--aeos-*)` tokens.
+ *
+ * @see docs/superpowers/specs/2026-04-25-aeos365-design-system-foundation-design.md
+ */
 
 const ThemeContext = createContext();
 
@@ -24,289 +34,295 @@ export const useTheme = () => {
   return context;
 };
 
-// ====================
-// EXPORTED CONSTANTS (for components)
-// ====================
+// ──────────────────────────────────────────────────────────────────────────
+// Storage
+// ──────────────────────────────────────────────────────────────────────────
 
-export const CARD_STYLE_OPTIONS = getCardStyleOptions();
-export const THEME_PRESET_OPTIONS = getThemePresetOptions();
-export const BACKGROUND_PRESET_OPTIONS = BACKGROUND_PRESETS;
-
-export const FONT_OPTIONS = [
-  { key: 'inter', name: 'Inter', value: 'Inter' },
-  { key: 'roboto', name: 'Roboto', value: 'Roboto' },
-  { key: 'outfit', name: 'Outfit', value: 'Outfit' },
-  { key: 'poppins', name: 'Poppins', value: 'Poppins' },
-  { key: 'georgia', name: 'Georgia', value: 'Georgia' },
+const STORAGE_KEY = 'aeos:theme';
+const LEGACY_KEYS = [
+  'aero-theme-v2',
+  'heroui-theme-settings',
+  'aero-theme',
+  'theme-settings',
 ];
 
-export const MODE_OPTIONS = VALID_MODES; // ['light', 'dim', 'dark', 'midnight', 'system']
+const DEFAULT_STATE = Object.freeze({
+  mode: 'aeos',          // 'aeos' | 'aeos-light' | 'system'
+  reduceMotion: false,
+});
 
-export const FONT_SIZE_OPTIONS = [
-  { key: 'sm', name: 'Small', value: 'sm' },
-  { key: 'md', name: 'Medium', value: 'md' },
-  { key: 'lg', name: 'Large', value: 'lg' },
-];
-
-// Export utility functions for components
-export { getThemeRadius, getStatusColor, STATUS_COLORS };
-
-// ====================
-// STORAGE UTILITIES
-// ====================
-
-/**
- * Read theme from storage with migration support
- */
-const readStoredTheme = () => {
-  if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
-    return getDefaultTheme();
-  }
-
-  try {
-    // Try new v2.0 key first
-    const stored = localStorage.getItem(THEME_STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      return normalizeTheme(parsed);
-    }
-
-    // Attempt migration from legacy keys
-    const migrated = migrateTheme();
-    if (migrated) {
-      console.log('🎨 Theme: Migrated from legacy storage');
-      saveTheme(migrated); // Persist migrated version immediately
-      return migrated;
-    }
-
-    return getDefaultTheme();
-  } catch (error) {
-    console.error('Theme read error:', error);
-    return getDefaultTheme();
+const migrateLegacyMode = (legacyMode) => {
+  switch (legacyMode) {
+    case 'light':                 return 'aeos-light';
+    case 'dim':
+    case 'dark':
+    case 'midnight':              return 'aeos';
+    case 'system':                return 'system';
+    case 'aeos':
+    case 'aeos-light':            return legacyMode;
+    default:                      return 'aeos';
   }
 };
 
-/**
- * Save theme to storage (atomic write with validation)
- */
-const saveTheme = (theme) => {
+const readStored = () => {
   if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
-    return;
+    return { ...DEFAULT_STATE };
   }
-
   try {
-    const normalized = normalizeTheme(theme);
-    
-    if (!validateTheme(normalized)) {
-      console.error('[ThemeContext] Invalid theme structure, skipping save:', normalized);
-      return;
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        mode: VALID_MODES.includes(parsed?.mode) ? parsed.mode : 'aeos',
+        reduceMotion: !!parsed?.reduceMotion,
+      };
     }
-    
-    localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(normalized));
-    
-    // Clean up legacy keys after successful write
-    cleanupLegacyKeys();
-  } catch (error) {
-    console.error('Theme save error:', error);
+
+    // One-shot migration from legacy storage keys
+    for (const key of LEGACY_KEYS) {
+      const legacy = localStorage.getItem(key);
+      if (!legacy) continue;
+      try {
+        const parsed = JSON.parse(legacy);
+        const next = {
+          mode: migrateLegacyMode(parsed?.mode || parsed?.theme || parsed),
+          reduceMotion: !!parsed?.reduceMotion,
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        // Best-effort cleanup of legacy keys
+        LEGACY_KEYS.forEach((k) => {
+          try { localStorage.removeItem(k); } catch { /* noop */ }
+        });
+        return next;
+      } catch { /* try next key */ }
+    }
+  } catch (err) {
+    console.warn('[ThemeProvider] storage read failed:', err);
+  }
+  return { ...DEFAULT_STATE };
+};
+
+const persist = (state) => {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (err) {
+    console.warn('[ThemeProvider] storage write failed:', err);
   }
 };
 
-// ====================
-// THEME PROVIDER
-// ====================
+// ──────────────────────────────────────────────────────────────────────────
+// Deprecated stub helpers — log once
+// ──────────────────────────────────────────────────────────────────────────
 
-export const ThemeProvider = ({ children }) => {
-  const [themeSettings, setThemeSettings] = useState(readStoredTheme);
-  const [isHydrated, setIsHydrated] = useState(false);
-
-  // Apply theme BEFORE paint (reduce flash)
-  useLayoutEffect(() => {
-    applyThemeToDocument(themeSettings);
-    // Small delay to ensure CSS variables are applied
-    const timer = setTimeout(() => setIsHydrated(true), 50);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Sync on changes (after hydration)
-  useLayoutEffect(() => {
-    if (!isHydrated) return;
-    
-    saveTheme(themeSettings);
-    applyThemeToDocument(themeSettings);
-  }, [themeSettings, isHydrated]);
-
-  // ====================
-  // PUBLIC API
-  // ====================
-
-  /**
-   * Apply a complete theme preset
-   */
-  const applyPreset = (presetKey) => {
-    const preset = applyThemePreset(presetKey, updateTheme);
-    return preset;
-  };
-
-  /**
-   * Update theme settings (partial update with normalization)
-   */
-  const updateTheme = (updates) => {
-    setThemeSettings(prev => {
-      const next = normalizeTheme({ ...prev, ...updates });
-      return next;
-    });
-  };
-
-  /**
-   * Toggle through appearance modes: light → dim → dark → midnight → light
-   * If currently on 'system', resolves to the next mode after the effective appearance.
-   */
-  const toggleMode = () => {
-    setThemeSettings(prev => {
-      const cycle = ['light', 'dim', 'dark', 'midnight'];
-      
-      // Determine which position in the cycle we're at
-      let currentIdx;
-      if (prev.mode === 'system') {
-        // Resolve system to its effective mode, then advance
-        const effective = resolveEffectiveMode('system');
-        currentIdx = cycle.indexOf(effective || 'light');
-      } else {
-        currentIdx = cycle.indexOf(prev.mode);
-        if (currentIdx === -1) currentIdx = 0;
-      }
-      
-      const nextIdx = (currentIdx + 1) % cycle.length;
-      return { ...prev, mode: cycle[nextIdx] };
-    });
-  };
-
-  /**
-   * Set specific mode (light, dim, dark, midnight, or system)
-   */
-  const setMode = (mode) => {
-    if (VALID_MODES.includes(mode)) {
-      setThemeSettings(prev => ({
-        ...prev,
-        mode
-      }));
-    }
-  };
-
-  /**
-   * Reset theme to default settings
-   */
-  const resetTheme = () => {
-    setThemeSettings(getDefaultTheme());
-  };
-
-  // ====================
-  // DERIVED STATE (always fresh from cardStyle)
-  // ====================
-
-  const currentCardStyle = getCardStyle(themeSettings.cardStyle);
-  const colors = currentCardStyle.theme.colors;
-  const layout = currentCardStyle.theme.layout;
-  const cardClasses = currentCardStyle.classes;
-  
-  // WCAG contrast validation (development only)
-  const contrastWarnings = React.useMemo(() => {
-    if (process.env.NODE_ENV === 'production') return [];
-    
-    const warnings = validateThemeContrast({ colors });
-    if (warnings.length > 0) {
-      console.warn('[ThemeContext] Contrast warnings for card style "' + themeSettings.cardStyle + '":', warnings);
-    }
-    return warnings;
-  }, [colors, themeSettings.cardStyle]);
-
-  // ====================
-  // LOADING SCREEN - Optimized for perceived performance
-  // ====================
-
-  // Render children immediately with fade-in transition instead of blocking
-  // This allows layout to render while theme applies, reducing perceived load time
-  if (!isHydrated) {
-    return (
-      <ThemeContext.Provider value={{
-        themeSettings: getDefaultTheme(),
-        mode: 'light',
-        isDark: false,
-        cardStyle: 'modern',
-        typography: { fontFamily: 'DM Sans', fontSize: 'base' },
-        background: { type: 'color', value: '' },
-        colors: {},
-        layout: {},
-        cardClasses: {},
-        contrastWarnings: [],
-        updateTheme: () => {},
-        toggleMode: () => {},
-        resetTheme: () => {},
-        cardStyleOptions: CARD_STYLE_OPTIONS,
-        fontOptions: FONT_OPTIONS,
-        modeOptions: MODE_OPTIONS,
-        fontSizeOptions: FONT_SIZE_OPTIONS,
-        CARD_STYLES,
-      }}>
-        <div className="opacity-0 animate-[fadeIn_0.3s_ease-out_forwards]">
-          {children}
-        </div>
-        <style>{`
-          @keyframes fadeIn {
-            to { opacity: 1; }
-          }
-        `}</style>
-      </ThemeContext.Provider>
+const _warned = new Set();
+const _warnOnce = (name) => {
+  if (_warned.has(name)) return;
+  _warned.add(name);
+  if (typeof console !== 'undefined') {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[aeos] ${name} is deprecated. The aeos365 design system locks brand colors, fonts, and card styles. ` +
+      `Use var(--aeos-*) tokens or .aeos-* helper classes instead.`
     );
   }
+};
 
-  // ====================
-  // CONTEXT VALUE
-  // ====================
+// ──────────────────────────────────────────────────────────────────────────
+// Static option lists (legacy compat — empty / single-option)
+// ──────────────────────────────────────────────────────────────────────────
 
-  const isDark = resolveEffectiveMode(themeSettings.mode) !== null;
+export const MODE_OPTIONS = [
+  { key: 'aeos',       name: 'Dark (default)', value: 'aeos' },
+  { key: 'aeos-light', name: 'Light',          value: 'aeos-light' },
+  { key: 'system',     name: 'System',         value: 'system' },
+];
 
-  const value = {
-    // Current settings (mutable)
-    themeSettings,
-    isHydrated,
-    
-    // Shorthand accessors (read-only)
-    mode: themeSettings.mode,
+// Legacy stubs — preserved so import-by-name doesn't crash
+export const CARD_STYLE_OPTIONS       = [{ key: 'aeos', name: 'aeos365', value: 'aeos' }];
+export const THEME_PRESET_OPTIONS     = [{ key: 'aeos', name: 'aeos365', value: 'aeos' }];
+export const BACKGROUND_PRESET_OPTIONS = [{ key: 'obsidian', name: 'Obsidian', value: 'obsidian' }];
+export const FONT_OPTIONS             = [{ key: 'dm-sans', name: 'DM Sans', value: 'DM Sans' }];
+export const FONT_SIZE_OPTIONS        = [{ key: 'md', name: 'Medium', value: 'md' }];
+
+// Status color stubs (return aeos tokens)
+export const STATUS_COLORS = Object.freeze({
+  success: 'var(--aeos-success)',
+  warning: 'var(--aeos-warning)',
+  danger:  'var(--aeos-danger)',
+  info:    'var(--aeos-info)',
+});
+
+export const getStatusColor = (name) => STATUS_COLORS[name] || STATUS_COLORS.info;
+export const getThemeRadius = () => '12px';
+
+// ──────────────────────────────────────────────────────────────────────────
+// Provider
+// ──────────────────────────────────────────────────────────────────────────
+
+export const ThemeProvider = ({ children }) => {
+  const [state, setState] = useState(readStored);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Apply BEFORE paint to reduce flash
+  useLayoutEffect(() => {
+    applyThemeToDocument(state);
+    const t = setTimeout(() => setIsHydrated(true), 30);
+    return () => clearTimeout(t);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!isHydrated) return;
+    persist(state);
+    applyThemeToDocument(state);
+  }, [state, isHydrated]);
+
+  // Re-resolve "system" when OS preference flips
+  useLayoutEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    if (state.mode !== 'system') return;
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const onChange = () => applyThemeToDocument(state);
+    mq.addEventListener?.('change', onChange);
+    return () => mq.removeEventListener?.('change', onChange);
+  }, [state]);
+
+  const setMode = useCallback((mode) => {
+    if (!VALID_MODES.includes(mode)) return;
+    setState((prev) => ({ ...prev, mode }));
+  }, []);
+
+  const toggleMode = useCallback(() => {
+    setState((prev) => {
+      // Cycle: aeos → aeos-light → system → aeos
+      const next = prev.mode === 'aeos' ? 'aeos-light' :
+                   prev.mode === 'aeos-light' ? 'system' : 'aeos';
+      return { ...prev, mode: next };
+    });
+  }, []);
+
+  const setReduceMotion = useCallback((value) => {
+    setState((prev) => ({ ...prev, reduceMotion: !!value }));
+  }, []);
+
+  const resetTheme = useCallback(() => {
+    setState({ ...DEFAULT_STATE });
+  }, []);
+
+  // ── Legacy stub: updateTheme accepts the old shape and routes to setMode ──
+  const updateTheme = useCallback((updates) => {
+    if (!updates || typeof updates !== 'object') return;
+    _warnOnce('updateTheme(...)');
+    setState((prev) => {
+      let nextMode = prev.mode;
+      if (typeof updates.mode === 'string') {
+        nextMode = VALID_MODES.includes(updates.mode)
+          ? updates.mode
+          : migrateLegacyMode(updates.mode);
+      }
+      return {
+        ...prev,
+        mode: nextMode,
+        reduceMotion: typeof updates.reduceMotion === 'boolean'
+          ? updates.reduceMotion
+          : prev.reduceMotion,
+      };
+    });
+  }, []);
+
+  const applyPreset = useCallback((/* presetKey */) => {
+    _warnOnce('applyPreset(...)');
+    return null;
+  }, []);
+
+  // ── Derived state ─────────────────────────────────────────────────────
+  const effectiveMode = resolveEffectiveMode(state.mode);
+  const isDark = effectiveMode === 'aeos';
+
+  // Legacy themeSettings shape — components read .typography, .background,
+  // .cardStyle, .primaryColor etc. We supply aeos-on-brand defaults so they
+  // don't crash. Memoised so reference identity is stable per render.
+  const themeSettings = useMemo(() => ({
+    mode: state.mode,
+    reduceMotion: state.reduceMotion,
+    cardStyle: 'aeos',
+    primaryColor: '#00E5FF',
+    defaultRadius: 'md',
+    typography: { fontFamily: 'DM Sans', fontSize: 'md' },
+    background: { type: 'color', value: 'transparent' },
+  }), [state.mode, state.reduceMotion]);
+
+  // Legacy stubs returning aeos colors / layout for components that read them
+  const colors = useMemo(() => ({
+    primary:    isDark ? '#00E5FF' : '#00A3B8',
+    secondary:  '#6366F1',
+    success:    '#22C55E',
+    warning:    '#FFB347',
+    danger:     '#FF6B6B',
+    info:       '#00E5FF',
+    background: isDark ? '#03040A' : '#F8FAFC',
+    foreground: isDark ? '#E8EDF5' : '#0F172A',
+    divider:    isDark ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.08)',
+    content1:   isDark ? '#070B14' : '#FFFFFF',
+    content2:   isDark ? '#0D1120' : '#F1F5F9',
+    content3:   isDark ? '#131829' : '#E2E8F0',
+    content4:   isDark ? '#1A1F33' : '#CBD5E1',
+  }), [isDark]);
+
+  const layout = useMemo(() => ({
+    borderRadius: '12px',
+    borderWidth:  '1px',
+    fontFamily:   'DM Sans',
+  }), []);
+
+  const cardClasses = useMemo(() => ({
+    base:   'aeos-card-elevated',
+    header: 'aero-card-header',
+    body:   '',
+    footer: '',
+  }), []);
+
+  const value = useMemo(() => ({
+    // ── Canonical aeos surface ──
+    mode: state.mode,
+    effectiveMode,
     isDark,
-    cardStyle: themeSettings.cardStyle,
+    isDarkMode: isDark,           // legacy alias used by useBranding
+    reduceMotion: state.reduceMotion,
+    isHydrated,
+    setMode,
+    toggleMode,
+    setReduceMotion,
+    resetTheme,
+
+    // ── Legacy-compat surface (deprecated, kept on-brand) ──
+    themeSettings,
+    theme: themeSettings,
+    cardStyle: 'aeos',
     typography: themeSettings.typography,
     background: themeSettings.background,
-    
-    // Derived state (auto-updated from cardStyle)
     colors,
     layout,
     cardClasses,
-    contrastWarnings,
-    
-    // Actions
+    contrastWarnings: [],
     updateTheme,
-    toggleMode,
-    setMode,
-    resetTheme,
     applyPreset,
-    
-    // Utility functions
-    getThemeRadius: () => getThemeRadius(),
+    getThemeRadius: () => '12px',
     getStatusColor,
-    
-    // Metadata (for selectors and drawers)
-    cardStyleOptions: CARD_STYLE_OPTIONS,
-    themePresetOptions: THEME_PRESET_OPTIONS,
+    cardStyleOptions:       CARD_STYLE_OPTIONS,
+    themePresetOptions:     THEME_PRESET_OPTIONS,
     backgroundPresetOptions: BACKGROUND_PRESET_OPTIONS,
-    fontOptions: FONT_OPTIONS,
-    modeOptions: MODE_OPTIONS,
-    fontSizeOptions: FONT_SIZE_OPTIONS,
-    
-    // Direct access to registry
-    CARD_STYLES,
+    fontOptions:            FONT_OPTIONS,
+    modeOptions:            MODE_OPTIONS,
+    fontSizeOptions:        FONT_SIZE_OPTIONS,
+    CARD_STYLES: { aeos: { name: 'aeos365' } },
     STATUS_COLORS,
-  };
+  }), [
+    state.mode, state.reduceMotion, effectiveMode, isDark, isHydrated,
+    setMode, toggleMode, setReduceMotion, resetTheme,
+    themeSettings, colors, layout, cardClasses,
+    updateTheme, applyPreset,
+  ]);
 
   return (
     <ThemeContext.Provider value={value}>

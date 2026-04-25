@@ -44,22 +44,16 @@ const PageContent = React.memo(({ children, url }) => (
   <AnimatePresence mode="wait">
     <motion.div
       key={url}
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{
         opacity: 1,
         y: 0,
-        transition: {
-          duration: 0.3,
-          ease: "easeOut"
-        }
+        transition: { duration: 0.24, ease: [0.22, 1, 0.36, 1] },
       }}
       exit={{
         opacity: 0,
-        y: -10,
-        transition: {
-          duration: 0.2,
-          ease: "easeIn"
-        }
+        y: -4,
+        transition: { duration: 0.18, ease: [0.22, 1, 0.36, 1] },
       }}
       className="w-full"
     >
@@ -168,9 +162,9 @@ const App = React.memo(({ children }) => {
   const { themeSettings } = useTheme();
 
   const effectiveMode = resolveEffectiveMode(themeSettings?.mode || 'system');
-  const isDarkAppearance = effectiveMode !== null;
-  const activeBackgroundType = themeSettings?.background?.type || 'color';
-  const usesDocumentBackground = ['pattern', 'image', 'texture'].includes(activeBackgroundType);
+  const isDarkAppearance = effectiveMode === 'aeos';
+  // aeos365 has a single canonical page surface — no document-background overrides
+  const usesDocumentBackground = false;
 
   // Version manager for update notifications
   const {
@@ -381,14 +375,12 @@ const App = React.memo(({ children }) => {
                 )}
 
                 {/* Main Application Layout */}
-                <div 
-                  className="flex h-full overflow-hidden"
+                <div
+                  className="flex h-full overflow-hidden aeos-grid-bg"
                   style={{
-                    background: usesDocumentBackground
-                      ? 'transparent'
-                      : `var(--theme-background, var(--background, #F4F4F5))`,
-                    color: 'var(--theme-foreground, #11181C)',
-                    fontFamily: 'var(--fontFamily, "Inter")',
+                    background: 'var(--aeos-obsidian, #03040A)',
+                    color: 'var(--aeos-ink, #E8EDF5)',
+                    fontFamily: 'var(--aeos-font-body, "DM Sans"), system-ui, sans-serif',
                   }}
                 >
                   {/* Sidebar - Desktop visible, Mobile drawer */}

@@ -1,904 +1,171 @@
 @import "tailwindcss";
 @plugin "./hero.ts";
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "./aeos-tokens.css";
 
-/* Source paths for Tailwind CSS 4 content scanning */
-@source 'D:/laragon/www/aeos365/node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
-@source '../js/**/*.{js,jsx,ts,tsx}';
+/* Tailwind v4 source scanning — relative paths inside the package */
+@source "../js/**/*.{js,jsx,ts,tsx}";
+@source "../../../**/resources/js/**/*.{js,jsx,ts,tsx}";
 
 @custom-variant dark (&:is(.dark *));
 
-/* ============================================
-   3D MOTION SYSTEM - CSS VARIABLES
-   Central configuration for consistent depth effects
-   ============================================ */
-:root {
-    --fontFamily: "DM Sans", "Inter", sans-serif;
+/* ═══════════════════════════════════════════════════════════════════════════
+   aeos365 Frontend Engine
+   Source of truth: aeos365-design-system/project/
+   This file intentionally contains very little — the engine lives in
+   aeos-tokens.css + hero.ts. The rules below are scope-creep guardrails:
+   print, scrollbar, toast z-index, and a thin compat shim for legacy
+   `.aero-card` consumers so old pages render on-brand without rewriting them.
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-    /* Extended chart palette (beyond semantic theme colors) */
-    --chart-color-6: #0EA5E9;
-    --chart-color-7: #EC4899;
-    --chart-color-8: #F97316;
-
-
+/* ── Body font enforcement ──────────────────────────────────────────────── */
 body {
-    font-family: var(--fontFamily, "DM Sans") !important;
+  font-family: var(--aeos-font-body, "DM Sans"), system-ui, sans-serif;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-    font-family: var(--fontFamily, "DM Sans");
+h1, h2, h3 {
+  font-family: var(--aeos-font-display, "Syne"), system-ui, sans-serif;
 }
-    /* Perspective values */
-    --perspective-subtle: 1000px;
-    --perspective-moderate: 800px;
-    --perspective-dramatic: 600px;
-    
-    /* Depth scales (translateZ values) */
-    --depth-surface: 0px;
-    --depth-raised: 4px;
-    --depth-elevated: 8px;
-    --depth-floating: 16px;
-    --depth-modal: 24px;
-    
-    /* Shadows matching depth */
-    --shadow-none: none;
-    --shadow-sm: 0 2px 8px -2px rgba(0,0,0,0.1);
-    --shadow-md: 0 4px 15px -3px rgba(0,0,0,0.1);
-    --shadow-lg: 0 8px 25px -5px rgba(0,0,0,0.15);
-    --shadow-xl: 0 12px 35px -8px rgba(0,0,0,0.2);
-    --shadow-xxl: 0 20px 50px -12px rgba(0,0,0,0.25);
-    
-    /* Transition timing */
-    --motion-gentle: cubic-bezier(0.4, 0, 0.2, 1);
-    --motion-snappy: cubic-bezier(0.4, 0, 0.1, 1);
-    --motion-duration: 200ms;
+h4, h5, h6 {
+  font-family: var(--aeos-font-body, "DM Sans"), system-ui, sans-serif;
 }
 
-/* ============================================
-   3D BASE CLASSES
-   Apply perspective containers and preserve-3d
-   ============================================ */
-.motion-3d-container {
-    perspective: var(--perspective-subtle);
-    transform-style: preserve-3d;
-}
-
-.motion-3d-element {
-    transform-style: preserve-3d;
-    transition: transform var(--motion-duration) var(--motion-gentle),
-                box-shadow var(--motion-duration) var(--motion-gentle);
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-    .motion-3d-element {
-        transition-duration: 0.01ms !important;
-    }
-}
-
-/* ============================================
-   STANDARDIZED AERO CARD STYLING
-   Single .aero-card class for consistent theming
-   EXCEPTION: Navigation cards and nested cards keep 3D effects
-   ============================================ */
-
-/* Primary card styling - flat design for main content cards */
+/* ── Legacy `.aero-card` compat shim ────────────────────────────────────── */
+/* Keeps pre-aeos card consumers rendering as elevated aeos cards.
+   New code: use .aeos-card / .aeos-card-elevated / .aeos-glass / .aeos-bento. */
 .aero-card {
-    background: linear-gradient(135deg,
-        color-mix(in srgb, var(--theme-content1, #FAFAFA) 86%, transparent) 0%,
-        color-mix(in srgb, var(--theme-content2, #F4F4F5) 82%, transparent) 52%,
-        color-mix(in srgb, var(--theme-content3, #E4E4E7) 78%, transparent) 100%) !important;
-    border: var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 14%, var(--theme-divider, #E4E4E7) 86%) !important;
-    border-radius: var(--borderRadius, 12px) !important;
-    color: var(--theme-foreground, #11181C) !important;
-    font-family: var(--fontFamily, "DM Sans") !important;
-    transform: scale(var(--scale, 1));
-    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1) !important;
-    box-shadow: 0 8px 32px color-mix(in srgb, var(--theme-foreground, #11181C) 8%, transparent), var(--shadow-sm);
-    backdrop-filter: blur(14px) saturate(120%);
-    -webkit-backdrop-filter: blur(14px) saturate(120%);
+  background: var(--aeos-graphite);
+  border: 1px solid rgba(0, 229, 255, 0.08);
+  border-radius: var(--aeos-r-xl);
+  padding: var(--aeos-pad-card);
+  box-shadow: var(--aeos-shadow-card);
+  color: var(--aeos-ink);
+  font-family: var(--aeos-font-body);
+  transition: border-color var(--aeos-dur-base) var(--aeos-ease-out),
+              box-shadow var(--aeos-dur-base) var(--aeos-ease-out);
 }
-
-/* Dark mode card styling */
-.dark .aero-card {
-    background: linear-gradient(135deg,
-        color-mix(in srgb, var(--theme-content1, #18181b) 78%, transparent) 0%,
-        color-mix(in srgb, var(--theme-content2, #27272a) 72%, transparent) 52%,
-        color-mix(in srgb, var(--theme-content3, #3f3f46) 68%, transparent) 100%) !important;
-}
-
-/* Card hover effect - subtle shadow only */
 .aero-card:hover {
-    box-shadow: var(--shadow-md);
+  border-color: var(--aeos-glass-border-h);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+.aeos-light .aero-card {
+  background: var(--aeos-paper);
+  border-color: var(--aeos-divider-l);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+  color: var(--aeos-onyx-l);
+}
+.aeos-light .aero-card:hover {
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.10);
 }
 
-/* Card header styling */
+/* Legacy header inside cards — soft cyan-tinted divider */
 .aero-card-header {
-    border-color: color-mix(in srgb, var(--theme-primary, #006FEE) 14%, var(--theme-divider, #E4E4E7) 86%) !important;
-    background: linear-gradient(135deg,
-        color-mix(in srgb, var(--theme-content1) 62%, transparent) 20%,
-        color-mix(in srgb, var(--theme-content2) 44%, transparent) 100%) !important;
-    font-family: var(--fontFamily, "DM Sans") !important;
+  border-bottom: 1px solid var(--aeos-divider);
+  font-family: var(--aeos-font-body);
+}
+.aeos-light .aero-card-header {
+  border-bottom-color: var(--aeos-divider-l);
 }
 
-/* Backwards compatibility - keep existing selectors for gradual migration */
-.bg-content1.rounded-large,
-.bg-content1.rounded-medium,
-.bg-content1.rounded-small {
-    background: linear-gradient(135deg, 
-        var(--theme-content1, var(--heroui-content1, #FAFAFA)) 0%, 
-        var(--theme-content2, var(--heroui-content2, #F4F4F5)) 50%, 
-        var(--theme-content3, var(--heroui-content3, #E4E4E7)) 100%) !important;
-    border: var(--borderWidth, 2px) solid transparent !important;
-    border-radius: var(--borderRadius, 12px) !important;
-    color: var(--theme-foreground, #11181C) !important;
-    font-family: var(--fontFamily, "DM Sans") !important;
-    transition: box-shadow var(--motion-duration) var(--motion-gentle);
-    box-shadow: var(--shadow-sm);
-}
+/* ── Theme-aware semantic utility classes (kept for backwards compat) ──── */
+.aero-text-primary   { color: var(--aeos-ink); }
+.aero-text-secondary { color: var(--aeos-ink-muted); }
+.aero-text-muted     { color: color-mix(in srgb, var(--aeos-ink) 60%, transparent); }
+.aero-surface        { background: var(--aeos-onyx); }
+.aero-surface-raised { background: var(--aeos-graphite); }
+.aero-surface-sunken { background: var(--aeos-obsidian); }
+.aeos-light .aero-text-primary   { color: var(--aeos-onyx-l); }
+.aeos-light .aero-text-secondary { color: var(--aeos-graphite-l); }
+.aeos-light .aero-text-muted     { color: color-mix(in srgb, var(--aeos-onyx-l) 60%, transparent); }
+.aeos-light .aero-surface        { background: var(--aeos-paper); }
+.aeos-light .aero-surface-raised { background: var(--aeos-paper-2); }
+.aeos-light .aero-surface-sunken { background: var(--aeos-paper-3); }
 
-.dark .bg-content1.rounded-large,
-.dark .bg-content1.rounded-medium,
-.dark .bg-content1.rounded-small {
-    background: linear-gradient(135deg, 
-        var(--theme-content1, var(--heroui-content1, #18181b)) 0%, 
-        var(--theme-content2, var(--heroui-content2, #27272a)) 50%, 
-        var(--theme-content3, var(--heroui-content3, #3f3f46)) 100%) !important;
-}
+/* ── Toast z-index fix ─────────────────────────────────────────────────── */
+.Toastify__toast-container { z-index: 99999 !important; }
 
-.bg-content1.rounded-large:hover,
-.bg-content1.rounded-medium:hover,
-.bg-content1.rounded-small:hover {
-    box-shadow: var(--shadow-md);
-}
-
-.dark .aero-card:hover,
-.dark .bg-content1.rounded-large:hover,
-.dark .bg-content1.rounded-medium:hover,
-.dark .bg-content1.rounded-small:hover {
-    box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.35);
-}
-
-/* Active/pressed card state */
-.aero-card:active,
-.bg-content1.rounded-large:active,
-.bg-content1.rounded-medium:active,
-.bg-content1.rounded-small:active {
-    box-shadow: var(--shadow-sm);
-}
-
-/* ============================================
-   EXCEPTION: NESTED CARDS & NAVIGATION CARDS WITH 3D
-   These keep the 3D float and click effects
-   ============================================ */
-
-/* Nested cards inside other cards */
-.aero-card .aero-card,
-.bg-content1 .bg-content1.rounded-large,
-.bg-content1 .bg-content1.rounded-medium,
-.bg-content1 .bg-content1.rounded-small,
-/* Navigation cards (in sidebar, menus, etc) */
-[data-slot="navigation"] .aero-card,
-[data-slot="navigation"] .bg-content1,
-[role="navigation"] .aero-card,
-[role="navigation"] .bg-content1,
-nav .aero-card,
-nav .bg-content1,
-.sidebar-menu .aero-card,
-.sidebar-menu .bg-content1,
-.nav-card .aero-card,
-.nav-card .bg-content1,
-/* Widget cards (dashboard widgets) */
-.widget-card,
-.dashboard-widget .aero-card,
-.dashboard-widget .bg-content1,
-/* Stats cards */
-.stats-card,
-/* Card inside CardBody (nested pattern) */
-[data-slot="body"] .aero-card,
-[data-slot="body"] .bg-content1 {
-    /* 3D depth effects restored for nested/navigation cards */
-    transform-style: preserve-3d;
-    transition: transform var(--motion-duration) var(--motion-gentle),
-                box-shadow var(--motion-duration) var(--motion-gentle) !important;
-}
-
-/* 3D hover for nested/navigation cards */
-.bg-content1 .bg-content1.rounded-large:hover,
-.bg-content1 .bg-content1.rounded-medium:hover,
-.bg-content1 .bg-content1.rounded-small:hover,
-[data-slot="navigation"] .bg-content1:hover,
-[role="navigation"] .bg-content1:hover,
-nav .bg-content1:hover,
-.sidebar-menu .bg-content1:hover,
-.nav-card .bg-content1:hover,
-.widget-card:hover,
-.dashboard-widget .bg-content1:hover,
-.stats-card:hover,
-[data-slot="body"] .bg-content1:hover {
-    transform: perspective(var(--perspective-subtle)) rotateX(-1deg) translateZ(var(--depth-raised)) translateY(-1px) !important;
-    box-shadow: var(--shadow-md) !important;
-}
-
-/* 3D active/click for nested/navigation cards */
-.bg-content1 .bg-content1.rounded-large:active,
-.bg-content1 .bg-content1.rounded-medium:active,
-.bg-content1 .bg-content1.rounded-small:active,
-[data-slot="navigation"] .bg-content1:active,
-[role="navigation"] .bg-content1:active,
-nav .bg-content1:active,
-.sidebar-menu .bg-content1:active,
-.nav-card .bg-content1:active,
-.widget-card:active,
-.dashboard-widget .bg-content1:active,
-.stats-card:active,
-[data-slot="body"] .bg-content1:active {
-    transform: perspective(var(--perspective-subtle)) translateZ(var(--depth-surface)) !important;
-    box-shadow: var(--shadow-sm) !important;
-}
-
-/* ============================================
-   GLOBAL MODAL STYLING + 3D DEPTH
-   Modals appear closer in z-space
-   ============================================ */
-
-/* Modal backdrop */
-[data-slot="backdrop"] {
-    backdrop-filter: blur(8px);
-    background: rgba(0, 0, 0, 0.5);
-}
-
-/* HeroUI Modal content with 3D depth */
-[data-slot="base"][role="dialog"],
-.nextui-modal-content {
-    background: linear-gradient(135deg, 
-        var(--theme-content1, #FAFAFA) 0%, 
-        var(--theme-content2, #F4F4F5) 50%, 
-        var(--theme-content3, #E4E4E7) 100%) !important;
-    border: var(--borderWidth, 2px) solid var(--theme-divider, #E4E4E7) !important;
-    border-radius: var(--borderRadius, 12px) !important;
-    font-family: var(--fontFamily, "DM Sans") !important;
-    
-    /* 3D depth - modals float above everything */
-    transform-style: preserve-3d;
-    box-shadow: var(--shadow-xxl);
-    animation: modalEnter var(--motion-duration) var(--motion-gentle);
-}
-
-@keyframes modalEnter {
-    from {
-        transform: perspective(var(--perspective-moderate)) rotateX(5deg) translateZ(0) translateY(20px) scale(0.95);
-        opacity: 0;
-    }
-    to {
-        transform: perspective(var(--perspective-moderate)) rotateX(0) translateZ(var(--depth-modal)) translateY(0) scale(1);
-        opacity: 1;
-    }
-}
-
-.dark [data-slot="base"][role="dialog"],
-.dark .nextui-modal-content {
-    background: linear-gradient(135deg, 
-        var(--theme-content1, #18181b) 0%, 
-        var(--theme-content2, #27272a) 50%, 
-        var(--theme-content3, #3f3f46) 100%) !important;
-}
-
-/* Modal header */
-[data-slot="header"] {
-    border-bottom: var(--borderWidth, 1px) solid var(--theme-divider, #E4E4E7) !important;
-    font-family: var(--fontFamily, "DM Sans") !important;
-}
-
-/* Modal footer */
-[data-slot="footer"] {
-    border-top: var(--borderWidth, 1px) solid var(--theme-divider, #E4E4E7) !important;
-}
-
-/* ============================================
-   GLOBAL INPUT & FORM STYLING + 3D FOCUS
-   Input fields lift and glow on focus
-   ============================================ */
-
-/* HeroUI Input components */
-[data-slot="input-wrapper"],
-.nextui-input-wrapper {
-    background: var(--theme-content1, #FAFAFA) !important;
-    border: var(--borderWidth, 2px) solid var(--theme-divider, #E4E4E7) !important;
-    border-radius: var(--borderRadius, 12px) !important;
-    font-family: var(--fontFamily, "DM Sans") !important;
-    
-    /* 3D depth */
-    transform-style: preserve-3d;
-    transition: transform var(--motion-duration) var(--motion-gentle),
-                box-shadow var(--motion-duration) var(--motion-gentle),
-                border-color var(--motion-duration) var(--motion-gentle);
-    box-shadow: var(--shadow-none);
-}
-
-.dark [data-slot="input-wrapper"],
-.dark .nextui-input-wrapper {
-    background: var(--theme-content1, #18181b) !important;
-}
-
-/* Input hover state - subtle lift */
-[data-slot="input-wrapper"]:hover:not(:focus-within),
-.nextui-input-wrapper:hover:not(:focus-within) {
-    transform: perspective(var(--perspective-subtle)) translateZ(2px);
-    box-shadow: var(--shadow-sm);
-}
-
-/* Input focus state - lift + glow */
-[data-slot="input-wrapper"]:focus-within,
-.nextui-input-wrapper:focus-within {
-    border-color: var(--theme-primary, #006FEE) !important;
-    transform: perspective(var(--perspective-subtle)) translateZ(var(--depth-raised));
-    box-shadow: 0 0 20px var(--theme-primary)30, 0 4px 15px -3px var(--theme-primary)20;
-}
-
-/* Input error state - lift + red glow */
-[data-slot="input-wrapper"][data-invalid="true"],
-.nextui-input-wrapper[data-invalid="true"] {
-    border-color: var(--theme-danger, #F31260) !important;
-    transform: perspective(var(--perspective-subtle)) translateZ(var(--depth-raised));
-    box-shadow: 0 0 20px var(--theme-danger)30, 0 4px 15px -3px var(--theme-danger)20;
-}
-
-/* HeroUI Select components */
-[data-slot="trigger"],
-.nextui-select-trigger {
-    background: var(--theme-content1, #FAFAFA) !important;
-    border: var(--borderWidth, 2px) solid var(--theme-divider, #E4E4E7) !important;
-    border-radius: var(--borderRadius, 12px) !important;
-    font-family: var(--fontFamily, "DM Sans") !important;
-    
-    /* 3D depth */
-    transform-style: preserve-3d;
-    transition: transform var(--motion-duration) var(--motion-gentle),
-                box-shadow var(--motion-duration) var(--motion-gentle);
-    box-shadow: var(--shadow-sm);
-}
-
-.dark [data-slot="trigger"],
-.dark .nextui-select-trigger {
-    background: var(--theme-content1, #18181b) !important;
-}
-
-/* Select hover */
-[data-slot="trigger"]:hover,
-.nextui-select-trigger:hover {
-    transform: perspective(var(--perspective-subtle)) translateZ(var(--depth-raised));
-    box-shadow: var(--shadow-md);
-}
-
-/* Select open state */
-[data-slot="trigger"][data-open="true"],
-.nextui-select-trigger[data-open="true"] {
-    transform: perspective(var(--perspective-subtle)) translateZ(var(--depth-raised));
-    box-shadow: var(--shadow-md);
-}
-
-/* Dropdown/Popover content with 3D depth */
-[data-slot="content"],
-.nextui-popover-content {
-    background: var(--theme-content1, #FAFAFA) !important;
-    border: var(--borderWidth, 2px) solid var(--theme-divider, #E4E4E7) !important;
-    border-radius: var(--borderRadius, 12px) !important;
-    font-family: var(--fontFamily, "DM Sans") !important;
-    
-    /* 3D depth - dropdowns float above */
-    transform-style: preserve-3d;
-    box-shadow: var(--shadow-xl);
-    animation: dropdownEnter 150ms var(--motion-gentle);
-}
-
-@keyframes dropdownEnter {
-    from {
-        transform: perspective(var(--perspective-subtle)) translateZ(0) translateY(-4px) scale(0.98);
-        opacity: 0;
-    }
-    to {
-        transform: perspective(var(--perspective-subtle)) translateZ(var(--depth-floating)) translateY(0);
-        opacity: 1;
-    }
-}
-
-.dark [data-slot="content"],
-.dark .nextui-popover-content {
-    background: var(--theme-content1, #18181b) !important;
-    box-shadow: 0 12px 35px -8px rgba(0, 0, 0, 0.5);
-}
-
-/* ============================================
-   GLOBAL BUTTON STYLING + 3D PRESS
-   Buttons depress when clicked
-   ============================================ */
-
-/* All buttons get 3D treatment */
-button[data-slot="base"],
-.nextui-button {
-    border-radius: var(--borderRadius, 12px) !important;
-    font-family: var(--fontFamily, "DM Sans") !important;
-    
-    /* 3D depth */
-    transform-style: preserve-3d;
-    transition: transform var(--motion-duration) var(--motion-snappy),
-                box-shadow var(--motion-duration) var(--motion-snappy);
-    box-shadow: var(--shadow-sm);
-}
-
-/* Button hover - subtle lift */
-button[data-slot="base"]:not(:disabled):hover,
-.nextui-button:not(:disabled):hover {
-    transform: perspective(var(--perspective-subtle)) rotateX(-0.5deg) translateZ(4px) translateY(-1px);
-    box-shadow: var(--shadow-md);
-}
-
-/* Button press - depress */
-button[data-slot="base"]:not(:disabled):active,
-.nextui-button:not(:disabled):active {
-    transform: perspective(var(--perspective-subtle)) translateZ(1px);
-    box-shadow: var(--shadow-none);
-}
-
-/* Button focus - glow */
-button[data-slot="base"]:not(:disabled):focus-visible,
-.nextui-button:not(:disabled):focus-visible {
-    outline: none;
-    box-shadow: 0 0 20px var(--theme-primary)30, 0 4px 15px -3px var(--theme-primary)20;
-}
-
-/* Primary button colors */
-button[data-color="primary"],
-.nextui-button-primary {
-    background: var(--theme-primary, #006FEE) !important;
-}
-
-/* Secondary button colors */
-button[data-color="secondary"],
-.nextui-button-secondary {
-    background: var(--theme-secondary, #17C964) !important;
-}
-
-/* Success/Warning/Danger buttons */
-button[data-color="success"] {
-    background: var(--theme-success, #17C964) !important;
-}
-
-button[data-color="warning"] {
-    background: var(--theme-warning, #F5A524) !important;
-}
-
-button[data-color="danger"] {
-    background: var(--theme-danger, #F31260) !important;
-}
-
-/* Icon-only buttons - special hover effect */
-button[data-slot="base"][aria-label]:not([class*="w-"]):hover {
-    transform: perspective(var(--perspective-subtle)) translateZ(4px) scale(1.05);
-}
-
-/* ============================================
-   TABLE & LIST EFFECTS (NO 3D)
-   Simple shadow effects only
-   ============================================ */
-
-/* HeroUI Table rows */
-tr[data-slot="tr"]:not([data-disabled="true"]):hover,
-.nextui-table-row:hover {
-    box-shadow: var(--shadow-sm);
-    transition: box-shadow var(--motion-duration) var(--motion-snappy);
-}
-
-/* Selected table rows */
-tr[data-slot="tr"][data-selected="true"],
-.nextui-table-row[data-selected="true"] {
-    box-shadow: var(--shadow-md);
-    position: relative;
-}
-
-/* List items - no 3D effects */
-[data-slot="list-item"]:not([data-disabled="true"]):hover,
-.nextui-list-item:hover {
-    box-shadow: var(--shadow-md);
-    transition: box-shadow var(--motion-duration) var(--motion-snappy);
-}
-
-/* Active list items */
-[data-slot="list-item"][data-selected="true"],
-.nextui-list-item[data-selected="true"] {
-    box-shadow: var(--shadow-md);
-}
-
-/* ============================================
-   CHIP, BADGE & SMALL ELEMENTS
-   Subtle depth for status indicators
-   ============================================ */
-
-/* Chips */
-[data-slot="base"][class*="chip"],
-.nextui-chip {
-    transform-style: preserve-3d;
-    transition: transform var(--motion-duration) var(--motion-snappy);
-}
-
-[data-slot="base"][class*="chip"]:hover,
-.nextui-chip:hover {
-    transform: perspective(var(--perspective-subtle)) translateZ(2px);
-}
-
-/* Badges */
-[data-slot="badge"],
-.nextui-badge {
-    transform-style: preserve-3d;
-    box-shadow: var(--shadow-sm);
-}
-
-/* ============================================
-   TABS & NAVIGATION ELEMENTS (NO 3D)
-   Simple shadow effects only
-   ============================================ */
-
-/* Tab buttons */
-button[data-slot="tab"],
-.nextui-tab {
-    transition: box-shadow var(--motion-duration) var(--motion-gentle);
-}
-
-button[data-slot="tab"]:hover,
-.nextui-tab:hover {
-    box-shadow: var(--shadow-sm);
-}
-
-button[data-slot="tab"][data-selected="true"],
-.nextui-tab[data-selected="true"] {
-    box-shadow: var(--shadow-sm);
-}
-
-/* ============================================
-   ACCORDION & COLLAPSIBLE (NO 3D)
-   Simple shadow effects only
-   ============================================ */
-
-[data-slot="heading"][data-open="true"],
-.nextui-accordion-heading[data-open="true"] {
-    box-shadow: var(--shadow-sm);
-}
-
-/* ============================================ */
-
-/* Toast z-index fix */
-.Toastify__toast-container {
-  z-index: 99999 !important;
-}
-
-/* Scrollbar hide utility */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
+/* ── Scrollbar hide utility ────────────────────────────────────────────── */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
-/* ============================================
-   TEXT 3D FLOAT ANIMATION + REFLECTION
-   Floating text with passing reflection effect
-   ============================================ */
-
-/* Text floating animation class */
-.text-3d-float {
-    display: inline-block;
-    transform-style: preserve-3d;
-    animation: textFloat 3s ease-in-out infinite;
-    position: relative;
-    background: linear-gradient(
-        90deg,
-        currentColor 0%,
-        currentColor 40%,
-        rgba(255, 255, 255, 0.8) 50%,
-        currentColor 60%,
-        currentColor 100%
-    );
-    background-size: 200% 100%;
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: textFloat 3s ease-in-out infinite, reflectionPass 2s linear infinite;
-}
-
-.dark .text-3d-float {
-    background: linear-gradient(
-        90deg,
-        currentColor 0%,
-        currentColor 40%,
-        rgba(255, 255, 255, 0.9) 50%,
-        currentColor 60%,
-        currentColor 100%
-    );
-    background-size: 200% 100%;
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-@keyframes textFloat {
-    0%, 100% {
-        transform: perspective(var(--perspective-subtle)) 
-                   translateY(0) 
-                   translateZ(2px) 
-                   rotateX(0deg);
-    }
-    25% {
-        transform: perspective(var(--perspective-subtle)) 
-                   translateY(-4px) 
-                   translateZ(6px) 
-                   rotateX(2deg);
-    }
-    50% {
-        transform: perspective(var(--perspective-subtle)) 
-                   translateY(-6px) 
-                   translateZ(8px) 
-                   rotateX(0deg);
-    }
-    75% {
-        transform: perspective(var(--perspective-subtle)) 
-                   translateY(-4px) 
-                   translateZ(6px) 
-                   rotateX(-2deg);
-    }
-}
-
-@keyframes reflectionPass {
-    0% {
-        background-position: -100% 0;
-    }
-    100% {
-        background-position: 200% 0;
-    }
-}
-
-/* Heading variations with float */
-h1.text-3d-float, .text-3d-float-h1 {
-    animation: textFloat 4s ease-in-out infinite, reflectionPass 3s linear infinite;
-}
-
-h2.text-3d-float, .text-3d-float-h2 {
-    animation: textFloat 3.5s ease-in-out infinite, reflectionPass 2.5s linear infinite;
-}
-
-h3.text-3d-float, .text-3d-float-h3 {
-    animation: textFloat 3s ease-in-out infinite, reflectionPass 2s linear infinite;
-}
-
-h4.text-3d-float, .text-3d-float-h4 {
-    animation: textFloat 2.5s ease-in-out infinite, reflectionPass 1.8s linear infinite;
-}
-
-/* Button text with float */
-button .text-3d-float,
-.nextui-button .text-3d-float {
-    animation: textFloat 2s ease-in-out infinite, reflectionPass 1.5s linear infinite;
-}
-
-/* Reduce motion support */
-@media (prefers-reduced-motion: reduce) {
-    .text-3d-float {
-        animation: none !important;
-        background: currentColor;
-        -webkit-text-fill-color: currentColor;
-    }
-}
-
-/* Hover enhancement for text float */
-.text-3d-float:hover {
-    animation-duration: 1.5s, 1s;
-}
-
-/* Alternative: Apply to all headings in cards */
-.bg-content1 h1,
-.bg-content1 h2,
-.bg-content1 h3,
-.bg-content1 h4,
-.bg-content1 h5,
-.bg-content1 h6 {
-    transform-style: preserve-3d;
-}
-
-/* Apply float to card titles specifically */
-[data-slot="header"] h1,
-[data-slot="header"] h2,
-[data-slot="header"] h3,
-[data-slot="header"] h4 {
-    display: inline-block;
-    transform-style: preserve-3d;
-}
-
-/* ============================================
-   DARK MODE CHART COLORS
-   ============================================ */
-.dark {
-    --chart-color-6: #38BDF8;
-    --chart-color-7: #F472B6;
-    --chart-color-8: #FB923C;
-}
-
-/* ============================================
-   THEME-AWARE SEMANTIC UTILITY CLASSES
-   ============================================ */
-
-/* Text color utilities that respond to theme */
-.aero-text-primary { color: var(--theme-foreground) !important; }
-.aero-text-secondary { color: var(--theme-foreground-secondary, var(--theme-foreground)) !important; }
-.aero-text-muted { color: color-mix(in srgb, var(--theme-foreground) 60%, transparent) !important; }
-
-/* Surface utilities */
-.aero-surface { background: var(--theme-content1) !important; }
-.aero-surface-raised { background: var(--theme-content2) !important; }
-.aero-surface-sunken { background: var(--theme-background) !important; }
-
-/* Dark mode card header override */
-.dark .aero-card-header {
-    border-color: var(--theme-divider, #27272A) !important;
-}
-
-/* Reduce motion support (data attribute set by accessibility setting) */
-[data-reduce-motion] * {
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-}
-
-/* ============================================
-   DARK MODE VARIANT OVERRIDES
-   data-dark-variant is set by applyThemeToDocument()
-   All variants add .dark for HeroUI, but have different surface colors
-   ============================================ */
-
-/* Dim variant — softer dark with blue-gray undertones */
-[data-dark-variant="dim"] .aero-card {
-    background: linear-gradient(135deg,
-        var(--theme-content1, #1A2733) 20%,
-        var(--theme-content2, #22303C) 10%,
-        var(--theme-content3, #2C3E50) 20%) !important;
-    border-color: var(--theme-divider, #38444D) !important;
-}
-
-[data-dark-variant="dim"] .aero-card:hover {
-    box-shadow: 0 4px 24px -2px color-mix(in srgb, var(--theme-primary) 12%, transparent),
-                0 2px 8px -2px rgba(0, 0, 0, 0.2) !important;
-}
-
-[data-dark-variant="dim"] .aero-card-header {
-    border-color: var(--theme-divider, #38444D) !important;
-}
-
-/* Midnight variant — true black AMOLED surfaces */
-[data-dark-variant="midnight"] .aero-card {
-    background: linear-gradient(135deg,
-        var(--theme-content1, #0A0A0A) 20%,
-        var(--theme-content2, #141414) 10%,
-        var(--theme-content3, #1E1E1E) 20%) !important;
-    border-color: var(--theme-divider, #1A1A1A) !important;
-}
-
-[data-dark-variant="midnight"] .aero-card:hover {
-    box-shadow: 0 4px 24px -2px color-mix(in srgb, var(--theme-primary) 10%, transparent),
-                0 2px 8px -2px rgba(0, 0, 0, 0.4) !important;
-}
-
-[data-dark-variant="midnight"] .aero-card-header {
-    border-color: var(--theme-divider, #1A1A1A) !important;
-}
-
-/* Dim variant — chart colors with slightly warmer tones */
-[data-dark-variant="dim"] {
-    --chart-color-6: #60A5FA;
-    --chart-color-7: #F9A8D4;
-    --chart-color-8: #FDBA74;
-}
-
-/* Midnight variant — higher-contrast chart colors for pure black bg */
-[data-dark-variant="midnight"] {
-    --chart-color-6: #7DD3FC;
-    --chart-color-7: #F9A8D4;
-    --chart-color-8: #FCD34D;
-}
-
-/* ============================================
-   PRINT MEDIA STYLES
-   Hide UI chrome, format content for paper/PDF
-   Enterprise-grade print output
-   ============================================ */
+/* ═══════════════════════════════════════════════════════════════════════════
+   Print media — hide chrome, format for paper/PDF
+   ═══════════════════════════════════════════════════════════════════════════ */
 @media print {
-    /* Hide all navigation chrome */
-    header,
-    footer,
-    nav,
-    [data-slot="sidebar"],
-    [data-slot="bottom-nav"],
-    .no-print,
-    .print\\:hidden {
-        display: none !important;
-    }
+  header,
+  footer,
+  nav,
+  [data-slot="sidebar"],
+  [data-slot="bottom-nav"],
+  .no-print,
+  .print\:hidden {
+    display: none !important;
+  }
 
-    /* Show print-only elements */
-    .print-only,
-    .print\\:block {
-        display: block !important;
-    }
+  .print-only,
+  .print\:block {
+    display: block !important;
+  }
 
-    /* Reset the app shell — full width, no overflow clipping */
-    body {
-        margin: 0;
-        padding: 0;
-        background: white !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
+  body {
+    margin: 0;
+    padding: 0;
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 
-    #app,
-    #app > div {
-        overflow: visible !important;
-        height: auto !important;
-    }
+  #app,
+  #app > div {
+    overflow: visible !important;
+    height: auto !important;
+  }
 
-    /* Main content area — remove flex constraints */
-    main,
-    [role="main"] {
-        margin: 0 !important;
-        padding: 0 !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        overflow: visible !important;
-        flex: none !important;
-    }
+  main,
+  [role="main"] {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    flex: none !important;
+  }
 
-    /* Cards — flatten for paper */
-    .aero-card,
-    [data-slot="base"] {
-        box-shadow: none !important;
-        border: 1px solid #ddd !important;
-        break-inside: avoid;
-        page-break-inside: avoid;
-        background: white !important;
-    }
+  .aero-card,
+  .aeos-card,
+  .aeos-card-elevated,
+  .aeos-glass,
+  .aeos-bento,
+  [data-slot="base"] {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+    background: white !important;
+    color: black !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 
-    /* Tables — ensure headers repeat per printed page */
-    table thead {
-        display: table-header-group;
-    }
+  table thead { display: table-header-group; }
+  table tbody tr { page-break-inside: avoid; }
 
-    table tbody tr {
-        page-break-inside: avoid;
-    }
+  .fixed,
+  [class*="fixed"] {
+    position: static !important;
+  }
 
-    /* Hide floating elements */
-    .fixed,
-    [class*="fixed"] {
-        position: static !important;
-    }
+  .z-50,
+  [class*="z-50"] { display: none !important; }
 
-    /* Hide interactive controls that make no sense on paper */
-    .z-50,
-    [class*="z-50"] {
-        display: none !important;
-    }
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
 
-    /* Remove animations */
-    * {
-        animation: none !important;
-        transition: none !important;
-    }
-
-    /* A4 page setup */
-    @page {
-        size: A4;
-        margin: 15mm;
-    }
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
 }

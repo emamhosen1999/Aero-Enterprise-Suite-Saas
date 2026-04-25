@@ -18,7 +18,16 @@
       "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-blockchain/config/module.php)",
       "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-assistant/config/module.php)",
       "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-platform/config/module.php /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-core/config/module.php)",
-      "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-core/config/module.php)"
+      "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-core/config/module.php)",
+      "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-core/config/module.php /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-platform/config/module.php)",
+      "Read(//c/Users/Emam Hosen/.claude/**)",
+      "WebFetch(domain:api.anthropic.com)",
+      "Bash(npm run *)",
+      "mcp__plugin_playwright_playwright__browser_navigate",
+      "mcp__plugin_playwright_playwright__browser_close",
+      "mcp__plugin_playwright_playwright__browser_snapshot",
+      "mcp__plugin_playwright_playwright__browser_evaluate",
+      "mcp__plugin_playwright_playwright__browser_click"
     ]
   },
   "outputStyle": "default"

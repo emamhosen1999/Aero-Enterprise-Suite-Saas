@@ -55,21 +55,8 @@ const safeRoute = (routeName, fallback = '#') => {
   }
 };
 
-/* ─── keyframe styles injected once ─── */
+/* ─── keyframes — only bellSwing kept (single-trigger transform on icon) ─── */
 const headerKeyframes = `
-@keyframes headerShimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-@keyframes headerAccentFlow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-@keyframes headerGlowPulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.8; }
-}
 @keyframes bellSwing {
   0% { transform: rotate(0deg); }
   15% { transform: rotate(12deg); }
@@ -106,26 +93,13 @@ const HeaderLogo = React.memo(({ onMenuClick, isMobile, showMenuButton = false }
         href={safeRoute('dashboard', '/dashboard')}
         className="flex items-center gap-3 group"
       >
-        <motion.div
-          whileHover={{ scale: 1.08, rotate: 3 }}
-          whileTap={{ scale: 0.92 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-          className="relative"
-        >
-          {/* Glow ring */}
+        <div className="relative">
           <div
-            className="absolute -inset-1 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            className="relative w-10 h-10 overflow-hidden flex items-center justify-center"
             style={{
-              background: `conic-gradient(from 0deg, var(--theme-primary, #006FEE), transparent, var(--theme-primary, #006FEE))`,
-              filter: 'blur(6px)',
-              animation: 'headerGlowPulse 2s ease-in-out infinite',
-            }}
-          />
-          <div
-            className="relative w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center"
-            style={{
-              background: `linear-gradient(135deg, var(--theme-primary, #006FEE), color-mix(in srgb, var(--theme-primary, #006FEE) 70%, #000))`,
-              boxShadow: `0 4px 16px -2px color-mix(in srgb, var(--theme-primary, #006FEE) 40%, transparent)`,
+              borderRadius: 10,
+              background: 'var(--aeos-grad-cyan)',
+              boxShadow: '0 0 16px rgba(0, 229, 255, 0.20)',
             }}
           >
             {squareLogo ? (
@@ -136,39 +110,39 @@ const HeaderLogo = React.memo(({ onMenuClick, isMobile, showMenuButton = false }
                 onError={(e) => { e.target.style.display = 'none'; }}
               />
             ) : (
-              <span className="text-white font-bold text-lg drop-shadow-sm">{firstLetter}</span>
+              <span className="font-bold text-lg" style={{ color: 'var(--aeos-obsidian, #03040A)' }}>{firstLetter}</span>
             )}
-            {/* Shimmer sweep */}
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: 'linear-gradient(110deg, transparent 30%, color-mix(in srgb, var(--theme-foreground) 25%, transparent) 50%, transparent 70%)',
-                animation: 'headerShimmer 3s ease-in-out infinite',
-              }}
-            />
           </div>
-        </motion.div>
+        </div>
 
         {!isMobile && (
-          <motion.div
-            className="flex flex-col"
-            initial={{ opacity: 0, x: -8 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-          >
+          <div className="flex flex-col">
             <span
-              className="font-bold text-lg leading-tight tracking-tight"
-              style={{ color: 'var(--theme-foreground, #11181C)' }}
+              className="leading-tight"
+              style={{
+                fontFamily: 'var(--aeos-font-display, "Syne"), system-ui, sans-serif',
+                fontWeight: 700,
+                fontSize: '1.05rem',
+                letterSpacing: '-0.025em',
+                color: 'var(--aeos-ink, #E8EDF5)',
+                textTransform: 'lowercase',
+              }}
             >
               {siteName}
             </span>
             <span
-              className="text-[10px] font-medium tracking-wider uppercase"
-              style={{ color: 'var(--theme-primary, #006FEE)', opacity: 0.7 }}
+              style={{
+                fontFamily: 'var(--aeos-font-mono, "JetBrains Mono"), ui-monospace, monospace',
+                fontSize: '0.6rem',
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                color: 'var(--aeos-ink-muted, #8892A4)',
+                fontWeight: 500,
+              }}
             >
               Enterprise Suite
             </span>
-          </motion.div>
+          </div>
         )}
       </Link>
     </div>
@@ -760,43 +734,25 @@ const Header = React.memo(({
       <style>{headerKeyframes}</style>
 
       <Card
-        className="mx-3 mt-3 relative overflow-hidden group/header"
+        className="mx-3 mt-3 relative overflow-hidden"
         style={{
-          background: `color-mix(in srgb, var(--theme-content1, #FAFAFA) 75%, transparent)`,
-          border: `var(--borderWidth, 1px) solid color-mix(in srgb, var(--theme-divider, #E4E4E7) 60%, transparent)`,
-          borderRadius: `var(--borderRadius, 12px)`,
-          fontFamily: 'var(--fontFamily, "Inter")',
-          color: 'var(--theme-foreground, #11181C)',
-          backdropFilter: 'blur(20px) saturate(1.4)',
-          WebkitBackdropFilter: 'blur(20px) saturate(1.4)',
-          boxShadow: `
-            0 1px 3px color-mix(in srgb, var(--theme-foreground, #000) 4%, transparent),
-            0 8px 24px -8px color-mix(in srgb, var(--theme-foreground, #000) 6%, transparent),
-            inset 0 1px 0 0 color-mix(in srgb, var(--theme-content4, #D4D4D8) 15%, transparent)
-          `,
+          background: 'var(--aeos-glass-bg)',
+          border: '1px solid var(--aeos-glass-border)',
+          borderRadius: 'var(--aeos-r-xl, 16px)',
+          fontFamily: 'var(--aeos-font-body, "DM Sans"), system-ui, sans-serif',
+          color: 'var(--aeos-ink, #E8EDF5)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          boxShadow: 'none',
         }}
       >
-        {/* Top accent strip — animated gradient */}
+        {/* Static cyan-glow hairline at top edge */}
         <div
-          className="absolute top-0 left-0 right-0 h-[2px]"
+          aria-hidden
+          className="absolute top-0 left-0 right-0"
           style={{
-            background: `linear-gradient(90deg, 
-              transparent, 
-              color-mix(in srgb, var(--theme-primary, #006FEE) 60%, transparent) 20%,
-              var(--theme-primary, #006FEE) 50%,
-              color-mix(in srgb, var(--theme-primary, #006FEE) 60%, transparent) 80%,
-              transparent)`,
-            backgroundSize: '200% 100%',
-            animation: 'headerAccentFlow 5s ease infinite',
-          }}
-        />
-
-        {/* Shimmer overlay on hover */}
-        <div
-          className="absolute inset-0 pointer-events-none opacity-0 group-hover/header:opacity-100 transition-opacity duration-700"
-          style={{
-            background: 'linear-gradient(110deg, transparent 40%, color-mix(in srgb, var(--theme-foreground) 3%, transparent) 50%, transparent 60%)',
-            animation: 'headerShimmer 4s ease-in-out infinite',
+            height: 1,
+            background: 'linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.40), transparent)',
           }}
         />
 

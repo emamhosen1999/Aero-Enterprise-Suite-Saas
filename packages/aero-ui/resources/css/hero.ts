@@ -1,41 +1,41 @@
 /**
- * HeroUI Tailwind CSS v4 Plugin Configuration
- * 
- * This file configures the HeroUI theme plugin for Tailwind CSS.
- * 
- * IMPORTANT: This file is loaded by Tailwind CSS via the @plugin directive.
- * We use createRequire to resolve @heroui/react from the host app's
- * node_modules directory (which is the CWD when Vite runs).
- * 
- * @see https://www.heroui.com/docs/customization/theme
+ * HeroUI Tailwind CSS v4 Plugin Configuration — aeos365
+ *
+ * Single source of truth for HeroUI primitive theming. Locked to two themes:
+ *   - "aeos"        (dark, default)  — obsidian + cyan signal + amber warmth
+ *   - "aeos-light"  (light)          — paper surfaces + cyan-deep primary
+ *
+ * Color values come straight from the aeos365 design system spec. Do NOT
+ * introduce new themes here — accent customization is intentionally killed.
+ *
+ * @see aeos365-design-system/project/colors_and_type.css
+ * @see aeos365-design-system/project/README.md
  */
 import { createRequire } from "module";
 
-// Create a require function that resolves from the current working directory
-// This allows finding @heroui/react in the host app's node_modules
 const require = createRequire(process.cwd() + "/");
 const { heroui } = require("@heroui/react");
 
 export default heroui({
   addCommonColors: true,
-  defaultTheme: "light",
-  defaultExtendTheme: "light",
+  defaultTheme: "aeos",
+  defaultExtendTheme: "dark",
   layout: {
     borderWidth: {
       small: "1px",
-      medium: "2px",
-      large: "3px",
+      medium: "1px",
+      large: "2px",
     },
     radius: {
-      small: "6px",
-      medium: "8px",
-      large: "12px",
+      small: "6px",   // --aeos-r-sm
+      medium: "8px",  // --aeos-r-md (buttons)
+      large: "12px",  // --aeos-r-lg (inputs, mockup window)
     },
     fontSize: {
-      tiny: "0.75rem",
-      small: "0.875rem",
-      medium: "1rem",
-      large: "1.125rem",
+      tiny: "0.72rem",   // --aeos-fs-label
+      small: "0.875rem", // --aeos-fs-body-sm
+      medium: "1rem",    // --aeos-fs-body
+      large: "1.125rem", // --aeos-fs-body-lg
     },
     lineHeight: {
       tiny: "1rem",
@@ -46,492 +46,183 @@ export default heroui({
     dividerWeight: "1px",
     disabledOpacity: 0.5,
     boxShadow: {
-      small: "0 1px 2px 0 rgb(0 0 0 / 0.05)",
-      medium: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
-      large: "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+      // aeos-spec — warm-black, never gray
+      small:  "0 4px 16px rgba(0, 0, 0, 0.30)",
+      medium: "0 8px 32px rgba(0, 0, 0, 0.40)",   // --aeos-shadow-card
+      large:  "0 16px 48px rgba(0, 0, 0, 0.55)",  // --aeos-shadow-lift
     },
     spacingUnit: 4,
   },
   themes: {
-    // Light theme (default)
-    light: {
-      extend: "light",
+    /* ── aeos (dark, canonical) ────────────────────────────────────────── */
+    aeos: {
+      extend: "dark",
       colors: {
+        background: "#03040A",  // --aeos-obsidian
+        foreground: "#E8EDF5",  // --aeos-ink
+        divider:    "rgba(255,255,255,0.06)",
+        focus:      "#00E5FF",
+        content1: "#070B14",  // --aeos-onyx
+        content2: "#0D1120",  // --aeos-slate
+        content3: "#131829",  // --aeos-graphite
+        content4: "#1A1F33",  // --aeos-gunmetal
+
         primary: {
-          50: "#e6f1fe",
-          100: "#cce3fd",
-          200: "#99c7fb",
-          300: "#66aaf9",
-          400: "#338ef7",
-          500: "#006fee",
-          600: "#005bc4",
-          700: "#004493",
-          800: "#002e62",
-          900: "#001731",
-          DEFAULT: "#006fee",
-          foreground: "#ffffff",
+          50:  "#001a1d",
+          100: "#003337",
+          200: "#004d52",
+          300: "#00666e",
+          400: "#008090",
+          500: "#00A3B8",
+          600: "#00C5DD",
+          700: "#00E5FF",
+          800: "#5BEFFF",
+          900: "#B0F8FF",
+          DEFAULT: "#00E5FF",   // --aeos-cyan
+          foreground: "#03040A",
         },
-        focus: "#006fee",
         secondary: {
-          50: "#f2f2f3",
-          100: "#e6e6e7",
-          200: "#ccccce",
-          300: "#b3b3b6",
-          400: "#99999d",
-          500: "#808085",
-          600: "#66666a",
-          700: "#4d4d50",
-          800: "#333335",
-          900: "#1a1a1b",
-          DEFAULT: "#808085",
+          50:  "#0c0e1f",
+          100: "#181c3e",
+          200: "#252a5d",
+          300: "#31387c",
+          400: "#3e479b",
+          500: "#4b55b9",
+          600: "#5d63d8",
+          700: "#6366F1",
+          800: "#8B8FF5",
+          900: "#B4B7F9",
+          DEFAULT: "#6366F1",   // --aeos-indigo
+          foreground: "#FFFFFF",
         },
         success: {
-          50: "#e8faf0",
+          50:  "#052812",
+          100: "#0a4f25",
+          200: "#0e7637",
+          300: "#149d49",
+          400: "#1ac45b",
+          500: "#22C55E",
+          600: "#4dd683",
+          700: "#7ae6a4",
+          800: "#a8f3c4",
+          900: "#d6fae3",
+          DEFAULT: "#22C55E",
+          foreground: "#03040A",
+        },
+        warning: {
+          50:  "#3d2810",
+          100: "#5a3a17",
+          200: "#7d501f",
+          300: "#a36527",
+          400: "#cb7c30",
+          500: "#FFB347",   // --aeos-amber
+          600: "#ffc572",
+          700: "#ffd494",
+          800: "#ffe2b8",
+          900: "#fff1dc",
+          DEFAULT: "#FFB347",
+          foreground: "#03040A",
+        },
+        danger: {
+          50:  "#3d1414",
+          100: "#5a1d1d",
+          200: "#7d2929",
+          300: "#a33333",
+          400: "#cb4040",
+          500: "#FF6B6B",   // --aeos-coral
+          600: "#ff8888",
+          700: "#ffa6a6",
+          800: "#ffc3c3",
+          900: "#ffe1e1",
+          DEFAULT: "#FF6B6B",
+          foreground: "#FFFFFF",
+        },
+      },
+    },
+
+    /* ── aeos-light ────────────────────────────────────────────────────── */
+    "aeos-light": {
+      extend: "light",
+      colors: {
+        background: "#F8FAFC",  // --aeos-paper
+        foreground: "#0F172A",  // --aeos-onyx-l
+        divider:    "rgba(15,23,42,0.08)",
+        focus:      "#00A3B8",
+        content1: "#FFFFFF",
+        content2: "#F1F5F9",  // --aeos-paper-2
+        content3: "#E2E8F0",  // --aeos-paper-3
+        content4: "#CBD5E1",
+
+        primary: {
+          50:  "#e0f7fa",
+          100: "#b2ebf2",
+          200: "#80deea",
+          300: "#4dd0e1",
+          400: "#26c6da",
+          500: "#00bcd4",
+          600: "#00acc1",
+          700: "#00A3B8",   // --aeos-cyan-deep
+          800: "#00838f",
+          900: "#006064",
+          DEFAULT: "#00A3B8",
+          foreground: "#FFFFFF",
+        },
+        secondary: {
+          50:  "#eef0fe",
+          100: "#d8dcfd",
+          200: "#b1b9fb",
+          300: "#8a96f9",
+          400: "#6c79f6",
+          500: "#6366F1",
+          600: "#4f53cf",
+          700: "#3c40ad",
+          800: "#292d8a",
+          900: "#161a68",
+          DEFAULT: "#6366F1",
+          foreground: "#FFFFFF",
+        },
+        success: {
+          50:  "#e8faf0",
           100: "#d1f4e0",
           200: "#a2e9c1",
           300: "#74dfa2",
           400: "#45d483",
-          500: "#17c964",
-          600: "#12a150",
-          700: "#0e793c",
-          800: "#095028",
-          900: "#052814",
-          DEFAULT: "#17c964",
-          foreground: "#ffffff",
-        },
-        warning: {
-          50: "#fefce8",
-          100: "#fdedd3",
-          200: "#fbdba7",
-          300: "#f9c97c",
-          400: "#f7b750",
-          500: "#f5a524",
-          600: "#c4841d",
-          700: "#936316",
-          800: "#62420e",
-          900: "#312107",
-          DEFAULT: "#f5a524",
-          foreground: "#ffffff",
-        },
-        danger: {
-          50: "#fee7ef",
-          100: "#fdd0df",
-          200: "#faa0bf",
-          300: "#f871a0",
-          400: "#f54180",
-          500: "#f31260",
-          600: "#c20e4d",
-          700: "#920b3a",
-          800: "#610726",
-          900: "#310413",
-          DEFAULT: "#f31260",
-          foreground: "#ffffff",
-        },
-      },
-    },
-    
-    // Dark theme
-    dark: {
-      extend: "dark",
-      colors: {
-        primary: {
-          50: "#001731",
-          100: "#002e62",
-          200: "#004493",
-          300: "#005bc4",
-          400: "#006fee",
-          500: "#338ef7",
-          600: "#66aaf9",
-          700: "#99c7fb",
-          800: "#cce3fd",
-          900: "#e6f1fe",
-          DEFAULT: "#006fee",
-          foreground: "#ffffff",
-        },
-        focus: "#006fee",
-        secondary: {
-          50: "#1a1a1b",
-          100: "#333335",
-          200: "#4d4d50",
-          300: "#66666a",
-          400: "#808085",
-          500: "#99999d",
-          600: "#b3b3b6",
-          700: "#ccccce",
-          800: "#e6e6e7",
-          900: "#f2f2f3",
-          DEFAULT: "#808085",
-        },
-        success: {
-          50: "#052814",
-          100: "#095028",
-          200: "#0e793c",
-          300: "#12a150",
-          400: "#17c964",
-          500: "#45d483",
-          600: "#74dfa2",
-          700: "#a2e9c1",
-          800: "#d1f4e0",
-          900: "#e8faf0",
-          DEFAULT: "#17c964",
-          foreground: "#000000",
-        },
-        warning: {
-          50: "#312107",
-          100: "#62420e",
-          200: "#936316",
-          300: "#c4841d",
-          400: "#f5a524",
-          500: "#f7b750",
-          600: "#f9c97c",
-          700: "#fbdba7",
-          800: "#fdedd3",
-          900: "#fefce8",
-          DEFAULT: "#f5a524",
-          foreground: "#000000",
-        },
-        danger: {
-          50: "#310413",
-          100: "#610726",
-          200: "#920b3a",
-          300: "#c20e4d",
-          400: "#f31260",
-          500: "#f54180",
-          600: "#f871a0",
-          700: "#faa0bf",
-          800: "#fdd0df",
-          900: "#fee7ef",
-          DEFAULT: "#f31260",
-          foreground: "#ffffff",
-        },
-      },
-    },
-
-    // Ocean theme (Blue-based)
-    ocean: {
-      extend: "light",
-      colors: {
-        primary: {
-          50: "#e6f7ff",
-          100: "#bae7ff",
-          200: "#7dd3fc",
-          300: "#38bdf8",
-          400: "#0ea5e9",
-          500: "#0284c7",
-          600: "#0369a1",
-          700: "#075985",
-          800: "#0c4a6e",
-          900: "#082f49",
-          DEFAULT: "#0284c7",
-          foreground: "#ffffff",
-        },
-        secondary: {
-          50: "#f0fdfa",
-          100: "#ccfbf1",
-          200: "#99f6e4",
-          300: "#5eead4",
-          400: "#2dd4bf",
-          500: "#14b8a6",
-          600: "#0d9488",
-          700: "#0f766e",
-          800: "#115e59",
-          900: "#134e4a",
-          DEFAULT: "#14b8a6",
-          foreground: "#ffffff",
-        },
-        focus: "#0284c7",
-      },
-    },
-
-    // Forest theme (Green-based)
-    forest: {
-      extend: "light",
-      colors: {
-        primary: {
-          50: "#f0fdf4",
-          100: "#dcfce7",
-          200: "#bbf7d0",
-          300: "#86efac",
-          400: "#4ade80",
-          500: "#22c55e",
-          600: "#16a34a",
+          500: "#22C55E",
+          600: "#1ca34d",
           700: "#15803d",
-          800: "#166534",
-          900: "#14532d",
-          DEFAULT: "#22c55e",
-          foreground: "#ffffff",
+          800: "#0e6230",
+          900: "#073f1f",
+          DEFAULT: "#22C55E",
+          foreground: "#FFFFFF",
         },
-        secondary: {
-          50: "#fefce8",
-          100: "#fef9c3",
-          200: "#fef08a",
-          300: "#fde047",
-          400: "#facc15",
-          500: "#eab308",
-          600: "#ca8a04",
-          700: "#a16207",
-          800: "#854d0e",
-          900: "#713f12",
-          DEFAULT: "#eab308",
-          foreground: "#000000",
+        warning: {
+          50:  "#fff4e0",
+          100: "#ffe1b8",
+          200: "#ffce8a",
+          300: "#ffba5d",
+          400: "#ffa731",
+          500: "#FFB347",
+          600: "#e89530",
+          700: "#b8731f",
+          800: "#875212",
+          900: "#523108",
+          DEFAULT: "#FFB347",
+          foreground: "#03040A",
         },
-        focus: "#22c55e",
-      },
-    },
-
-    // Sunset theme (Orange/Red-based)
-    sunset: {
-      extend: "light",
-      colors: {
-        primary: {
-          50: "#fff7ed",
-          100: "#ffedd5",
-          200: "#fed7aa",
-          300: "#fdba74",
-          400: "#fb923c",
-          500: "#f97316",
-          600: "#ea580c",
-          700: "#c2410c",
-          800: "#9a3412",
-          900: "#7c2d12",
-          DEFAULT: "#f97316",
-          foreground: "#ffffff",
+        danger: {
+          50:  "#ffe6e6",
+          100: "#ffbdbd",
+          200: "#ff9494",
+          300: "#FF6B6B",
+          400: "#ff4242",
+          500: "#e53e3e",
+          600: "#c53030",
+          700: "#9b2626",
+          800: "#742020",
+          900: "#4d1818",
+          DEFAULT: "#FF6B6B",
+          foreground: "#FFFFFF",
         },
-        secondary: {
-          50: "#fef2f2",
-          100: "#fee2e2",
-          200: "#fecaca",
-          300: "#fca5a5",
-          400: "#f87171",
-          500: "#ef4444",
-          600: "#dc2626",
-          700: "#b91c1c",
-          800: "#991b1b",
-          900: "#7f1d1d",
-          DEFAULT: "#ef4444",
-          foreground: "#ffffff",
-        },
-        focus: "#f97316",
-      },
-    },
-
-    // Purple theme
-    purple: {
-      extend: "light",
-      colors: {
-        primary: {
-          50: "#faf5ff",
-          100: "#f3e8ff",
-          200: "#e9d5ff",
-          300: "#d8b4fe",
-          400: "#c084fc",
-          500: "#a855f7",
-          600: "#9333ea",
-          700: "#7c3aed",
-          800: "#6b21a8",
-          900: "#581c87",
-          DEFAULT: "#a855f7",
-          foreground: "#ffffff",
-        },
-        secondary: {
-          50: "#fdf4ff",
-          100: "#fae8ff",
-          200: "#f5d0fe",
-          300: "#f0abfc",
-          400: "#e879f9",
-          500: "#d946ef",
-          600: "#c026d3",
-          700: "#a21caf",
-          800: "#86198f",
-          900: "#701a75",
-          DEFAULT: "#d946ef",
-          foreground: "#ffffff",
-        },
-        focus: "#a855f7",
-      },
-    },
-
-    // Monochrome theme
-    monochrome: {
-      extend: "light",
-      colors: {
-        primary: {
-          50: "#f9fafb",
-          100: "#f3f4f6",
-          200: "#e5e7eb",
-          300: "#d1d5db",
-          400: "#9ca3af",
-          500: "#6b7280",
-          600: "#4b5563",
-          700: "#374151",
-          800: "#1f2937",
-          900: "#111827",
-          DEFAULT: "#374151",
-          foreground: "#ffffff",
-        },
-        secondary: {
-          50: "#fafafa",
-          100: "#f4f4f5",
-          200: "#e4e4e7",
-          300: "#d4d4d8",
-          400: "#a1a1aa",
-          500: "#71717a",
-          600: "#52525b",
-          700: "#3f3f46",
-          800: "#27272a",
-          900: "#18181b",
-          DEFAULT: "#71717a",
-          foreground: "#ffffff",
-        },
-        focus: "#374151",
-      },
-    },
-
-    // Cosmic theme (Dark purple/blue)
-    cosmic: {
-      extend: "dark",
-      colors: {
-        primary: {
-          50: "#0f0f23",
-          100: "#1a1a3e",
-          200: "#252559",
-          300: "#303074",
-          400: "#3b3b8f",
-          500: "#4646aa",
-          600: "#6161c5",
-          700: "#7c7ce0",
-          800: "#9797fb",
-          900: "#b2b2ff",
-          DEFAULT: "#4646aa",
-          foreground: "#ffffff",
-        },
-        secondary: {
-          50: "#0a0a0f",
-          100: "#14141e",
-          200: "#1e1e2d",
-          300: "#28283c",
-          400: "#32324b",
-          500: "#3c3c5a",
-          600: "#505078",
-          700: "#646496",
-          800: "#7878b4",
-          900: "#8c8cd2",
-          DEFAULT: "#3c3c5a",
-          foreground: "#ffffff",
-        },
-        focus: "#4646aa",
-        background: "#0a0a0f",
-        foreground: "#ffffff",
-      },
-    },
-
-    // Neon theme (Bright colors for dark mode)
-    neon: {
-      extend: "dark",
-      colors: {
-        primary: {
-          50: "#001a1a",
-          100: "#003333",
-          200: "#004d4d",
-          300: "#006666",
-          400: "#008080",
-          500: "#00cccc",
-          600: "#33d9d9",
-          700: "#66e6e6",
-          800: "#99f2f2",
-          900: "#ccffff",
-          DEFAULT: "#00cccc",
-          foreground: "#000000",
-        },
-        secondary: {
-          50: "#1a001a",
-          100: "#330033",
-          200: "#4d004d",
-          300: "#660066",
-          400: "#800080",
-          500: "#cc00cc",
-          600: "#d933d9",
-          700: "#e666e6",
-          800: "#f299f2",
-          900: "#ffccff",
-          DEFAULT: "#cc00cc",
-          foreground: "#000000",
-        },
-        focus: "#00cccc",
-        background: "#000000",
-        foreground: "#ffffff",
-      },
-    },
-
-    // Warm theme (Cozy browns and oranges)
-    warm: {
-      extend: "light",
-      colors: {
-        primary: {
-          50: "#fdf8f6",
-          100: "#f2e8e5",
-          200: "#eaddd7",
-          300: "#e0cfc5",
-          400: "#d2bab0",
-          500: "#bfa094",
-          600: "#a18072",
-          700: "#977669",
-          800: "#846358",
-          900: "#43302b",
-          DEFAULT: "#bfa094",
-          foreground: "#ffffff",
-        },
-        secondary: {
-          50: "#fefce8",
-          100: "#fef9c3",
-          200: "#fef08a",
-          300: "#fde047",
-          400: "#facc15",
-          500: "#eab308",
-          600: "#ca8a04",
-          700: "#a16207",
-          800: "#854d0e",
-          900: "#713f12",
-          DEFAULT: "#eab308",
-          foreground: "#000000",
-        },
-        focus: "#bfa094",
-      },
-    },
-
-    // Winter theme (Cool blues and whites)
-    winter: {
-      extend: "light",
-      colors: {
-        primary: {
-          50: "#f0f9ff",
-          100: "#e0f2fe",
-          200: "#bae6fd",
-          300: "#7dd3fc",
-          400: "#38bdf8",
-          500: "#0ea5e9",
-          600: "#0284c7",
-          700: "#0369a1",
-          800: "#075985",
-          900: "#0c4a6e",
-          DEFAULT: "#0ea5e9",
-          foreground: "#ffffff",
-        },
-        secondary: {
-          50: "#f8fafc",
-          100: "#f1f5f9",
-          200: "#e2e8f0",
-          300: "#cbd5e1",
-          400: "#94a3b8",
-          500: "#64748b",
-          600: "#475569",
-          700: "#334155",
-          800: "#1e293b",
-          900: "#0f172a",
-          DEFAULT: "#64748b",
-          foreground: "#ffffff",
-        },
-        focus: "#0ea5e9",
       },
     },
   },

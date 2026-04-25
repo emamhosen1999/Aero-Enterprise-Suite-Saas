@@ -1,0 +1,482 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   AEOS365 — Design Tokens (canonical)
+   Source of truth: aeos365-design-system/project/colors_and_type.css
+   Modular enterprise platform: HR · Payroll · Analytics · Operations
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Fonts ──────────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* ── Brand Colors ─────────────────────────────────────────────────────── */
+  --aeos-cyan:       #00E5FF;   /* Primary signal, links, focus, glow */
+  --aeos-cyan-deep:  #00A3B8;   /* Cyan for light mode (better contrast) */
+  --aeos-amber:      #FFB347;   /* Warm accent — payroll, money, warmth */
+  --aeos-indigo:     #6366F1;   /* Cool accent — analytics, depth */
+  --aeos-coral:      #FF6B6B;   /* Reserved for warnings/destructive */
+
+  /* Status */
+  --aeos-success:    #22C55E;
+  --aeos-warning:    #FFB347;
+  --aeos-danger:     #FF6B6B;
+  --aeos-info:       #00E5FF;
+
+  /* ── Dark Surfaces (default theme) ────────────────────────────────────── */
+  --aeos-obsidian:   #03040A;   /* Deepest — page bg */
+  --aeos-onyx:       #070B14;   /* App bg, cards, footers */
+  --aeos-slate:      #0D1120;   /* Glass card base */
+  --aeos-graphite:   #131829;   /* Elevated surface */
+  --aeos-gunmetal:   #1A1F33;   /* Modals, overlays */
+
+  /* ── Dark Text ────────────────────────────────────────────────────────── */
+  --aeos-ink:        #E8EDF5;   /* Primary text on dark */
+  --aeos-ink-muted:  #8892A4;   /* Muted text on dark */
+  --aeos-ink-faint:  #4A5468;   /* Disabled, hints */
+
+  /* ── Light Mode Surfaces & Ink ────────────────────────────────────────── */
+  --aeos-paper:      #F8FAFC;   /* Page bg light */
+  --aeos-paper-2:    #F1F5F9;   /* Secondary bg light */
+  --aeos-paper-3:    #E2E8F0;   /* Borders, dividers light */
+  --aeos-graphite-l: #475569;   /* Body text light */
+  --aeos-onyx-l:     #0F172A;   /* Primary text light */
+  --aeos-ink-l-muted:#64748B;   /* Muted text light */
+
+  /* ── Glass / Border ───────────────────────────────────────────────────── */
+  --aeos-glass-bg:        rgba(13, 17, 32, 0.7);
+  --aeos-glass-bg-strong: rgba(7, 11, 20, 0.85);
+  --aeos-glass-border:    rgba(0, 229, 255, 0.12);
+  --aeos-glass-border-h:  rgba(0, 229, 255, 0.20);
+  --aeos-divider:         rgba(255, 255, 255, 0.06);
+  --aeos-divider-l:       rgba(15, 23, 42, 0.08);
+
+  /* ── Gradients ────────────────────────────────────────────────────────── */
+  --aeos-grad-cyan:   linear-gradient(135deg, #00E5FF 0%, #6366F1 100%);
+  --aeos-grad-amber:  linear-gradient(135deg, #FFB347 0%, #FF6B6B 100%);
+  --aeos-grad-full:   linear-gradient(135deg, #00E5FF 0%, #6366F1 50%, #FFB347 100%);
+  --aeos-grad-text:   linear-gradient(135deg, #ffffff 0%, #00E5FF 100%);
+  --aeos-grad-mesh:   radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,229,255,0.12), transparent 65%),
+                      radial-gradient(ellipse 50% 50% at 85% 55%, rgba(255,179,71,0.08), transparent 55%),
+                      radial-gradient(ellipse 40% 50% at 10% 70%, rgba(99,102,241,0.08), transparent 55%);
+
+  /* ── Glow / Shadow ────────────────────────────────────────────────────── */
+  --aeos-glow-cyan:   0 0 24px rgba(0, 229, 255, 0.30);
+  --aeos-glow-cyan-l: 0 0 40px rgba(0, 229, 255, 0.50);
+  --aeos-glow-amber:  0 0 24px rgba(255, 179, 71, 0.25);
+  --aeos-shadow-card: 0 8px 32px rgba(0, 0, 0, 0.40);
+  --aeos-shadow-lift: 0 16px 48px rgba(0, 0, 0, 0.55);
+  --aeos-shadow-mockup: 0 0 0 1px rgba(0, 229, 255, 0.15),
+                       0 32px 80px rgba(0, 0, 0, 0.80),
+                       0 0 60px rgba(0, 229, 255, 0.08);
+
+  /* ── Type ─────────────────────────────────────────────────────────────── */
+  --aeos-font-display: 'Syne', system-ui, sans-serif;       /* H1/H2 — geometric, bold */
+  --aeos-font-body:    'DM Sans', system-ui, sans-serif;    /* Body, UI */
+  --aeos-font-mono:    'JetBrains Mono', ui-monospace, monospace; /* Numbers, labels, code */
+
+  --aeos-fs-display-hero: clamp(2.8rem, 7vw, 5.5rem);    /* 800wt, -0.03em */
+  --aeos-fs-display-sec:  clamp(2rem, 4vw, 3.2rem);      /* 700wt, -0.025em */
+  --aeos-fs-display-sm:   clamp(1.5rem, 2.5vw, 2.25rem); /* 700wt */
+  --aeos-fs-h3:           1.5rem;     /* 600wt */
+  --aeos-fs-h4:           1.25rem;    /* 600wt */
+  --aeos-fs-body-lg:      1.125rem;
+  --aeos-fs-body:         1rem;
+  --aeos-fs-body-sm:      0.875rem;
+  --aeos-fs-label:        0.72rem;    /* mono, +0.15em */
+  --aeos-fs-micro:        0.6rem;
+
+  /* ── Radii ────────────────────────────────────────────────────────────── */
+  --aeos-r-sm:  6px;
+  --aeos-r-md:  8px;     /* buttons */
+  --aeos-r-lg:  12px;    /* mockup window, inputs */
+  --aeos-r-xl:  16px;    /* bento cards, testimonials */
+  --aeos-r-2xl: 24px;    /* CTA, hero panels */
+  --aeos-r-full: 9999px;
+
+  /* ── Spacing rhythm ───────────────────────────────────────────────────── */
+  --aeos-pad-card: 1.5rem;
+  --aeos-pad-section: clamp(4rem, 8vw, 8rem);
+  --aeos-gap-section: 1.5rem;
+
+  /* ── Motion ───────────────────────────────────────────────────────────── */
+  --aeos-ease-out:   cubic-bezier(0.22, 1, 0.36, 1);
+  --aeos-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --aeos-dur-fast:   180ms;
+  --aeos-dur-base:   240ms;
+  --aeos-dur-slow:   400ms;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Base + Reset (scoped — only when .aeos is on root or page)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.aeos {
+  background: var(--aeos-obsidian);
+  color: var(--aeos-ink);
+  font-family: var(--aeos-font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01", "cv11";
+}
+
+html.aeos { color-scheme: dark; }
+
+.aeos-light {
+  background: var(--aeos-paper);
+  color: var(--aeos-onyx-l);
+  --aeos-ink: #0F172A;
+  --aeos-ink-muted: #64748B;
+  --aeos-glass-bg: rgba(255, 255, 255, 0.80);
+  --aeos-glass-border: rgba(0, 163, 184, 0.18);
+  --aeos-divider: rgba(15, 23, 42, 0.08);
+}
+
+html.aeos-light { color-scheme: light; }
+
+.aeos *, .aeos *::before, .aeos *::after { box-sizing: border-box; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Typography Helpers
+   ═══════════════════════════════════════════════════════════════════════════ */
+.aeos-display-hero {
+  font-family: var(--aeos-font-display);
+  font-size: var(--aeos-fs-display-hero);
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+.aeos-display-section {
+  font-family: var(--aeos-font-display);
+  font-size: var(--aeos-fs-display-sec);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+.aeos-display-sm {
+  font-family: var(--aeos-font-display);
+  font-size: var(--aeos-fs-display-sm);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.aeos-h3 { font-family: var(--aeos-font-display); font-size: var(--aeos-fs-h3); font-weight: 600; letter-spacing: -0.015em; }
+.aeos-h4 { font-family: var(--aeos-font-body); font-size: var(--aeos-fs-h4); font-weight: 600; letter-spacing: -0.01em; }
+.aeos-body { font-family: var(--aeos-font-body); font-size: var(--aeos-fs-body); line-height: 1.6; }
+.aeos-body-lg { font-family: var(--aeos-font-body); font-size: var(--aeos-fs-body-lg); line-height: 1.6; color: var(--aeos-ink-muted); }
+.aeos-label-mono {
+  font-family: var(--aeos-font-mono);
+  font-size: var(--aeos-fs-label);
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--aeos-ink-muted);
+}
+.aeos-mono-num {
+  font-family: var(--aeos-font-mono);
+  font-feature-settings: "tnum";
+  letter-spacing: -0.01em;
+}
+
+/* Gradient text */
+.aeos-text-gradient-cyan  { background: var(--aeos-grad-cyan);  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.aeos-text-gradient-amber { background: var(--aeos-grad-amber); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.aeos-text-gradient-full  { background: var(--aeos-grad-full);  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.aeos-stat-number {
+  font-family: var(--aeos-font-mono);
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  font-weight: 600;
+  background: var(--aeos-grad-text);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Surface utilities
+   ═══════════════════════════════════════════════════════════════════════════ */
+.aeos-glass {
+  background: var(--aeos-glass-bg);
+  border: 1px solid var(--aeos-glass-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: var(--aeos-r-xl);
+}
+.aeos-glass-strong {
+  background: var(--aeos-glass-bg-strong);
+  border: 1px solid rgba(0, 229, 255, 0.18);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: var(--aeos-r-xl);
+}
+.aeos-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--aeos-r-xl);
+  padding: var(--aeos-pad-card);
+}
+.aeos-card-elevated {
+  background: var(--aeos-graphite);
+  border: 1px solid rgba(0, 229, 255, 0.08);
+  border-radius: var(--aeos-r-xl);
+  padding: var(--aeos-pad-card);
+  box-shadow: var(--aeos-shadow-card);
+}
+
+/* Bento (animated highlight follows cursor) */
+.aeos-bento {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--aeos-r-xl);
+  background: rgba(13, 17, 32, 0.8);
+  border: 1px solid rgba(0, 229, 255, 0.08);
+  transition: border-color var(--aeos-dur-base) var(--aeos-ease-out),
+              box-shadow var(--aeos-dur-base) var(--aeos-ease-out);
+}
+.aeos-bento::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(0, 229, 255, 0.08) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity var(--aeos-dur-base) var(--aeos-ease-out);
+  pointer-events: none;
+}
+.aeos-bento:hover { border-color: rgba(0, 229, 255, 0.20); box-shadow: 0 8px 48px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(0, 229, 255, 0.1); }
+.aeos-bento:hover::before { opacity: 1; }
+
+/* Grid texture overlay */
+.aeos-grid-bg {
+  background-image:
+    linear-gradient(rgba(0, 229, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 229, 255, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Divider with cyan glow */
+.aeos-divider-glow {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.4), transparent);
+  border: 0;
+}
+
+/* Glow rings */
+.aeos-glow-ring-cyan  { box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.3), var(--aeos-glow-cyan); }
+.aeos-glow-ring-amber { box-shadow: 0 0 0 1px rgba(255, 179, 71, 0.3), var(--aeos-glow-amber); }
+
+/* CTA glassmorphic panel */
+.aeos-cta-glass {
+  background: linear-gradient(135deg, rgba(0,229,255,0.08) 0%, rgba(99,102,241,0.06) 50%, rgba(255,179,71,0.06) 100%);
+  border: 1px solid rgba(0, 229, 255, 0.20);
+  border-radius: var(--aeos-r-2xl);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.08),
+              0 32px 80px rgba(0, 0, 0, 0.6),
+              inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Controls — Buttons, inputs, badges
+   ═══════════════════════════════════════════════════════════════════════════ */
+.aeos-btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: var(--aeos-font-body);
+  font-weight: 600;
+  border: none; cursor: pointer;
+  border-radius: var(--aeos-r-md);
+  padding: 0.75rem 1.75rem;
+  font-size: 0.925rem;
+  line-height: 1;
+  transition: transform var(--aeos-dur-fast) var(--aeos-ease-out),
+              box-shadow var(--aeos-dur-fast) var(--aeos-ease-out),
+              opacity var(--aeos-dur-fast) var(--aeos-ease-out),
+              background var(--aeos-dur-fast) var(--aeos-ease-out);
+  white-space: nowrap;
+}
+.aeos-btn-primary {
+  background: var(--aeos-grad-cyan);
+  color: var(--aeos-obsidian);
+  box-shadow: var(--aeos-glow-cyan);
+}
+.aeos-btn-primary:hover { opacity: 0.92; transform: translateY(-1px); box-shadow: var(--aeos-glow-cyan-l); }
+.aeos-btn-ghost {
+  background: transparent;
+  color: var(--aeos-ink);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-weight: 500;
+  padding: calc(0.75rem - 1px) calc(1.75rem - 1px);
+}
+.aeos-btn-ghost:hover { background: rgba(255, 255, 255, 0.06); border-color: rgba(0, 229, 255, 0.3); }
+.aeos-btn-soft {
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.20);
+  color: var(--aeos-cyan);
+  font-weight: 500;
+  padding: calc(0.75rem - 1px) calc(1.75rem - 1px);
+}
+.aeos-btn-soft:hover { background: rgba(0, 229, 255, 0.14); }
+.aeos-btn-amber {
+  background: var(--aeos-grad-amber);
+  color: var(--aeos-obsidian);
+  box-shadow: var(--aeos-glow-amber);
+}
+.aeos-btn-sm { padding: 0.5rem 1rem; font-size: 0.8rem; border-radius: var(--aeos-r-sm); }
+.aeos-btn-lg { padding: 1rem 2.5rem; font-size: 1rem; }
+.aeos-btn-icon { padding: 0.625rem; }
+
+/* Form */
+.aeos-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: var(--aeos-ink);
+  border-radius: var(--aeos-r-md);
+  padding: 0.65rem 0.9rem;
+  font-family: var(--aeos-font-body);
+  font-size: 0.925rem;
+  outline: none;
+  transition: border-color var(--aeos-dur-fast), background var(--aeos-dur-fast), box-shadow var(--aeos-dur-fast);
+}
+.aeos-input::placeholder { color: var(--aeos-ink-faint); }
+.aeos-input:focus { border-color: rgba(0, 229, 255, 0.5); box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.12); }
+.aeos-label {
+  display: block;
+  font-family: var(--aeos-font-body);
+  font-weight: 500;
+  font-size: 0.8rem;
+  color: var(--aeos-ink-muted);
+  margin-bottom: 0.4rem;
+}
+
+/* Badges */
+.aeos-badge {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--aeos-r-full);
+  font-family: var(--aeos-font-body);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  border: 1px solid;
+}
+.aeos-badge-cyan   { background: rgba(0,229,255,0.08);  border-color: rgba(0,229,255,0.20);  color: var(--aeos-cyan); }
+.aeos-badge-amber  { background: rgba(255,179,71,0.08); border-color: rgba(255,179,71,0.22); color: var(--aeos-amber); }
+.aeos-badge-indigo { background: rgba(99,102,241,0.10); border-color: rgba(99,102,241,0.25); color: var(--aeos-indigo); }
+.aeos-badge-success{ background: rgba(34,197,94,0.10);  border-color: rgba(34,197,94,0.25);  color: var(--aeos-success); }
+.aeos-badge-danger { background: rgba(255,107,107,0.10);border-color: rgba(255,107,107,0.25);color: var(--aeos-danger); }
+.aeos-badge-mono   {
+  font-family: var(--aeos-font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  background: rgba(0,229,255,0.08);
+  border-color: rgba(0,229,255,0.20);
+  color: var(--aeos-cyan);
+}
+.aeos-badge-dot::before {
+  content: '';
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+  animation: aeos-pulse 2s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Animations
+   ═══════════════════════════════════════════════════════════════════════════ */
+@keyframes aeos-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}
+@keyframes aeos-float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33%      { transform: translateY(-12px) rotate(0.5deg); }
+  66%      { transform: translateY(-6px) rotate(-0.5deg); }
+}
+@keyframes aeos-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes aeos-marquee {
+  0%   { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes aeos-pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(0, 229, 255, 0.3); }
+  50%      { box-shadow: 0 0 40px rgba(0, 229, 255, 0.6); }
+}
+
+.aeos-anim-float       { animation: aeos-float 7s ease-in-out infinite; }
+.aeos-anim-pulse-glow  { animation: aeos-pulse-glow 3s ease-in-out infinite; }
+.aeos-anim-shimmer {
+  background: linear-gradient(105deg, rgba(255,255,255,0.03) 40%, rgba(0,229,255,0.08) 50%, rgba(255,255,255,0.03) 60%);
+  background-size: 200% 100%;
+  animation: aeos-shimmer 2s linear infinite;
+}
+
+/* Scrollbar (subtle, cyan-tinted) */
+.aeos ::-webkit-scrollbar { width: 6px; height: 6px; }
+.aeos ::-webkit-scrollbar-track { background: var(--aeos-onyx); }
+.aeos ::-webkit-scrollbar-thumb { background: rgba(0, 229, 255, 0.30); border-radius: 3px; }
+.aeos ::-webkit-scrollbar-thumb:hover { background: rgba(0, 229, 255, 0.60); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LEGACY COMPATIBILITY SHIM — DEPRECATED
+   ─────────────────────────────────────────────────────────────────────────
+   Maps the legacy `--theme-*`, `--borderRadius`, `--borderWidth`, `--fontFamily`
+   variables consumed by older components onto canonical aeos tokens, so
+   pre-aeos code keeps rendering on-brand while we migrate it.
+   New code MUST consume `var(--aeos-*)` directly.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.aeos {
+  --theme-primary:    var(--aeos-cyan);
+  --theme-secondary:  var(--aeos-indigo);
+  --theme-success:    var(--aeos-success);
+  --theme-warning:    var(--aeos-amber);
+  --theme-danger:     var(--aeos-coral);
+  --theme-info:       var(--aeos-info);
+  --theme-background: var(--aeos-obsidian);
+  --theme-foreground: var(--aeos-ink);
+  --theme-foreground-secondary: var(--aeos-ink-muted);
+  --theme-content1:   var(--aeos-onyx);
+  --theme-content2:   var(--aeos-slate);
+  --theme-content3:   var(--aeos-graphite);
+  --theme-content4:   var(--aeos-gunmetal);
+  --theme-divider:    var(--aeos-divider);
+
+  --borderRadius:     var(--aeos-r-lg);
+  --borderWidth:      1px;
+  --fontFamily:       var(--aeos-font-body);
+
+  /* Chart palette (kept aeos-on-brand) */
+  --chart-color-1: var(--aeos-cyan);
+  --chart-color-2: var(--aeos-indigo);
+  --chart-color-3: var(--aeos-amber);
+  --chart-color-4: var(--aeos-success);
+  --chart-color-5: var(--aeos-coral);
+  --chart-color-6: #38BDF8;
+  --chart-color-7: #F472B6;
+  --chart-color-8: #FB923C;
+}
+
+.aeos-light {
+  --theme-primary:    var(--aeos-cyan-deep);
+  --theme-secondary:  var(--aeos-indigo);
+  --theme-background: var(--aeos-paper);
+  --theme-foreground: var(--aeos-onyx-l);
+  --theme-foreground-secondary: var(--aeos-ink-l-muted);
+  --theme-content1:   var(--aeos-paper);
+  --theme-content2:   var(--aeos-paper-2);
+  --theme-content3:   var(--aeos-paper-3);
+  --theme-content4:   #CBD5E1;
+  --theme-divider:    var(--aeos-divider-l);
+}
+
+/* Reduce motion accessibility — set on <html> by ThemeProvider */
+[data-reduce-motion] *,
+[data-reduce-motion] *::before,
+[data-reduce-motion] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}

@@ -215,7 +215,7 @@
     </style>
 </head>
 
-<body class="light text-foreground bg-background">
+<body class="aeos text-foreground bg-background">
     <!-- Skip Navigation Link for Accessibility -->
     <a href="#main-content" class="sr-only sr-only-focusable" style="position: absolute; top: -40px; left: 6px; z-index: 10001; color: white; background: var(--primary-color); padding: 8px 16px; text-decoration: none; border-radius: 4px; font-weight: bold;">
         Skip to main content

@@ -1,236 +1,41 @@
 /**
- * Background Preset System - v2.1
- * Comprehensive background options with patterns, images, and overlays
+ * DEPRECATED — aeos365 design system v3 (2026-04-25)
+ *
+ * Background presets (patterns, images, gradients, custom colors) were removed
+ * when aeos365 locked the visual language. The single canonical background is
+ * `--aeos-obsidian` with optional `.aeos-grid-bg` texture and `--aeos-grad-mesh`
+ * radial mesh on hero/CTA backdrops.
+ *
+ * This module is kept ONLY so legacy imports don't crash.
+ *
+ * @see docs/superpowers/specs/2026-04-25-aeos365-design-system-foundation-design.md
  */
 
-export const BACKGROUND_TYPES = {
-  color: 'color',
+export const BACKGROUND_TYPES = Object.freeze({
+  color:    'color',
   gradient: 'gradient',
-  pattern: 'pattern',
-  image: 'image',
-  texture: 'texture'
-};
+  pattern:  'pattern',
+  image:    'image',
+  texture:  'texture',
+});
 
-export const BACKGROUND_PRESETS = {
-  // Solid Colors
-  'light-gray': {
-    type: BACKGROUND_TYPES.color,
-    name: 'Light Gray',
-    category: 'Solid Colors',
-    value: '#F8F9FA',
-    preview: '#F8F9FA'
-  },
-  'warm-white': {
-    type: BACKGROUND_TYPES.color,
-    name: 'Warm White',
-    category: 'Solid Colors', 
-    value: '#FFFEF9',
-    preview: '#FFFEF9'
-  },
-  'cool-blue': {
-    type: BACKGROUND_TYPES.color,
-    name: 'Cool Blue',
-    category: 'Solid Colors',
-    value: '#EFF6FF',
-    preview: '#EFF6FF'
-  },
+const AEOS_BG = Object.freeze({
+  type: BACKGROUND_TYPES.color,
+  name: 'Obsidian',
+  category: 'aeos365',
+  value: 'var(--aeos-obsidian)',
+  description: 'aeos365 page surface — locked',
+});
 
-  // Gradients
-  'sunset': {
-    type: BACKGROUND_TYPES.gradient,
-    name: 'Sunset',
-    category: 'Gradients',
-    value: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    preview: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-  },
-  'ocean': {
-    type: BACKGROUND_TYPES.gradient,
-    name: 'Ocean',
-    category: 'Gradients',
-    value: 'linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)',
-    preview: 'linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)'
-  },
-  'forest': {
-    type: BACKGROUND_TYPES.gradient,
-    name: 'Forest',
-    category: 'Gradients',
-    value: 'linear-gradient(135deg, #55efc4 0%, #00b894 100%)',
-    preview: 'linear-gradient(135deg, #55efc4 0%, #00b894 100%)'
-  },
-
-  // Patterns
-  'dots': {
-    type: BACKGROUND_TYPES.pattern,
-    name: 'Dots',
-    category: 'Patterns',
-    value: {
-      pattern: 'dots',
-      color: '#E4E4E7',
-      size: '20px',
-      spacing: '40px'
-    },
-    preview: 'radial-gradient(circle, #E4E4E7 1px, transparent 1px)'
-  },
-  'grid': {
-    type: BACKGROUND_TYPES.pattern,
-    name: 'Grid',
-    category: 'Patterns',
-    value: {
-      pattern: 'grid',
-      color: '#E4E4E7',
-      size: '1px',
-      spacing: '20px'
-    },
-    preview: 'linear-gradient(#E4E4E7 1px, transparent 1px), linear-gradient(90deg, #E4E4E7 1px, transparent 1px)'
-  },
-  'diagonal': {
-    type: BACKGROUND_TYPES.pattern,
-    name: 'Diagonal Lines',
-    category: 'Patterns',
-    value: {
-      pattern: 'diagonal',
-      color: '#E4E4E7',
-      size: '1px',
-      spacing: '10px'
-    },
-    preview: 'repeating-linear-gradient(45deg, transparent, transparent 10px, #E4E4E7 10px, #E4E4E7 11px)'
-  }
-};
+export const BACKGROUND_PRESETS = Object.freeze({
+  obsidian: AEOS_BG,
+  default:  AEOS_BG,
+});
 
 /**
- * Generate CSS for pattern backgrounds
+ * No-op — aeos applies its background via the `.aeos` namespace + tokens.
+ * Older callers passed in `{type, value}`; we ignore and rely on tokens.
  */
-export const generatePatternCSS = (patternConfig) => {
-  const { pattern, color, size, spacing } = patternConfig;
-  
-  switch (pattern) {
-    case 'dots':
-      return {
-        backgroundImage: `radial-gradient(circle, ${color} ${size}, transparent ${size})`,
-        backgroundSize: `${spacing} ${spacing}`
-      };
-    
-    case 'grid':
-      return {
-        backgroundImage: `
-          linear-gradient(${color} ${size}, transparent ${size}),
-          linear-gradient(90deg, ${color} ${size}, transparent ${size})
-        `,
-        backgroundSize: `${spacing} ${spacing}`
-      };
-    
-    case 'diagonal':
-      return {
-        backgroundImage: `repeating-linear-gradient(
-          45deg,
-          transparent,
-          transparent ${spacing},
-          ${color} ${spacing},
-          ${color} calc(${spacing} + ${size})
-        )`
-      };
-    
-    default:
-      return {};
-  }
-};
+export const applyBackground = (/* background, opacity */) => undefined;
 
-const clearBackgroundOverlay = () => {
-  if (typeof window === 'undefined' || !window.document) {
-    return;
-  }
-
-  const existingOverlay = document.getElementById('background-overlay');
-  if (existingOverlay) {
-    existingOverlay.remove();
-  }
-};
-
-/**
- * Apply background configuration to document body
- */
-export const applyBackground = (backgroundConfig, opacity = 1) => {
-  if (typeof window === 'undefined' || !window.document) return;
-  
-  const body = document.body;
-  const root = document.documentElement;
-  
-  // Clear existing background
-  body.style.backgroundImage = '';
-  body.style.backgroundColor = '';
-  body.style.backgroundSize = '';
-  body.style.backgroundPosition = '';
-  body.style.backgroundRepeat = '';
-  body.style.backgroundAttachment = '';
-  body.style.opacity = '';
-  clearBackgroundOverlay();
-
-  const fallbackThemeBackground = () => root.style.getPropertyValue('--theme-background')?.trim() || '#F4F4F5';
-  
-  if (!backgroundConfig || !backgroundConfig.type) return;
-  
-  switch (backgroundConfig.type) {
-    case BACKGROUND_TYPES.color:
-      {
-        const colorValue = backgroundConfig.value || fallbackThemeBackground();
-        body.style.backgroundColor = colorValue;
-        root.style.setProperty('--theme-background-type', BACKGROUND_TYPES.color);
-
-        // Keep existing semantic fallback color when drawer value is empty
-        if (backgroundConfig.value) {
-          root.style.setProperty('--theme-background', backgroundConfig.value);
-        }
-      }
-      break;
-      
-    case BACKGROUND_TYPES.gradient:
-      {
-        const gradientValue = backgroundConfig.value || fallbackThemeBackground();
-        body.style.backgroundImage = gradientValue;
-        body.style.backgroundColor = fallbackThemeBackground();
-        root.style.setProperty('--theme-background-type', BACKGROUND_TYPES.gradient);
-
-        // Keep existing semantic fallback color when drawer value is empty
-        if (backgroundConfig.value) {
-          root.style.setProperty('--theme-background', backgroundConfig.value);
-        }
-      }
-      break;
-      
-    case BACKGROUND_TYPES.pattern:
-      {
-        const patternCSS = generatePatternCSS(backgroundConfig.value);
-        body.style.backgroundColor = fallbackThemeBackground();
-        Object.assign(body.style, patternCSS);
-        root.style.setProperty('--theme-background-type', BACKGROUND_TYPES.pattern);
-      }
-      break;
-      
-    case BACKGROUND_TYPES.image:
-      {
-        body.style.backgroundColor = fallbackThemeBackground();
-        body.style.backgroundImage = `url(${backgroundConfig.value.url})`;
-        body.style.backgroundSize = backgroundConfig.value.size || 'cover';
-        body.style.backgroundPosition = backgroundConfig.value.position || 'center';
-        body.style.backgroundRepeat = backgroundConfig.value.repeat || 'no-repeat';
-        root.style.setProperty('--theme-background-type', BACKGROUND_TYPES.image);
-
-        if (backgroundConfig.value.attachment) {
-          body.style.backgroundAttachment = backgroundConfig.value.attachment;
-        }
-      }
-      break;
-
-    default:
-      root.style.setProperty('--theme-background-type', BACKGROUND_TYPES.color);
-      body.style.backgroundColor = fallbackThemeBackground();
-      break;
-  }
-};
-
-export default {
-  BACKGROUND_TYPES,
-  BACKGROUND_PRESETS,
-  generatePatternCSS,
-  applyBackground
-};
+export default { BACKGROUND_TYPES, BACKGROUND_PRESETS, applyBackground };
