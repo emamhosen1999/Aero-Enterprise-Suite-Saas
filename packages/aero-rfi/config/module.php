@@ -30,17 +30,46 @@ return [
     |
     */
 
-    'code' => 'rfi',
-    'scope' => 'tenant',
-    'name' => 'RFI & Site Intelligence',
-    'description' => 'Advanced site operations with geo-fenced RFI validation, linear chainage mapping, and automated daily reporting.',
-    'version' => '2.1.0',
-    'category' => 'engineering_ops',
-    'icon' => 'MapIcon', // Changed to Map to emphasize Location/Site nature
-    'priority' => 15,
-    'enabled' => env('RFI_MODULE_ENABLED', true),
+    'code'         => 'rfi',
+    'scope'        => 'tenant',
+    'name'         => 'RFI & Site Intelligence',
+    'description'  => 'Request For Inspection (construction) + Request For Information / Quote / Proposal + EAM contractor RFI/RFQ workflow, geo-fenced validation, and linear chainage mapping.',
+    'version'      => '3.0.0',
+    'category'     => 'engineering_ops',
+    'icon'         => 'MapIcon',
+    'priority'     => 15,
+    'is_core'      => false,
+    'is_active'    => true,
+    'enabled'      => env('RFI_MODULE_ENABLED', true),
+    'min_plan'     => 'professional',
     'minimum_plan' => 'professional',
-    'dependencies' => ['core', 'project', 'hr', 'assets'],
+    'license_type' => 'standard',
+    'dependencies' => ['core'],
+    'release_date' => '2024-01-01',
+    'route_prefix' => '/rfi',
+
+    'features' => [
+        'dashboard'                 => true,
+        'daily_reporting'           => true,
+        'site_diary'                => true,
+        'rfi_inspection'            => true, // Request For Inspection (construction)
+        'rfi_information'           => true, // Request For Information (procurement/engineering)
+        'rfq'                       => true, // Request For Quote
+        'rfp'                       => true, // Request For Proposal
+        'geo_fencing'               => true,
+        'linear_continuity'         => true,
+        'digital_twin_map'          => true,
+        'objections_disputes'       => true,
+        'contractor_rfi'            => true, // EAM contractor RFI
+        'eam_work_request'          => true, // EAM: tenants/operators raise work requests
+        'submittals'                => true,
+        'transmittals'              => true,
+        'punch_list'                => true,
+        'ai_risk_sampling'          => true,
+        'reports_analytics'         => true,
+        'integrations'              => true,
+        'settings'                  => true,
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -232,5 +261,230 @@ return [
                 ],
             ],
         ],
+
+        // ==================== 5. REQUEST FOR INFORMATION (Engineering) ====================
+        [
+            'code' => 'rfi-information',
+            'name' => 'Request For Information (RFI)',
+            'description' => 'Engineering/design clarifications, consultant queries, response tracking.',
+            'icon' => 'QuestionMarkCircleIcon',
+            'route' => '/rfi/information',
+            'priority' => 50,
+            'is_active' => true,
+            'components' => [
+                ['code' => 'rfi-list', 'name' => 'RFI List', 'type' => 'page', 'route' => '/rfi/information',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View RFIs'],
+                        ['code' => 'create', 'name' => 'Create RFI'],
+                        ['code' => 'update', 'name' => 'Update RFI'],
+                        ['code' => 'send', 'name' => 'Send to Consultant'],
+                        ['code' => 'respond', 'name' => 'Capture Response'],
+                        ['code' => 'close', 'name' => 'Close RFI'],
+                    ]],
+                ['code' => 'rfi-log', 'name' => 'RFI Log', 'type' => 'page', 'route' => '/rfi/information/log',
+                    'actions' => [['code' => 'view', 'name' => 'View Log'], ['code' => 'export', 'name' => 'Export Log']]],
+            ],
+        ],
+
+        // ==================== 6. RFQ (Request For Quote) ====================
+        [
+            'code' => 'rfq',
+            'name' => 'Request For Quote (RFQ)',
+            'description' => 'Procurement RFQ to vendors, quote comparison, award.',
+            'icon' => 'DocumentCurrencyDollarIcon',
+            'route' => '/rfi/rfq',
+            'priority' => 60,
+            'is_active' => true,
+            'components' => [
+                ['code' => 'rfq-list', 'name' => 'RFQs', 'type' => 'page', 'route' => '/rfi/rfq',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View RFQs'],
+                        ['code' => 'create', 'name' => 'Create RFQ'],
+                        ['code' => 'send', 'name' => 'Send to Vendors'],
+                        ['code' => 'compare', 'name' => 'Compare Quotes'],
+                        ['code' => 'award', 'name' => 'Award RFQ'],
+                        ['code' => 'reject', 'name' => 'Reject RFQ'],
+                    ]],
+                ['code' => 'quote-comparison', 'name' => 'Quote Comparison', 'type' => 'page', 'route' => '/rfi/rfq/compare',
+                    'actions' => [['code' => 'view', 'name' => 'View Comparison']]],
+            ],
+        ],
+
+        // ==================== 7. RFP (Request For Proposal) ====================
+        [
+            'code' => 'rfp',
+            'name' => 'Request For Proposal (RFP)',
+            'description' => 'Strategic proposals with multi-criteria evaluation.',
+            'icon' => 'DocumentTextIcon',
+            'route' => '/rfi/rfp',
+            'priority' => 70,
+            'is_active' => true,
+            'components' => [
+                ['code' => 'rfp-list', 'name' => 'RFPs', 'type' => 'page', 'route' => '/rfi/rfp',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View RFPs'],
+                        ['code' => 'create', 'name' => 'Create RFP'],
+                        ['code' => 'publish', 'name' => 'Publish RFP'],
+                        ['code' => 'evaluate', 'name' => 'Evaluate Proposals'],
+                        ['code' => 'award', 'name' => 'Award RFP'],
+                    ]],
+                ['code' => 'evaluation-scoring', 'name' => 'Evaluation Scoring', 'type' => 'page', 'route' => '/rfi/rfp/evaluation',
+                    'actions' => [['code' => 'score', 'name' => 'Score Proposal'], ['code' => 'finalize', 'name' => 'Finalize Evaluation']]],
+            ],
+        ],
+
+        // ==================== 8. CONTRACTOR RFI (EAM) ====================
+        [
+            'code' => 'contractor-rfi',
+            'name' => 'Contractor RFI / Work Request (EAM)',
+            'description' => 'Contractors raise RFIs/work requests against EAM work orders or assets.',
+            'icon' => 'WrenchScrewdriverIcon',
+            'route' => '/rfi/contractor',
+            'priority' => 80,
+            'is_active' => true,
+            'components' => [
+                ['code' => 'contractor-work-request', 'name' => 'Contractor Work Request', 'type' => 'page', 'route' => '/rfi/contractor/work-request',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Work Requests'],
+                        ['code' => 'create', 'name' => 'Create Work Request'],
+                        ['code' => 'approve', 'name' => 'Approve Work Request'],
+                        ['code' => 'reject', 'name' => 'Reject Work Request'],
+                        ['code' => 'convert-to-wo', 'name' => 'Convert to Work Order'],
+                    ]],
+                ['code' => 'contractor-rfi', 'name' => 'Contractor RFI', 'type' => 'page', 'route' => '/rfi/contractor/rfi',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Contractor RFIs'],
+                        ['code' => 'create', 'name' => 'Create Contractor RFI'],
+                        ['code' => 'respond', 'name' => 'Respond to RFI'],
+                    ]],
+            ],
+        ],
+
+        // ==================== 9. SUBMITTALS & TRANSMITTALS ====================
+        [
+            'code' => 'submittals-transmittals',
+            'name' => 'Submittals & Transmittals',
+            'description' => 'Material submittals, shop drawings, document transmittals.',
+            'icon' => 'EnvelopeOpenIcon',
+            'route' => '/rfi/submittals',
+            'priority' => 90,
+            'is_active' => true,
+            'components' => [
+                ['code' => 'submittals', 'name' => 'Submittals', 'type' => 'page', 'route' => '/rfi/submittals',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Submittals'],
+                        ['code' => 'create', 'name' => 'Create Submittal'],
+                        ['code' => 'review', 'name' => 'Review Submittal'],
+                        ['code' => 'approve', 'name' => 'Approve Submittal'],
+                        ['code' => 'reject', 'name' => 'Reject Submittal'],
+                    ]],
+                ['code' => 'transmittals', 'name' => 'Transmittals', 'type' => 'page', 'route' => '/rfi/transmittals',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Transmittals'],
+                        ['code' => 'create', 'name' => 'Create Transmittal'],
+                        ['code' => 'send', 'name' => 'Send Transmittal'],
+                    ]],
+            ],
+        ],
+
+        // ==================== 10. PUNCH LIST ====================
+        [
+            'code' => 'punch-list',
+            'name' => 'Punch List',
+            'description' => 'Final snag list with geo-tagged items for completion.',
+            'icon' => 'CheckBadgeIcon',
+            'route' => '/rfi/punch-list',
+            'priority' => 100,
+            'is_active' => true,
+            'components' => [
+                ['code' => 'punch-items', 'name' => 'Punch Items', 'type' => 'page', 'route' => '/rfi/punch-list',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Punch Items'],
+                        ['code' => 'create', 'name' => 'Add Punch Item'],
+                        ['code' => 'assign', 'name' => 'Assign to Contractor'],
+                        ['code' => 'close', 'name' => 'Close Punch Item'],
+                        ['code' => 'verify', 'name' => 'Verify Completion'],
+                    ]],
+            ],
+        ],
+
+        // ==================== 11. REPORTS & ANALYTICS ====================
+        [
+            'code' => 'reports-analytics',
+            'name' => 'Reports & Analytics',
+            'description' => 'Site KPIs, RFI turnaround, trend analysis.',
+            'icon' => 'ChartBarIcon',
+            'route' => '/rfi/reports',
+            'priority' => 110,
+            'is_active' => true,
+            'components' => [
+                ['code' => 'kpis', 'name' => 'Site KPIs', 'type' => 'page', 'route' => '/rfi/reports/kpis',
+                    'actions' => [['code' => 'view', 'name' => 'View KPIs'], ['code' => 'export', 'name' => 'Export']]],
+                ['code' => 'rfi-turnaround', 'name' => 'RFI Turnaround Analytics', 'type' => 'page', 'route' => '/rfi/reports/turnaround',
+                    'actions' => [['code' => 'view', 'name' => 'View Turnaround']]],
+                ['code' => 'custom-reports', 'name' => 'Custom Reports', 'type' => 'page', 'route' => '/rfi/reports/custom',
+                    'actions' => [['code' => 'create', 'name' => 'Create Report'], ['code' => 'export', 'name' => 'Export Report']]],
+            ],
+        ],
+
+        // ==================== 12. SETTINGS ====================
+        [
+            'code' => 'settings',
+            'name' => 'RFI Settings',
+            'description' => 'Geofence tolerance, workflow config, templates.',
+            'icon' => 'CogIcon',
+            'route' => '/rfi/settings',
+            'priority' => 999,
+            'is_active' => true,
+            'components' => [
+                ['code' => 'geofence-config', 'name' => 'Geofence Configuration', 'type' => 'page', 'route' => '/rfi/settings/geofence',
+                    'actions' => [['code' => 'configure', 'name' => 'Configure Geofence']]],
+                ['code' => 'workflow-config', 'name' => 'Workflow Configuration', 'type' => 'page', 'route' => '/rfi/settings/workflow',
+                    'actions' => [['code' => 'manage', 'name' => 'Manage Workflows']]],
+                ['code' => 'templates', 'name' => 'RFI / RFQ / RFP Templates', 'type' => 'page', 'route' => '/rfi/settings/templates',
+                    'actions' => [['code' => 'manage', 'name' => 'Manage Templates']]],
+                ['code' => 'general', 'name' => 'General Settings', 'type' => 'page', 'route' => '/rfi/settings/general',
+                    'actions' => [['code' => 'view', 'name' => 'View Settings'], ['code' => 'update', 'name' => 'Update Settings']]],
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | EAM Integration Map
+    |--------------------------------------------------------------------------
+    */
+    'eam_integration' => [
+        'provides' => [
+            'rfi.inspection'            => 'inspection-management.rfi-tracker',
+            'rfi.information'           => 'rfi-information.rfi-list',
+            'rfi.contractor_work_request'=> 'contractor-rfi.contractor-work-request',
+            'rfi.contractor_rfi'        => 'contractor-rfi.contractor-rfi',
+            'rfi.rfq'                   => 'rfq.rfq-list',
+            'rfi.rfp'                   => 'rfp.rfp-list',
+            'rfi.submittals'            => 'submittals-transmittals.submittals',
+            'rfi.punch_list'            => 'punch-list.punch-items',
+            'rfi.digital_twin'          => 'linear-progress.digital-twin-map',
+            'rfi.continuity_validator'  => 'linear-progress.linear-continuity-validator',
+            'rfi.site_diary'            => 'daily-reporting.site-diary',
+            'rfi.objections'            => 'objections.objection-handler',
+        ],
+        'consumes' => [
+            'eam.work_orders'           => 'aero-eam',
+            'eam.asset_registry'        => 'aero-eam',
+            'quality.ncr'               => 'aero-quality',
+            'scm.vendors'               => 'aero-scm',
+            'scm.contractors'           => 'aero-scm',
+            'project.projects'          => 'aero-project',
+            'compliance.permits'        => 'aero-compliance',
+            'hrm.workforce'             => 'aero-hrm',
+        ],
+    ],
+
+    'access_control' => [
+        'super_admin_role' => 'super-admin',
+        'rfi_admin_role'   => 'rfi-admin',
+        'cache_ttl'        => 3600,
+        'cache_tags'       => ['module-access', 'role-access', 'rfi-access'],
     ],
 ];

@@ -2,7 +2,23 @@
   "permissions": {
     "allow": [
       "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-hrm/config/module.php)",
-      "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-finance/config/module.php)"
+      "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-finance/config/module.php)",
+      "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-scm/config/module.php)",
+      "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-iot/config/module.php /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-ims/config/module.php)",
+      "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-project/config/module.php)",
+      "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-quality/config/module.php)",
+      "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-compliance/config/module.php)",
+      "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-real-estate/config/module.php)",
+      "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-crm/config/module.php)",
+      "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-pos/config/module.php)",
+      "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-dms/config/module.php)",
+      "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-cms/config/module.php)",
+      "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-education/config/module.php)",
+      "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-rfi/config/module.php)",
+      "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-blockchain/config/module.php)",
+      "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-assistant/config/module.php)",
+      "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-platform/config/module.php /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-core/config/module.php)",
+      "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-core/config/module.php)"
     ]
   }
 }
