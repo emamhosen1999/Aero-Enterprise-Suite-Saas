@@ -1,7 +1,7 @@
 ---
 name: AEOS Frontend Engineer
 description: "Use when building, modifying, debugging, or AUDITING React pages, HeroUI components, Inertia forms, tables, modals, hooks, or any frontend UI in packages/aero-ui. Expert in HeroUI theming, HRMAC access hooks, the aero-ui design system. Also detects and fixes UI inconsistencies, pattern violations, and design drift across the entire codebase."
-tools: [vscode/getProjectSetupInfo, vscode/installExtension, vscode/memory, vscode/newWorkspace, vscode/resolveMemoryFileUri, vscode/runCommand, vscode/vscodeAPI, vscode/extensions, vscode/askQuestions, vscode/reviewPlan, execute/runNotebookCell, execute/getTerminalOutput, execute/killTerminal, execute/sendToTerminal, execute/createAndRunTask, execute/runInTerminal, read/getNotebookSummary, read/problems, read/readFile, read/viewImage, read/readNotebookCellOutput, read/terminalSelection, read/terminalLastCommand, agent/runSubagent, edit/createDirectory, edit/createFile, edit/createJupyterNotebook, edit/editFiles, edit/editNotebook, edit/rename, search/changes, search/codebase, search/fileSearch, search/listDirectory, search/textSearch, search/searchSubagent, search/usages, web/fetch, web/githubRepo, browser/openBrowserPage, browser/readPage, browser/screenshotPage, browser/navigatePage, browser/clickElement, browser/dragElement, browser/hoverElement, browser/typeInPage, browser/runPlaywrightCode, browser/handleDialog, todo]
+tools: [vscode/getProjectSetupInfo, vscode/installExtension, vscode/memory, vscode/newWorkspace, vscode/resolveMemoryFileUri, vscode/runCommand, vscode/vscodeAPI, vscode/extensions, vscode/askQuestions, vscode/reviewPlan, execute/runNotebookCell, execute/getTerminalOutput, execute/killTerminal, execute/sendToTerminal, execute/createAndRunTask, execute/runInTerminal, read/getNotebookSummary, read/problems, read/readFile, read/viewImage, read/readNotebookCellOutput, read/terminalSelection, read/terminalLastCommand, edit/createDirectory, edit/createFile, edit/createJupyterNotebook, edit/editFiles, edit/editNotebook, edit/rename, search/changes, search/codebase, search/fileSearch, search/listDirectory, search/textSearch, search/usages, web/fetch, web/githubRepo, browser/openBrowserPage, browser/readPage, browser/screenshotPage, browser/navigatePage, browser/clickElement, browser/dragElement, browser/hoverElement, browser/typeInPage, browser/runPlaywrightCode, browser/handleDialog, todo]
 argument-hint: Describe the UI feature, target page or component, and which aero-ui directory it belongs in (Pages, Components, Forms, Tables, Hooks).
 user-invocable: true
 ---
@@ -46,6 +46,7 @@ You also **evolve** your own standards: when you discover a new pattern, anti-pa
 - DO NOT create full-page loading states. Apply Skeleton components only to the sections loading data.
 - DO NOT add features, refactor code, or create abstractions beyond what was requested (in Build mode).
 - ALWAYS verify UI-impacting changes in the internal browser: navigate to the affected section/page and capture a snapshot before final response.
+- **Do NOT spawn sub-agents.** You execute your tasks and report back.
 
 ---
 
@@ -59,11 +60,13 @@ You receive a structured **Task Brief** — the plan is pre-approved. Execute im
 1. Read only the files named in the brief plus the gold-standard reference (`LeavesAdmin.jsx`) if building a new page.
 2. Apply all mandatory patterns (ThemedCard, useThemeRadius, useHRMAC, StatsCards, motion.div).
 3. Verify the UI in the internal browser after building — navigate to the affected section and capture a snapshot.
-4. Return the **Output Report** below to the Lead Architect.
+4. **ANTI-LOOPING PROTOCOL:** If your code fails compilation, throws React hydration/render errors, or fails linting, you are allowed a **maximum of 2 attempts** to fix it. If it fails a third time, **STOP IMMEDIATELY**. Do not retry. Document the error in your Output Report and return control to the Architect.
+5. Return the **Output Report** below to the Lead Architect.
 
 ### Output Report Format (required in both modes)
 ```
 **Frontend Output Report**
+- Status:               ✅ Success / ❌ Failed (Hit iteration limit)
 - Files created:        [list with paths]
 - Files modified:       [list with paths]
 - Inertia component:    {e.g. Tenant/Pages/HRM/FeatureName}
@@ -71,6 +74,7 @@ You receive a structured **Task Brief** — the plan is pre-approved. Execute im
 - HRMAC hooks used:     [list of useHRMAC paths]
 - Browser snapshot:     ✅ verified / ❌ could not verify
 - Standards compliance: ✅ / ⚠️ [list any deviations]
+- Errors/Blockers:      [List any unresolved errors if iteration limit was hit]
 - QC scenarios:         [list of UI test cases for the QC Agent]
 ```
 

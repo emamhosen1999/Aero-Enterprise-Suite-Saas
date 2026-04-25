@@ -327,6 +327,33 @@ return [
                         ['code' => 'enable', 'name' => 'Enable 2FA'],
                         ['code' => 'disable', 'name' => 'Disable 2FA'],
                         ['code' => 'reset', 'name' => 'Reset 2FA'],
+                        ['code' => 'enroll_totp', 'name' => 'Enroll TOTP Authenticator'],
+                        ['code' => 'enroll_sms', 'name' => 'Enroll SMS 2FA'],
+                        ['code' => 'enroll_email', 'name' => 'Enroll Email 2FA'],
+                        ['code' => 'generate_recovery_codes', 'name' => 'Generate Recovery Codes'],
+                        ['code' => 'verify_recovery_code', 'name' => 'Verify Recovery Code'],
+                    ],
+                ],
+                [
+                    'code' => 'password_reset',
+                    'name' => 'Password Reset / Forgot Password',
+                    'type' => 'page',
+                    'route' => '/security/password-reset',
+                    'actions' => [
+                        ['code' => 'request', 'name' => 'Request Password Reset'],
+                        ['code' => 'verify_token', 'name' => 'Verify Reset Token'],
+                        ['code' => 'reset', 'name' => 'Reset Password'],
+                    ],
+                ],
+                [
+                    'code' => 'email_verification',
+                    'name' => 'Email Verification',
+                    'type' => 'page',
+                    'route' => '/security/verify-email',
+                    'actions' => [
+                        ['code' => 'send', 'name' => 'Send Verification Email'],
+                        ['code' => 'verify', 'name' => 'Verify Email'],
+                        ['code' => 'resend', 'name' => 'Resend Verification'],
                     ],
                 ],
                 [
@@ -1423,6 +1450,234 @@ return [
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Mobile Config'],
                         ['code' => 'configure', 'name' => 'Configure Mobile App'],
+                    ],
+                ],
+            ],
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | 2.14 Backup & Restore (Tenant-Side)
+        |--------------------------------------------------------------------------
+        | Standalone: full backup/restore. SaaS: backup-request that escalates
+        | to platform-level scheduled backups.
+        */
+        [
+            'code' => 'backup_restore',
+            'name' => 'Backup & Restore',
+            'description' => 'Tenant-side backup configuration, manual backup, restore points',
+            'icon' => 'CircleStackIcon',
+            'route' => '/backup',
+            'priority' => 25,
+            'components' => [
+                [
+                    'code' => 'backup_dashboard', 'name' => 'Backup Dashboard', 'type' => 'page', 'route' => '/backup',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Backups'],
+                    ],
+                ],
+                [
+                    'code' => 'backup_config', 'name' => 'Backup Configuration', 'type' => 'page', 'route' => '/backup/config',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Configuration'],
+                        ['code' => 'configure', 'name' => 'Configure Backup'],
+                    ],
+                ],
+                [
+                    'code' => 'manual_backup', 'name' => 'Manual Backup', 'type' => 'page', 'route' => '/backup/manual',
+                    'actions' => [
+                        ['code' => 'create', 'name' => 'Create Manual Backup'],
+                        ['code' => 'download', 'name' => 'Download Backup'],
+                    ],
+                ],
+                [
+                    'code' => 'restore_points', 'name' => 'Restore Points', 'type' => 'page', 'route' => '/backup/restore',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Restore Points'],
+                        ['code' => 'restore', 'name' => 'Restore from Point'],
+                    ],
+                ],
+            ],
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | 2.15 License Management (Standalone Distribution Only)
+        |--------------------------------------------------------------------------
+        | Hidden in SaaS mode; replaced by aero-platform plan_management.
+        */
+        [
+            'code' => 'license_management',
+            'name' => 'License Management',
+            'description' => 'License key validation, edition tier, feature gating (standalone mode only)',
+            'icon' => 'KeyIcon',
+            'route' => '/license',
+            'priority' => 26,
+            'plan' => 'standalone',
+            'components' => [
+                [
+                    'code' => 'license_overview', 'name' => 'License Overview', 'type' => 'page', 'route' => '/license',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View License'],
+                    ],
+                ],
+                [
+                    'code' => 'license_activation', 'name' => 'License Activation', 'type' => 'page', 'route' => '/license/activate',
+                    'actions' => [
+                        ['code' => 'activate', 'name' => 'Activate License'],
+                        ['code' => 'deactivate', 'name' => 'Deactivate License'],
+                        ['code' => 'verify', 'name' => 'Verify License Online'],
+                    ],
+                ],
+                [
+                    'code' => 'license_features', 'name' => 'Edition Features', 'type' => 'page', 'route' => '/license/features',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Edition Features'],
+                    ],
+                ],
+                [
+                    'code' => 'license_renewal', 'name' => 'License Renewal', 'type' => 'page', 'route' => '/license/renewal',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Renewal'],
+                        ['code' => 'renew', 'name' => 'Renew License'],
+                    ],
+                ],
+                [
+                    'code' => 'updates', 'name' => 'Updates & Patches', 'type' => 'page', 'route' => '/license/updates',
+                    'actions' => [
+                        ['code' => 'check', 'name' => 'Check for Updates'],
+                        ['code' => 'download', 'name' => 'Download Update'],
+                        ['code' => 'apply', 'name' => 'Apply Update'],
+                    ],
+                ],
+            ],
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | 2.16 Numbering / Sequences (shared service)
+        |--------------------------------------------------------------------------
+        */
+        [
+            'code' => 'numbering',
+            'name' => 'Document Numbering & Sequences',
+            'description' => 'Shared numbering sequences for invoices, tickets, POs, work orders, etc.',
+            'icon' => 'HashtagIcon',
+            'route' => '/numbering',
+            'priority' => 27,
+            'components' => [
+                [
+                    'code' => 'sequences', 'name' => 'Sequences', 'type' => 'page', 'route' => '/numbering/sequences',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Sequences'],
+                        ['code' => 'create', 'name' => 'Create Sequence'],
+                        ['code' => 'update', 'name' => 'Update Sequence'],
+                        ['code' => 'reset', 'name' => 'Reset Sequence'],
+                    ],
+                ],
+                [
+                    'code' => 'numbering_formats', 'name' => 'Number Formats', 'type' => 'page', 'route' => '/numbering/formats',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Formats'],
+                        ['code' => 'manage', 'name' => 'Manage Formats'],
+                    ],
+                ],
+            ],
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | 2.17 Print / PDF Templates (shared service)
+        |--------------------------------------------------------------------------
+        */
+        [
+            'code' => 'print_templates',
+            'name' => 'Print & PDF Templates',
+            'description' => 'Shared print/PDF templates for documents, reports, invoices, certificates',
+            'icon' => 'PrinterIcon',
+            'route' => '/print-templates',
+            'priority' => 28,
+            'components' => [
+                [
+                    'code' => 'templates', 'name' => 'Print Templates', 'type' => 'page', 'route' => '/print-templates',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Templates'],
+                        ['code' => 'create', 'name' => 'Create Template'],
+                        ['code' => 'update', 'name' => 'Update Template'],
+                        ['code' => 'delete', 'name' => 'Delete Template'],
+                        ['code' => 'preview', 'name' => 'Preview Template'],
+                    ],
+                ],
+                [
+                    'code' => 'paper_sizes', 'name' => 'Paper Sizes & Margins', 'type' => 'page', 'route' => '/print-templates/paper',
+                    'actions' => [
+                        ['code' => 'manage', 'name' => 'Manage Paper Settings'],
+                    ],
+                ],
+                [
+                    'code' => 'header_footer', 'name' => 'Headers & Footers', 'type' => 'page', 'route' => '/print-templates/header-footer',
+                    'actions' => [
+                        ['code' => 'manage', 'name' => 'Manage Headers & Footers'],
+                    ],
+                ],
+            ],
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | 2.18 Announcements & Banners (Tenant-side)
+        |--------------------------------------------------------------------------
+        */
+        [
+            'code' => 'announcements',
+            'name' => 'Announcements & Banners',
+            'description' => 'Tenant-internal announcements and banner messages (separate from notifications)',
+            'icon' => 'MegaphoneIcon',
+            'route' => '/announcements',
+            'priority' => 29,
+            'components' => [
+                [
+                    'code' => 'announcement_list', 'name' => 'Announcements', 'type' => 'page', 'route' => '/announcements',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Announcements'],
+                        ['code' => 'create', 'name' => 'Create Announcement'],
+                        ['code' => 'update', 'name' => 'Update Announcement'],
+                        ['code' => 'delete', 'name' => 'Delete Announcement'],
+                        ['code' => 'publish', 'name' => 'Publish Announcement'],
+                        ['code' => 'archive', 'name' => 'Archive Announcement'],
+                    ],
+                ],
+                [
+                    'code' => 'banners', 'name' => 'Banners (System-wide)', 'type' => 'page', 'route' => '/announcements/banners',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Banners'],
+                        ['code' => 'manage', 'name' => 'Manage Banners'],
+                    ],
+                ],
+            ],
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | 2.19 Maintenance Mode
+        |--------------------------------------------------------------------------
+        */
+        [
+            'code' => 'maintenance_mode',
+            'name' => 'Maintenance Mode',
+            'description' => 'Tenant-side maintenance mode toggle, allowed IPs, custom message',
+            'icon' => 'WrenchScrewdriverIcon',
+            'route' => '/maintenance-mode',
+            'priority' => 30,
+            'components' => [
+                [
+                    'code' => 'maintenance_toggle', 'name' => 'Maintenance Toggle', 'type' => 'page', 'route' => '/maintenance-mode',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Maintenance Status'],
+                        ['code' => 'enable', 'name' => 'Enable Maintenance Mode'],
+                        ['code' => 'disable', 'name' => 'Disable Maintenance Mode'],
+                        ['code' => 'configure', 'name' => 'Configure Maintenance Mode'],
+                        ['code' => 'allow_ip', 'name' => 'Manage Bypass IPs'],
                     ],
                 ],
             ],

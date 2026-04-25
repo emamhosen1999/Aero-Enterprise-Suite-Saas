@@ -20,5 +20,6 @@
       "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-platform/config/module.php /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-core/config/module.php)",
       "Bash(php -l /c/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-core/config/module.php)"
     ]
-  }
+  },
+  "outputStyle": "default"
 }
