@@ -33,10 +33,28 @@ export const resolveEffectiveMode = (mode) => {
 };
 
 /**
+ * Valid density values — affects spacing/font tokens.
+ */
+export const VALID_DENSITIES = ['compact', 'cozy', 'comfortable'];
+
+/**
+ * Valid intensity values — affects accent intensity (no new colors).
+ *   - "brand"         (default — canonical aeos cyan/amber/indigo)
+ *   - "soft"          (lower-saturation pastel reading mode)
+ *   - "high-contrast" (brighter accents + denser borders for accessibility)
+ */
+export const VALID_INTENSITIES = ['brand', 'soft', 'high-contrast'];
+
+/**
+ * Valid contrast values — accessibility add-on (independent of intensity).
+ */
+export const VALID_CONTRASTS = ['standard', 'high'];
+
+/**
  * Apply theme settings to <html>:
- *   - toggle "aeos" / "aeos-light" classes (selects token set)
- *   - toggle "dark" class (HeroUI primitives)
- *   - set / unset data-reduce-motion attribute
+ *   - toggle "aeos" / "aeos-light" / "dark" classes
+ *   - set data-aeos-density / data-aeos-intensity / data-aeos-contrast attrs
+ *   - set data-reduce-motion attr
  */
 export const applyThemeToDocument = (theme = {}) => {
   if (typeof window === 'undefined' || !window.document) return;
@@ -61,7 +79,28 @@ export const applyThemeToDocument = (theme = {}) => {
     html.classList.remove('dark');
   }
 
-  // Reduce motion accessibility flag — consumed by [data-reduce-motion] CSS
+  // Density variant
+  if (theme.density && VALID_DENSITIES.includes(theme.density) && theme.density !== 'comfortable') {
+    html.setAttribute('data-aeos-density', theme.density);
+  } else {
+    html.removeAttribute('data-aeos-density');
+  }
+
+  // Intensity variant
+  if (theme.intensity && VALID_INTENSITIES.includes(theme.intensity) && theme.intensity !== 'brand') {
+    html.setAttribute('data-aeos-intensity', theme.intensity);
+  } else {
+    html.removeAttribute('data-aeos-intensity');
+  }
+
+  // Contrast variant
+  if (theme.contrast && VALID_CONTRASTS.includes(theme.contrast) && theme.contrast !== 'standard') {
+    html.setAttribute('data-aeos-contrast', theme.contrast);
+  } else {
+    html.removeAttribute('data-aeos-contrast');
+  }
+
+  // Reduce motion accessibility flag
   if (theme.reduceMotion) {
     html.setAttribute('data-reduce-motion', 'true');
   } else {

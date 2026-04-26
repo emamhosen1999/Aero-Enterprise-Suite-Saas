@@ -9,6 +9,7 @@ import LoadingIndicator from './Components/Loading/LoadingIndicator';
 import UnifiedError from './Pages/Shared/Errors/UnifiedError';
 import { ThemeProvider } from './Context/ThemeContext';
 import { HeroUIProvider } from '@heroui/react';
+import { applyThemeToDocument, readStored } from './theme/index';
 import './theme/index.js';
 import { initializeDeviceAuth } from './utils/security/deviceAuth';
 
@@ -493,9 +494,12 @@ createInertiaApp({
     setup({ el, App, props }) {
         const root = createRoot(el);
         
+        // Apply initial theme before rendering to prevent flash
+        applyThemeToDocument(readStored());
+
         // Performance monitoring for initial render
         const renderStart = performance.now();
-        
+
         root.render(
             <ThemeProvider>
                 <HeroUIProvider>

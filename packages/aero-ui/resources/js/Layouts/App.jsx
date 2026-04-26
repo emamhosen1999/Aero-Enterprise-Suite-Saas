@@ -74,12 +74,7 @@ const MainContentArea = React.memo(({
   const { isMobile, sidebarOpen } = useNavigation();
   const contentRef = useRef(null);
   const mainContentRef = useRef(null);
-  
-  // Breadcrumb content
-  const breadcrumbContent = useMemo(() => (
-    <Breadcrumb />
-  ), [url]);
-  
+
   // Bottom navigation for mobile
   const bottomNavContent = useMemo(() => {
     if (!auth?.user || !isMobile) return null;
@@ -91,53 +86,41 @@ const MainContentArea = React.memo(({
       />
     );
   }, [auth?.user?.id, isMobile, onToggleThemeDrawer]);
-  
+
   return (
     <motion.main
       ref={contentRef}
       className="flex flex-1 flex-col h-full overflow-hidden w-full min-w-0"
-      animate={{
-        transition: { 
-          duration: 0.4, 
-          ease: [0.4, 0.0, 0.2, 1]
-        }
-      }}
     >
-      {/* Header with integrated navigation */}
-      <header className="sticky top-0 z-[30] w-full overflow-hidden print:hidden">
+      {/* Topbar — aeos365 spec shape (crumbs + search + actions + profile) */}
+      <div className="sticky top-0 z-[30] w-full overflow-hidden print:hidden" style={{ background: 'transparent' }}>
         <ImpersonationBanner />
         <SubscriptionAlertBanner />
         <Header showNav={!sidebarOpen} />
-      </header>
-      
-      {/* Breadcrumb */}
-      <div className="px-3 pt-2 print:hidden">
-        {breadcrumbContent}
       </div>
 
-      {/* Page Content */}
-      <section 
+      {/* Page Content — spec content padding 28px on desktop */}
+      <section
         ref={mainContentRef}
         className="flex-1 overflow-auto"
         role="main"
         aria-label="Main content"
       >
-        <ScrollShadow 
-          className="h-full"
-          hideScrollBar={false}
-          size={40}
-        >
-          <div className="min-h-full">
-            <PageContent url={url}>
-              {children}
-            </PageContent>
+        <ScrollShadow className="h-full" hideScrollBar={false} size={40}>
+          <div
+            className="min-h-full"
+            style={{
+              padding: 'clamp(16px, 2vw, 28px)',
+            }}
+          >
+            <PageContent url={url}>{children}</PageContent>
           </div>
         </ScrollShadow>
       </section>
 
       {/* Bottom Navigation for Mobile */}
       {bottomNavContent && (
-        <footer className="sticky bottom-0 z-[30] border-t border-divider print:hidden">
+        <footer className="sticky bottom-0 z-[30] print:hidden" style={{ borderTop: '1px solid var(--aeos-divider)' }}>
           {bottomNavContent}
         </footer>
       )}
@@ -345,40 +328,40 @@ const App = React.memo(({ children }) => {
                   theme={isDarkAppearance ? 'dark' : 'light'}
                 />
 
-                {/* Floating Theme Settings Button - Desktop Only */}
+                {/* Floating Theme Drawer Toggle — aeos cyan tile */}
                 {authData?.user && !isMobile && (
-                  <motion.div
-                    className="fixed bottom-8 right-8 z-50 print:hidden"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{
-                      delay: 0.5,
-                      duration: 0.4,
-                      type: "spring",
-                      stiffness: 260,
-                      damping: 20
+                  <motion.button
+                    type="button"
+                    onClick={staticToggleThemeDrawer}
+                    aria-label="Theme settings"
+                    className="fixed bottom-6 right-6 z-50 print:hidden"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4, duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 10,
+                      background: 'rgba(0, 229, 255, 0.10)',
+                      border: '1px solid rgba(0, 229, 255, 0.22)',
+                      color: 'var(--aeos-cyan, #00E5FF)',
+                      backdropFilter: 'blur(8px)',
+                      WebkitBackdropFilter: 'blur(8px)',
+                      cursor: 'pointer',
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.30)',
+                      display: 'grid',
+                      placeItems: 'center',
                     }}
                   >
-                    <Button
-                      isIconOnly
-                      color="primary"
-                      variant="shadow"
-                      size="lg"
-                      radius="full"
-                      onPress={staticToggleThemeDrawer}
-                      className="w-16 h-16 border-3 border-primary-200"
-                      aria-label="Theme settings"
-                    >
-                      <Cog6ToothIcon className="w-6 h-6" />
-                    </Button>
-                  </motion.div>
+                    <Cog6ToothIcon className="w-5 h-5" />
+                  </motion.button>
                 )}
 
                 {/* Main Application Layout */}
                 <div
-                  className="flex h-full overflow-hidden aeos-grid-bg"
+                  className="flex h-full overflow-hidden"
                   style={{
-                    background: 'var(--aeos-obsidian, #03040A)',
+                    background: 'var(--aeos-grad-mesh), var(--aeos-obsidian, #03040A)',
                     color: 'var(--aeos-ink, #E8EDF5)',
                     fontFamily: 'var(--aeos-font-body, "DM Sans"), system-ui, sans-serif',
                   }}

@@ -1,5 +1,12 @@
 import React, { createContext, useContext, useState, useLayoutEffect, useMemo, useCallback } from 'react';
-import { applyThemeToDocument, resolveEffectiveMode, VALID_MODES } from '../theme/index';
+import {
+  applyThemeToDocument,
+  resolveEffectiveMode,
+  VALID_MODES,
+  VALID_DENSITIES,
+  VALID_INTENSITIES,
+  VALID_CONTRASTS,
+} from '../theme/index';
 
 /**
  * aeos365 Theme Provider — v3 (Foundation Pass)
@@ -47,7 +54,10 @@ const LEGACY_KEYS = [
 ];
 
 const DEFAULT_STATE = Object.freeze({
-  mode: 'aeos',          // 'aeos' | 'aeos-light' | 'system'
+  mode: 'aeos',                // 'aeos' | 'aeos-light' | 'system'
+  density: 'comfortable',      // 'comfortable' | 'cozy' | 'compact'
+  intensity: 'brand',          // 'brand' | 'soft' | 'high-contrast'
+  contrast: 'standard',        // 'standard' | 'high'
   reduceMotion: false,
 });
 
@@ -73,7 +83,10 @@ const readStored = () => {
     if (raw) {
       const parsed = JSON.parse(raw);
       return {
-        mode: VALID_MODES.includes(parsed?.mode) ? parsed.mode : 'aeos',
+        mode:         VALID_MODES.includes(parsed?.mode) ? parsed.mode : 'aeos',
+        density:      VALID_DENSITIES.includes(parsed?.density) ? parsed.density : 'comfortable',
+        intensity:    VALID_INTENSITIES.includes(parsed?.intensity) ? parsed.intensity : 'brand',
+        contrast:     VALID_CONTRASTS.includes(parsed?.contrast) ? parsed.contrast : 'standard',
         reduceMotion: !!parsed?.reduceMotion,
       };
     }
@@ -205,6 +218,21 @@ export const ThemeProvider = ({ children }) => {
     setState((prev) => ({ ...prev, reduceMotion: !!value }));
   }, []);
 
+  const setDensity = useCallback((density) => {
+    if (!VALID_DENSITIES.includes(density)) return;
+    setState((prev) => ({ ...prev, density }));
+  }, []);
+
+  const setIntensity = useCallback((intensity) => {
+    if (!VALID_INTENSITIES.includes(intensity)) return;
+    setState((prev) => ({ ...prev, intensity }));
+  }, []);
+
+  const setContrast = useCallback((contrast) => {
+    if (!VALID_CONTRASTS.includes(contrast)) return;
+    setState((prev) => ({ ...prev, contrast }));
+  }, []);
+
   const resetTheme = useCallback(() => {
     setState({ ...DEFAULT_STATE });
   }, []);
@@ -245,12 +273,15 @@ export const ThemeProvider = ({ children }) => {
   const themeSettings = useMemo(() => ({
     mode: state.mode,
     reduceMotion: state.reduceMotion,
+    density: state.density,
+    intensity: state.intensity,
+    contrast: state.contrast,
     cardStyle: 'aeos',
     primaryColor: '#00E5FF',
     defaultRadius: 'md',
     typography: { fontFamily: 'DM Sans', fontSize: 'md' },
     background: { type: 'color', value: 'transparent' },
-  }), [state.mode, state.reduceMotion]);
+  }), [state.mode, state.reduceMotion, state.density, state.intensity, state.contrast]);
 
   // Legacy stubs returning aeos colors / layout for components that read them
   const colors = useMemo(() => ({
@@ -288,10 +319,16 @@ export const ThemeProvider = ({ children }) => {
     effectiveMode,
     isDark,
     isDarkMode: isDark,           // legacy alias used by useBranding
+    density: state.density,
+    intensity: state.intensity,
+    contrast: state.contrast,
     reduceMotion: state.reduceMotion,
     isHydrated,
     setMode,
     toggleMode,
+    setDensity,
+    setIntensity,
+    setContrast,
     setReduceMotion,
     resetTheme,
 
@@ -318,8 +355,9 @@ export const ThemeProvider = ({ children }) => {
     CARD_STYLES: { aeos: { name: 'aeos365' } },
     STATUS_COLORS,
   }), [
-    state.mode, state.reduceMotion, effectiveMode, isDark, isHydrated,
-    setMode, toggleMode, setReduceMotion, resetTheme,
+    state.mode, state.reduceMotion, state.density, state.intensity, state.contrast,
+    effectiveMode, isDark, isHydrated,
+    setMode, toggleMode, setReduceMotion, setDensity, setIntensity, setContrast, resetTheme,
     themeSettings, colors, layout, cardClasses,
     updateTheme, applyPreset,
   ]);

@@ -103,6 +103,94 @@
   --aeos-dur-fast:   180ms;
   --aeos-dur-base:   240ms;
   --aeos-dur-slow:   400ms;
+
+  /* ── Density tokens (default = comfortable) ──────────────────────────── */
+  --aeos-density-pad-card:    1.5rem;     /* card padding */
+  --aeos-density-pad-section: 1.25rem;    /* section gap */
+  --aeos-density-pad-row:     0.75rem;    /* table/list row vertical */
+  --aeos-density-gap:         0.75rem;    /* default flex/grid gap */
+  --aeos-density-control-h:   2.5rem;     /* button/input height */
+  --aeos-density-control-px:  0.95rem;    /* button/input horizontal */
+  --aeos-density-fs-body:     1rem;
+  --aeos-density-fs-label:    0.72rem;
+  --aeos-density-fs-h3:       1.5rem;
+
+  /* ── Intensity tokens (default = brand) ─────────────────────────────── */
+  --aeos-int-cyan:        var(--aeos-cyan);
+  --aeos-int-amber:       var(--aeos-amber);
+  --aeos-int-indigo:      var(--aeos-indigo);
+  --aeos-int-glow-alpha:  0.30;            /* default glow strength */
+  --aeos-int-border-alpha: 0.20;           /* default cyan border alpha */
+
+  /* ── Contrast tokens (default = standard) ───────────────────────────── */
+  --aeos-contrast-ink:        var(--aeos-ink);
+  --aeos-contrast-divider:    var(--aeos-divider);
+  --aeos-contrast-border-mul: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Density variants — set via [data-aeos-density="compact|cozy|comfortable"]
+   on <html>. Default (no attribute) = comfortable.
+   ═══════════════════════════════════════════════════════════════════════════ */
+[data-aeos-density="compact"] {
+  --aeos-density-pad-card:    1rem;
+  --aeos-density-pad-section: 0.75rem;
+  --aeos-density-pad-row:     0.45rem;
+  --aeos-density-gap:         0.5rem;
+  --aeos-density-control-h:   2.1rem;
+  --aeos-density-control-px:  0.75rem;
+  --aeos-density-fs-body:     0.9rem;
+  --aeos-density-fs-label:    0.66rem;
+  --aeos-density-fs-h3:       1.3rem;
+  --aeos-pad-card:            1rem;
+}
+[data-aeos-density="cozy"] {
+  --aeos-density-pad-card:    1.25rem;
+  --aeos-density-pad-section: 1rem;
+  --aeos-density-pad-row:     0.6rem;
+  --aeos-density-gap:         0.625rem;
+  --aeos-density-control-h:   2.3rem;
+  --aeos-density-control-px:  0.85rem;
+  --aeos-pad-card:            1.25rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Intensity variants — set via [data-aeos-intensity="brand|soft|high-contrast"]
+   on <html>. Soft = lower saturation, High-contrast = brighter + higher alphas.
+   No new colors — all variants are intensity tweaks of the canonical trio.
+   ═══════════════════════════════════════════════════════════════════════════ */
+[data-aeos-intensity="soft"] {
+  /* Same hues, lower saturation — like a "pastel" reading mode */
+  --aeos-int-cyan:        #5BD0DD;
+  --aeos-int-amber:       #E6B27A;
+  --aeos-int-indigo:      #8488E0;
+  --aeos-int-glow-alpha:  0.18;
+  --aeos-int-border-alpha: 0.14;
+}
+[data-aeos-intensity="high-contrast"] {
+  /* Brighter cyan, denser borders, higher glows for accessibility */
+  --aeos-int-cyan:        #6FF6FF;
+  --aeos-int-amber:       #FFC471;
+  --aeos-int-indigo:      #8B8FF5;
+  --aeos-int-glow-alpha:  0.55;
+  --aeos-int-border-alpha: 0.40;
+  --aeos-contrast-ink:    #FFFFFF;
+  --aeos-contrast-divider: rgba(255, 255, 255, 0.12);
+  --aeos-contrast-border-mul: 2;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Contrast variants — accessibility add-on (independent of intensity)
+   ═══════════════════════════════════════════════════════════════════════════ */
+[data-aeos-contrast="high"] {
+  --aeos-ink:           #FFFFFF;
+  --aeos-divider:       rgba(255, 255, 255, 0.16);
+  --aeos-glass-border:  rgba(0, 229, 255, 0.30);
+  --aeos-int-border-alpha: 0.40;
+}
+[data-aeos-contrast="high"].aeos-light {
+  --aeos-onyx-l:    #000000;
+  --aeos-divider-l: rgba(0, 0, 0, 0.18);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

@@ -1,44 +1,46 @@
-﻿/**
- * Header — Premium glassmorphic header
+/**
+ * Header — aeos365 topbar (matches preview/app-shell.html exactly)
  *
- * Visual language matches Sidebar (blur, saturation, accent strips, glow rings).
- * Glassmorphism card · animated logo glow · glass search · pulse bell · accent strip.
+ * Anatomy:
+ *   - 14×28 padding, bottom hairline divider
+ *   - .crumbs       — mono breadcrumb trail with cyan active segment
+ *   - .search       — 320px input with magnifier glyph + ⌘K hint
+ *   - .icon-btn[]   — 32×32 cyan-tint buttons (notifications + plus)
+ *   - notification pip = 7px amber dot with glow
+ *
+ * No glass card wrapper, no shimmer, no animated gradients.
+ *
+ * @see aeos365-design-system/project/preview/app-shell.html (.topbar)
  */
 
-import React, { useCallback, useMemo, useState, useRef, useEffect } from 'react';
+import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { usePage, Link, router } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Card,
   Button,
   Dropdown,
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
   DropdownSection,
-  Badge,
   Tooltip,
   Input,
   Divider,
-} from "@heroui/react";
+} from '@heroui/react';
 import {
   Bars3Icon,
   MagnifyingGlassIcon,
   BellIcon,
-  SunIcon,
-  MoonIcon,
-  EllipsisHorizontalIcon,
+  PlusIcon,
   ChevronDownIcon,
+  ChevronRightIcon,
   ArrowRightOnRectangleIcon,
   UserIcon,
   Cog6ToothIcon,
   QuestionMarkCircleIcon,
-  ClockIcon,
   ShieldCheckIcon,
   KeyIcon,
-  BellAlertIcon,
-  ComputerDesktopIcon,
-} from "@heroicons/react/24/outline";
+} from '@heroicons/react/24/outline';
 
 import { useNavigation } from './NavigationProvider';
 import { getMenuItemUrl, isItemActive, navigateToItem, getMenuItemId, hasRoute, normalizePath } from './navigationUtils.jsx';
@@ -48,760 +50,288 @@ import LanguageSwitcher from '@/Components/Navigation/LanguageSwitcher';
 import { useTheme } from '@/Context/ThemeContext';
 
 const safeRoute = (routeName, fallback = '#') => {
-  try {
-    return hasRoute(routeName) ? route(routeName) : fallback;
-  } catch {
-    return fallback;
-  }
+  try { return hasRoute(routeName) ? route(routeName) : fallback; } catch { return fallback; }
 };
 
-/* ─── keyframes — only bellSwing kept (single-trigger transform on icon) ─── */
-const headerKeyframes = `
-@keyframes bellSwing {
-  0% { transform: rotate(0deg); }
-  15% { transform: rotate(12deg); }
-  30% { transform: rotate(-10deg); }
-  45% { transform: rotate(6deg); }
-  60% { transform: rotate(-4deg); }
-  75% { transform: rotate(2deg); }
-  100% { transform: rotate(0deg); }
-}
-`;
-
-/* ─── HeaderLogo ─── */
-const HeaderLogo = React.memo(({ onMenuClick, isMobile, showMenuButton = false }) => {
-  const { squareLogo, siteName } = useBranding();
-  const firstLetter = siteName?.charAt(0)?.toUpperCase() || 'A';
-
-  return (
-    <div className="flex items-center gap-3 shrink-0">
-      {showMenuButton && (
-        <motion.div whileTap={{ scale: 0.9 }}>
-          <Button
-            isIconOnly
-            variant="light"
-            size="sm"
-            onPress={onMenuClick}
-            className="shrink-0"
-          >
-            <Bars3Icon className="w-5 h-5" />
-          </Button>
-        </motion.div>
-      )}
-
-      <Link
-        href={safeRoute('dashboard', '/dashboard')}
-        className="flex items-center gap-3 group"
-      >
-        <div className="relative">
-          <div
-            className="relative w-10 h-10 overflow-hidden flex items-center justify-center"
-            style={{
-              borderRadius: 10,
-              background: 'var(--aeos-grad-cyan)',
-              boxShadow: '0 0 16px rgba(0, 229, 255, 0.20)',
-            }}
-          >
-            {squareLogo ? (
-              <img
-                src={squareLogo}
-                alt={siteName}
-                className="w-8 h-8 object-contain"
-                onError={(e) => { e.target.style.display = 'none'; }}
-              />
-            ) : (
-              <span className="font-bold text-lg" style={{ color: 'var(--aeos-obsidian, #03040A)' }}>{firstLetter}</span>
-            )}
-          </div>
-        </div>
-
-        {!isMobile && (
-          <div className="flex flex-col">
-            <span
-              className="leading-tight"
-              style={{
-                fontFamily: 'var(--aeos-font-display, "Syne"), system-ui, sans-serif',
-                fontWeight: 700,
-                fontSize: '1.05rem',
-                letterSpacing: '-0.025em',
-                color: 'var(--aeos-ink, #E8EDF5)',
-                textTransform: 'lowercase',
-              }}
-            >
-              {siteName}
-            </span>
-            <span
-              style={{
-                fontFamily: 'var(--aeos-font-mono, "JetBrains Mono"), ui-monospace, monospace',
-                fontSize: '0.6rem',
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase',
-                color: 'var(--aeos-ink-muted, #8892A4)',
-                fontWeight: 500,
-              }}
-            >
-              Enterprise Suite
-            </span>
-          </div>
-        )}
-      </Link>
-    </div>
+// ── Crumbs (mono trail with cyan active segment) ─────────────────────────
+const Crumbs = React.memo(() => {
+  const { tenant, app } = usePage().props || {};
+  const { siteName } = useBranding();
+  const tenantName = tenant?.name || app?.name || siteName || 'Workspace';
+  const path = (typeof window !== 'undefined' ? window.location.pathname : '/').replace(/^\/+/, '');
+  const segments = path === '' ? ['Overview'] : path.split('/').map((s) =>
+    s.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
   );
-});
-
-/* ─── HeaderNavItem ─── */
-const HeaderNavItem = React.memo(({
-  item,
-  isActive,
-  hasActiveChild,
-  onNavigate,
-}) => {
-  const hasSubMenu = item.subMenu && item.subMenu.length > 0;
-  const isHighlighted = isActive || hasActiveChild;
-
-  if (hasSubMenu) {
-    return (
-      <Dropdown placement="bottom-start">
-        <DropdownTrigger>
-          <Button
-            variant={isHighlighted ? "flat" : "light"}
-            color={isHighlighted ? "primary" : "default"}
-            size="sm"
-            endContent={
-              <motion.div animate={{ rotate: 0 }} whileHover={{ rotate: 180 }} transition={{ duration: 0.3 }}>
-                <ChevronDownIcon className="w-3 h-3" />
-              </motion.div>
-            }
-            className="gap-1"
-            style={{ borderRadius: 'var(--borderRadius, 8px)' }}
-          >
-            {item.icon && React.cloneElement(item.icon, { className: 'w-4 h-4' })}
-            <span className="text-xs font-medium">{item.name}</span>
-          </Button>
-        </DropdownTrigger>
-        <DropdownMenu
-          aria-label={`${item.name} submenu`}
-          onAction={(key) => {
-            const subItem = item.subMenu.find((s, i) => getMenuItemId(s, `${item.name}-${i}`) === key);
-            if (subItem) onNavigate(subItem);
-          }}
-        >
-          {item.subMenu.map((subItem, index) => {
-            const subItemId = getMenuItemId(subItem, `${item.name}-${index}`);
-            const subUrl = getMenuItemUrl(subItem);
-            const isSubActive = subUrl && normalizePath(window.location.pathname) === subUrl;
-
-            return (
-              <DropdownItem
-                key={subItemId}
-                startContent={subItem.icon && React.cloneElement(subItem.icon, { className: 'w-4 h-4' })}
-                description={subItem.description}
-                className={isSubActive ? 'bg-primary-50 text-primary' : ''}
-              >
-                {subItem.name}
-              </DropdownItem>
-            );
-          })}
-        </DropdownMenu>
-      </Dropdown>
-    );
-  }
 
   return (
-    <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.95 }} className="relative">
-      <Button
-        variant={isActive ? "flat" : "light"}
-        color={isActive ? "primary" : "default"}
-        size="sm"
-        onPress={() => onNavigate(item)}
-        style={{ borderRadius: 'var(--borderRadius, 8px)' }}
-      >
-        {item.icon && React.cloneElement(item.icon, { className: 'w-4 h-4 mr-1' })}
-        <span className="text-xs font-medium">{item.name}</span>
-      </Button>
-      {/* Active underline indicator */}
-      {isActive && (
-        <motion.div
-          layoutId="headerActiveTab"
-          className="absolute -bottom-1 left-2 right-2 h-0.5 rounded-full"
-          style={{ background: 'var(--theme-primary, #006FEE)' }}
-          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-        />
-      )}
-    </motion.div>
-  );
-});
-
-/* ─── HeaderNav ─── */
-const HeaderNav = React.memo(({
-  menuItems,
-  activePath,
-  onNavigate,
-  maxVisibleItems = 6,
-}) => {
-  const containerRef = useRef(null);
-  const [visibleCount, setVisibleCount] = useState(maxVisibleItems);
-
-  useEffect(() => {
-    const calc = () => {
-      if (containerRef.current) {
-        const w = containerRef.current.offsetWidth;
-        setVisibleCount(Math.min(Math.max(Math.floor(w / 120), 3), maxVisibleItems));
-      }
-    };
-    calc();
-    window.addEventListener('resize', calc);
-    return () => window.removeEventListener('resize', calc);
-  }, [maxVisibleItems]);
-
-  const visibleItems = menuItems.slice(0, visibleCount);
-  const overflowItems = menuItems.slice(visibleCount);
-
-  return (
-    <div ref={containerRef} className="flex-1 flex items-center gap-1 px-4 overflow-hidden">
-      {visibleItems.map((item, index) => {
-        const itemUrl = getMenuItemUrl(item);
-        const active = itemUrl && activePath === itemUrl;
-        const hasActiveChild = isItemActive(item, activePath) && !active;
-
+    <div
+      style={{
+        fontFamily: 'var(--aeos-font-mono, "JetBrains Mono"), ui-monospace, monospace',
+        fontSize: '0.72rem',
+        color: 'var(--aeos-ink-muted, #8892A4)',
+        letterSpacing: '0.05em',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+        flexWrap: 'wrap',
+        minWidth: 0,
+      }}
+    >
+      <span>{tenantName}</span>
+      {segments.map((seg, i) => {
+        const isLast = i === segments.length - 1;
         return (
-          <HeaderNavItem
-            key={getMenuItemId(item, `header-${index}`)}
-            item={item}
-            isActive={active}
-            hasActiveChild={hasActiveChild}
-            onNavigate={onNavigate}
-          />
+          <React.Fragment key={`${seg}-${i}`}>
+            <ChevronRightIcon className="w-3 h-3 opacity-40" />
+            <span style={isLast ? { color: 'var(--aeos-cyan, #00E5FF)' } : undefined}>{seg}</span>
+          </React.Fragment>
         );
       })}
-
-      {overflowItems.length > 0 && (
-        <Dropdown placement="bottom-end">
-          <DropdownTrigger>
-            <Button isIconOnly variant="light" size="sm" style={{ borderRadius: 'var(--borderRadius, 8px)' }}>
-              <EllipsisHorizontalIcon className="w-5 h-5" />
-            </Button>
-          </DropdownTrigger>
-          <DropdownMenu
-            aria-label="More navigation"
-            onAction={(key) => {
-              const item = overflowItems.find((i, idx) => getMenuItemId(i, `overflow-${idx}`) === key);
-              if (item) onNavigate(item);
-            }}
-          >
-            {overflowItems.map((item, index) => {
-              const itemUrl = getMenuItemUrl(item);
-              const active = itemUrl && activePath === itemUrl;
-
-              return (
-                <DropdownItem
-                  key={getMenuItemId(item, `overflow-${index}`)}
-                  startContent={item.icon && React.cloneElement(item.icon, { className: 'w-4 h-4' })}
-                  className={active ? 'bg-primary-50 text-primary' : ''}
-                >
-                  {item.name}
-                </DropdownItem>
-              );
-            })}
-          </DropdownMenu>
-        </Dropdown>
-      )}
     </div>
   );
 });
+Crumbs.displayName = 'Crumbs';
 
-/* ─── HeaderSearch — glass-morphic with focus expand ─── */
-const HeaderSearch = React.memo(({ searchTerm, onSearchChange }) => {
-  const [focused, setFocused] = useState(false);
-
+// ── Search (320px, ⌘K) ────────────────────────────────────────────────────
+const TopbarSearch = React.memo(({ value, onChange, onCommandPalette }) => {
   return (
-    <>
-      {/* Desktop glass search */}
-      <motion.div
-        className="hidden lg:block relative"
-        animate={{ width: focused ? 260 : 200 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+    <div
+      style={{
+        marginLeft: 'auto',
+        position: 'relative',
+        width: 320,
+        minWidth: 0,
+        flexShrink: 0,
+      }}
+      className="hidden md:block"
+    >
+      <button
+        type="button"
+        onClick={onCommandPalette}
+        aria-label="Open command palette (⌘K)"
+        style={{
+          width: '100%',
+          padding: '7px 12px 7px 32px',
+          background: 'rgba(255, 255, 255, 0.04)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          borderRadius: 6,
+          color: 'var(--aeos-ink-muted, #8892A4)',
+          fontSize: '0.84rem',
+          textAlign: 'left',
+          fontFamily: 'var(--aeos-font-body)',
+          cursor: 'pointer',
+          transition: 'border-color 180ms cubic-bezier(0.22,1,0.36,1), background 180ms',
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(0,229,255,0.20)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
       >
-        <Input
-          placeholder="Search..."
-          value={searchTerm}
-          onValueChange={onSearchChange}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          size="sm"
-          startContent={
-            <MagnifyingGlassIcon
-              className="w-4 h-4 transition-colors"
-              style={{ color: focused ? 'var(--theme-primary, #006FEE)' : 'color-mix(in srgb, var(--theme-foreground, #11181C) 45%, transparent)' }}
-            />
-          }
-          endContent={
-            !focused && !searchTerm ? (
-              <div className="flex items-center gap-0.5 opacity-50">
-                <kbd className="text-[10px] px-1 py-0.5 rounded border border-default-300 bg-default-100 font-mono">⌘</kbd>
-                <kbd className="text-[10px] px-1 py-0.5 rounded border border-default-300 bg-default-100 font-mono">K</kbd>
-              </div>
-            ) : null
-          }
-          classNames={{
-            inputWrapper: [
-              "h-9 border-none shadow-none transition-all duration-300",
-              focused
-                ? "bg-default-100 ring-1 ring-primary/30"
-                : "bg-default-100/50 hover:bg-default-100/80",
-            ].join(' '),
-            input: "text-sm",
-          }}
-          style={{ borderRadius: 'var(--borderRadius, 8px)' }}
-        />
-        {/* Focus glow */}
-        {focused && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute -inset-1 rounded-xl pointer-events-none"
-            style={{
-              background: `color-mix(in srgb, var(--theme-primary, #006FEE) 8%, transparent)`,
-              filter: 'blur(8px)',
-            }}
-          />
-        )}
-      </motion.div>
-
-      {/* Mobile search button */}
-      <Tooltip content="Search (⌘K)" className="lg:hidden">
-        <Button isIconOnly variant="light" size="sm" className="lg:hidden">
-          <MagnifyingGlassIcon className="w-5 h-5" />
-        </Button>
-      </Tooltip>
-    </>
+        Search people, reports, runs…
+      </button>
+      <MagnifyingGlassIcon
+        className="w-3.5 h-3.5"
+        style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--aeos-ink-muted)' }}
+      />
+      <span
+        style={{
+          position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+          fontFamily: 'var(--aeos-font-mono)',
+          fontSize: '0.65rem',
+          padding: '2px 5px',
+          background: 'rgba(255, 255, 255, 0.06)',
+          borderRadius: 3,
+          color: 'var(--aeos-ink-muted)',
+        }}
+      >
+        ⌘K
+      </span>
+    </div>
   );
 });
+TopbarSearch.displayName = 'TopbarSearch';
 
-/* ─── HeaderNotifications — animated bell + glow badge ─── */
-const HeaderNotifications = React.memo(() => {
-  const { subscription_alert, tenant } = usePage().props;
-  const notifications = [];
-
-  if (subscription_alert) {
-    notifications.push({
-      key: 'sub-alert',
-      title: subscription_alert.severity === 'expired' ? 'Subscription Expired'
-        : subscription_alert.severity === 'trial_ending' ? 'Trial Ending Soon'
-        : subscription_alert.severity === 'past_due' ? 'Payment Past Due'
-        : 'Subscription Alert',
-      description: subscription_alert.message,
-      icon: (
-        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-          subscription_alert.type === 'danger' ? 'bg-danger-100' : 'bg-warning-100'
-        }`}>
-          <span className={`text-xs ${subscription_alert.type === 'danger' ? 'text-danger' : 'text-warning'}`}>!</span>
-        </div>
-      ),
-    });
-  }
-
-  if (tenant?.onTrial && tenant?.trialEndsAt) {
-    const daysLeft = Math.max(0, Math.ceil((new Date(tenant.trialEndsAt) - new Date()) / 86400000));
-    if (daysLeft <= 7 && !subscription_alert) {
-      notifications.push({
-        key: 'trial',
-        title: 'Trial Period',
-        description: `Your trial ends in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}. Upgrade to keep access.`,
-        icon: (
-          <div className="w-8 h-8 rounded-full bg-warning-100 flex items-center justify-center shrink-0">
-            <ClockIcon className="w-4 h-4 text-warning" />
-          </div>
-        ),
-      });
-    }
-  }
-
-  if (notifications.length === 0) {
-    notifications.push({
-      key: 'empty',
-      title: 'All caught up!',
-      description: 'No new notifications right now.',
-      icon: (
-        <div className="w-8 h-8 rounded-full bg-success-100 flex items-center justify-center shrink-0">
-          <span className="text-success text-xs">✓</span>
-        </div>
-      ),
-    });
-  }
-
-  const count = subscription_alert ? notifications.length : 0;
-  const hasAlerts = count > 0;
-
-  return (
-    <Dropdown placement="bottom-end">
-      <DropdownTrigger>
-        <Button isIconOnly variant="light" size="sm" className="relative group" style={{ color: 'var(--theme-foreground)' }}>
-          {/* Background glow on hover */}
-          <div
-            className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-            style={{
-              background: `color-mix(in srgb, var(--theme-primary, #006FEE) 8%, transparent)`,
-            }}
-          />
-          <div style={{ animation: hasAlerts ? 'bellSwing 2s ease-in-out infinite' : 'none' }}>
-            <Badge
-              content={count}
-              color="danger"
-              size="sm"
-              isInvisible={!hasAlerts}
-            >
-              <BellIcon className="w-5 h-5 relative z-10" />
-            </Badge>
-          </div>
-        </Button>
-      </DropdownTrigger>
-      <DropdownMenu
-        aria-label="Notifications"
-        className="w-80"
-      >
-        <DropdownSection title="Notifications">
-          {notifications.map(notif => (
-            <DropdownItem key={notif.key} description={notif.description} startContent={notif.icon}>
-              {notif.title}
-            </DropdownItem>
-          ))}
-        </DropdownSection>
-      </DropdownMenu>
-    </Dropdown>
-  );
-});
-
-/* ─── HeaderThemeToggle — orbital rotation ─── */
-const HeaderThemeToggle = React.memo(() => {
-  let mode = 'light';
-  let setMode = null;
-
-  try {
-    const ctx = useTheme();
-    mode = ctx?.mode || 'light';
-    setMode = ctx?.setMode;
-  } catch { /* theme context unavailable */ }
-
-  const isDark = mode === 'dark';
-
-  return (
-    <Tooltip content={isDark ? 'Light mode' : 'Dark mode'}>
-      <Button
-        isIconOnly
-        variant="light"
-        size="sm"
-        onPress={() => setMode?.(isDark ? 'light' : 'dark')}
-        className="relative group"
-        style={{ color: 'var(--theme-foreground)' }}
-      >
-        <div
-          className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-          style={{
-            background: isDark
-              ? 'color-mix(in srgb, #F5A623 10%, transparent)'
-              : 'color-mix(in srgb, var(--theme-primary, #006FEE) 8%, transparent)',
-          }}
-        />
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={mode}
-            initial={{ rotate: -90, opacity: 0, scale: 0.5 }}
-            animate={{ rotate: 0, opacity: 1, scale: 1 }}
-            exit={{ rotate: 90, opacity: 0, scale: 0.5 }}
-            transition={{ duration: 0.25, type: 'spring', stiffness: 200 }}
-            className="relative z-10"
-          >
-            {isDark ? (
-              <SunIcon className="w-5 h-5" style={{ color: '#F5A623' }} />
-            ) : (
-              <MoonIcon className="w-5 h-5" />
-            )}
-          </motion.div>
-        </AnimatePresence>
-      </Button>
-    </Tooltip>
-  );
-});
-
-/* ─── HeaderLanguageSwitcher ─── */
-const HeaderLanguageSwitcher = React.memo(() => (
-  <LanguageSwitcher variant="minimal" size="sm" showFlag />
+// ── Icon button (32×32 cyan-tint with optional pip) ──────────────────────
+const IconBtn = React.forwardRef(({ children, ariaLabel, pip, pipColor, onClick, ...rest }, ref) => (
+  <button
+    ref={ref}
+    type="button"
+    onClick={onClick}
+    aria-label={ariaLabel}
+    style={{
+      width: 32,
+      height: 32,
+      borderRadius: 6,
+      background: 'rgba(255, 255, 255, 0.03)',
+      border: '1px solid rgba(255, 255, 255, 0.06)',
+      display: 'grid',
+      placeItems: 'center',
+      color: 'var(--aeos-ink-muted, #8892A4)',
+      cursor: 'pointer',
+      position: 'relative',
+      transition: 'color 180ms cubic-bezier(0.22,1,0.36,1), border-color 180ms, background 180ms',
+      flexShrink: 0,
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.color = 'var(--aeos-cyan, #00E5FF)';
+      e.currentTarget.style.borderColor = 'rgba(0,229,255,0.20)';
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.color = 'var(--aeos-ink-muted, #8892A4)';
+      e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
+    }}
+    {...rest}
+  >
+    {children}
+    {pip && (
+      <span
+        aria-hidden
+        style={{
+          position: 'absolute',
+          top: 4, right: 4,
+          width: 7, height: 7,
+          borderRadius: '50%',
+          background: pipColor || 'var(--aeos-amber, #FFB347)',
+          boxShadow: `0 0 6px ${pipColor || 'var(--aeos-amber, #FFB347)'}`,
+        }}
+      />
+    )}
+  </button>
 ));
+IconBtn.displayName = 'IconBtn';
 
-/* ─── HeaderUserMenu — premium profile dropdown ─── */
-const HeaderUserMenu = React.memo(({ user }) => {
-  const handleLogout = useCallback(() => {
-    router.post(safeRoute('logout', '/logout'));
-  }, []);
-
-  const roleName = user?.roles?.[0]?.name || user?.role?.name || user?.designation?.title || 'Team Member';
+// ── Profile menu (compact aeos drop) ─────────────────────────────────────
+const ProfileMenu = React.memo(({ user }) => {
+  const initials = useMemo(() => {
+    const n = user?.name || user?.email || '';
+    return n.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join('').toUpperCase() || 'U';
+  }, [user]);
 
   return (
-    <Dropdown placement="bottom-end">
+    <Dropdown placement="bottom-end" backdrop="opaque">
       <DropdownTrigger>
-        <Button
-          variant="light"
-          size="sm"
-          className="gap-2 px-2 group relative"
+        <button
+          type="button"
+          aria-label="Open profile menu"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '4px 8px 4px 4px',
+            borderRadius: 6,
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.06)',
+            color: 'var(--aeos-ink, #E8EDF5)',
+            cursor: 'pointer',
+            transition: 'border-color 180ms cubic-bezier(0.22,1,0.36,1)',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(0,229,255,0.20)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; }}
         >
-          <div
-            className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-            style={{ background: `color-mix(in srgb, var(--theme-primary, #006FEE) 6%, transparent)` }}
-          />
-          <div className="relative">
-            <ProfileAvatar
-              size="sm"
-              src={user?.profile_image_url || user?.profile_image}
-              name={user?.name}
-              className="w-7 h-7 ring-2 ring-transparent group-hover:ring-primary/30 transition-all duration-300"
-            />
-            <div
-              className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2"
-              style={{ background: 'var(--theme-success, #17C964)', borderColor: 'var(--theme-content1, #FAFAFA)' }}
-            />
-          </div>
-          <div className="hidden sm:block text-left relative z-10">
-            <p className="text-xs font-semibold truncate max-w-[100px] leading-tight" style={{ color: 'var(--theme-foreground, #11181C)' }}>
-              {user?.name || 'User'}
-            </p>
-            <p className="text-[10px] truncate max-w-[100px] leading-tight" style={{ color: 'color-mix(in srgb, var(--theme-foreground, #11181C) 58%, transparent)' }}>
-              {roleName}
-            </p>
-          </div>
-          <ChevronDownIcon className="w-3 h-3 hidden sm:block relative z-10 transition-transform group-hover:rotate-180 duration-300" />
-        </Button>
+          <span
+            style={{
+              width: 24, height: 24, borderRadius: '50%',
+              background: 'var(--aeos-grad-cyan)',
+              color: 'var(--aeos-obsidian)',
+              display: 'grid', placeItems: 'center',
+              fontFamily: 'var(--aeos-font-mono)',
+              fontSize: '0.65rem', fontWeight: 700,
+            }}
+          >
+            {initials}
+          </span>
+          <span style={{ fontSize: '0.8rem', fontWeight: 500 }} className="hidden sm:inline">
+            {user?.name || user?.email || 'Member'}
+          </span>
+          <ChevronDownIcon className="w-3 h-3 opacity-60" />
+        </button>
       </DropdownTrigger>
-      <DropdownMenu aria-label="User menu" className="w-72">
-        <DropdownSection showDivider>
-          <DropdownItem key="profile-card" isReadOnly className="cursor-default opacity-100" textValue="Profile card">
-            <div className="flex items-center gap-3 py-2">
-              <div className="relative">
-                <ProfileAvatar
-                  size="md"
-                  src={user?.profile_image_url || user?.profile_image}
-                  name={user?.name}
-                  className="ring-2 ring-primary/20"
-                />
-                <div
-                  className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center"
-                  style={{ background: 'var(--theme-success, #17C964)', borderColor: 'var(--theme-content1, #FAFAFA)' }}
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-sm truncate">{user?.name || 'User'}</p>
-                <p className="text-xs truncate" style={{ color: 'color-mix(in srgb, var(--theme-foreground, #11181C) 58%, transparent)' }}>{user?.email}</p>
-                <div
-                  className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                  style={{
-                    background: 'color-mix(in srgb, var(--theme-primary, #006FEE) 12%, transparent)',
-                    color: 'var(--theme-primary, #006FEE)',
-                  }}
-                >
-                  <ShieldCheckIcon className="w-3 h-3" />
-                  {roleName}
-                </div>
-              </div>
-            </div>
+      <DropdownMenu aria-label="Profile menu" variant="flat">
+        <DropdownSection title={user?.email || 'Account'} showDivider>
+          <DropdownItem key="profile" startContent={<UserIcon className="w-4 h-4" />} href={safeRoute('profile', '/profile')}>
+            My profile
           </DropdownItem>
-        </DropdownSection>
-
-        <DropdownSection title="Account" showDivider>
-          <DropdownItem
-            key="profile"
-            startContent={<UserIcon className="w-4 h-4" />}
-            description="View and edit your profile"
-            href={safeRoute('core.profile.index', '/profile')}
-          >
-            My Profile
-          </DropdownItem>
-          <DropdownItem
-            key="security"
-            startContent={<KeyIcon className="w-4 h-4" />}
-            description="Password & two-factor auth"
-            href={safeRoute('core.profile.index', '/profile') + '#security'}
-          >
+          <DropdownItem key="security" startContent={<ShieldCheckIcon className="w-4 h-4" />} href={safeRoute('security', '/profile/security')}>
             Security
           </DropdownItem>
-          <DropdownItem
-            key="notifications"
-            startContent={<BellAlertIcon className="w-4 h-4" />}
-            description="Manage notification preferences"
-            href={safeRoute('settings', '/settings') + '#notifications'}
-          >
-            Notifications
+          <DropdownItem key="api-keys" startContent={<KeyIcon className="w-4 h-4" />} href={safeRoute('api-keys', '/profile/api-keys')}>
+            API keys
           </DropdownItem>
         </DropdownSection>
-
-        <DropdownSection title="Workspace" showDivider>
-          <DropdownItem
-            key="settings"
-            startContent={<Cog6ToothIcon className="w-4 h-4" />}
-            description="Company & app settings"
-            href={safeRoute('settings', '/settings')}
-          >
+        <DropdownSection title="Workspace">
+          <DropdownItem key="settings" startContent={<Cog6ToothIcon className="w-4 h-4" />} href={safeRoute('settings', '/settings')}>
             Settings
           </DropdownItem>
-          <DropdownItem
-            key="activity"
-            startContent={<ClockIcon className="w-4 h-4" />}
-            description="Your recent actions"
-            href={safeRoute('audit-logs.index', '/audit-logs')}
-          >
-            Activity Log
+          <DropdownItem key="help" startContent={<QuestionMarkCircleIcon className="w-4 h-4" />} href={safeRoute('help', '/help')}>
+            Help &amp; support
           </DropdownItem>
-          <DropdownItem
-            key="help"
-            startContent={<QuestionMarkCircleIcon className="w-4 h-4" />}
-            description="Documentation & support"
-            href="/help"
-          >
-            Help & Support
-          </DropdownItem>
-        </DropdownSection>
-
-        <DropdownSection>
           <DropdownItem
             key="logout"
             color="danger"
-            className="text-danger"
             startContent={<ArrowRightOnRectangleIcon className="w-4 h-4" />}
-            description="End your current session"
-            onPress={handleLogout}
+            onPress={() => router.post(safeRoute('logout', '/logout'))}
           >
-            Sign Out
+            Sign out
           </DropdownItem>
         </DropdownSection>
       </DropdownMenu>
     </Dropdown>
   );
 });
+ProfileMenu.displayName = 'ProfileMenu';
 
-/* ─── HeaderActions ─── */
-const HeaderActions = React.memo(({ user, searchTerm, onSearchChange, sidebarCollapsed }) => (
-  <div className="flex items-center gap-1 shrink-0">
-    {sidebarCollapsed && <HeaderSearch searchTerm={searchTerm} onSearchChange={onSearchChange} />}
-    <HeaderThemeToggle />
-    <HeaderLanguageSwitcher />
-    <HeaderNotifications />
-    {/* Glass divider */}
-    <div
-      className="h-6 w-px mx-1.5"
-      style={{
-        background: `linear-gradient(180deg, transparent, var(--theme-divider, #E4E4E7), transparent)`,
-      }}
-    />
-    <HeaderUserMenu user={user} />
-  </div>
-));
-
-/* ─── Main Header ─── */
-const Header = React.memo(({
-  showNav = true,
-  className = '',
-}) => {
+// ── Header root ──────────────────────────────────────────────────────────
+const Header = React.memo(({ showNav = true, className = '' }) => {
   const {
-    navItems,
-    isMobile,
-    isTablet,
-    user,
-    activePath,
-    searchTerm,
-    setSearchTerm,
-    setMobileDrawerOpen,
-    sidebarOpen,
-    sidebarCollapsed,
+    sidebarOpen, sidebarCollapsed, setMobileDrawerOpen, isMobile, isTablet,
+    setSearchTerm, searchTerm, navItems, activePath, user,
   } = useNavigation();
 
-  const handleNavigate = useCallback((item) => {
-    setSearchTerm('');
-    navigateToItem(item);
-  }, [setSearchTerm]);
+  const onCommandPalette = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('aeos:open-command-palette'));
+    }
+  }, []);
 
-  const topLevelItems = useMemo(() => {
-    return navItems.filter(item => !item.hidden).slice(0, 10);
-  }, [navItems]);
+  const unreadCount = user?.unread_notifications ?? 0;
 
   return (
-    <motion.header
-      initial={{ y: -10, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      className={`sticky top-0 z-30 ${className}`}
+    <header
+      className={className}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 16,
+        padding: '14px 28px',
+        borderBottom: '1px solid var(--aeos-divider)',
+        background: 'transparent',
+        flexShrink: 0,
+        minWidth: 0,
+      }}
     >
-      {/* Inject keyframes */}
-      <style>{headerKeyframes}</style>
+      {/* Mobile/tablet hamburger */}
+      {(isMobile || isTablet) && (
+        <IconBtn ariaLabel="Open menu" onClick={() => setMobileDrawerOpen(true)}>
+          <Bars3Icon style={{ width: 16, height: 16 }} />
+        </IconBtn>
+      )}
 
-      <Card
-        className="mx-3 mt-3 relative overflow-hidden"
-        style={{
-          background: 'var(--aeos-glass-bg)',
-          border: '1px solid var(--aeos-glass-border)',
-          borderRadius: 'var(--aeos-r-xl, 16px)',
-          fontFamily: 'var(--aeos-font-body, "DM Sans"), system-ui, sans-serif',
-          color: 'var(--aeos-ink, #E8EDF5)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          boxShadow: 'none',
-        }}
-      >
-        {/* Static cyan-glow hairline at top edge */}
-        <div
-          aria-hidden
-          className="absolute top-0 left-0 right-0"
-          style={{
-            height: 1,
-            background: 'linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.40), transparent)',
-          }}
-        />
+      <Crumbs />
 
-        <div className="relative flex items-center gap-3 px-4 py-2.5">
-          {/* Mobile/tablet: hamburger only (branding is in the drawer) */}
-          {(isMobile || isTablet) && (
-            <motion.div whileTap={{ scale: 0.9 }} className="shrink-0">
-              <Button
-                isIconOnly
-                variant="light"
-                size="sm"
-                onPress={() => setMobileDrawerOpen(true)}
-                style={{ color: 'var(--theme-foreground)' }}
-              >
-                <Bars3Icon className="w-5 h-5" />
-              </Button>
-            </motion.div>
-          )}
+      <TopbarSearch value={searchTerm} onChange={setSearchTerm} onCommandPalette={onCommandPalette} />
 
-          {/* Desktop: show branding when sidebar is closed OR collapsed (icon-only) */}
-          {!isMobile && !isTablet && (!sidebarOpen || sidebarCollapsed) && (
-            <HeaderLogo isMobile={false} showMenuButton={false} />
-          )}
+      <LanguageSwitcher />
 
-          {/* Desktop + no full sidebar: show horizontal nav */}
-          {showNav && !isMobile && !isTablet && (!sidebarOpen || sidebarCollapsed) && (
-            <HeaderNav
-              menuItems={topLevelItems}
-              activePath={activePath}
-              onNavigate={handleNavigate}
-              maxVisibleItems={sidebarCollapsed ? 5 : 6}
-            />
-          )}
+      <IconBtn ariaLabel="Notifications" pip={unreadCount > 0} onClick={() => router.visit(safeRoute('notifications', '/notifications'))}>
+        <BellIcon style={{ width: 15, height: 15 }} />
+      </IconBtn>
 
-          {/* Spacer pushes actions to the right when no flex-1 nav fills the gap */}
-          {(isMobile || isTablet || (sidebarOpen && !sidebarCollapsed) || (!showNav && (!sidebarOpen || sidebarCollapsed))) && <div className="flex-1" />}
+      <IconBtn ariaLabel="Quick add" onClick={onCommandPalette}>
+        <PlusIcon style={{ width: 15, height: 15 }} />
+      </IconBtn>
 
-          <HeaderActions
-            user={user}
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            sidebarCollapsed={sidebarCollapsed}
-          />
-        </div>
-      </Card>
-    </motion.header>
+      <ProfileMenu user={user} />
+    </header>
   );
 });
 
 Header.displayName = 'Header';
-
 export default Header;
