@@ -28,7 +28,10 @@
       "mcp__plugin_playwright_playwright__browser_snapshot",
       "mcp__plugin_playwright_playwright__browser_evaluate",
       "mcp__plugin_playwright_playwright__browser_click",
-      "mcp__plugin_playwright_playwright__browser_take_screenshot"
+      "mcp__plugin_playwright_playwright__browser_take_screenshot",
+      "Bash(bash \"C:/Users/Emam Hosen/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.7/skills/brainstorming/scripts/start-server.sh\" --project-dir \"c:/laragon/www/Aero-Enterprise-Suite-Saas\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   },
   "outputStyle": "default"

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>AEOS365 — Theme Designer</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+  body { margin: 0; height: 100vh; overflow: hidden; font-family: var(--aeos-font-body); }
+
+  .theme-designer { display: grid; grid-template-columns: 300px 1fr; height: 100vh; }
+
+  /* Theme Drawer */
+  .theme-drawer {
+    background: var(--aeos-bg-modal);
+    border-right: 1px solid var(--aeos-divider);
+    padding: 24px;
+    overflow-y: auto;
+  }
+
+  .theme-drawer h2 {
+    font-family: var(--aeos-font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 20px;
+    color: var(--aeos-text-primary);
+  }
+
+  .theme-section { margin-bottom: 24px; }
+
+  .theme-section h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--aeos-text-secondary);
+    margin: 0 0 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .theme-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+  }
+
+  .theme-option:hover {
+    background: var(--aeos-glass-bg);
+    border-color: var(--aeos-glass-border);
+  }
+
+  .theme-option.active {
+    background: var(--aeos-primary);
+    color: var(--aeos-bg-page);
+    border-color: var(--aeos-primary);
+  }
+
+  .theme-swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 1px solid var(--aeos-divider);
+    flex-shrink: 0;
+  }
+
+  .theme-info h4 {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin: 0 0 2px;
+  }
+
+  .theme-info p {
+    font-size: 0.75rem;
+    color: var(--aeos-text-secondary);
+    margin: 0;
+  }
+
+  /* Main Content */
+  .main-content {
+    padding: 32px;
+    overflow-y: auto;
+    background: var(--aeos-bg-page);
+    color: var(--aeos-text-primary);
+  }
+
+  .content-section {
+    margin-bottom: 40px;
+  }
+
+  .content-section h1 {
+    font-family: var(--aeos-font-display);
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 8px;
+    color: var(--aeos-text-primary);
+  }
+
+  .content-section p {
+    font-size: 1rem;
+    color: var(--aeos-text-secondary);
+    margin: 0 0 24px;
+    max-width: 600px;
+  }
+
+  /* Component Grid */
+  .component-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .component-card {
+    background: var(--aeos-bg-card);
+    border: 1px solid var(--aeos-glass-border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .component-card h3 {
+    font-family: var(--aeos-font-display);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 16px;
+    color: var(--aeos-text-primary);
+  }
+
+  /* Color Palette */
+  .color-palette {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .color-sample {
+    height: 40px;
+    border-radius: 6px;
+    border: 1px solid var(--aeos-divider);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--aeos-font-mono);
+    font-size: 0.7rem;
+    color: var(--aeos-text-primary);
+  }
+
+  /* Typography Scale */
+  .typography-scale .text-sample {
+    margin-bottom: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--aeos-divider);
+  }
+
+  .typography-scale .text-sample:last-child {
+    border-bottom: 0;
+  }
+
+  .text-sample .label {
+    font-family: var(--aeos-font-mono);
+    font-size: 0.7rem;
+    color: var(--aeos-text-secondary);
+    margin-bottom: 4px;
+  }
+
+  /* Button Showcase */
+  .button-showcase {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  /* Form Elements */
+  .form-showcase {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+</style>
+</head>
+<body class="aeos">
+  <div class="theme-designer">
+    <!-- Theme Drawer -->
+    <aside class="theme-drawer">
+      <h2>Theme Designer</h2>
+
+      <div class="theme-section">
+        <h3>Dark Themes</h3>
+        <div class="theme-option active" data-theme="">
+          <div class="theme-swatch" style="background: linear-gradient(135deg, #00E5FF 0%, #6366F1 50%, #FFB347 100%);"></div>
+          <div class="theme-info">
+            <h4>Default Dark</h4>
+            <p>Cyan, Amber, Indigo</p>
+          </div>
+        </div>
+        <div class="theme-option" data-theme="aeos--dark-warm">
+          <div class="theme-swatch" style="background: linear-gradient(135deg, #FFB347 0%, #FF6B6B 50%, #FF8C42 100%);"></div>
+          <div class="theme-info">
+            <h4>Warm Dark</h4>
+            <p>Amber, Coral, Orange</p>
+          </div>
+        </div>
+        <div class="theme-option" data-theme="aeos--dark-cool">
+          <div class="theme-swatch" style="background: linear-gradient(135deg, #00E5FF 0%, #6366F1 50%, #8B5CF6 100%);"></div>
+          <div class="theme-info">
+            <h4>Cool Dark</h4>
+            <p>Cyan, Indigo, Purple</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="theme-section">
+        <h3>Light Themes</h3>
+        <div class="theme-option" data-theme="aeos--light">
+          <div class="theme-swatch" style="background: linear-gradient(135deg, #0891B2 0%, #6366F1 50%, #D97706 100%);"></div>
+          <div class="theme-info">
+            <h4>Default Light</h4>
+            <p>Cyan, Amber, Indigo</p>
+          </div>
+        </div>
+        <div class="theme-option" data-theme="aeos--light aeos--light-warm">
+          <div class="theme-swatch" style="background: linear-gradient(135deg, #D97706 0%, #DC2626 50%, #EA580C 100%);"></div>
+          <div class="theme-info">
+            <h4>Warm Light</h4>
+            <p>Amber, Red, Orange</p>
+          </div>
+        </div>
+        <div class="theme-option" data-theme="aeos--light aeos--light-cool">
+          <div class="theme-swatch" style="background: linear-gradient(135deg, #0891B2 0%, #6366F1 50%, #7C3AED 100%);"></div>
+          <div class="theme-info">
+            <h4>Cool Light</h4>
+            <p>Cyan, Indigo, Purple</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="content-section">
+        <h1>Design System Preview</h1>
+        <p>Explore different theme variants and see how they affect the design system components.</p>
+      </div>
+
+      <div class="component-grid">
+        <!-- Color Palette -->
+        <div class="component-card">
+          <h3>Brand Colors</h3>
+          <div class="color-palette">
+            <div class="color-sample" style="background: var(--aeos-primary);">Primary</div>
+            <div class="color-sample" style="background: var(--aeos-secondary);">Secondary</div>
+            <div class="color-sample" style="background: var(--aeos-tertiary);">Tertiary</div>
+            <div class="color-sample" style="background: var(--aeos-destructive);">Destructive</div>
+            <div class="color-sample" style="background: var(--aeos-success);">Success</div>
+          </div>
+          <div class="color-palette">
+            <div class="color-sample" style="background: var(--aeos-bg-page);">Page BG</div>
+            <div class="color-sample" style="background: var(--aeos-bg-card);">Card BG</div>
+            <div class="color-sample" style="background: var(--aeos-text-primary); color: var(--aeos-bg-page);">Text</div>
+            <div class="color-sample" style="background: var(--aeos-glass-bg); border: 1px solid var(--aeos-glass-border);">Glass</div>
+            <div class="color-sample" style="background: var(--aeos-grad-full);">Gradient</div>
+          </div>
+        </div>
+
+        <!-- Typography -->
+        <div class="component-card">
+          <h3>Typography Scale</h3>
+          <div class="typography-scale">
+            <div class="text-sample">
+              <div class="label">Display Hero</div>
+              <div class="aeos-display-hero">Design System</div>
+            </div>
+            <div class="text-sample">
+              <div class="label">Display Section</div>
+              <div class="aeos-display-section">Theme Variants</div>
+            </div>
+            <div class="text-sample">
+              <div class="label">H3</div>
+              <div class="aeos-h3">Component Library</div>
+            </div>
+            <div class="text-sample">
+              <div class="label">Body</div>
+              <div class="aeos-body">This is body text with standard line height and spacing.</div>
+            </div>
+            <div class="text-sample">
+              <div class="label">Label Mono</div>
+              <div class="aeos-label-mono">UPPERCASE LABEL</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="component-card">
+          <h3>Button Variants</h3>
+          <div class="button-showcase">
+            <button class="aeos-btn aeos-btn-primary">Primary</button>
+            <button class="aeos-btn aeos-btn-ghost">Ghost</button>
+            <button class="aeos-btn aeos-btn-soft">Soft</button>
+            <button class="aeos-btn aeos-btn-amber">Amber</button>
+          </div>
+        </div>
+
+        <!-- Forms -->
+        <div class="component-card">
+          <h3>Form Elements</h3>
+          <div class="form-showcase">
+            <div class="form-group">
+              <label class="aeos-label">Input Field</label>
+              <input type="text" class="aeos-input" placeholder="Enter text here..." value="Sample input">
+            </div>
+            <div class="form-group">
+              <label class="aeos-label">Select Field</label>
+              <select class="aeos-input">
+                <option>Option 1</option>
+                <option>Option 2</option>
+                <option selected>Option 3</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cards -->
+        <div class="component-card">
+          <h3>Card Components</h3>
+          <div class="aeos-glass" style="padding: 16px; margin-bottom: 12px;">
+            <h4 style="margin: 0; font-size: 1rem;">Glass Card</h4>
+            <p style="margin: 8px 0 0; font-size: 0.9rem; color: var(--aeos-text-secondary);">Translucent with backdrop blur</p>
+          </div>
+          <div class="aeos-card" style="padding: 16px;">
+            <h4 style="margin: 0; font-size: 1rem;">Solid Card</h4>
+            <p style="margin: 8px 0 0; font-size: 0.9rem; color: var(--aeos-text-secondary);">Opaque with subtle border</p>
+          </div>
+        </div>
+
+        <!-- Badges -->
+        <div class="component-card">
+          <h3>Status Badges</h3>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <span class="aeos-badge aeos-badge-cyan">Cyan Badge</span>
+            <span class="aeos-badge aeos-badge-amber">Amber Badge</span>
+            <span class="aeos-badge aeos-badge-indigo">Indigo Badge</span>
+            <span class="aeos-badge aeos-badge-success">Success</span>
+            <span class="aeos-badge aeos-badge-danger">Danger</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Theme switching functionality
+    const themeOptions = document.querySelectorAll('.theme-option');
+    const body = document.body;
+
+    themeOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        // Remove active class from all options
+        themeOptions.forEach(opt => opt.classList.remove('active'));
+
+        // Add active class to clicked option
+        option.classList.add('active');
+
+        // Get theme classes
+        const themeClasses = option.dataset.theme || '';
+
+        // Remove all existing theme classes
+        body.className = body.className.replace(/aeos--[^\s]+/g, '').trim();
+
+        // Apply base aeos class and theme classes
+        body.className = 'aeos ' + themeClasses;
+      });
+    });
+  </script>
+</body>
+</html>

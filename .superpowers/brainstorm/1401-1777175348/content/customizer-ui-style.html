@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Theme Customizer UI Approaches</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #070B14;
+  color: #E8EDF5;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  padding: 32px;
+  min-height: 100vh;
+}
+h1 { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 6px; }
+.subtitle { color: #8892A4; font-size: 0.95rem; margin-bottom: 36px; }
+.section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: #00E5FF; margin-bottom: 20px; }
+.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-bottom: 48px; }
+
+/* Selectable */
+.style-card {
+  border-radius: 14px; overflow: hidden; cursor: pointer;
+  border: 2px solid transparent; transition: all 0.2s;
+  position: relative;
+}
+.style-card:hover { border-color: rgba(0,229,255,0.4); transform: translateY(-2px); }
+.style-card.selected { border-color: #00E5FF; box-shadow: 0 0 0 1px rgba(0,229,255,0.3), 0 0 24px rgba(0,229,255,0.15); }
+.check { position: absolute; top: 10px; right: 10px; width: 22px; height: 22px; border-radius: 50%; background: #00E5FF; color: #03040A; display: none; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+.style-card.selected .check { display: flex; }
+.preview { background: #0D1120; min-height: 200px; position: relative; overflow: hidden; }
+.card-label { padding: 14px 16px; background: #131829; border-top: 1px solid rgba(255,255,255,0.06); }
+.card-label h3 { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 3px; }
+.card-label p { font-size: 0.75rem; color: #8892A4; line-height: 1.4; }
+
+/* ─────────────────────────────────────────────────────── */
+/* Option A: Floating Side Drawer */
+.opt-a-shell {
+  display: flex; height: 200px; background: #03040A; position: relative;
+}
+.opt-a-sidebar { width: 48px; background: rgba(0,0,0,0.4); border-right: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; align-items: center; padding: 10px 0; gap: 7px; }
+.opt-a-icon { width: 26px; height: 26px; border-radius: 6px; background: rgba(255,255,255,0.04); }
+.opt-a-icon.on { background: rgba(0,229,255,0.12); border: 1px solid rgba(0,229,255,0.25); }
+.opt-a-main { flex: 1; padding: 10px; display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; align-content: start; }
+.opt-a-tile { height: 36px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; }
+/* The drawer */
+.opt-a-drawer {
+  position: absolute; top: 0; right: 0; bottom: 0; width: 130px;
+  background: rgba(26,31,51,0.97); border-left: 1px solid rgba(0,229,255,0.18);
+  display: flex; flex-direction: column; padding: 10px;
+  backdrop-filter: blur(12px);
+}
+.opt-a-drawer-header { font-family: 'JetBrains Mono', monospace; font-size: 0.55rem; letter-spacing: 0.15em; text-transform: uppercase; color: #00E5FF; margin-bottom: 10px; }
+.opt-a-swatch-row { display: flex; gap: 5px; margin-bottom: 8px; }
+.opt-a-swatch { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; }
+.opt-a-swatch.sel { outline: 2px solid #fff; outline-offset: 2px; }
+.opt-a-slider { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin: 6px 0 10px; position: relative; }
+.opt-a-slider::after { content:''; position:absolute; left:0; top:0; width:60%; height:100%; background: #00E5FF; border-radius: 2px; }
+.opt-a-toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.opt-a-toggle-label { font-size: 0.6rem; color: #8892A4; }
+.opt-a-toggle { width: 24px; height: 12px; background: rgba(0,229,255,0.8); border-radius: 6px; position: relative; }
+.opt-a-toggle::after { content:''; position:absolute; right: 2px; top: 2px; width: 8px; height: 8px; border-radius: 50%; background: #fff; }
+.opt-a-mini-label { font-size: 0.6rem; color: #8892A4; margin: 6px 0 4px; }
+.opt-a-font-row { display: flex; gap: 4px; }
+.opt-a-font-chip { padding: 2px 6px; border-radius: 4px; font-size: 0.55rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); }
+.opt-a-font-chip.on { background: rgba(0,229,255,0.12); border-color: rgba(0,229,255,0.3); color: #00E5FF; }
+
+/* ─────────────────────────────────────────────────────── */
+/* Option B: Full-Page Designer */
+.opt-b-shell { display: grid; grid-template-columns: 100px 1fr; height: 200px; background: #03040A; }
+.opt-b-panel { background: rgba(7,11,20,0.98); border-right: 1px solid rgba(0,229,255,0.12); padding: 8px; overflow: hidden; }
+.opt-b-panel-title { font-family: 'JetBrains Mono', monospace; font-size: 0.5rem; letter-spacing: 0.15em; text-transform: uppercase; color: #00E5FF; margin-bottom: 8px; }
+.opt-b-section { margin-bottom: 8px; }
+.opt-b-section-h { font-size: 0.5rem; color: #8892A4; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 5px; }
+.opt-b-color-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 3px; }
+.opt-b-dot { width: 100%; aspect-ratio: 1; border-radius: 3px; }
+.opt-b-slider { width: 100%; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; margin: 4px 0; }
+.opt-b-slider::after { content:''; display:block; width:70%; height:100%; background:#00E5FF; border-radius:2px; }
+.opt-b-main { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+.opt-b-preview-header { display: flex; gap: 6px; }
+.opt-b-tab { padding: 3px 8px; border-radius: 4px; font-size: 0.55rem; background: rgba(255,255,255,0.04); color: #8892A4; cursor: pointer; }
+.opt-b-tab.on { background: rgba(0,229,255,0.1); color: #00E5FF; border: 1px solid rgba(0,229,255,0.2); }
+.opt-b-canvas { flex: 1; background: rgba(13,17,32,0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 8px; display: grid; grid-template-columns: repeat(3,1fr); gap: 4px; align-content: start; }
+.opt-b-tile { height: 28px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 4px; }
+.opt-b-tile.hi { background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.15); }
+
+/* ─────────────────────────────────────────────────────── */
+/* Option C: Inline Settings Page */
+.opt-c-shell { display: flex; flex-direction: column; height: 200px; background: #03040A; }
+.opt-c-topbar { height: 32px; background: rgba(0,0,0,0.4); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 10px; padding: 0 12px; }
+.opt-c-topbar-dot { width: 40px; height: 5px; background: rgba(255,255,255,0.07); border-radius: 2px; }
+.opt-c-topbar-dot.on { background: rgba(0,229,255,0.35); }
+.opt-c-body { flex: 1; display: grid; grid-template-columns: 80px 1fr; }
+.opt-c-nav { border-right: 1px solid rgba(255,255,255,0.05); padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+.opt-c-nav-item { height: 16px; background: rgba(255,255,255,0.04); border-radius: 4px; }
+.opt-c-nav-item.on { background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.2); }
+.opt-c-content { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+.opt-c-heading { width: 80px; height: 8px; background: rgba(255,255,255,0.2); border-radius: 3px; }
+.opt-c-row { display: flex; gap: 6px; align-items: center; }
+.opt-c-row-label { width: 40px; height: 5px; background: rgba(255,255,255,0.1); border-radius: 2px; flex-shrink: 0; }
+.opt-c-color-chips { display: flex; gap: 3px; }
+.opt-c-chip { width: 14px; height: 14px; border-radius: 3px; }
+.opt-c-chip.sel { outline: 1.5px solid #fff; outline-offset: 1.5px; }
+.opt-c-slider-wrap { flex: 1; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; }
+.opt-c-slider-fill { height: 100%; width: 55%; background: #FFB347; border-radius: 2px; }
+.opt-c-font-select { flex: 1; height: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 3px; }
+.opt-c-save { margin-left: auto; padding: 3px 8px; background: rgba(0,229,255,0.15); border: 1px solid rgba(0,229,255,0.3); border-radius: 4px; font-size: 0.55rem; color: #00E5FF; }
+
+/* ─────────────────────────────────────────────────────── */
+/* Option D: Floating Bubble + Quick Panel */
+.opt-d-shell { position: relative; height: 200px; background: #03040A; overflow: hidden; }
+.opt-d-app { display: flex; height: 100%; }
+.opt-d-sidebar { width: 48px; background: rgba(0,0,0,0.4); border-right: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; align-items: center; padding: 10px 0; gap: 7px; }
+.opt-d-icon { width: 26px; height: 26px; border-radius: 6px; background: rgba(255,255,255,0.04); }
+.opt-d-icon.on { background: rgba(0,229,255,0.12); border: 1px solid rgba(0,229,255,0.25); }
+.opt-d-main { flex: 1; padding: 10px; display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; align-content: start; }
+.opt-d-tile { height: 36px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; }
+/* Bubble button */
+.opt-d-bubble {
+  position: absolute; bottom: 14px; right: 14px;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg,#00E5FF,#6366F1);
+  box-shadow: 0 0 16px rgba(0,229,255,0.5);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; cursor: pointer;
+}
+/* Mini pop-up */
+.opt-d-popup {
+  position: absolute; bottom: 50px; right: 14px;
+  width: 120px; background: rgba(26,31,51,0.97);
+  border: 1px solid rgba(0,229,255,0.2); border-radius: 10px;
+  padding: 10px; backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+.opt-d-popup-title { font-size: 0.55rem; color: #00E5FF; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+.opt-d-mode-row { display: flex; gap: 4px; margin-bottom: 8px; }
+.opt-d-mode { flex: 1; height: 18px; border-radius: 4px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); font-size: 0.5rem; display: flex; align-items: center; justify-content: center; color: #8892A4; }
+.opt-d-mode.on { background: rgba(0,229,255,0.12); border-color: rgba(0,229,255,0.3); color: #00E5FF; }
+.opt-d-swatches { display: flex; gap: 4px; margin-bottom: 8px; }
+.opt-d-swatch { width: 16px; height: 16px; border-radius: 50%; }
+.opt-d-swatch.sel { outline: 2px solid #fff; outline-offset: 2px; }
+.opt-d-link { font-size: 0.55rem; color: #6366F1; text-decoration: underline; text-align: center; display: block; }
+</style>
+</head>
+<body>
+<h1>Theme Customizer UI</h1>
+<p class="subtitle">How should users access and control theme settings? Pick the approach that feels right.</p>
+
+<div class="section-label">Customizer UI Approach — pick one (or tell me if you want a mix)</div>
+<div class="grid">
+
+  <!-- A: Floating Side Drawer -->
+  <div class="style-card" onclick="toggle(this,'customizer-drawer')">
+    <div class="check">✓</div>
+    <div class="preview">
+      <div class="opt-a-shell">
+        <div class="opt-a-sidebar">
+          <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#00E5FF,#6366F1);"></div>
+          <div class="opt-a-icon on"></div>
+          <div class="opt-a-icon"></div>
+          <div class="opt-a-icon"></div>
+        </div>
+        <div class="opt-a-main">
+          <div class="opt-a-tile" style="background:rgba(0,229,255,0.06);border-color:rgba(0,229,255,0.15);"></div>
+          <div class="opt-a-tile"></div>
+          <div class="opt-a-tile"></div>
+          <div class="opt-a-tile" style="grid-column:span 2;"></div>
+          <div class="opt-a-tile"></div>
+        </div>
+        <!-- Drawer -->
+        <div class="opt-a-drawer">
+          <div class="opt-a-drawer-header">Theme</div>
+          <div class="opt-a-mini-label">Mode</div>
+          <div class="opt-a-mode-row" style="display:flex;gap:4px;margin-bottom:8px;">
+            <div style="flex:1;height:16px;border-radius:4px;background:rgba(0,229,255,0.12);border:1px solid rgba(0,229,255,0.3);font-size:0.5rem;color:#00E5FF;display:flex;align-items:center;justify-content:center;">Dark</div>
+            <div style="flex:1;height:16px;border-radius:4px;background:rgba(255,255,255,0.05);font-size:0.5rem;color:#8892A4;display:flex;align-items:center;justify-content:center;">Light</div>
+          </div>
+          <div class="opt-a-mini-label">Accent</div>
+          <div class="opt-a-swatch-row">
+            <div class="opt-a-swatch sel" style="background:#00E5FF;"></div>
+            <div class="opt-a-swatch" style="background:#FFB347;"></div>
+            <div class="opt-a-swatch" style="background:#6366F1;"></div>
+            <div class="opt-a-swatch" style="background:#22C55E;"></div>
+          </div>
+          <div class="opt-a-mini-label">Radius</div>
+          <div class="opt-a-slider"></div>
+          <div class="opt-a-mini-label">Font</div>
+          <div class="opt-a-font-row">
+            <div class="opt-a-font-chip on">Syne</div>
+            <div class="opt-a-font-chip">Inter</div>
+          </div>
+          <div class="opt-a-toggle-row" style="margin-top:8px;">
+            <div class="opt-a-toggle-label">Glow FX</div>
+            <div class="opt-a-toggle"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-label">
+      <h3>A — Floating Side Drawer</h3>
+      <p>A slide-in panel over the current page. Always accessible, never leaves the app. Like Figma's right panel.</p>
+    </div>
+  </div>
+
+  <!-- B: Full-Page Designer -->
+  <div class="style-card" onclick="toggle(this,'customizer-fullpage')">
+    <div class="check">✓</div>
+    <div class="preview">
+      <div class="opt-b-shell">
+        <div class="opt-b-panel">
+          <div class="opt-b-panel-title">Tokens</div>
+          <div class="opt-b-section">
+            <div class="opt-b-section-h">Colors</div>
+            <div class="opt-b-color-grid">
+              <div class="opt-b-dot" style="background:#00E5FF;"></div>
+              <div class="opt-b-dot" style="background:#FFB347;"></div>
+              <div class="opt-b-dot" style="background:#6366F1;"></div>
+              <div class="opt-b-dot" style="background:#22C55E;"></div>
+              <div class="opt-b-dot" style="background:#03040A;"></div>
+              <div class="opt-b-dot" style="background:#0D1120;"></div>
+              <div class="opt-b-dot" style="background:#131829;"></div>
+              <div class="opt-b-dot" style="background:#E8EDF5;"></div>
+            </div>
+          </div>
+          <div class="opt-b-section">
+            <div class="opt-b-section-h">Radius</div>
+            <div class="opt-b-slider"></div>
+          </div>
+          <div class="opt-b-section">
+            <div class="opt-b-section-h">Font</div>
+            <div style="display:flex;gap:3px;flex-wrap:wrap;">
+              <div style="padding:1px 4px;border-radius:3px;font-size:0.5rem;background:rgba(0,229,255,0.12);border:1px solid rgba(0,229,255,0.3);color:#00E5FF;">Syne</div>
+              <div style="padding:1px 4px;border-radius:3px;font-size:0.5rem;background:rgba(255,255,255,0.05);color:#8892A4;">Inter</div>
+              <div style="padding:1px 4px;border-radius:3px;font-size:0.5rem;background:rgba(255,255,255,0.05);color:#8892A4;">Outfit</div>
+            </div>
+          </div>
+          <div class="opt-b-section">
+            <div class="opt-b-section-h">Shadow</div>
+            <div class="opt-b-slider"></div>
+          </div>
+        </div>
+        <div class="opt-b-main">
+          <div class="opt-b-preview-header">
+            <div class="opt-b-tab on">Cards</div>
+            <div class="opt-b-tab">Shell</div>
+            <div class="opt-b-tab">Forms</div>
+            <div class="opt-b-tab">Typography</div>
+          </div>
+          <div class="opt-b-canvas">
+            <div class="opt-b-tile hi"></div>
+            <div class="opt-b-tile"></div>
+            <div class="opt-b-tile"></div>
+            <div class="opt-b-tile" style="grid-column:span 2;height:40px;"></div>
+            <div class="opt-b-tile"></div>
+          </div>
+          <div style="display:flex;gap:6px;justify-content:flex-end;">
+            <div style="padding:3px 8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:4px;font-size:0.55rem;color:#8892A4;">Export CSS</div>
+            <div style="padding:3px 8px;background:rgba(0,229,255,0.15);border:1px solid rgba(0,229,255,0.3);border-radius:4px;font-size:0.55rem;color:#00E5FF;">Save Theme</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-label">
+      <h3>B — Full-Page Designer</h3>
+      <p>Dedicated page: token editor left, live component preview right. Tabs for Cards/Shell/Forms/Type. Export CSS button.</p>
+    </div>
+  </div>
+
+  <!-- C: Inline Settings Tab -->
+  <div class="style-card" onclick="toggle(this,'customizer-settings')">
+    <div class="check">✓</div>
+    <div class="preview">
+      <div class="opt-c-shell">
+        <div class="opt-c-topbar">
+          <div class="opt-c-topbar-dot"></div>
+          <div class="opt-c-topbar-dot on"></div>
+          <div class="opt-c-topbar-dot"></div>
+        </div>
+        <div class="opt-c-body">
+          <div class="opt-c-nav">
+            <div class="opt-c-nav-item"></div>
+            <div class="opt-c-nav-item on"></div>
+            <div class="opt-c-nav-item"></div>
+            <div class="opt-c-nav-item"></div>
+            <div class="opt-c-nav-item"></div>
+          </div>
+          <div class="opt-c-content">
+            <div class="opt-c-heading"></div>
+            <div class="opt-c-row">
+              <div class="opt-c-row-label"></div>
+              <div class="opt-c-color-chips">
+                <div class="opt-c-chip sel" style="background:#00E5FF;"></div>
+                <div class="opt-c-chip" style="background:#FFB347;"></div>
+                <div class="opt-c-chip" style="background:#6366F1;"></div>
+                <div class="opt-c-chip" style="background:#22C55E;"></div>
+                <div class="opt-c-chip" style="background:#EC4899;"></div>
+              </div>
+            </div>
+            <div class="opt-c-row">
+              <div class="opt-c-row-label"></div>
+              <div class="opt-c-slider-wrap"><div class="opt-c-slider-fill"></div></div>
+            </div>
+            <div class="opt-c-row">
+              <div class="opt-c-row-label"></div>
+              <div class="opt-c-font-select"></div>
+            </div>
+            <div class="opt-c-row">
+              <div class="opt-c-row-label"></div>
+              <div style="flex:1;height:3px;background:rgba(255,255,255,0.1);border-radius:2px;"><div style="width:80%;height:100%;background:#6366F1;border-radius:2px;"></div></div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;"><div class="opt-c-save">Save Changes</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-label">
+      <h3>C — Inline App Settings</h3>
+      <p>Appearance tab inside Settings page. Familiar UX pattern — lives where users expect it.</p>
+    </div>
+  </div>
+
+  <!-- D: Floating Bubble + Mini Panel + Link to Full Designer -->
+  <div class="style-card" onclick="toggle(this,'customizer-hybrid')">
+    <div class="check">✓</div>
+    <div class="preview">
+      <div class="opt-d-shell">
+        <div class="opt-d-app">
+          <div class="opt-d-sidebar">
+            <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#00E5FF,#6366F1);"></div>
+            <div class="opt-d-icon on"></div>
+            <div class="opt-d-icon"></div>
+            <div class="opt-d-icon"></div>
+          </div>
+          <div class="opt-d-main">
+            <div class="opt-d-tile" style="background:rgba(0,229,255,0.06);border-color:rgba(0,229,255,0.15);"></div>
+            <div class="opt-d-tile"></div>
+            <div class="opt-d-tile"></div>
+            <div class="opt-d-tile" style="grid-column:span 2;"></div>
+            <div class="opt-d-tile"></div>
+          </div>
+        </div>
+        <!-- Floating bubble -->
+        <div class="opt-d-bubble">✦</div>
+        <!-- Mini popup -->
+        <div class="opt-d-popup">
+          <div class="opt-d-popup-title">Quick Theme</div>
+          <div class="opt-d-mode-row">
+            <div class="opt-d-mode on">Dark</div>
+            <div class="opt-d-mode">Light</div>
+            <div class="opt-d-mode">OLED</div>
+          </div>
+          <div class="opt-d-swatches">
+            <div class="opt-d-swatch sel" style="background:#00E5FF;"></div>
+            <div class="opt-d-swatch" style="background:#FFB347;"></div>
+            <div class="opt-d-swatch" style="background:#6366F1;"></div>
+            <div class="opt-d-swatch" style="background:#22C55E;"></div>
+          </div>
+          <a class="opt-d-link">Advanced Designer →</a>
+        </div>
+      </div>
+    </div>
+    <div class="card-label">
+      <h3>D — Bubble + Full Designer (Recommended)</h3>
+      <p>Quick-access floating button → mini popup for mode + accent. "Advanced" link opens the full-page designer. Covers all three user tiers.</p>
+    </div>
+  </div>
+
+</div>
+
+<p style="color:#8892A4; font-size:0.85rem; text-align:center;">Click to select, then tell me your choice in the terminal.</p>
+
+<script>
+function toggle(el, id) {
+  el.classList.toggle('selected');
+  try { window.__superpowers_select(id, el.classList.contains('selected') ? 'on' : 'off'); } catch(e){}
+}
+</script>
+</body>
+</html>

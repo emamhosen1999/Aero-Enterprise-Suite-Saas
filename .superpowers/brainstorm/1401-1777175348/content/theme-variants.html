@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>New Theme Variants</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #070B14; color: #E8EDF5; font-family: 'DM Sans', system-ui, sans-serif; padding: 32px; }
+h1 { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 6px; }
+.subtitle { color: #8892A4; font-size: 0.95rem; margin-bottom: 36px; }
+.section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: #00E5FF; margin-bottom: 16px; margin-top: 36px; }
+.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+.theme-card {
+  border-radius: 12px; overflow: hidden; cursor: pointer;
+  border: 2px solid transparent; transition: all 0.2s;
+  position: relative;
+}
+.theme-card:hover { border-color: rgba(255,255,255,0.3); transform: translateY(-2px); }
+.theme-card.existing { opacity: 0.55; }
+.theme-card.existing:hover { opacity: 0.75; }
+
+.badge {
+  position: absolute; top: 8px; left: 8px;
+  padding: 2px 7px; border-radius: 20px;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.55rem; letter-spacing: 0.1em; text-transform: uppercase;
+  font-weight: 600;
+}
+.badge.new { background: rgba(0,229,255,0.2); border: 1px solid rgba(0,229,255,0.4); color: #00E5FF; }
+.badge.exists { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #8892A4; }
+
+/* Theme preview swatch area */
+.swatch-area { height: 120px; position: relative; display: flex; flex-direction: column; gap: 0; }
+.swatch-row { display: flex; flex: 1; }
+.swatch-cell { flex: 1; }
+
+/* Mock card inside theme preview */
+.mock-card {
+  position: absolute; bottom: 8px; right: 8px; left: 8px;
+  height: 48px; border-radius: 7px;
+  display: flex; align-items: center; padding: 0 10px; gap: 8px;
+}
+.mock-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.mock-lines { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+.mock-line { height: 5px; border-radius: 2px; }
+.mock-accent { width: 28px; height: 14px; border-radius: 4px; flex-shrink: 0; }
+
+.theme-info { padding: 12px 14px; }
+.theme-info h3 { font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 700; margin-bottom: 2px; }
+.theme-info p { font-size: 0.72rem; color: #8892A4; line-height: 1.4; }
+.theme-info .tokens { display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
+.token-chip { padding: 1px 6px; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 0.55rem; border: 1px solid; }
+</style>
+</head>
+<body>
+
+<h1>New Theme Variants</h1>
+<p class="subtitle">6 existing (greyed) + 5 new additions across dark and light. All apply via CSS class on <code style="background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:3px;font-size:0.85em;">&lt;body&gt;</code>.</p>
+
+<div class="section-label">Dark Themes (3 existing · 4 new)</div>
+<div class="grid">
+
+  <!-- Existing: Default Dark -->
+  <div class="theme-card existing">
+    <div class="badge exists">Existing</div>
+    <div class="swatch-area" style="background:#03040A;">
+      <div class="swatch-row">
+        <div class="swatch-cell" style="background:#03040A;"></div>
+        <div class="swatch-cell" style="background:#070B14;"></div>
+        <div class="swatch-cell" style="background:#0D1120;"></div>
+        <div class="swatch-cell" style="background:#131829;"></div>
+      </div>
+      <div class="swatch-row" style="flex:0 0 18px;">
+        <div class="swatch-cell" style="background:#00E5FF;"></div>
+        <div class="swatch-cell" style="background:#FFB347;"></div>
+        <div class="swatch-cell" style="background:#6366F1;"></div>
+        <div class="swatch-cell" style="background:#FF6B6B;"></div>
+      </div>
+      <div class="mock-card" style="background:rgba(13,17,32,0.85);border:1px solid rgba(0,229,255,0.12);">
+        <div class="mock-dot" style="background:#00E5FF;box-shadow:0 0 6px #00E5FF;"></div>
+        <div class="mock-lines"><div class="mock-line" style="background:rgba(255,255,255,0.3);width:70%;"></div><div class="mock-line" style="background:rgba(255,255,255,0.12);width:45%;"></div></div>
+        <div class="mock-accent" style="background:linear-gradient(135deg,#00E5FF,#6366F1);"></div>
+      </div>
+    </div>
+    <div class="theme-info" style="background:#070B14;">
+      <h3>Default Dark</h3>
+      <p>Obsidian · Cyan · Amber · Indigo</p>
+      <div class="tokens"><span class="token-chip" style="color:#00E5FF;border-color:rgba(0,229,255,0.3);background:rgba(0,229,255,0.06);">.aeos</span></div>
+    </div>
+  </div>
+
+  <!-- Existing: Dark Warm -->
+  <div class="theme-card existing">
+    <div class="badge exists">Existing</div>
+    <div class="swatch-area" style="background:#0A0803;">
+      <div class="swatch-row">
+        <div class="swatch-cell" style="background:#0A0803;"></div>
+        <div class="swatch-cell" style="background:#141006;"></div>
+        <div class="swatch-cell" style="background:#201A0D;"></div>
+        <div class="swatch-cell" style="background:#292013;"></div>
+      </div>
+      <div class="swatch-row" style="flex:0 0 18px;">
+        <div class="swatch-cell" style="background:#FFB347;"></div>
+        <div class="swatch-cell" style="background:#FF8C42;"></div>
+        <div class="swatch-cell" style="background:#FF6B6B;"></div>
+        <div class="swatch-cell" style="background:#E53E3E;"></div>
+      </div>
+      <div class="mock-card" style="background:rgba(32,26,13,0.9);border:1px solid rgba(255,179,71,0.15);">
+        <div class="mock-dot" style="background:#FFB347;box-shadow:0 0 6px #FFB347;"></div>
+        <div class="mock-lines"><div class="mock-line" style="background:rgba(255,255,255,0.25);width:70%;"></div><div class="mock-line" style="background:rgba(255,255,255,0.1);width:45%;"></div></div>
+        <div class="mock-accent" style="background:linear-gradient(135deg,#FFB347,#FF6B6B);"></div>
+      </div>
+    </div>
+    <div class="theme-info" style="background:#141006;">
+      <h3>Dark Warm</h3>
+      <p>Warm obsidian · Amber · Coral</p>
+      <div class="tokens"><span class="token-chip" style="color:#FFB347;border-color:rgba(255,179,71,0.3);background:rgba(255,179,71,0.06);">.aeos--dark-warm</span></div>
+    </div>
+  </div>
+
+  <!-- Existing: Dark Cool -->
+  <div class="theme-card existing">
+    <div class="badge exists">Existing</div>
+    <div class="swatch-area" style="background:#03040A;">
+      <div class="swatch-row">
+        <div class="swatch-cell" style="background:#03040A;"></div>
+        <div class="swatch-cell" style="background:#070B14;"></div>
+        <div class="swatch-cell" style="background:#0D1120;"></div>
+        <div class="swatch-cell" style="background:#131829;"></div>
+      </div>
+      <div class="swatch-row" style="flex:0 0 18px;">
+        <div class="swatch-cell" style="background:#00E5FF;"></div>
+        <div class="swatch-cell" style="background:#6366F1;"></div>
+        <div class="swatch-cell" style="background:#8B5CF6;"></div>
+        <div class="swatch-cell" style="background:#FF6B6B;"></div>
+      </div>
+      <div class="mock-card" style="background:rgba(13,17,32,0.85);border:1px solid rgba(99,102,241,0.15);">
+        <div class="mock-dot" style="background:#6366F1;box-shadow:0 0 6px #6366F1;"></div>
+        <div class="mock-lines"><div class="mock-line" style="background:rgba(255,255,255,0.3);width:70%;"></div><div class="mock-line" style="background:rgba(255,255,255,0.12);width:45%;"></div></div>
+        <div class="mock-accent" style="background:linear-gradient(135deg,#00E5FF,#8B5CF6);"></div>
+      </div>
+    </div>
+    <div class="theme-info" style="background:#070B14;">
+      <h3>Dark Cool</h3>
+      <p>Obsidian · Cyan · Indigo · Purple</p>
+      <div class="tokens"><span class="token-chip" style="color:#6366F1;border-color:rgba(99,102,241,0.35);background:rgba(99,102,241,0.08);">.aeos--dark-cool</span></div>
+    </div>
+  </div>
+
+  <!-- NEW: OLED -->
+  <div class="theme-card">
+    <div class="badge new">New</div>
+    <div class="swatch-area" style="background:#000000;">
+      <div class="swatch-row">
+        <div class="swatch-cell" style="background:#000000;"></div>
+        <div class="swatch-cell" style="background:#050505;"></div>
+        <div class="swatch-cell" style="background:#0A0A0A;"></div>
+        <div class="swatch-cell" style="background:#111111;"></div>
+      </div>
+      <div class="swatch-row" style="flex:0 0 18px;">
+        <div class="swatch-cell" style="background:#00E5FF;"></div>
+        <div class="swatch-cell" style="background:#FFB347;"></div>
+        <div class="swatch-cell" style="background:#6366F1;"></div>
+        <div class="swatch-cell" style="background:#FF6B6B;"></div>
+      </div>
+      <div class="mock-card" style="background:#0A0A0A;border:1px solid rgba(0,229,255,0.2);">
+        <div class="mock-dot" style="background:#00E5FF;box-shadow:0 0 8px #00E5FF;"></div>
+        <div class="mock-lines"><div class="mock-line" style="background:rgba(255,255,255,0.35);width:70%;"></div><div class="mock-line" style="background:rgba(255,255,255,0.12);width:45%;"></div></div>
+        <div class="mock-accent" style="background:linear-gradient(135deg,#00E5FF,#6366F1);"></div>
+      </div>
+    </div>
+    <div class="theme-info" style="background:#050505;">
+      <h3>OLED / Pure Black</h3>
+      <p>True #000 surfaces. Battery-saving on AMOLED. Max glow contrast.</p>
+      <div class="tokens"><span class="token-chip" style="color:#00E5FF;border-color:rgba(0,229,255,0.3);background:rgba(0,229,255,0.06);">.aeos--oled</span></div>
+    </div>
+  </div>
+
+  <!-- NEW: Forest -->
+  <div class="theme-card">
+    <div class="badge new">New</div>
+    <div class="swatch-area" style="background:#010A04;">
+      <div class="swatch-row">
+        <div class="swatch-cell" style="background:#010A04;"></div>
+        <div class="swatch-cell" style="background:#04120A;"></div>
+        <div class="swatch-cell" style="background:#071A0F;"></div>
+        <div class="swatch-cell" style="background:#0D2418;"></div>
+      </div>
+      <div class="swatch-row" style="flex:0 0 18px;">
+        <div class="swatch-cell" style="background:#22C55E;"></div>
+        <div class="swatch-cell" style="background:#4ADE80;"></div>
+        <div class="swatch-cell" style="background:#86EFAC;"></div>
+        <div class="swatch-cell" style="background:#FFB347;"></div>
+      </div>
+      <div class="mock-card" style="background:rgba(7,26,15,0.9);border:1px solid rgba(34,197,94,0.18);">
+        <div class="mock-dot" style="background:#22C55E;box-shadow:0 0 6px #22C55E;"></div>
+        <div class="mock-lines"><div class="mock-line" style="background:rgba(255,255,255,0.25);width:70%;"></div><div class="mock-line" style="background:rgba(255,255,255,0.1);width:45%;"></div></div>
+        <div class="mock-accent" style="background:linear-gradient(135deg,#22C55E,#4ADE80);"></div>
+      </div>
+    </div>
+    <div class="theme-info" style="background:#04120A;">
+      <h3>Forest Dark</h3>
+      <p>Deep green surfaces · Emerald primary · Amber warmth</p>
+      <div class="tokens"><span class="token-chip" style="color:#22C55E;border-color:rgba(34,197,94,0.35);background:rgba(34,197,94,0.06);">.aeos--dark-forest</span></div>
+    </div>
+  </div>
+
+  <!-- NEW: Rose -->
+  <div class="theme-card">
+    <div class="badge new">New</div>
+    <div class="swatch-area" style="background:#0A0306;">
+      <div class="swatch-row">
+        <div class="swatch-cell" style="background:#0A0306;"></div>
+        <div class="swatch-cell" style="background:#14060D;"></div>
+        <div class="swatch-cell" style="background:#1E0A14;"></div>
+        <div class="swatch-cell" style="background:#280E1B;"></div>
+      </div>
+      <div class="swatch-row" style="flex:0 0 18px;">
+        <div class="swatch-cell" style="background:#F43F5E;"></div>
+        <div class="swatch-cell" style="background:#FB7185;"></div>
+        <div class="swatch-cell" style="background:#EC4899;"></div>
+        <div class="swatch-cell" style="background:#FFB347;"></div>
+      </div>
+      <div class="mock-card" style="background:rgba(30,10,20,0.9);border:1px solid rgba(244,63,94,0.18);">
+        <div class="mock-dot" style="background:#F43F5E;box-shadow:0 0 6px #F43F5E;"></div>
+        <div class="mock-lines"><div class="mock-line" style="background:rgba(255,255,255,0.25);width:70%;"></div><div class="mock-line" style="background:rgba(255,255,255,0.1);width:45%;"></div></div>
+        <div class="mock-accent" style="background:linear-gradient(135deg,#F43F5E,#EC4899);"></div>
+      </div>
+    </div>
+    <div class="theme-info" style="background:#14060D;">
+      <h3>Rose Dark</h3>
+      <p>Deep plum surfaces · Rose/pink primary · Gradient warmth</p>
+      <div class="tokens"><span class="token-chip" style="color:#F43F5E;border-color:rgba(244,63,94,0.35);background:rgba(244,63,94,0.06);">.aeos--dark-rose</span></div>
+    </div>
+  </div>
+
+  <!-- NEW: Midnight -->
+  <div class="theme-card">
+    <div class="badge new">New</div>
+    <div class="swatch-area" style="background:#010410;">
+      <div class="swatch-row">
+        <div class="swatch-cell" style="background:#010410;"></div>
+        <div class="swatch-cell" style="background:#030820;"></div>
+        <div class="swatch-cell" style="background:#060D30;"></div>
+        <div class="swatch-cell" style="background:#0A1340;"></div>
+      </div>
+      <div class="swatch-row" style="flex:0 0 18px;">
+        <div class="swatch-cell" style="background:#3B82F6;"></div>
+        <div class="swatch-cell" style="background:#60A5FA;"></div>
+        <div class="swatch-cell" style="background:#93C5FD;"></div>
+        <div class="swatch-cell" style="background:#6366F1;"></div>
+      </div>
+      <div class="mock-card" style="background:rgba(6,13,48,0.9);border:1px solid rgba(59,130,246,0.2);">
+        <div class="mock-dot" style="background:#3B82F6;box-shadow:0 0 6px #3B82F6;"></div>
+        <div class="mock-lines"><div class="mock-line" style="background:rgba(255,255,255,0.25);width:70%;"></div><div class="mock-line" style="background:rgba(255,255,255,0.1);width:45%;"></div></div>
+        <div class="mock-accent" style="background:linear-gradient(135deg,#3B82F6,#6366F1);"></div>
+      </div>
+    </div>
+    <div class="theme-info" style="background:#030820;">
+      <h3>Midnight</h3>
+      <p>Deep navy · Blue primary only · No warm tones · Monochrome blue family</p>
+      <div class="tokens"><span class="token-chip" style="color:#3B82F6;border-color:rgba(59,130,246,0.35);background:rgba(59,130,246,0.06);">.aeos--midnight</span></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="section-label">Light Themes (3 existing · 2 new)</div>
+<div class="grid">
+
+  <!-- Existing: Default Light -->
+  <div class="theme-card existing">
+    <div class="badge exists">Existing</div>
+    <div class="swatch-area" style="background:#F8FAFC;">
+      <div class="swatch-row">
+        <div class="swatch-cell" style="background:#F8FAFC;"></div>
+        <div class="swatch-cell" style="background:#F1F5F9;"></div>
+        <div class="swatch-cell" style="background:#E2E8F0;"></div>
+        <div class="swatch-cell" style="background:#FFFFFF;"></div>
+      </div>
+      <div class="swatch-row" style="flex:0 0 18px;">
+        <div class="swatch-cell" style="background:#0891B2;"></div>
+        <div class="swatch-cell" style="background:#D97706;"></div>
+        <div class="swatch-cell" style="background:#6366F1;"></div>
+        <div class="swatch-cell" style="background:#DC2626;"></div>
+      </div>
+      <div class="mock-card" style="background:rgba(255,255,255,0.95);border:1px solid rgba(8,145,178,0.15);box-shadow:0 2px 12px rgba(15,23,42,0.08);">
+        <div class="mock-dot" style="background:#0891B2;"></div>
+        <div class="mock-lines"><div class="mock-line" style="background:rgba(15,23,42,0.25);width:70%;"></div><div class="mock-line" style="background:rgba(15,23,42,0.1);width:45%;"></div></div>
+        <div class="mock-accent" style="background:linear-gradient(135deg,#0891B2,#6366F1);"></div>
+      </div>
+    </div>
+    <div class="theme-info" style="background:#F1F5F9;">
+      <h3>Default Light</h3>
+      <p>Cool white · Cyan · Amber · Indigo</p>
+      <div class="tokens"><span class="token-chip" style="color:#0891B2;border-color:rgba(8,145,178,0.3);background:rgba(8,145,178,0.06);">.aeos--light</span></div>
+    </div>
+  </div>
+
+  <!-- Existing: Light Warm -->
+  <div class="theme-card existing">
+    <div class="badge exists">Existing</div>
+    <div class="swatch-area" style="background:#FEF7ED;">
+      <div class="swatch-row">
+        <div class="swatch-cell" style="background:#FEF7ED;"></div>
+        <div class="swatch-cell" style="background:#FEF3C7;"></div>
+        <div class="swatch-cell" style="background:#FDE68A;"></div>
+        <div class="swatch-cell" style="background:#FFFFFF;"></div>
+      </div>
+      <div class="swatch-row" style="flex:0 0 18px;">
+        <div class="swatch-cell" style="background:#D97706;"></div>
+        <div class="swatch-cell" style="background:#EA580C;"></div>
+        <div class="swatch-cell" style="background:#DC2626;"></div>
+        <div class="swatch-cell" style="background:#B91C1C;"></div>
+      </div>
+      <div class="mock-card" style="background:rgba(255,255,255,0.95);border:1px solid rgba(217,119,6,0.18);box-shadow:0 2px 12px rgba(154,52,18,0.08);">
+        <div class="mock-dot" style="background:#D97706;"></div>
+        <div class="mock-lines"><div class="mock-line" style="background:rgba(154,52,18,0.25);width:70%;"></div><div class="mock-line" style="background:rgba(154,52,18,0.1);width:45%;"></div></div>
+        <div class="mock-accent" style="background:linear-gradient(135deg,#D97706,#DC2626);"></div>
+      </div>
+    </div>
+    <div class="theme-info" style="background:#FEF3C7;">
+      <h3>Light Warm</h3>
+      <p>Cream · Amber · Orange · Red</p>
+      <div class="tokens"><span class="token-chip" style="color:#D97706;border-color:rgba(217,119,6,0.3);background:rgba(217,119,6,0.06);">.aeos--light-warm</span></div>
+    </div>
+  </div>
+
+  <!-- Existing: Light Cool -->
+  <div class="theme-card existing">
+    <div class="badge exists">Existing</div>
+    <div class="swatch-area" style="background:#F0F9FF;">
+      <div class="swatch-row">
+        <div class="swatch-cell" style="background:#F0F9FF;"></div>
+        <div class="swatch-cell" style="background:#E0F2FE;"></div>
+        <div class="swatch-cell" style="background:#BAE6FD;"></div>
+        <div class="swatch-cell" style="background:#FFFFFF;"></div>
+      </div>
+      <div class="swatch-row" style="flex:0 0 18px;">
+        <div class="swatch-cell" style="background:#0891B2;"></div>
+        <div class="swatch-cell" style="background:#6366F1;"></div>
+        <div class="swatch-cell" style="background:#7C3AED;"></div>
+        <div class="swatch-cell" style="background:#DC2626;"></div>
+      </div>
+      <div class="mock-card" style="background:rgba(255,255,255,0.95);border:1px solid rgba(8,145,178,0.18);box-shadow:0 2px 12px rgba(12,74,110,0.08);">
+        <div class="mock-dot" style="background:#0891B2;"></div>
+        <div class="mock-lines"><div class="mock-line" style="background:rgba(12,74,110,0.25);width:70%;"></div><div class="mock-line" style="background:rgba(12,74,110,0.1);width:45%;"></div></div>
+        <div class="mock-accent" style="background:linear-gradient(135deg,#0891B2,#7C3AED);"></div>
+      </div>
+    </div>
+    <div class="theme-info" style="background:#E0F2FE;">
+      <h3>Light Cool</h3>
+      <p>Sky blue · Cyan · Indigo · Purple</p>
+      <div class="tokens"><span class="token-chip" style="color:#0891B2;border-color:rgba(8,145,178,0.3);background:rgba(8,145,178,0.06);">.aeos--light-cool</span></div>
+    </div>
+  </div>
+
+  <!-- NEW: Paper -->
+  <div class="theme-card">
+    <div class="badge new">New</div>
+    <div class="swatch-area" style="background:#FAF6F0;">
+      <div class="swatch-row">
+        <div class="swatch-cell" style="background:#FAF6F0;"></div>
+        <div class="swatch-cell" style="background:#F5EFE6;"></div>
+        <div class="swatch-cell" style="background:#EDE3D6;"></div>
+        <div class="swatch-cell" style="background:#FFFFFF;"></div>
+      </div>
+      <div class="swatch-row" style="flex:0 0 18px;">
+        <div class="swatch-cell" style="background:#92400E;"></div>
+        <div class="swatch-cell" style="background:#B45309;"></div>
+        <div class="swatch-cell" style="background:#78716C;"></div>
+        <div class="swatch-cell" style="background:#44403C;"></div>
+      </div>
+      <div class="mock-card" style="background:rgba(255,255,255,0.9);border:1px solid rgba(146,64,14,0.15);box-shadow:0 2px 12px rgba(68,64,60,0.1);">
+        <div class="mock-dot" style="background:#92400E;"></div>
+        <div class="mock-lines"><div class="mock-line" style="background:rgba(68,64,60,0.3);width:70%;"></div><div class="mock-line" style="background:rgba(68,64,60,0.12);width:45%;"></div></div>
+        <div class="mock-accent" style="background:linear-gradient(135deg,#92400E,#B45309);"></div>
+      </div>
+    </div>
+    <div class="theme-info" style="background:#F5EFE6;">
+      <h3>Paper / Parchment</h3>
+      <p>Warm cream · Ink brown · Stone greys · Editorial feel</p>
+      <div class="tokens"><span class="token-chip" style="color:#92400E;border-color:rgba(146,64,14,0.3);background:rgba(146,64,14,0.06);">.aeos--light-paper</span></div>
+    </div>
+  </div>
+
+  <!-- NEW: High Contrast -->
+  <div class="theme-card">
+    <div class="badge new">New</div>
+    <div class="swatch-area" style="background:#FFFFFF;">
+      <div class="swatch-row">
+        <div class="swatch-cell" style="background:#FFFFFF;"></div>
+        <div class="swatch-cell" style="background:#F4F4F4;"></div>
+        <div class="swatch-cell" style="background:#E8E8E8;"></div>
+        <div class="swatch-cell" style="background:#000000;"></div>
+      </div>
+      <div class="swatch-row" style="flex:0 0 18px;">
+        <div class="swatch-cell" style="background:#0000EE;"></div>
+        <div class="swatch-cell" style="background:#CC0000;"></div>
+        <div class="swatch-cell" style="background:#007700;"></div>
+        <div class="swatch-cell" style="background:#000000;"></div>
+      </div>
+      <div class="mock-card" style="background:#FFFFFF;border:2px solid #000000;box-shadow:none;">
+        <div class="mock-dot" style="background:#0000EE;"></div>
+        <div class="mock-lines"><div class="mock-line" style="background:rgba(0,0,0,0.7);width:70%;"></div><div class="mock-line" style="background:rgba(0,0,0,0.3);width:45%;"></div></div>
+        <div class="mock-accent" style="background:#0000EE;border-radius:4px;"></div>
+      </div>
+    </div>
+    <div class="theme-info" style="background:#F4F4F4;">
+      <h3>High Contrast</h3>
+      <p>WCAG AAA · Pure black text · No gradients · Accessibility-first</p>
+      <div class="tokens"><span class="token-chip" style="color:#000000;border-color:rgba(0,0,0,0.4);background:rgba(0,0,0,0.05);">.aeos--high-contrast</span></div>
+    </div>
+  </div>
+
+</div>
+
+<p style="color:#8892A4; font-size:0.85rem; text-align:center; margin-top: 32px;">Total: 12 themes (6 existing · 6 new). Tell me in the terminal if any need adjusting.</p>
+
+</body>
+</html>

@@ -7,38 +7,67 @@
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  /* ── Brand Colors ─────────────────────────────────────────────────────── */
-  --aeos-cyan:       #00E5FF;   /* Primary signal, links, focus, glow */
-  --aeos-cyan-deep:  #00A3B8;   /* Cyan for light mode (better contrast) */
-  --aeos-amber:      #FFB347;   /* Warm accent — payroll, money, warmth */
-  --aeos-indigo:     #6366F1;   /* Cool accent — analytics, depth */
-  --aeos-coral:      #FF6B6B;   /* Reserved for warnings/destructive */
+  /* ── Base Theme Tokens (Semantic) ────────────────────────────────────── */
+  /* Brand Colors - redefined per theme */
+  --aeos-primary:       #00E5FF;   /* Primary signal, links, focus, glow */
+  --aeos-primary-deep:  #00A3B8;   /* Primary for light mode (better contrast) */
+  --aeos-secondary:     #FFB347;   /* Warm accent — payroll, money, warmth */
+  --aeos-tertiary:      #6366F1;   /* Cool accent — analytics, depth */
+  --aeos-destructive:   #FF6B6B;   /* Reserved for warnings/destructive */
 
-  /* Status */
+  /* Status - derived from brand colors */
   --aeos-success:    #22C55E;
-  --aeos-warning:    #FFB347;
-  --aeos-danger:     #FF6B6B;
-  --aeos-info:       #00E5FF;
+  --aeos-warning:    var(--aeos-secondary);
+  --aeos-danger:     var(--aeos-destructive);
+  --aeos-info:       var(--aeos-primary);
 
-  /* ── Dark Surfaces (default theme) ────────────────────────────────────── */
-  --aeos-obsidian:   #03040A;   /* Deepest — page bg */
-  --aeos-onyx:       #070B14;   /* App bg, cards, footers */
-  --aeos-slate:      #0D1120;   /* Glass card base */
-  --aeos-graphite:   #131829;   /* Elevated surface */
-  --aeos-gunmetal:   #1A1F33;   /* Modals, overlays */
+  /* ── Surface System (Semantic) ───────────────────────────────────────── */
+  --aeos-bg-page:      #03040A;   /* Deepest — page bg */
+  --aeos-bg-app:       #070B14;   /* App bg, cards, footers */
+  --aeos-bg-card:      #0D1120;   /* Glass card base */
+  --aeos-bg-elevated:  #131829;   /* Elevated surface */
+  --aeos-bg-modal:     #1A1F33;   /* Modals, overlays */
 
-  /* ── Dark Text ────────────────────────────────────────────────────────── */
-  --aeos-ink:        #E8EDF5;   /* Primary text on dark */
-  --aeos-ink-muted:  #8892A4;   /* Muted text on dark */
-  --aeos-ink-faint:  #4A5468;   /* Disabled, hints */
+  /* ── Text System (Semantic) ──────────────────────────────────────────── */
+  --aeos-text-primary:   #E8EDF5;   /* Primary text */
+  --aeos-text-secondary: #8892A4;   /* Muted text */
+  --aeos-text-tertiary:  #4A5468;   /* Disabled, hints */
 
-  /* ── Light Mode Surfaces & Ink ────────────────────────────────────────── */
-  --aeos-paper:      #F8FAFC;   /* Page bg light */
-  --aeos-paper-2:    #F1F5F9;   /* Secondary bg light */
+  /* ── Legacy Aliases (for backward compatibility) ────────────────────── */
+  --aeos-cyan:       var(--aeos-primary);
+  --aeos-cyan-deep:  var(--aeos-primary-deep);
+  --aeos-amber:      var(--aeos-secondary);
+  --aeos-indigo:     var(--aeos-tertiary);
+  --aeos-coral:      var(--aeos-destructive);
+
+  --aeos-obsidian:   var(--aeos-bg-page);
+  --aeos-onyx:       var(--aeos-bg-app);
+  --aeos-slate:      var(--aeos-bg-card);
+  --aeos-graphite:   var(--aeos-bg-elevated);
+  --aeos-gunmetal:   var(--aeos-bg-modal);
+
+  --aeos-ink:        var(--aeos-text-primary);
+  --aeos-ink-muted:  var(--aeos-text-secondary);
+  --aeos-ink-faint:  var(--aeos-text-tertiary);
+
+  /* ── Light Mode Tokens (default light theme) ──────────────────────────── */
+  --aeos-bg-page-light:      #F8FAFC;   /* Page bg light */
+  --aeos-bg-app-light:       #F1F5F9;   /* Secondary bg light */
+  --aeos-bg-card-light:      #FFFFFF;   /* Card bg light */
+  --aeos-bg-elevated-light:  #F8FAFC;   /* Elevated surface light */
+  --aeos-bg-modal-light:     #FFFFFF;   /* Modals light */
+
+  --aeos-text-primary-light:   #0F172A;   /* Primary text light */
+  --aeos-text-secondary-light: #64748B;   /* Muted text light */
+  --aeos-text-tertiary-light:  #94A3B8;   /* Disabled, hints light */
+
+  /* ── Legacy Light Aliases ────────────────────────────────────────────── */
+  --aeos-paper:      var(--aeos-bg-page-light);
+  --aeos-paper-2:    var(--aeos-bg-app-light);
   --aeos-paper-3:    #E2E8F0;   /* Borders, dividers light */
-  --aeos-graphite-l: #475569;   /* Body text light */
-  --aeos-onyx-l:     #0F172A;   /* Primary text light */
-  --aeos-ink-l-muted:#64748B;   /* Muted text light */
+  --aeos-graphite-l: var(--aeos-text-secondary-light);
+  --aeos-onyx-l:     var(--aeos-text-primary-light);
+  --aeos-ink-l-muted:var(--aeos-text-secondary-light);
 
   /* ── Glass / Border ───────────────────────────────────────────────────── */
   --aeos-glass-bg:        rgba(13, 17, 32, 0.7);
@@ -117,13 +146,123 @@
 }
 
 .aeos--light {
-  background: var(--aeos-paper);
-  color: var(--aeos-onyx-l);
-  --aeos-ink: #0F172A;
-  --aeos-ink-muted: #64748B;
+  background: var(--aeos-bg-page-light);
+  color: var(--aeos-text-primary-light);
+  /* Override semantic tokens for light mode */
+  --aeos-bg-page:      var(--aeos-bg-page-light);
+  --aeos-bg-app:       var(--aeos-bg-app-light);
+  --aeos-bg-card:      var(--aeos-bg-card-light);
+  --aeos-bg-elevated:  var(--aeos-bg-elevated-light);
+  --aeos-bg-modal:     var(--aeos-bg-modal-light);
+
+  --aeos-text-primary:   var(--aeos-text-primary-light);
+  --aeos-text-secondary: var(--aeos-text-secondary-light);
+  --aeos-text-tertiary:  var(--aeos-text-tertiary-light);
+
+  /* Legacy overrides */
+  --aeos-ink: var(--aeos-text-primary-light);
+  --aeos-ink-muted: var(--aeos-text-secondary-light);
+  --aeos-ink-faint: var(--aeos-text-tertiary-light);
+
   --aeos-glass-bg: rgba(255, 255, 255, 0.80);
   --aeos-glass-border: rgba(0, 163, 184, 0.18);
   --aeos-divider: rgba(15, 23, 42, 0.08);
+}
+
+/* ── Theme Variants ────────────────────────────────────────────────────── */
+
+/* Dark Warm Theme */
+.aeos--dark-warm {
+  --aeos-primary:       #FFB347;   /* Amber as primary */
+  --aeos-primary-deep:  #CC8A3A;   /* Deeper amber for light mode */
+  --aeos-secondary:     #FF8C42;   /* Warm orange */
+  --aeos-tertiary:      #FF6B6B;   /* Coral */
+  --aeos-destructive:   #E53E3E;   /* Red */
+
+  /* Warm surface tints */
+  --aeos-bg-page:      #0A0803;   /* Warm dark */
+  --aeos-bg-app:       #141006;   /* Warm dark */
+  --aeos-bg-card:      #201A0D;   /* Warm dark */
+  --aeos-bg-elevated:  #292013;   /* Warm dark */
+  --aeos-bg-modal:     #33221A;   /* Warm dark */
+
+  /* Update gradients */
+  --aeos-grad-cyan:   linear-gradient(135deg, #FFB347 0%, #FF6B6B 100%);
+  --aeos-grad-amber:  linear-gradient(135deg, #FF8C42 0%, #E53E3E 100%);
+  --aeos-grad-full:   linear-gradient(135deg, #FFB347 0%, #FF6B6B 50%, #FF8C42 100%);
+}
+
+/* Dark Cool Theme */
+.aeos--dark-cool {
+  --aeos-primary:       #00E5FF;   /* Cyan stays primary */
+  --aeos-primary-deep:  #00A3B8;   /* Cyan deep */
+  --aeos-secondary:     #6366F1;   /* Indigo */
+  --aeos-tertiary:      #8B5CF6;   /* Purple */
+  --aeos-destructive:   #FF6B6B;   /* Keep coral */
+
+  /* Cool surface tints */
+  --aeos-bg-page:      #03040A;   /* Keep default */
+  --aeos-bg-app:       #070B14;   /* Keep default */
+  --aeos-bg-card:      #0D1120;   /* Keep default */
+  --aeos-bg-elevated:  #131829;   /* Keep default */
+  --aeos-bg-modal:     #1A1F33;   /* Keep default */
+
+  /* Update gradients */
+  --aeos-grad-cyan:   linear-gradient(135deg, #00E5FF 0%, #6366F1 100%);
+  --aeos-grad-amber:  linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+  --aeos-grad-full:   linear-gradient(135deg, #00E5FF 0%, #6366F1 50%, #8B5CF6 100%);
+}
+
+/* Light Warm Theme */
+.aeos--light.aeos--light-warm,
+.aeos--light-warm {
+  --aeos-primary:       #D97706;   /* Warm amber */
+  --aeos-primary-deep:  #B45309;   /* Deeper warm amber */
+  --aeos-secondary:     #EA580C;   /* Warm orange */
+  --aeos-tertiary:      #DC2626;   /* Warm red */
+  --aeos-destructive:   #B91C1C;   /* Red */
+
+  /* Warm light surfaces */
+  --aeos-bg-page-light:      #FEF7ED;   /* Warm light */
+  --aeos-bg-app-light:       #FEF3C7;   /* Warm light */
+  --aeos-bg-card-light:      #FFFFFF;   /* White */
+  --aeos-bg-elevated-light:  #FEF7ED;   /* Warm light */
+  --aeos-bg-modal-light:     #FFFFFF;   /* White */
+
+  --aeos-text-primary-light:   #9A3412;   /* Warm dark text */
+  --aeos-text-secondary-light: #C2410C;   /* Warm muted text */
+  --aeos-text-tertiary-light:  #EA580C;   /* Warm faint text */
+
+  /* Update gradients */
+  --aeos-grad-cyan:   linear-gradient(135deg, #D97706 0%, #DC2626 100%);
+  --aeos-grad-amber:  linear-gradient(135deg, #EA580C 0%, #B91C1C 100%);
+  --aeos-grad-full:   linear-gradient(135deg, #D97706 0%, #DC2626 50%, #EA580C 100%);
+}
+
+/* Light Cool Theme */
+.aeos--light.aeos--light-cool,
+.aeos--light-cool {
+  --aeos-primary:       #0891B2;   /* Cool cyan */
+  --aeos-primary-deep:  #0E7490;   /* Deeper cool cyan */
+  --aeos-secondary:     #6366F1;   /* Indigo */
+  --aeos-tertiary:      #7C3AED;   /* Purple */
+  --aeos-destructive:   #DC2626;   /* Red */
+
+  /* Cool light surfaces */
+  --aeos-bg-page-light:      #F0F9FF;   /* Cool light */
+  --aeos-bg-app-light:       #E0F2FE;   /* Cool light */
+  --aeos-bg-card-light:      #FFFFFF;   /* White */
+  --aeos-bg-elevated-light:  #F0F9FF;   /* Cool light */
+  --aeos-bg-modal-light:     #FFFFFF;   /* White */
+
+  --aeos-text-primary-light:   #0C4A6E;   /* Cool dark text */
+  --aeos-text-secondary-light: #0369A1;   /* Cool muted text */
+  --aeos-text-tertiary-light:  #0284C7;   /* Cool faint text */
+
+  /* Update gradients */
+  --aeos-grad-cyan:   linear-gradient(135deg, #0891B2 0%, #6366F1 100%);
+  --aeos-grad-amber:  linear-gradient(135deg, #6366F1 0%, #7C3AED 100%);
+  --aeos-grad-full:   linear-gradient(135deg, #0891B2 0%, #6366F1 50%, #7C3AED 100%);
 }
 
 .aeos *, .aeos *::before, .aeos *::after { box-sizing: border-box; }

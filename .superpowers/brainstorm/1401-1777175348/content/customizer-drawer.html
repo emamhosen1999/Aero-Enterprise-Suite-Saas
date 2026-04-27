@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Customizer Drawer Design</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #070B14; color: #E8EDF5; font-family: 'DM Sans', system-ui, sans-serif; padding: 32px; }
+h1 { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 6px; }
+.subtitle { color: #8892A4; font-size: 0.95rem; margin-bottom: 36px; }
+.section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: #00E5FF; margin-bottom: 20px; }
+
+.layout { display: grid; grid-template-columns: 1fr 320px; gap: 32px; align-items: start; }
+
+/* App mock (left) */
+.app-mock {
+  border-radius: 14px; overflow: hidden; position: relative;
+  border: 1px solid rgba(255,255,255,0.07);
+  height: 600px;
+  background: #03040A;
+}
+.app-sidebar {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 56px;
+  background: rgba(0,0,0,0.45); border-right: 1px solid rgba(255,255,255,0.05);
+  display: flex; flex-direction: column; align-items: center; padding: 12px 0; gap: 8px;
+}
+.app-icon { width: 30px; height: 30px; border-radius: 7px; background: rgba(255,255,255,0.04); }
+.app-icon.on { background: rgba(0,229,255,0.12); border: 1px solid rgba(0,229,255,0.25); }
+.app-logo { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg,#00E5FF,#6366F1); margin-bottom: 8px; }
+.app-content {
+  position: absolute; left: 56px; top: 0; right: 0; bottom: 0;
+  padding: 20px;
+}
+.app-topbar { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.app-breadcrumb { width: 120px; height: 8px; background: rgba(255,255,255,0.1); border-radius: 3px; }
+.app-search { margin-left: auto; width: 160px; height: 26px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; }
+.app-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 12px; }
+.app-tile { height: 56px; background: rgba(13,17,32,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; }
+.app-tile.hi { background: rgba(0,229,255,0.05); border-color: rgba(0,229,255,0.12); }
+.app-wide { height: 120px; background: rgba(13,17,32,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 12px; }
+.app-row { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
+.app-panel { height: 130px; background: rgba(13,17,32,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; }
+
+/* Bubble */
+.bubble {
+  position: absolute; bottom: 20px; right: 20px;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: linear-gradient(135deg, #00E5FF, #6366F1);
+  box-shadow: 0 0 0 3px rgba(0,229,255,0.15), 0 0 20px rgba(0,229,255,0.4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; cursor: pointer; z-index: 10;
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+@keyframes pulse-glow {
+  0%,100% { box-shadow: 0 0 0 3px rgba(0,229,255,0.15), 0 0 20px rgba(0,229,255,0.35); }
+  50% { box-shadow: 0 0 0 3px rgba(0,229,255,0.25), 0 0 32px rgba(0,229,255,0.55); }
+}
+
+/* Drawer (right column — shown as standalone for clarity) */
+.drawer {
+  background: #0D1120;
+  border: 1px solid rgba(0,229,255,0.15);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: -8px 0 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,229,255,0.08);
+}
+
+.drawer-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: rgba(0,0,0,0.2);
+}
+.drawer-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+.drawer-close { width: 24px; height: 24px; border-radius: 6px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; color: #8892A4; }
+.drawer-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.dtab { flex: 1; padding: 10px 0; text-align: center; font-size: 0.72rem; color: #8892A4; cursor: pointer; font-weight: 500; position: relative; }
+.dtab.on { color: #00E5FF; }
+.dtab.on::after { content:''; position:absolute; bottom:0; left:20%; right:20%; height:2px; background:#00E5FF; border-radius:1px; }
+
+.drawer-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 20px; max-height: 520px; overflow-y: auto; }
+.drawer-body::-webkit-scrollbar { width: 4px; }
+.drawer-body::-webkit-scrollbar-track { background: transparent; }
+.drawer-body::-webkit-scrollbar-thumb { background: rgba(0,229,255,0.2); border-radius: 2px; }
+
+/* Control sections */
+.ctrl-section { display: flex; flex-direction: column; gap: 10px; }
+.ctrl-label { font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; letter-spacing: 0.16em; text-transform: uppercase; color: #8892A4; }
+
+/* Mode pills */
+.mode-pills { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; }
+.mode-pill { padding: 7px 4px; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); text-align: center; cursor: pointer; transition: all 0.15s; }
+.mode-pill.on { background: rgba(0,229,255,0.1); border-color: rgba(0,229,255,0.3); }
+.mode-pill .pill-icon { font-size: 14px; display: block; margin-bottom: 3px; }
+.mode-pill .pill-label { font-size: 0.58rem; color: #8892A4; }
+.mode-pill.on .pill-label { color: #00E5FF; }
+
+/* Color swatches */
+.swatch-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 6px; }
+.sw { aspect-ratio:1; border-radius: 50%; cursor: pointer; transition: transform 0.15s; border: 2px solid transparent; }
+.sw:hover { transform: scale(1.15); }
+.sw.sel { border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.3); }
+.custom-sw { aspect-ratio:1; border-radius: 50%; border: 2px dashed rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 10px; color: #8892A4; background: rgba(255,255,255,0.03); }
+
+/* Range sliders */
+.range-row { display: flex; align-items: center; gap: 10px; }
+.range-track { flex: 1; height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; position: relative; cursor: pointer; }
+.range-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, #00E5FF, #6366F1); }
+.range-thumb { position: absolute; top: 50%; transform: translate(-50%,-50%); width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 0 6px rgba(0,229,255,0.5); cursor: grab; }
+.range-val { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: #00E5FF; width: 28px; text-align: right; flex-shrink: 0; }
+
+/* Font selector */
+.font-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.font-chip { padding: 5px 10px; border-radius: 6px; font-size: 0.72rem; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); cursor: pointer; transition: all 0.15s; }
+.font-chip.on { background: rgba(0,229,255,0.1); border-color: rgba(0,229,255,0.3); color: #00E5FF; }
+
+/* Card style selector */
+.card-chips { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; }
+.card-chip { padding: 8px 6px; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); cursor: pointer; text-align: center; transition: all 0.15s; }
+.card-chip.on { background: rgba(0,229,255,0.08); border-color: rgba(0,229,255,0.25); }
+.card-chip-preview { height: 28px; border-radius: 5px; margin-bottom: 5px; }
+.card-chip-label { font-size: 0.58rem; color: #8892A4; }
+.card-chip.on .card-chip-label { color: #00E5FF; }
+
+/* Shell selector */
+.shell-chips { display: grid; grid-template-columns: repeat(2,1fr); gap: 6px; }
+.shell-chip { padding: 8px; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); cursor: pointer; transition: all 0.15s; }
+.shell-chip.on { background: rgba(0,229,255,0.08); border-color: rgba(0,229,255,0.25); }
+.shell-chip-preview { height: 36px; background: rgba(13,17,32,0.8); border-radius: 5px; margin-bottom: 5px; display: flex; overflow: hidden; }
+.shell-chip-label { font-size: 0.58rem; color: #8892A4; }
+.shell-chip.on .shell-chip-label { color: #00E5FF; }
+
+/* Toggle rows */
+.toggle-list { display: flex; flex-direction: column; gap: 8px; }
+.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-radius: 8px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); }
+.toggle-info h4 { font-size: 0.8rem; font-weight: 500; margin-bottom: 1px; }
+.toggle-info p { font-size: 0.65rem; color: #8892A4; }
+.toggle { width: 32px; height: 18px; border-radius: 9px; position: relative; cursor: pointer; flex-shrink: 0; }
+.toggle.on { background: rgba(0,229,255,0.8); }
+.toggle.off { background: rgba(255,255,255,0.12); }
+.toggle::after { content:''; position:absolute; top: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: left 0.15s; }
+.toggle.on::after { left: 16px; }
+.toggle.off::after { left: 2px; }
+
+/* Footer */
+.drawer-footer {
+  padding: 14px 18px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex; gap: 8px;
+  background: rgba(0,0,0,0.15);
+}
+.btn-export { flex: 1; padding: 9px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); font-size: 0.75rem; color: #8892A4; text-align: center; cursor: pointer; }
+.btn-export:hover { background: rgba(255,255,255,0.08); }
+.btn-save { flex: 2; padding: 9px; border-radius: 8px; background: rgba(0,229,255,0.15); border: 1px solid rgba(0,229,255,0.3); font-size: 0.75rem; color: #00E5FF; font-weight: 600; text-align: center; cursor: pointer; }
+.btn-save:hover { background: rgba(0,229,255,0.22); }
+</style>
+</head>
+<body>
+<h1>Bubble + Floating Drawer</h1>
+<p class="subtitle">The bubble lives bottom-right of every page. Click → drawer slides in from the right. All controls in one place.</p>
+
+<div class="layout">
+
+  <!-- Left: App context showing bubble -->
+  <div>
+    <div class="section-label">In-App — Bubble always visible</div>
+    <div class="app-mock">
+      <div class="app-sidebar">
+        <div class="app-logo"></div>
+        <div class="app-icon on"></div>
+        <div class="app-icon"></div>
+        <div class="app-icon"></div>
+        <div class="app-icon"></div>
+        <div style="margin-top:auto;"></div>
+        <div class="app-icon"></div>
+      </div>
+      <div class="app-content">
+        <div class="app-topbar">
+          <div class="app-breadcrumb"></div>
+          <div class="app-search"></div>
+        </div>
+        <div class="app-grid">
+          <div class="app-tile hi"></div>
+          <div class="app-tile"></div>
+          <div class="app-tile"></div>
+        </div>
+        <div class="app-wide"></div>
+        <div class="app-row">
+          <div class="app-panel"></div>
+          <div class="app-panel"></div>
+        </div>
+      </div>
+      <!-- Bubble -->
+      <div class="bubble">✦</div>
+    </div>
+    <p style="color:#8892A4;font-size:0.75rem;margin-top:10px;text-align:center;">Bubble sits above all content · z-index: 9999 · Always accessible</p>
+  </div>
+
+  <!-- Right: Full drawer -->
+  <div>
+    <div class="section-label">The Drawer — all controls</div>
+    <div class="drawer">
+
+      <div class="drawer-header">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:#00E5FF;box-shadow:0 0 6px #00E5FF;"></div>
+          <span class="drawer-title">Theme Studio</span>
+        </div>
+        <div class="drawer-close">✕</div>
+      </div>
+
+      <div class="drawer-tabs">
+        <div class="dtab on">Appearance</div>
+        <div class="dtab">Layout</div>
+        <div class="dtab">Typography</div>
+        <div class="dtab">Effects</div>
+      </div>
+
+      <div class="drawer-body">
+
+        <!-- Mode -->
+        <div class="ctrl-section">
+          <div class="ctrl-label">Mode</div>
+          <div class="mode-pills">
+            <div class="mode-pill on">
+              <span class="pill-icon">◐</span>
+              <span class="pill-label">Dark</span>
+            </div>
+            <div class="mode-pill">
+              <span class="pill-icon">○</span>
+              <span class="pill-label">Light</span>
+            </div>
+            <div class="mode-pill">
+              <span class="pill-icon">●</span>
+              <span class="pill-label">OLED</span>
+            </div>
+            <div class="mode-pill">
+              <span class="pill-icon">◑</span>
+              <span class="pill-label">System</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Named theme -->
+        <div class="ctrl-section">
+          <div class="ctrl-label">Theme Preset</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+            <div style="padding:6px;border-radius:8px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);text-align:center;cursor:pointer;">
+              <div style="width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#00E5FF,#6366F1);margin:0 auto 4px;"></div>
+              <div style="font-size:0.55rem;color:#00E5FF;">Default</div>
+            </div>
+            <div style="padding:6px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);text-align:center;cursor:pointer;">
+              <div style="width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#FFB347,#FF6B6B);margin:0 auto 4px;"></div>
+              <div style="font-size:0.55rem;color:#8892A4;">Warm</div>
+            </div>
+            <div style="padding:6px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);text-align:center;cursor:pointer;">
+              <div style="width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#22C55E,#4ADE80);margin:0 auto 4px;"></div>
+              <div style="font-size:0.55rem;color:#8892A4;">Forest</div>
+            </div>
+            <div style="padding:6px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);text-align:center;cursor:pointer;">
+              <div style="width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#F43F5E,#EC4899);margin:0 auto 4px;"></div>
+              <div style="font-size:0.55rem;color:#8892A4;">Rose</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Primary accent -->
+        <div class="ctrl-section">
+          <div class="ctrl-label">Accent Color</div>
+          <div class="swatch-grid">
+            <div class="sw sel" style="background:#00E5FF;box-shadow:0 0 8px rgba(0,229,255,0.6);"></div>
+            <div class="sw" style="background:#6366F1;"></div>
+            <div class="sw" style="background:#FFB347;"></div>
+            <div class="sw" style="background:#22C55E;"></div>
+            <div class="sw" style="background:#F43F5E;"></div>
+            <div class="sw" style="background:#3B82F6;"></div>
+            <div class="sw" style="background:#8B5CF6;"></div>
+            <div class="sw" style="background:#EC4899;"></div>
+            <div class="sw" style="background:#14B8A6;"></div>
+            <div class="sw" style="background:#F59E0B;"></div>
+            <div class="sw" style="background:#EF4444;"></div>
+            <div class="custom-sw">+</div>
+          </div>
+        </div>
+
+        <!-- Border radius -->
+        <div class="ctrl-section">
+          <div class="ctrl-label">Border Radius</div>
+          <div class="range-row">
+            <span style="font-size:0.65rem;color:#8892A4;width:36px;">Sharp</span>
+            <div class="range-track">
+              <div class="range-fill" style="width:55%;"></div>
+              <div class="range-thumb" style="left:55%;"></div>
+            </div>
+            <span style="font-size:0.65rem;color:#8892A4;width:36px;text-align:right;">Round</span>
+            <span class="range-val">8px</span>
+          </div>
+        </div>
+
+        <!-- Density -->
+        <div class="ctrl-section">
+          <div class="ctrl-label">Density</div>
+          <div class="range-row">
+            <span style="font-size:0.65rem;color:#8892A4;width:36px;">Comfy</span>
+            <div class="range-track">
+              <div class="range-fill" style="width:40%;background:linear-gradient(90deg,#FFB347,#6366F1);"></div>
+              <div class="range-thumb" style="left:40%;"></div>
+            </div>
+            <span style="font-size:0.65rem;color:#8892A4;width:36px;text-align:right;">Dense</span>
+            <span class="range-val" style="color:#FFB347;">-</span>
+          </div>
+        </div>
+
+        <!-- Font family -->
+        <div class="ctrl-section">
+          <div class="ctrl-label">Display Font</div>
+          <div class="font-chips">
+            <div class="font-chip on" style="font-family:serif;">Syne</div>
+            <div class="font-chip">Inter</div>
+            <div class="font-chip">Outfit</div>
+            <div class="font-chip" style="font-family:serif;">Fraunces</div>
+            <div class="font-chip">Plus Jakarta</div>
+          </div>
+        </div>
+
+        <!-- Font scale -->
+        <div class="ctrl-section">
+          <div class="ctrl-label">Font Scale</div>
+          <div class="range-row">
+            <span style="font-size:0.65rem;color:#8892A4;width:36px;">Small</span>
+            <div class="range-track">
+              <div class="range-fill" style="width:50%;background:linear-gradient(90deg,#6366F1,#8B5CF6);"></div>
+              <div class="range-thumb" style="left:50%;"></div>
+            </div>
+            <span style="font-size:0.65rem;color:#8892A4;width:36px;text-align:right;">Large</span>
+            <span class="range-val" style="color:#8B5CF6;">1×</span>
+          </div>
+        </div>
+
+        <!-- Card style -->
+        <div class="ctrl-section">
+          <div class="ctrl-label">Card Style</div>
+          <div class="card-chips">
+            <div class="card-chip on">
+              <div class="card-chip-preview" style="background:rgba(13,17,32,0.8);border:1px solid rgba(255,255,255,0.07);"></div>
+              <div class="card-chip-label">Flat</div>
+            </div>
+            <div class="card-chip">
+              <div class="card-chip-preview" style="background:rgba(13,17,32,0.65);border:1px solid rgba(0,229,255,0.15);backdrop-filter:blur(8px);"></div>
+              <div class="card-chip-label">Glass</div>
+            </div>
+            <div class="card-chip">
+              <div class="card-chip-preview" style="background:rgba(13,17,32,0.9);border:1px solid rgba(0,229,255,0.3);box-shadow:0 0 10px rgba(0,229,255,0.15);"></div>
+              <div class="card-chip-label">Glow</div>
+            </div>
+            <div class="card-chip">
+              <div class="card-chip-preview" style="background:linear-gradient(135deg,#00E5FF,#6366F1,#FFB347);padding:1px;border-radius:5px;"><div style="height:100%;background:#0D1120;border-radius:4px;"></div></div>
+              <div class="card-chip-label">Gradient</div>
+            </div>
+            <div class="card-chip">
+              <div class="card-chip-preview" style="background:transparent;border:1.5px solid rgba(0,229,255,0.3);"></div>
+              <div class="card-chip-label">Outline</div>
+            </div>
+            <div class="card-chip">
+              <div class="card-chip-preview" style="background:#131829;border:1px solid rgba(255,255,255,0.08);"></div>
+              <div class="card-chip-label">Noise</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shell layout -->
+        <div class="ctrl-section">
+          <div class="ctrl-label">Shell Layout</div>
+          <div class="shell-chips">
+            <div class="shell-chip on">
+              <div class="shell-chip-preview">
+                <div style="width:12px;background:rgba(0,0,0,0.4);border-right:1px solid rgba(255,255,255,0.1);"></div>
+                <div style="flex:1;padding:4px;display:flex;flex-direction:column;gap:3px;"><div style="height:4px;background:rgba(255,255,255,0.08);border-radius:2px;"></div><div style="height:4px;background:rgba(0,229,255,0.15);border-radius:2px;width:60%;"></div></div>
+              </div>
+              <div class="shell-chip-label">Classic Sidebar</div>
+            </div>
+            <div class="shell-chip">
+              <div class="shell-chip-preview" style="flex-direction:column;">
+                <div style="height:10px;background:rgba(0,0,0,0.4);border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:4px;padding:0 4px;"><div style="width:20px;height:3px;background:rgba(0,229,255,0.3);border-radius:1px;"></div><div style="width:12px;height:3px;background:rgba(255,255,255,0.1);border-radius:1px;"></div></div>
+                <div style="flex:1;padding:4px;display:grid;grid-template-columns:repeat(3,1fr);gap:2px;"><div style="background:rgba(255,255,255,0.05);border-radius:2px;"></div><div style="background:rgba(255,255,255,0.05);border-radius:2px;"></div><div style="background:rgba(255,255,255,0.05);border-radius:2px;"></div></div>
+              </div>
+              <div class="shell-chip-label">Top Nav</div>
+            </div>
+            <div class="shell-chip">
+              <div class="shell-chip-preview" style="background:#070B14;gap:3px;padding:3px;">
+                <div style="width:10px;background:rgba(13,17,32,0.9);border:1px solid rgba(0,229,255,0.1);border-radius:3px;"></div>
+                <div style="flex:1;background:rgba(13,17,32,0.6);border:1px solid rgba(255,255,255,0.06);border-radius:3px;"></div>
+              </div>
+              <div class="shell-chip-label">Floating</div>
+            </div>
+            <div class="shell-chip">
+              <div class="shell-chip-preview" style="display:grid;grid-template-columns:1fr 2fr 1fr;">
+                <div style="background:rgba(0,0,0,0.3);border-right:1px solid rgba(255,255,255,0.06);"></div>
+                <div style="padding:4px;display:flex;flex-direction:column;gap:2px;"><div style="height:4px;background:rgba(255,255,255,0.08);border-radius:2px;"></div><div style="height:4px;background:rgba(255,255,255,0.08);border-radius:2px;width:80%;"></div></div>
+                <div style="background:rgba(0,0,0,0.2);border-left:1px solid rgba(255,255,255,0.06);"></div>
+              </div>
+              <div class="shell-chip-label">Command</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Effects toggles -->
+        <div class="ctrl-section">
+          <div class="ctrl-label">Effects</div>
+          <div class="toggle-list">
+            <div class="toggle-row">
+              <div class="toggle-info"><h4>Glow Effects</h4><p>Cyan border glow on focus, cards</p></div>
+              <div class="toggle on"></div>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info"><h4>Backdrop Blur</h4><p>Glass cards, modals, drawer</p></div>
+              <div class="toggle on"></div>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info"><h4>Gradient Text</h4><p>Cyan→indigo on headings</p></div>
+              <div class="toggle on"></div>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info"><h4>Animations</h4><p>Float, shimmer, pulse keyframes</p></div>
+              <div class="toggle on"></div>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info"><h4>Reduce Motion</h4><p>Accessibility — kills all motion</p></div>
+              <div class="toggle off"></div>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info"><h4>Grid Texture</h4><p>48px background grid overlay</p></div>
+              <div class="toggle on"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shadow intensity -->
+        <div class="ctrl-section">
+          <div class="ctrl-label">Shadow Intensity</div>
+          <div class="range-row">
+            <span style="font-size:0.65rem;color:#8892A4;width:36px;">Flat</span>
+            <div class="range-track">
+              <div class="range-fill" style="width:65%;background:linear-gradient(90deg,#8892A4,#E8EDF5);"></div>
+              <div class="range-thumb" style="left:65%;box-shadow:0 0 6px rgba(255,255,255,0.4);"></div>
+            </div>
+            <span style="font-size:0.65rem;color:#8892A4;width:36px;text-align:right;">Deep</span>
+            <span class="range-val" style="color:#E8EDF5;">65</span>
+          </div>
+        </div>
+
+      </div><!-- end drawer-body -->
+
+      <div class="drawer-footer">
+        <div class="btn-export">Export CSS</div>
+        <div class="btn-save">Save Theme</div>
+      </div>
+
+    </div><!-- end drawer -->
+    <p style="color:#8892A4;font-size:0.75rem;margin-top:10px;text-align:center;">4 tabs · localStorage persistence · Export to CSS file</p>
+  </div>
+
+</div>
+
+</body>
+</html>

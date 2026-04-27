@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Card & Shell Style Directions</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #070B14;
+  color: #E8EDF5;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  padding: 32px;
+  min-height: 100vh;
+}
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+h1 { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 6px; }
+.subtitle { color: #8892A4; font-size: 0.95rem; margin-bottom: 36px; }
+.section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: #00E5FF; margin-bottom: 20px; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 48px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 48px; }
+
+/* Selectable cards */
+.style-card {
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  position: relative;
+}
+.style-card:hover { border-color: rgba(0,229,255,0.4); transform: translateY(-2px); }
+.style-card.selected { border-color: #00E5FF; box-shadow: 0 0 0 1px rgba(0,229,255,0.3), 0 0 24px rgba(0,229,255,0.2); }
+.style-card .check {
+  position: absolute; top: 10px; right: 10px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #00E5FF; color: #03040A;
+  display: none; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+}
+.style-card.selected .check { display: flex; }
+
+.preview { padding: 16px; background: #0D1120; min-height: 160px; }
+.card-label { padding: 14px 16px; background: #131829; border-top: 1px solid rgba(255,255,255,0.06); }
+.card-label h3 { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700; margin-bottom: 3px; }
+.card-label p { font-size: 0.75rem; color: #8892A4; line-height: 1.4; }
+
+/* ── Card Style Previews ── */
+
+/* 1. Flat Solid */
+.c-flat {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px; padding: 16px;
+}
+
+/* 2. Glass */
+.c-glass {
+  background: rgba(13,17,32,0.7);
+  border: 1px solid rgba(0,229,255,0.12);
+  border-radius: 12px; padding: 16px;
+  backdrop-filter: blur(12px);
+}
+
+/* 3. Bordered Glow */
+.c-glow {
+  background: rgba(13,17,32,0.9);
+  border: 1px solid rgba(0,229,255,0.25);
+  border-radius: 12px; padding: 16px;
+  box-shadow: 0 0 20px rgba(0,229,255,0.1), inset 0 1px 0 rgba(0,229,255,0.08);
+}
+
+/* 4. Gradient Border */
+.c-grad-border {
+  background: #0D1120;
+  border-radius: 12px; padding: 16px;
+  position: relative;
+}
+.c-grad-border::before {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: 12px;
+  padding: 1px;
+  background: linear-gradient(135deg, #00E5FF, #6366F1, #FFB347);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+}
+
+/* 5. Noise / Texture */
+.c-noise {
+  background: #131829;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px; padding: 16px;
+  position: relative; overflow: hidden;
+}
+.c-noise::after {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* 6. Outline Only */
+.c-outline {
+  background: transparent;
+  border: 1.5px solid rgba(0,229,255,0.3);
+  border-radius: 12px; padding: 16px;
+}
+
+/* Card content mock */
+.mock-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.mock-icon { width: 32px; height: 32px; border-radius: 8px; background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.2); flex-shrink: 0; }
+.mock-title { width: 80px; height: 10px; background: rgba(255,255,255,0.25); border-radius: 4px; }
+.mock-sub { width: 50px; height: 7px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-top: 5px; }
+.mock-stat { font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; font-weight: 600; color: #E8EDF5; margin-bottom: 4px; }
+.mock-label { font-size: 0.65rem; color: #8892A4; }
+.mock-bar { height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; margin-top: 14px; overflow: hidden; }
+.mock-bar-fill { height: 100%; width: 65%; background: linear-gradient(90deg, #00E5FF, #6366F1); border-radius: 2px; }
+
+/* ── Shell Style Previews ── */
+.shell-preview {
+  width: 100%; height: 180px;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+}
+
+/* Shell 1: Classic Sidebar */
+.shell-sidebar { background: #03040A; display: flex; }
+.shell-side { width: 52px; background: rgba(0,0,0,0.5); border-right: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; align-items: center; padding: 10px 0; gap: 8px; }
+.shell-side-icon { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,0.04); }
+.shell-side-icon.on { background: rgba(0,229,255,0.12); border: 1px solid rgba(0,229,255,0.25); }
+.shell-main { flex: 1; display: flex; flex-direction: column; }
+.shell-topbar { height: 36px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; padding: 0 12px; gap: 8px; }
+.shell-topbar-dot { width: 50px; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; }
+.shell-content { flex: 1; padding: 12px; display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; align-content: start; }
+.shell-tile { height: 38px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; }
+
+/* Shell 2: Top Nav */
+.shell-topnav { background: #03040A; flex-direction: column; }
+.shell-nav { height: 40px; background: rgba(0,0,0,0.4); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; padding: 0 16px; gap: 16px; }
+.shell-nav-item { width: 36px; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; }
+.shell-nav-item.on { background: rgba(0,229,255,0.4); }
+.shell-body { flex: 1; display: flex; }
+.shell-body-content { flex: 1; padding: 12px; display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; align-content: start; }
+
+/* Shell 3: Floating Sidebar */
+.shell-float { background: #070B14; padding: 10px; gap: 10px; }
+.shell-float-side { width: 48px; background: rgba(13,17,32,0.9); border: 1px solid rgba(0,229,255,0.1); border-radius: 10px; display: flex; flex-direction: column; align-items: center; padding: 8px 0; gap: 6px; }
+.shell-float-icon { width: 26px; height: 26px; border-radius: 6px; background: rgba(255,255,255,0.04); }
+.shell-float-icon.on { background: rgba(0,229,255,0.12); border: 1px solid rgba(0,229,255,0.25); }
+.shell-float-main { flex: 1; background: rgba(13,17,32,0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 10px; display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; align-content: start; }
+.shell-float-tile { height: 36px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; }
+
+/* Shell 4: Command Palette / Minimal */
+.shell-minimal { background: #03040A; flex-direction: column; }
+.shell-min-top { height: 36px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.shell-min-logo { width: 60px; height: 8px; background: rgba(0,229,255,0.3); border-radius: 4px; }
+.shell-min-cmd { width: 120px; height: 20px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 5px; }
+.shell-min-body { flex: 1; display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 0; }
+.shell-min-left { border-right: 1px solid rgba(255,255,255,0.04); padding: 10px; display: flex; flex-direction: column; gap: 5px; }
+.shell-min-nav { height: 18px; background: rgba(255,255,255,0.04); border-radius: 4px; }
+.shell-min-nav.on { background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.2); }
+.shell-min-center { padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+.shell-min-row { height: 22px; background: rgba(255,255,255,0.03); border-radius: 4px; border: 1px solid rgba(255,255,255,0.04); }
+.shell-min-right { border-left: 1px solid rgba(255,255,255,0.04); padding: 10px; display: flex; flex-direction: column; gap: 5px; }
+
+select-indicator { display: none; }
+</style>
+</head>
+<body>
+<h1>Card & Shell Style Directions</h1>
+<p class="subtitle">Select which card styles and shell layouts to add. Multi-select OK — you can pick several.</p>
+
+<div class="section-label">Card Styles — select all you want to add</div>
+<div class="grid" id="card-grid" data-multiselect>
+
+  <!-- 1. Flat Solid -->
+  <div class="style-card" onclick="toggle(this,'card-flat')">
+    <div class="check">✓</div>
+    <div class="preview">
+      <div class="c-flat">
+        <div class="mock-header"><div class="mock-icon"></div><div><div class="mock-title"></div><div class="mock-sub"></div></div></div>
+        <div class="mock-stat">2,847</div>
+        <div class="mock-label">Active employees</div>
+        <div class="mock-bar"><div class="mock-bar-fill"></div></div>
+      </div>
+    </div>
+    <div class="card-label">
+      <h3>Flat Solid</h3>
+      <p>Opaque surface, ultra-subtle border. Clean, data-dense. (Already exists — enhanced)</p>
+    </div>
+  </div>
+
+  <!-- 2. Glass Blur -->
+  <div class="style-card" onclick="toggle(this,'card-glass')">
+    <div class="check">✓</div>
+    <div class="preview">
+      <div style="background: linear-gradient(135deg,rgba(0,229,255,0.05),rgba(99,102,241,0.05)); padding: 16px; height: 100%;">
+        <div class="c-glass">
+          <div class="mock-header"><div class="mock-icon"></div><div><div class="mock-title"></div><div class="mock-sub"></div></div></div>
+          <div class="mock-stat">$284K</div>
+          <div class="mock-label">Payroll this cycle</div>
+          <div class="mock-bar"><div class="mock-bar-fill"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-label">
+      <h3>Glass Blur</h3>
+      <p>Translucent + backdrop-blur. Floats over gradient backgrounds.</p>
+    </div>
+  </div>
+
+  <!-- 3. Glow Border -->
+  <div class="style-card" onclick="toggle(this,'card-glow')">
+    <div class="check">✓</div>
+    <div class="preview">
+      <div style="padding:16px;">
+        <div class="c-glow">
+          <div class="mock-header"><div class="mock-icon"></div><div><div class="mock-title"></div><div class="mock-sub"></div></div></div>
+          <div class="mock-stat">98.2%</div>
+          <div class="mock-label">Uptime this quarter</div>
+          <div class="mock-bar"><div class="mock-bar-fill" style="width:98%;"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-label">
+      <h3>Glow Border</h3>
+      <p>Cyan border glow + inner shadow. High signal — for key metrics.</p>
+    </div>
+  </div>
+
+  <!-- 4. Gradient Border -->
+  <div class="style-card" onclick="toggle(this,'card-gradient-border')">
+    <div class="check">✓</div>
+    <div class="preview">
+      <div style="padding:16px;">
+        <div class="c-grad-border">
+          <div class="mock-header"><div class="mock-icon"></div><div><div class="mock-title"></div><div class="mock-sub"></div></div></div>
+          <div class="mock-stat">47</div>
+          <div class="mock-label">Jurisdictions covered</div>
+          <div class="mock-bar"><div class="mock-bar-fill"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-label">
+      <h3>Gradient Border</h3>
+      <p>Rainbow-spectrum border via mask technique. Premium, attention-grabbing.</p>
+    </div>
+  </div>
+
+  <!-- 5. Outline / Ghost -->
+  <div class="style-card" onclick="toggle(this,'card-outline')">
+    <div class="check">✓</div>
+    <div class="preview">
+      <div style="padding:16px;">
+        <div class="c-outline">
+          <div class="mock-header"><div class="mock-icon"></div><div><div class="mock-title"></div><div class="mock-sub"></div></div></div>
+          <div class="mock-stat">12</div>
+          <div class="mock-label">Pending approvals</div>
+          <div class="mock-bar"><div class="mock-bar-fill" style="width:30%;background:rgba(0,229,255,0.4);"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-label">
+      <h3>Outline / Ghost</h3>
+      <p>Transparent fill, prominent border. Great for empty states, additive slots.</p>
+    </div>
+  </div>
+
+  <!-- 6. Noise Texture -->
+  <div class="style-card" onclick="toggle(this,'card-noise')">
+    <div class="check">✓</div>
+    <div class="preview">
+      <div style="padding:16px;">
+        <div class="c-noise">
+          <div class="mock-header"><div class="mock-icon"></div><div><div class="mock-title"></div><div class="mock-sub"></div></div></div>
+          <div class="mock-stat">A+</div>
+          <div class="mock-label">Security rating</div>
+          <div class="mock-bar"><div class="mock-bar-fill" style="width:95%;background:linear-gradient(90deg,#22C55E,#00E5FF);"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-label">
+      <h3>Noise Texture</h3>
+      <p>Subtle grain overlay on elevated surface. Tactile, print-like quality.</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="section-label">Shell / App Layout Styles — select all you want to add</div>
+<div class="grid-2" id="shell-grid" data-multiselect>
+
+  <!-- Shell 1: Classic Sidebar -->
+  <div class="style-card" onclick="toggle(this,'shell-sidebar')">
+    <div class="check">✓</div>
+    <div class="preview" style="padding:0;">
+      <div class="shell-preview shell-sidebar">
+        <div class="shell-side">
+          <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#00E5FF,#6366F1);margin-bottom:4px;"></div>
+          <div class="shell-side-icon on"></div>
+          <div class="shell-side-icon"></div>
+          <div class="shell-side-icon"></div>
+          <div class="shell-side-icon"></div>
+        </div>
+        <div class="shell-main">
+          <div class="shell-topbar"><div class="shell-topbar-dot"></div><div class="shell-topbar-dot" style="width:80px;margin-left:auto;"></div></div>
+          <div class="shell-content">
+            <div class="shell-tile" style="background:rgba(0,229,255,0.06);border-color:rgba(0,229,255,0.15);"></div>
+            <div class="shell-tile"></div>
+            <div class="shell-tile"></div>
+            <div class="shell-tile" style="grid-column:span 2;"></div>
+            <div class="shell-tile"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-label">
+      <h3>Classic Sidebar</h3>
+      <p>Icon-only or expanded sidebar + topbar. Current system default. Enhanced with collapsible groups.</p>
+    </div>
+  </div>
+
+  <!-- Shell 2: Top Navigation -->
+  <div class="style-card" onclick="toggle(this,'shell-topnav')">
+    <div class="check">✓</div>
+    <div class="preview" style="padding:0;">
+      <div class="shell-preview shell-topnav">
+        <div class="shell-nav">
+          <div style="width:40px;height:10px;background:rgba(0,229,255,0.3);border-radius:3px;"></div>
+          <div style="flex:1;display:flex;gap:12px;padding-left:12px;">
+            <div class="shell-nav-item on"></div>
+            <div class="shell-nav-item"></div>
+            <div class="shell-nav-item"></div>
+            <div class="shell-nav-item"></div>
+          </div>
+          <div style="width:60px;height:16px;background:rgba(255,255,255,0.05);border-radius:4px;"></div>
+        </div>
+        <div class="shell-body">
+          <div class="shell-body-content">
+            <div class="shell-tile" style="background:rgba(0,229,255,0.06);border-color:rgba(0,229,255,0.15);height:42px;"></div>
+            <div class="shell-tile" style="height:42px;"></div>
+            <div class="shell-tile" style="height:42px;"></div>
+            <div class="shell-tile" style="height:42px;"></div>
+            <div class="shell-tile" style="grid-column:span 3;height:60px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-label">
+      <h3>Top Navigation</h3>
+      <p>Horizontal nav bar. Better for wide-screen dashboards, module-heavy layouts.</p>
+    </div>
+  </div>
+
+  <!-- Shell 3: Floating / Inset Sidebar -->
+  <div class="style-card" onclick="toggle(this,'shell-floating')">
+    <div class="check">✓</div>
+    <div class="preview" style="padding:0;">
+      <div class="shell-preview shell-float">
+        <div class="shell-float-side">
+          <div style="width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,#00E5FF,#6366F1);margin-bottom:4px;"></div>
+          <div class="shell-float-icon on"></div>
+          <div class="shell-float-icon"></div>
+          <div class="shell-float-icon"></div>
+        </div>
+        <div class="shell-float-main">
+          <div class="shell-float-tile" style="background:rgba(0,229,255,0.06);border-color:rgba(0,229,255,0.15);"></div>
+          <div class="shell-float-tile"></div>
+          <div class="shell-float-tile"></div>
+          <div class="shell-float-tile" style="grid-column:span 2;"></div>
+          <div class="shell-float-tile"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-label">
+      <h3>Floating / Inset Sidebar</h3>
+      <p>Sidebar and content are inset cards floating over the page bg. Airy, modern feel.</p>
+    </div>
+  </div>
+
+  <!-- Shell 4: Three-Panel / Command -->
+  <div class="style-card" onclick="toggle(this,'shell-command')">
+    <div class="check">✓</div>
+    <div class="preview" style="padding:0;">
+      <div class="shell-preview shell-minimal">
+        <div class="shell-min-top">
+          <div class="shell-min-logo"></div>
+          <div class="shell-min-cmd"></div>
+        </div>
+        <div class="shell-min-body">
+          <div class="shell-min-left">
+            <div class="shell-min-nav on"></div>
+            <div class="shell-min-nav"></div>
+            <div class="shell-min-nav"></div>
+            <div class="shell-min-nav"></div>
+            <div class="shell-min-nav"></div>
+          </div>
+          <div class="shell-min-center">
+            <div class="shell-min-row"></div>
+            <div class="shell-min-row"></div>
+            <div class="shell-min-row"></div>
+            <div class="shell-min-row" style="height:40px;"></div>
+          </div>
+          <div class="shell-min-right">
+            <div class="shell-min-nav"></div>
+            <div class="shell-min-nav"></div>
+            <div class="shell-min-nav" style="height:40px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-label">
+      <h3>Three-Panel / Command</h3>
+      <p>Left nav + main + right context panel. Power-user layout. Keyboard-first.</p>
+    </div>
+  </div>
+
+</div>
+
+<p style="color:#8892A4; font-size:0.85rem; text-align:center;">Click cards to select, then tell me your picks in the terminal.</p>
+
+<script>
+function toggle(el, id) {
+  el.classList.toggle('selected');
+  const selected = [...document.querySelectorAll('.style-card.selected')].map(c => c.getAttribute('onclick').match(/'([^']+)'/)[1]);
+  try { window.__superpowers_select(id, el.classList.contains('selected') ? 'selected' : 'deselected'); } catch(e){}
+}
+</script>
+</body>
+</html>
