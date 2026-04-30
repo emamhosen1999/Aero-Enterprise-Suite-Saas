@@ -4,6 +4,7 @@ namespace Aero\Platform\Jobs;
 
 use Aero\Platform\Services\MailService;
 use Aero\Platform\Services\SmsService;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -84,7 +85,7 @@ class ProcessSubscriptionRenewalsJob implements ShouldQueue
         }
 
         $amount = '$'.number_format($subscription->amount / 100, 2);
-        $nextBillingDate = \Carbon\Carbon::parse($subscription->next_billing_date)->format('F j, Y');
+        $nextBillingDate = Carbon::parse($subscription->next_billing_date)->format('F j, Y');
 
         // Send email reminder only for 7 and 3 day reminders
         if ($adminUser->email && in_array($days, [7, 3])) {
@@ -162,7 +163,7 @@ class ProcessSubscriptionRenewalsJob implements ShouldQueue
 
         if ($paymentSuccessful) {
             // Calculate next billing date
-            $currentBillingDate = \Carbon\Carbon::parse($subscription->next_billing_date);
+            $currentBillingDate = Carbon::parse($subscription->next_billing_date);
             $nextBillingDate = $subscription->billing_cycle === 'yearly'
                 ? $currentBillingDate->addYear()
                 : $currentBillingDate->addMonth();
@@ -230,7 +231,7 @@ class ProcessSubscriptionRenewalsJob implements ShouldQueue
                 'tenant_name' => $tenant->name ?? 'there',
                 'status' => 'Active',
                 'message' => 'Your subscription has been renewed successfully. Thank you for your continued business!',
-                'next_billing_date' => \Carbon\Carbon::parse($subscription->next_billing_date)->format('F j, Y'),
+                'next_billing_date' => Carbon::parse($subscription->next_billing_date)->format('F j, Y'),
                 'billing_cycle' => ucfirst($subscription->billing_cycle ?? 'monthly'),
                 'show_cta' => true,
                 'dashboard_url' => config('app.url').'/dashboard',

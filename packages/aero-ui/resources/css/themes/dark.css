@@ -1,0 +1,10 @@
+/* Dark (default) — base reset. Tokens are set in tokens/base.css. */
+.aeos {
+  background: var(--aeos-obsidian);
+  color: var(--aeos-ink);
+  font-family: var(--aeos-font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01","cv11";
+}
+.aeos *, .aeos *::before, .aeos *::after { box-sizing: border-box; }

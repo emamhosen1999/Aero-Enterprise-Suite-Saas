@@ -2,6 +2,7 @@
 
 namespace Aero\Core\Services;
 
+use Aero\Core\Models\User;
 use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -198,7 +199,7 @@ class NavigationRegistry
      * Other modules: wrapped under module name (Human Resources → Employees, Attendance, etc.)
      *
      * @param  string|null  $scope  Filter by scope: 'platform' for admin, 'tenant' for tenant users, null for all
-     * @param  \Aero\Core\Models\User|null  $user  Optional user to filter dashboards by permissions
+     * @param  User|null  $user  Optional user to filter dashboards by permissions
      * @param  array|null  $subscribedModules  Array of subscribed module codes (e.g., ['core', 'hrm']). Null = no filtering.
      */
     public function toFrontend(?string $scope = null, $user = null, ?array $subscribedModules = null): array
@@ -215,7 +216,7 @@ class NavigationRegistry
                     fn ($child) => ! isset($child['module']) || in_array($child['module'], array_merge(['core', 'platform'], $subscribedModules), true)
                 ));
             }
-            
+
             // Flatten dashboards: if multiple dashboards, add each as individual item with section
             if (! empty($dashboardNav['children'])) {
                 // Multiple dashboards - flatten them
@@ -240,7 +241,7 @@ class NavigationRegistry
                     fn ($child) => ! isset($child['module']) || in_array($child['module'], array_merge(['core', 'platform'], $subscribedModules), true)
                 ));
             }
-            
+
             // Flatten self-service items: add each as individual item with section
             if (! empty($selfServiceNav['children'])) {
                 foreach ($selfServiceNav['children'] as $item) {
@@ -273,7 +274,7 @@ class NavigationRegistry
                 $nonCoreModules[] = $moduleCode;
             }
         }
-        
+
         $isSingleModule = count($nonCoreModules) === 1;
         $singleModuleCode = $isSingleModule ? $nonCoreModules[0] : null;
 
@@ -399,7 +400,7 @@ class NavigationRegistry
      * - If user has access to only 1 dashboard: Returns single "Dashboard" item
      * - If user has access to 2+ dashboards: Returns "Dashboards" parent with children
      *
-     * @param  \Aero\Core\Models\User|null  $user  User to filter by permissions
+     * @param  User|null  $user  User to filter by permissions
      * @return array|null Navigation item or null if no dashboards available
      */
     public function getDashboardNavigation($user = null): ?array
@@ -528,7 +529,7 @@ class NavigationRegistry
      * Note: Dashboard navigation is user-specific (based on permissions),
      * so we cache per-user using their ID as part of the cache key.
      *
-     * @param  \Aero\Core\Models\User|null  $user  User for permission-based filtering
+     * @param  User|null  $user  User for permission-based filtering
      */
     public function getCachedFrontend($user = null): array
     {
@@ -575,13 +576,13 @@ class NavigationRegistry
      * so the sidebar can show usage badges and quick-access items without a
      * separate API call.
      *
-     * @param  \Aero\Core\Models\User  $user
+     * @param  User  $user
      * @return array<string, mixed>
      */
     public function getUserNavigationMetadata($user): array
     {
         try {
-            /** @var \Aero\Core\Services\AINavigationSuggestionService $service */
+            /** @var AINavigationSuggestionService $service */
             $service = app(AINavigationSuggestionService::class);
 
             return $service->getUserMetadata($user->id);
@@ -601,14 +602,13 @@ class NavigationRegistry
     /**
      * Get context-aware navigation suggestions for the current page.
      *
-     * @param  \Aero\Core\Models\User  $user
-     * @param  string|null  $currentPath
+     * @param  User  $user
      * @return array{pinned: array, frequent: array, recent: array, contextual: array}
      */
     public function getContextAwareSuggestions($user, ?string $currentPath = null): array
     {
         try {
-            /** @var \Aero\Core\Services\AINavigationSuggestionService $service */
+            /** @var AINavigationSuggestionService $service */
             $service = app(AINavigationSuggestionService::class);
             $allNav = $this->toFrontend(null, $user);
 

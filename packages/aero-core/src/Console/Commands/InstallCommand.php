@@ -4,7 +4,10 @@ namespace Aero\Core\Console\Commands;
 
 use Aero\Core\Models\SystemSetting;
 use Aero\Core\Models\User;
+use Aero\HRMAC\Console\Commands\SyncModuleHierarchy;
+use Aero\HRMAC\Models\Module;
 use Aero\HRMAC\Models\Role;
+use Aero\Platform\AeroPlatformServiceProvider;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -367,11 +370,11 @@ class InstallCommand extends Command
             $this->line('   Discovering and syncing modules...');
 
             // Check if HRMAC package is available (preferred)
-            if (class_exists(\Aero\HRMAC\Console\Commands\SyncModuleHierarchy::class)) {
+            if (class_exists(SyncModuleHierarchy::class)) {
                 // Determine scope based on mode
                 // In standalone mode (no Platform package), sync ALL modules
                 // In SaaS mode with Platform, only sync tenant-scoped modules
-                $scope = class_exists(\Aero\Platform\AeroPlatformServiceProvider::class)
+                $scope = class_exists(AeroPlatformServiceProvider::class)
                     ? 'tenant'  // SaaS mode - only tenant modules
                     : 'all';    // Standalone mode - all modules
 
@@ -382,7 +385,7 @@ class InstallCommand extends Command
                     '--prune' => true,
                 ]);
 
-                $moduleCount = \Aero\HRMAC\Models\Module::count();
+                $moduleCount = Module::count();
                 $this->line("   ✅ {$moduleCount} modules synchronized");
             } else {
                 // Fallback to legacy sync command

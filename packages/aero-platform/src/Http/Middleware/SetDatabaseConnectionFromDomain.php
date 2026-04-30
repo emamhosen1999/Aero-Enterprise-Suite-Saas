@@ -9,6 +9,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -36,7 +37,7 @@ class SetDatabaseConnectionFromDomain
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -157,7 +158,7 @@ class SetDatabaseConnectionFromDomain
             tenancy()->initialize($domain->tenant);
         } catch (\Throwable $e) {
             // Log but don't fail - the route middleware will handle the error
-            \Illuminate\Support\Facades\Log::warning('Early tenancy initialization failed', [
+            Log::warning('Early tenancy initialization failed', [
                 'host' => $host,
                 'error' => $e->getMessage(),
             ]);

@@ -2,6 +2,7 @@
 
 namespace Aero\Core\Facades;
 
+use Aero\Core\Services\ModuleManager;
 use Illuminate\Support\Facades\Facade;
 
 /**
@@ -20,7 +21,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static array bySource(string $source)
  * @method static bool hasAssets(string $name)
  *
- * @see \Aero\Core\Services\ModuleManager
+ * @see ModuleManager
  */
 class Module extends Facade
 {

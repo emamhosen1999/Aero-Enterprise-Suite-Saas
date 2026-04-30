@@ -1,0 +1,57 @@
+/* ══════════════════════════════════════════════════════════════
+   AEOS UI Engine — app.css
+   Single entry point. Import this file only.
+   Zero external dependencies on the raw design-system folder.
+
+   Load order:
+     1. Tokens      — CSS custom properties, keyframes, density
+     2. HeroUI      — aliases --heroui-* → --aeos-* tokens
+     3. Themes      — 7 dark + 4 light + high-contrast class overrides
+     4. Components  — Cards, Buttons, Forms, Badges, Data, Display,
+                      Navigation, Overlays, Feedback, Actions, Typography
+     5. Shells      — 4 app-shell layout systems
+     6. Templates   — Page layouts + Theme Drawer
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── 1. Tokens ──────────────────────────────────────────────── */
+@import url('./tokens/base.css');
+
+/* ── 2. HeroUI bridge ───────────────────────────────────────── */
+@import url('./heroui/bridge.css');
+
+/* ── 3. Themes ──────────────────────────────────────────────── */
+@import url('./themes/dark.css');
+@import url('./themes/dark-warm.css');
+@import url('./themes/dark-cool.css');
+@import url('./themes/dark-oled.css');
+@import url('./themes/dark-forest.css');
+@import url('./themes/dark-rose.css');
+@import url('./themes/dark-midnight.css');
+@import url('./themes/light.css');
+@import url('./themes/light-warm.css');
+@import url('./themes/light-cool.css');
+@import url('./themes/light-paper.css');
+@import url('./themes/high-contrast.css');
+
+/* ── 4. Components ──────────────────────────────────────────── */
+@import url('./components/typography.css');
+@import url('./components/cards.css');
+@import url('./components/buttons.css');
+@import url('./components/forms.css');
+@import url('./components/badges.css');
+@import url('./components/data.css');
+@import url('./components/display.css');
+@import url('./components/actions.css');
+@import url('./components/navigation.css');
+@import url('./components/overlays.css');
+@import url('./components/feedback.css');
+
+/* ── 5. Shells ──────────────────────────────────────────────── */
+@import url('./shells/sidebar.css');
+@import url('./shells/topnav.css');
+@import url('./shells/floating.css');
+@import url('./shells/command.css');
+
+/* ── 6. Templates ───────────────────────────────────────────── */
+@import url('./templates/page-layouts.css');
+@import url('./templates/theme-drawer.css');

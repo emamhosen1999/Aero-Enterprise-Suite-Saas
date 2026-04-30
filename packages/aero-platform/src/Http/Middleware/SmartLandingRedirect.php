@@ -9,6 +9,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -86,7 +87,7 @@ class SmartLandingRedirect
                         'type' => 'NoModuleAccess',
                         'title' => 'No Access',
                         'message' => 'Your account does not have access to any modules. Please contact your administrator.',
-                        'trace_id' => \Illuminate\Support\Str::uuid()->toString(),
+                        'trace_id' => Str::uuid()->toString(),
                         'showHomeButton' => false,
                         'showRetryButton' => false,
                         'showLogoutButton' => true,

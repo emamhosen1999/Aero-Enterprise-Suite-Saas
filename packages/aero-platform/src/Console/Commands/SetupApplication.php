@@ -2,6 +2,8 @@
 
 namespace Aero\Platform\Console\Commands;
 
+use Aero\HRMAC\Console\Commands\SyncModuleHierarchy;
+use Aero\HRMAC\Models\Module;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 
@@ -86,7 +88,7 @@ class SetupApplication extends Command
     {
         try {
             // Check if HRMAC package is available
-            if (class_exists(\Aero\HRMAC\Console\Commands\SyncModuleHierarchy::class)) {
+            if (class_exists(SyncModuleHierarchy::class)) {
                 $this->line('   Using HRMAC sync (scope: platform)...');
 
                 Artisan::call('hrmac:sync-modules', [
@@ -94,7 +96,7 @@ class SetupApplication extends Command
                     '--prune' => true,
                 ]);
 
-                $moduleCount = \Aero\HRMAC\Models\Module::where('scope', 'platform')->count();
+                $moduleCount = Module::where('scope', 'platform')->count();
                 $this->line("   ✅ {$moduleCount} platform module(s) synchronized");
             } else {
                 $this->warn('   HRMAC package not available, skipping module sync');

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Services;
 
+use Aero\Core\Models\User;
 use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\Subscription;
 use Illuminate\Support\Facades\Cache;
@@ -41,7 +42,7 @@ class PlanEntitlementService
         }
 
         // Count active tenant users
-        $userCount = \Aero\Core\Models\User::where('tenant_id', $tenantId)
+        $userCount = User::where('tenant_id', $tenantId)
             ->where('is_active', true)
             ->count();
 
@@ -126,7 +127,7 @@ class PlanEntitlementService
             return null; // Unlimited
         }
 
-        $userCount = \Aero\Core\Models\User::where('tenant_id', $tenantId)
+        $userCount = User::where('tenant_id', $tenantId)
             ->where('is_active', true)
             ->count();
 

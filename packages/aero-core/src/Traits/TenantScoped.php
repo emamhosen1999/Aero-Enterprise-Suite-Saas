@@ -2,6 +2,7 @@
 
 namespace Aero\Core\Traits;
 
+use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -48,7 +49,7 @@ trait TenantScoped
      */
     public function tenant()
     {
-        $tenantModel = config('tenancy.tenant_model', \App\Models\Tenant::class);
+        $tenantModel = config('tenancy.tenant_model', Tenant::class);
 
         return $this->belongsTo($tenantModel, 'tenant_id');
     }

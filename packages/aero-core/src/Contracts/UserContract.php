@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\Core\Contracts;
 
+use Illuminate\Database\Eloquent\Collection;
+
 /**
  * UserContract Interface
  *
@@ -102,14 +104,14 @@ interface UserContract
     /**
      * Get the user's roles.
      *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection
      */
     public function getRoles();
 
     /**
      * Get the user's permissions.
      *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection
      */
     public function getPermissions();
 

@@ -10,6 +10,7 @@ use Aero\Platform\Models\LandlordUser;
 use Aero\Platform\Models\Module;
 use Aero\Platform\Models\ModuleComponent;
 use Aero\Platform\Models\ModuleComponentAction;
+use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\Role;
 use Aero\Platform\Models\SubModule;
 
@@ -457,7 +458,7 @@ class ModuleAccessService
 
             // Check 1: Get modules from subscription plan (if plan_id exists)
             if ($tenant->plan_id) {
-                $plan = \Aero\Platform\Models\Plan::find($tenant->plan_id);
+                $plan = Plan::find($tenant->plan_id);
                 if ($plan) {
                     $planModules = $plan->modules()
                         ->where('is_active', true)

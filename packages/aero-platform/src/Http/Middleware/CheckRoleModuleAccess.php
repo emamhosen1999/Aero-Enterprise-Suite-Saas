@@ -9,6 +9,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -110,7 +111,7 @@ class CheckRoleModuleAccess
                         'type' => 'AccessDenied',
                         'title' => 'Access Denied',
                         'message' => $message,
-                        'trace_id' => \Illuminate\Support\Str::uuid()->toString(),
+                        'trace_id' => Str::uuid()->toString(),
                         'showHomeButton' => true,
                         'showRetryButton' => false,
                         'details' => [

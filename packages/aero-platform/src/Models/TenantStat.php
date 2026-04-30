@@ -2,6 +2,7 @@
 
 namespace Aero\Platform\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *
  * @property int $id
  * @property string $tenant_id
- * @property \Carbon\Carbon $date
+ * @property Carbon $date
  * @property int $total_users
  * @property int $active_users
  * @property float $total_revenue
@@ -24,7 +25,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $storage_used_mb
  * @property int $api_requests
  * @property array|null $module_usage
- * @property \Carbon\Carbon $created_at
+ * @property Carbon $created_at
  */
 class TenantStat extends Model
 {

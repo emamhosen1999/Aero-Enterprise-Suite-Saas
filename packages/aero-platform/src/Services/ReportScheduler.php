@@ -5,6 +5,7 @@ namespace Aero\Platform\Services;
 use Aero\Platform\Models\ReportExecution;
 use Aero\Platform\Models\ScheduledReport;
 use Exception;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 
 class ReportScheduler
@@ -226,7 +227,7 @@ class ReportScheduler
     /**
      * Get user's saved reports.
      */
-    public function getUserReports(int $userId, array $filters = []): \Illuminate\Database\Eloquent\Collection
+    public function getUserReports(int $userId, array $filters = []): Collection
     {
         $query = ScheduledReport::where('user_id', $userId);
 
@@ -244,7 +245,7 @@ class ReportScheduler
     /**
      * Get report execution history.
      */
-    public function getExecutionHistory(int $reportId, int $limit = 50): \Illuminate\Database\Eloquent\Collection
+    public function getExecutionHistory(int $reportId, int $limit = 50): Collection
     {
         return ReportExecution::where('scheduled_report_id', $reportId)
             ->orderBy('created_at', 'desc')

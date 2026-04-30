@@ -59,7 +59,7 @@ class DatabaseConnectionStep extends BaseInstallationStep
                 ];
             }
 
-            throw new \Exception('Database connection failed and creation not supported: ' . $e->getMessage());
+            throw new \Exception('Database connection failed and creation not supported: '.$e->getMessage());
         }
     }
 
@@ -67,6 +67,7 @@ class DatabaseConnectionStep extends BaseInstallationStep
     {
         try {
             DB::connection()->getPdo();
+
             return true;
         } catch (\Exception) {
             return false;
@@ -92,7 +93,8 @@ class DatabaseConnectionStep extends BaseInstallationStep
             return false;
 
         } catch (\Exception $e) {
-            $this->warn('Database creation failed: ' . $e->getMessage());
+            $this->warn('Database creation failed: '.$e->getMessage());
+
             return false;
         }
     }
@@ -162,6 +164,7 @@ class DatabaseConnectionStep extends BaseInstallationStep
             // SQLite auto-creates when we connect
             $pdo = new \PDO("sqlite:{$path}");
             $pdo = null;
+
             return true;
         } catch (\Exception) {
             return false;

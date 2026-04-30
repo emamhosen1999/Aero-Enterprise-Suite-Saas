@@ -3,6 +3,8 @@
 namespace Aero\Core\Services\Notification;
 
 use Illuminate\Support\Facades\Log;
+use Kreait\Firebase\Exception\Messaging\InvalidMessage;
+use Kreait\Firebase\Exception\Messaging\NotFound;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification;
 
@@ -70,7 +72,7 @@ class FcmNotificationService
 
             return true;
 
-        } catch (\Kreait\Firebase\Exception\Messaging\NotFound $e) {
+        } catch (NotFound $e) {
             // Handle invalid/expired tokens
             $this->handleInvalidToken($deviceToken);
             Log::error('FCM Token not found or invalid', [
@@ -80,7 +82,7 @@ class FcmNotificationService
 
             return false;
 
-        } catch (\Kreait\Firebase\Exception\Messaging\InvalidMessage $e) {
+        } catch (InvalidMessage $e) {
             Log::error('FCM Invalid Message', [
                 'fcm_token' => $deviceToken,
                 'error' => $e->getMessage(),

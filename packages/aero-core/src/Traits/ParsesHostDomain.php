@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aero\Core\Traits;
 
+use Aero\Platform\Models\Domain;
 use Illuminate\Http\Request;
 
 /**
@@ -153,7 +154,7 @@ trait ParsesHostDomain
 
         try {
             // Check if this domain exists in the tenant domains table
-            return \Aero\Platform\Models\Domain::where('domain', $host)->exists();
+            return Domain::where('domain', $host)->exists();
         } catch (\Throwable $e) {
             // Database not available (during install, testing, etc.)
             return false;

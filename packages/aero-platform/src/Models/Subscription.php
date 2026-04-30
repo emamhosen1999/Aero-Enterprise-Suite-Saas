@@ -2,6 +2,8 @@
 
 namespace Aero\Platform\Models;
 
+use Carbon\Carbon;
+use Database\Factories\SubscriptionFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,13 +22,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $plan_id Foreign key to plans table
  * @property string $amount Charged amount (DECIMAL for precision)
  * @property string $status Subscription status: active, cancelled, past_due
- * @property \Carbon\Carbon $starts_at Subscription start date
- * @property \Carbon\Carbon|null $ends_at Subscription end date
+ * @property Carbon $starts_at Subscription start date
+ * @property Carbon|null $ends_at Subscription end date
  * @property string|null $payment_ref_id External payment gateway reference (Stripe/Paddle)
  */
 class Subscription extends Model
 {
-    /** @use HasFactory<\Database\Factories\SubscriptionFactory> */
+    /** @use HasFactory<SubscriptionFactory> */
     use HasFactory, HasUuids, SoftDeletes;
 
     /**

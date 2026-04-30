@@ -3,6 +3,7 @@
 namespace Aero\Platform\Services;
 
 use Aero\Core\Models\SystemSetting;
+use Aero\Platform\Jobs\SendEmailJob;
 use Aero\Platform\Models\PlatformSetting;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\Mailer\Mailer;
@@ -255,7 +256,7 @@ class MailService
     protected function queueMail(): array
     {
         try {
-            $job = new \Aero\Platform\Jobs\SendEmailJob([
+            $job = new SendEmailJob([
                 'to' => $this->to,
                 'cc' => $this->cc,
                 'bcc' => $this->bcc,

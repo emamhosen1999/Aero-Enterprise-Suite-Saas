@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aero\Platform\Services\Module;
 
 use Aero\HRMAC\Services\RoleModuleAccessService;
+use Illuminate\Support\Collection;
 
 /**
  * Null Object implementation of RoleModuleAccessService.
@@ -94,12 +95,12 @@ class NullRoleModuleAccessService extends RoleModuleAccessService
         // No-op before installation
     }
 
-    public function getUsersWithSubModuleAccess(string $moduleCode, string $subModuleCode, ?string $actionCode = null): \Illuminate\Support\Collection
+    public function getUsersWithSubModuleAccess(string $moduleCode, string $subModuleCode, ?string $actionCode = null): Collection
     {
         return collect();
     }
 
-    public function getUsersWithActionAccess(string $moduleCode, string $subModuleCode, string $componentCode, string $actionCode): \Illuminate\Support\Collection
+    public function getUsersWithActionAccess(string $moduleCode, string $subModuleCode, string $componentCode, string $actionCode): Collection
     {
         return collect();
     }

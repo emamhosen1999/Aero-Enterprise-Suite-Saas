@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aero\Platform\Http\Middleware;
 
 use Aero\Core\Http\Resources\SystemSettingResource;
+use Aero\Core\Models\User;
 use Aero\Core\Services\NavigationRegistry;
 use Aero\Core\Support\TenantCache;
 use Aero\HRMAC\Contracts\RoleModuleAccessInterface;
@@ -13,7 +14,9 @@ use Aero\HRMAC\Models\SubModule;
 use Aero\I18n\Services\TranslationService;
 use Aero\Platform\Http\Resources\PlatformSettingResource;
 use Aero\Platform\Models\PlatformSetting;
+use Aero\Platform\Models\Subscription;
 use Aero\Platform\Models\SystemSetting;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -338,9 +341,9 @@ class HandleInertiaRequests extends Middleware
             $user = $request->user();
             if ($user) {
                 // Eager load relationships if table exists
-                return \Aero\Core\Models\User::with(['designation', 'attendanceType'])->find($user->id);
+                return User::with(['designation', 'attendanceType'])->find($user->id);
             }
-        } catch (\Illuminate\Database\QueryException $e) {
+        } catch (QueryException $e) {
             // 42S02 = Table not found. Common during new tenant provisioning.
             if ($e->getCode() !== '42S02') {
                 throw $e;
@@ -806,7 +809,7 @@ class HandleInertiaRequests extends Middleware
             return null;
         }
 
-        /** @var \Aero\Platform\Models\Subscription|null $subscription */
+        /** @var Subscription|null $subscription */
         $subscription = tenant()->currentSubscription;
 
         if (! $subscription) {
@@ -816,13 +819,13 @@ class HandleInertiaRequests extends Middleware
         $upgradeUrl = route('billing.plans');
 
         // 1. Already expired — hard block.
-        if ($subscription->status === \Aero\Platform\Models\Subscription::STATUS_EXPIRED) {
+        if ($subscription->status === Subscription::STATUS_EXPIRED) {
             return [
-                'type'           => 'danger',
-                'severity'       => 'expired',
-                'message'        => 'Your subscription has expired. Renew now to restore full access.',
+                'type' => 'danger',
+                'severity' => 'expired',
+                'message' => 'Your subscription has expired. Renew now to restore full access.',
                 'days_remaining' => null,
-                'upgrade_url'    => $upgradeUrl,
+                'upgrade_url' => $upgradeUrl,
             ];
         }
 
@@ -832,44 +835,44 @@ class HandleInertiaRequests extends Middleware
 
             if ($daysLeft <= 3) {
                 return [
-                    'type'           => 'danger',
-                    'severity'       => 'grace_period_ending',
-                    'message'        => $daysLeft > 0
+                    'type' => 'danger',
+                    'severity' => 'grace_period_ending',
+                    'message' => $daysLeft > 0
                         ? "Your grace period ends in {$daysLeft} day(s). Update your payment to avoid losing access."
                         : 'Your grace period has ended. Please update your payment immediately.',
                     'days_remaining' => max(0, $daysLeft),
-                    'upgrade_url'    => $upgradeUrl,
+                    'upgrade_url' => $upgradeUrl,
                 ];
             }
         }
 
         // 3. Past-due (payment failed, in grace).
-        if ($subscription->status === \Aero\Platform\Models\Subscription::STATUS_PAST_DUE) {
+        if ($subscription->status === Subscription::STATUS_PAST_DUE) {
             return [
-                'type'           => 'warning',
-                'severity'       => 'past_due',
-                'message'        => 'Your payment is past due. Please update your billing details to avoid interruption.',
+                'type' => 'warning',
+                'severity' => 'past_due',
+                'message' => 'Your payment is past due. Please update your billing details to avoid interruption.',
                 'days_remaining' => null,
-                'upgrade_url'    => $upgradeUrl,
+                'upgrade_url' => $upgradeUrl,
             ];
         }
 
         // 4. Trial ending soon (≤ 7 days).
         if (
-            $subscription->status === \Aero\Platform\Models\Subscription::STATUS_TRIALING
+            $subscription->status === Subscription::STATUS_TRIALING
             && $subscription->trial_ends_at !== null
         ) {
             $daysLeft = (int) now()->diffInDays($subscription->trial_ends_at, false);
 
             if ($daysLeft <= 7) {
                 return [
-                    'type'           => 'info',
-                    'severity'       => 'trial_ending',
-                    'message'        => $daysLeft > 0
+                    'type' => 'info',
+                    'severity' => 'trial_ending',
+                    'message' => $daysLeft > 0
                         ? "Your free trial ends in {$daysLeft} day(s). Upgrade to keep all features."
                         : 'Your free trial has ended. Upgrade now to continue.',
                     'days_remaining' => max(0, $daysLeft),
-                    'upgrade_url'    => $upgradeUrl,
+                    'upgrade_url' => $upgradeUrl,
                 ];
             }
         }

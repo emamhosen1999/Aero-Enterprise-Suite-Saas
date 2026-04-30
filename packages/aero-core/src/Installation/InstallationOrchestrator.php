@@ -4,7 +4,6 @@ namespace Aero\Core\Installation;
 
 use Aero\Core\Installation\Steps\BaseInstallationStep;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -116,10 +115,10 @@ class InstallationOrchestrator
 
                 // Check dependencies
                 $depCheck = $this->checkDependencies($step);
-                if (!$depCheck['satisfied']) {
+                if (! $depCheck['satisfied']) {
                     throw new \Exception(
                         "Dependencies not satisfied for step '{$step->name()}': "
-                        . implode(', ', $depCheck['missing'])
+                        .implode(', ', $depCheck['missing'])
                     );
                 }
 
@@ -139,7 +138,7 @@ class InstallationOrchestrator
             ];
 
         } catch (\Throwable $e) {
-            $this->logError('Installation failed: ' . $e->getMessage());
+            $this->logError('Installation failed: '.$e->getMessage());
 
             return [
                 'status' => 'failed',
@@ -184,7 +183,7 @@ class InstallationOrchestrator
                 $this->log("Executing step '{$step->name()}' (attempt {$attempts}/{$maxAttempts})");
 
                 // Validate before executing
-                if (!$step->validate()) {
+                if (! $step->validate()) {
                     throw new \Exception("Pre-execution validation failed for step '{$step->name()}'");
                 }
 
@@ -192,7 +191,7 @@ class InstallationOrchestrator
                 $result = $step->execute();
 
                 // Validate after executing
-                if (!$step->validate()) {
+                if (! $step->validate()) {
                     throw new \Exception("Post-execution validation failed for step '{$step->name()}'");
                 }
 
@@ -211,10 +210,11 @@ class InstallationOrchestrator
 
             } catch (\Exception $e) {
                 $lastException = $e;
-                $this->warn("Step '{$step->name()}' attempt {$attempts}/{$maxAttempts} failed: " . $e->getMessage());
+                $this->warn("Step '{$step->name()}' attempt {$attempts}/{$maxAttempts} failed: ".$e->getMessage());
 
                 if ($attempts < $maxAttempts && $step->isRetriable()) {
-                    $this->log("Retrying step '{$step->name()}' (attempt " . ($attempts + 1) . ")");
+                    $this->log("Retrying step '{$step->name()}' (attempt ".($attempts + 1).')');
+
                     continue;
                 }
 
@@ -236,7 +236,7 @@ class InstallationOrchestrator
         $missing = [];
 
         foreach ($dependencies as $depName) {
-            if (!isset($this->completed[$depName])) {
+            if (! isset($this->completed[$depName])) {
                 $missing[] = $depName;
             }
         }
@@ -259,11 +259,11 @@ class InstallationOrchestrator
 
         // Find next pending step
         $nextStep = $ordered->first(function (BaseInstallationStep $step) {
-            return !isset($this->completed[$step->name()]) && !isset($this->failed[$step->name()]);
+            return ! isset($this->completed[$step->name()]) && ! isset($this->failed[$step->name()]);
         });
 
         // Check if installation complete
-        if (!$nextStep) {
+        if (! $nextStep) {
             if (count($this->failed) === 0) {
                 return [
                     'status' => 'completed',
@@ -286,12 +286,12 @@ class InstallationOrchestrator
 
         // Check dependencies
         $depCheck = $this->checkDependencies($nextStep);
-        if (!$depCheck['satisfied']) {
+        if (! $depCheck['satisfied']) {
             return [
                 'status' => 'failed',
                 'percentage' => ($completedCount / $totalSteps) * 100,
                 'currentStep' => $nextStep->name(),
-                'error' => 'Missing dependencies: ' . implode(', ', $depCheck['missing']),
+                'error' => 'Missing dependencies: '.implode(', ', $depCheck['missing']),
                 'completedSteps' => $completedCount,
                 'totalSteps' => $totalSteps,
             ];
@@ -338,7 +338,7 @@ class InstallationOrchestrator
         $completedCount = count($this->completed);
 
         $currentStep = $ordered->first(function (BaseInstallationStep $step) {
-            return !isset($this->completed[$step->name()]) && !isset($this->failed[$step->name()]);
+            return ! isset($this->completed[$step->name()]) && ! isset($this->failed[$step->name()]);
         });
 
         if (count($this->failed) > 0) {
@@ -352,7 +352,7 @@ class InstallationOrchestrator
             ];
         }
 
-        if (!$currentStep) {
+        if (! $currentStep) {
             return [
                 'status' => 'completed',
                 'percentage' => 100,

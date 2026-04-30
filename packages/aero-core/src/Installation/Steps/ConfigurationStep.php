@@ -51,8 +51,8 @@ class ConfigurationStep extends BaseInstallationStep
             }
         }
 
-        if (!empty($missingVars)) {
-            throw new \Exception('Missing environment variables: ' . implode(', ', $missingVars));
+        if (! empty($missingVars)) {
+            throw new \Exception('Missing environment variables: '.implode(', ', $missingVars));
         }
 
         // Generate APP_KEY if not present
@@ -81,7 +81,7 @@ class ConfigurationStep extends BaseInstallationStep
     protected function executeCommand(string $command, array $args = []): void
     {
         if (function_exists('exec')) {
-            $cmd = "php {$command} " . implode(' ', $args);
+            $cmd = "php {$command} ".implode(' ', $args);
             exec($cmd);
         }
     }

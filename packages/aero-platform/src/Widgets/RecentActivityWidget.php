@@ -8,6 +8,8 @@ use Aero\Platform\Contracts\AbstractPlatformWidget;
 use Aero\Platform\Contracts\PlatformWidgetCategory;
 use Aero\Platform\Models\Subscription;
 use Aero\Platform\Models\Tenant;
+use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -111,7 +113,7 @@ class RecentActivityWidget extends AbstractPlatformWidget
     /**
      * Get recent tenant registrations.
      */
-    protected function getRecentTenantRegistrations(): \Illuminate\Support\Collection
+    protected function getRecentTenantRegistrations(): Collection
     {
         return Tenant::query()
             ->where('created_at', '>=', now()->subDays(7))
@@ -134,7 +136,7 @@ class RecentActivityWidget extends AbstractPlatformWidget
     /**
      * Get recent subscription changes.
      */
-    protected function getRecentSubscriptionChanges(): \Illuminate\Support\Collection
+    protected function getRecentSubscriptionChanges(): Collection
     {
         $activities = collect();
 
@@ -187,7 +189,7 @@ class RecentActivityWidget extends AbstractPlatformWidget
     /**
      * Get recent provisioning failures.
      */
-    protected function getRecentProvisioningFailures(): \Illuminate\Support\Collection
+    protected function getRecentProvisioningFailures(): Collection
     {
         return Tenant::query()
             ->where('status', Tenant::STATUS_FAILED)
@@ -211,7 +213,7 @@ class RecentActivityWidget extends AbstractPlatformWidget
     /**
      * Get entries from audit log if available.
      */
-    protected function getAuditLogEntries(): \Illuminate\Support\Collection
+    protected function getAuditLogEntries(): Collection
     {
         try {
             // Check if audit_logs table exists
@@ -236,7 +238,7 @@ class RecentActivityWidget extends AbstractPlatformWidget
                         'icon' => $this->getIconForEventType($log->event_type ?? ''),
                         'color' => $this->getColorForEventType($log->event_type ?? ''),
                         'message' => $log->message ?? $log->description ?? 'System event',
-                        'time' => \Carbon\Carbon::parse($log->created_at)->diffForHumans(),
+                        'time' => Carbon::parse($log->created_at)->diffForHumans(),
                         'timestamp' => $log->created_at,
                         'href' => null,
                     ];

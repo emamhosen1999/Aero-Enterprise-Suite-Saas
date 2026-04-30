@@ -2,6 +2,7 @@
 
 namespace Aero\Core\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -122,8 +123,8 @@ class TenantInvitation extends Model
     /**
      * Scope to get only pending (not accepted, not cancelled, not expired) invitations.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder<TenantInvitation>  $query
-     * @return \Illuminate\Database\Eloquent\Builder<TenantInvitation>
+     * @param  Builder<TenantInvitation>  $query
+     * @return Builder<TenantInvitation>
      */
     public function scopePending($query)
     {
@@ -135,8 +136,8 @@ class TenantInvitation extends Model
     /**
      * Scope to get expired invitations.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder<TenantInvitation>  $query
-     * @return \Illuminate\Database\Eloquent\Builder<TenantInvitation>
+     * @param  Builder<TenantInvitation>  $query
+     * @return Builder<TenantInvitation>
      */
     public function scopeExpired($query)
     {
@@ -148,8 +149,8 @@ class TenantInvitation extends Model
     /**
      * Scope to find invitation by token.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder<TenantInvitation>  $query
-     * @return \Illuminate\Database\Eloquent\Builder<TenantInvitation>
+     * @param  Builder<TenantInvitation>  $query
+     * @return Builder<TenantInvitation>
      */
     public function scopeByToken($query, string $token)
     {

@@ -49,7 +49,7 @@ class FinalizeStep extends BaseInstallationStep
             Artisan::call('view:clear');
             $results['cache_cleared'] = true;
         } catch (\Exception $e) {
-            $this->warn('Cache clearing failed: ' . $e->getMessage());
+            $this->warn('Cache clearing failed: '.$e->getMessage());
             $results['cache_cleared'] = false;
         }
 
@@ -59,7 +59,7 @@ class FinalizeStep extends BaseInstallationStep
             Artisan::call('optimize');
             $results['optimized'] = true;
         } catch (\Exception $e) {
-            $this->warn('Optimization failed: ' . $e->getMessage());
+            $this->warn('Optimization failed: '.$e->getMessage());
             $results['optimized'] = false;
         }
 
@@ -69,7 +69,7 @@ class FinalizeStep extends BaseInstallationStep
             $this->markInstallationComplete();
             $results['marked_complete'] = true;
         } catch (\Exception $e) {
-            $this->warn('Failed to mark installation complete: ' . $e->getMessage());
+            $this->warn('Failed to mark installation complete: '.$e->getMessage());
             $results['marked_complete'] = false;
         }
 
@@ -103,7 +103,7 @@ class FinalizeStep extends BaseInstallationStep
     protected function markInstallationComplete(): void
     {
         try {
-            if (!DB::table('installation_history')->exists()) {
+            if (! DB::table('installation_history')->exists()) {
                 return;
             }
 
@@ -134,7 +134,7 @@ class FinalizeStep extends BaseInstallationStep
             'admin_email' => env('ADMIN_EMAIL', 'admin@aeros.test'),
             'database' => env('DB_DATABASE'),
             'next_steps' => [
-                '1. Log in to admin panel at ' . env('APP_URL'),
+                '1. Log in to admin panel at '.env('APP_URL'),
                 '2. Configure additional settings',
                 '3. Create first organization/tenant',
                 '4. Display feature modules',

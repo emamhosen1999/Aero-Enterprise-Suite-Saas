@@ -1,0 +1,38 @@
+.aeos--high-contrast {
+  --aeos-primary:       #0000CC;
+  --aeos-primary-deep:  #0000AA;
+  --aeos-secondary:     #006600;
+  --aeos-tertiary:      #660066;
+  --aeos-destructive:   #CC0000;
+  --aeos-success:       #006600;
+  --aeos-bg-page:      #FFFFFF;
+  --aeos-bg-app:       #F4F4F4;
+  --aeos-bg-card:      #FFFFFF;
+  --aeos-bg-elevated:  #F4F4F4;
+  --aeos-bg-modal:     #FFFFFF;
+  --aeos-text-primary:   #000000;
+  --aeos-text-secondary: #333333;
+  --aeos-text-tertiary:  #555555;
+  --aeos-ink:       #000000;
+  --aeos-ink-muted: #333333;
+  --aeos-ink-faint: #555555;
+  --aeos-glass-bg:      rgba(255,255,255,.98);
+  --aeos-glass-border:  #000000;
+  --aeos-divider:       rgba(0,0,0,.30);
+  --aeos-grad-cyan:  #0000CC;
+  --aeos-grad-amber: #006600;
+  --aeos-grad-full:  #0000CC;
+  --aeos-grad-text:  #000000;
+  --aeos-grad-mesh:  none;
+  --aeos-glow-cyan:   none;
+  --aeos-glow-cyan-l: none;
+  --aeos-glow-amber:  none;
+  --aeos-shadow-card: 0 0 0 2px #000000;
+  --aeos-shadow-lift: 0 0 0 3px #000000;
+  --aeos-r-sm: 0px; --aeos-r-md: 4px; --aeos-r-lg: 4px; --aeos-r-xl: 4px; --aeos-r-2xl: 4px;
+}
+.aeos--high-contrast .aeos-glass,
+.aeos--high-contrast .aeos-glass-strong { backdrop-filter:none; -webkit-backdrop-filter:none; background:#FFFFFF; border:2px solid #000000; }
+.aeos--high-contrast .aeos-card,
+.aeos--high-contrast .aeos-card-elevated { background:#FFFFFF; border:2px solid #000000; }
+.aeos--high-contrast .aeos-text-grad { background:none; -webkit-text-fill-color:#000000; color:#000000; }

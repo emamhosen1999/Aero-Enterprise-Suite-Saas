@@ -10,8 +10,7 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
 
-    <!-- CSRF Token for Axios/Inertia -->
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+
 
     <!-- Security & Performance -->
     @production

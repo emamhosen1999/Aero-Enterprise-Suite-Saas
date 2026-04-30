@@ -13,7 +13,7 @@ class PreventInstalledAccess
      *
      * Blocks access to installation routes if system is already installed.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {

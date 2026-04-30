@@ -8,6 +8,7 @@ use Aero\Platform\Contracts\AbstractPlatformWidget;
 use Aero\Platform\Contracts\PlatformWidgetCategory;
 use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\Subscription;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -237,7 +238,7 @@ class ModuleUsageWidget extends AbstractPlatformWidget
             foreach ($plans as $plan) {
                 // Handle as a relationship collection
                 $modules = $plan->modules;
-                if ($modules instanceof \Illuminate\Support\Collection || $modules instanceof \Illuminate\Database\Eloquent\Collection) {
+                if ($modules instanceof Collection || $modules instanceof \Illuminate\Database\Eloquent\Collection) {
                     $planModules[$plan->id] = $modules->pluck('code')->toArray();
                 } elseif (is_string($modules)) {
                     // Legacy JSON fallback

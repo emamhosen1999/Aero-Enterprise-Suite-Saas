@@ -15,7 +15,7 @@ class RedirectIfAuthenticated
      * Redirect authenticated users away from guest-only pages (like login).
      * Uses Laravel's default behavior but respects guard-specific redirects.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next, string ...$guards): Response
     {

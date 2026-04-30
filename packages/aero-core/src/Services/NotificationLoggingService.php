@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aero\Core\Services;
 
 use DateTimeInterface;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -141,7 +142,7 @@ class NotificationLoggingService
      * @param  object  $notifiable  The entity to get logs for
      * @param  int  $limit  Maximum number of logs to return
      */
-    public function getLogsFor(object $notifiable, int $limit = 50): \Illuminate\Support\Collection
+    public function getLogsFor(object $notifiable, int $limit = 50): Collection
     {
         return DB::table('notification_logs')
             ->where('notifiable_type', get_class($notifiable))
@@ -156,7 +157,7 @@ class NotificationLoggingService
      *
      * @param  int  $limit  Maximum number of notifications to return
      */
-    public function getPendingRetries(int $limit = 100): \Illuminate\Support\Collection
+    public function getPendingRetries(int $limit = 100): Collection
     {
         $maxRetries = $this->getMaxRetryAttempts();
 

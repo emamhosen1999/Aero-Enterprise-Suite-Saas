@@ -74,8 +74,9 @@ abstract class BaseInstallationStep
      * Execute this step
      * Should throw an exception if step fails
      *
-     * @throws \Exception
      * @return array Result with status and metadata
+     *
+     * @throws \Exception
      */
     abstract public function execute(): array;
 
@@ -103,7 +104,7 @@ abstract class BaseInstallationStep
      */
     public function onFailure(\Exception $exception): void
     {
-        Log::error("Installation step '{$this->name()}' failed: " . $exception->getMessage(), [
+        Log::error("Installation step '{$this->name()}' failed: ".$exception->getMessage(), [
             'exception' => $exception,
             'step' => $this->name(),
         ]);

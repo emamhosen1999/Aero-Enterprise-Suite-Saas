@@ -3,11 +3,14 @@
 namespace Aero\Platform\Models;
 
 use Aero\HRMAC\Models\Role;
+use Aero\Platform\Database\Factories\LandlordUserFactory;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
 /**
@@ -36,8 +39,8 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string|null $phone Phone number
  * @property string|null $profile_image Profile image path
  * @property string $timezone User timezone
- * @property \Carbon\Carbon|null $email_verified_at
- * @property \Carbon\Carbon|null $last_login_at
+ * @property Carbon|null $email_verified_at
+ * @property Carbon|null $last_login_at
  * @property string|null $last_login_ip
  */
 class LandlordUser extends Authenticatable
@@ -64,9 +67,9 @@ class LandlordUser extends Authenticatable
     /**
      * Create a new factory instance for the model.
      */
-    protected static function newFactory(): \Aero\Platform\Database\Factories\LandlordUserFactory
+    protected static function newFactory(): LandlordUserFactory
     {
-        return \Aero\Platform\Database\Factories\LandlordUserFactory::new();
+        return LandlordUserFactory::new();
     }
 
     /**
@@ -266,7 +269,7 @@ class LandlordUser extends Authenticatable
     /**
      * Get all permissions - returns empty as we use module access.
      */
-    public function getAllPermissions(): \Illuminate\Support\Collection
+    public function getAllPermissions(): Collection
     {
         return collect([]);
     }

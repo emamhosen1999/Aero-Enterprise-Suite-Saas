@@ -3,10 +3,19 @@
 namespace Aero\Core\Services;
 
 use Aero\Core\Jobs\ReportErrorToPlatform;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 use Throwable;
 
 /**
@@ -397,14 +406,14 @@ class PlatformErrorReporter
     protected function getHttpCode(Throwable $exception): int
     {
         return match (true) {
-            $exception instanceof \Illuminate\Validation\ValidationException => 422,
-            $exception instanceof \Illuminate\Auth\AuthenticationException => 401,
-            $exception instanceof \Illuminate\Auth\Access\AuthorizationException => 403,
-            $exception instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException => 404,
-            $exception instanceof \Illuminate\Database\Eloquent\ModelNotFoundException => 404,
-            $exception instanceof \Illuminate\Session\TokenMismatchException => 419,
-            $exception instanceof \Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException => 429,
-            $exception instanceof \Symfony\Component\HttpKernel\Exception\HttpException => $exception->getStatusCode(),
+            $exception instanceof ValidationException => 422,
+            $exception instanceof AuthenticationException => 401,
+            $exception instanceof AuthorizationException => 403,
+            $exception instanceof NotFoundHttpException => 404,
+            $exception instanceof ModelNotFoundException => 404,
+            $exception instanceof TokenMismatchException => 419,
+            $exception instanceof TooManyRequestsHttpException => 429,
+            $exception instanceof HttpException => $exception->getStatusCode(),
             default => 500,
         };
     }
@@ -415,15 +424,15 @@ class PlatformErrorReporter
     protected function getExceptionType(Throwable $exception): string
     {
         return match (true) {
-            $exception instanceof \Illuminate\Validation\ValidationException => 'ValidationException',
-            $exception instanceof \Illuminate\Auth\AuthenticationException => 'AuthenticationException',
-            $exception instanceof \Illuminate\Auth\Access\AuthorizationException => 'AuthorizationException',
-            $exception instanceof \Illuminate\Database\Eloquent\ModelNotFoundException => 'ModelNotFoundException',
-            $exception instanceof \Illuminate\Database\QueryException => 'DatabaseException',
-            $exception instanceof \Illuminate\Session\TokenMismatchException => 'TokenMismatchException',
-            $exception instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException => 'NotFoundException',
-            $exception instanceof \Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException => 'RateLimitException',
-            $exception instanceof \Symfony\Component\HttpKernel\Exception\HttpException => 'HttpException',
+            $exception instanceof ValidationException => 'ValidationException',
+            $exception instanceof AuthenticationException => 'AuthenticationException',
+            $exception instanceof AuthorizationException => 'AuthorizationException',
+            $exception instanceof ModelNotFoundException => 'ModelNotFoundException',
+            $exception instanceof QueryException => 'DatabaseException',
+            $exception instanceof TokenMismatchException => 'TokenMismatchException',
+            $exception instanceof NotFoundHttpException => 'NotFoundException',
+            $exception instanceof TooManyRequestsHttpException => 'RateLimitException',
+            $exception instanceof HttpException => 'HttpException',
             default => class_basename($exception),
         };
     }

@@ -3,9 +3,18 @@
 namespace Aero\Core\Providers;
 
 use Aero\Core\Services\PlatformErrorReporter;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 
 /**
  * Exception Handler Service Provider
@@ -49,7 +58,7 @@ class ExceptionHandlerServiceProvider extends ServiceProvider
         // =========================================================================
         // AUTHENTICATION EXCEPTIONS
         // =========================================================================
-        $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, $request) use ($expectsJson) {
+        $exceptions->render(function (AuthenticationException $e, $request) use ($expectsJson) {
             if ($expectsJson($request)) {
                 return response()->json([
                     'success' => false,
@@ -73,7 +82,7 @@ class ExceptionHandlerServiceProvider extends ServiceProvider
         // =========================================================================
         // SESSION/TOKEN MISMATCH EXCEPTIONS
         // =========================================================================
-        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, $request) use ($expectsJson) {
+        $exceptions->render(function (TokenMismatchException $e, $request) use ($expectsJson) {
             if ($expectsJson($request)) {
                 return response()->json([
                     'success' => false,
@@ -96,7 +105,7 @@ class ExceptionHandlerServiceProvider extends ServiceProvider
         // =========================================================================
         // VALIDATION EXCEPTIONS (Don't report these to platform - not errors)
         // =========================================================================
-        $exceptions->render(function (\Illuminate\Validation\ValidationException $e, $request) use ($expectsJson) {
+        $exceptions->render(function (ValidationException $e, $request) use ($expectsJson) {
             if ($expectsJson($request)) {
                 return response()->json([
                     'success' => false,
@@ -117,7 +126,7 @@ class ExceptionHandlerServiceProvider extends ServiceProvider
         // =========================================================================
         // AUTHORIZATION EXCEPTIONS
         // =========================================================================
-        $exceptions->render(function (\Illuminate\Auth\Access\AuthorizationException $e, $request) use ($expectsJson) {
+        $exceptions->render(function (AuthorizationException $e, $request) use ($expectsJson) {
             $reporter = app(PlatformErrorReporter::class);
             $errorData = $reporter->createErrorResponse($e, $request);
 
@@ -136,7 +145,7 @@ class ExceptionHandlerServiceProvider extends ServiceProvider
         // =========================================================================
         // MODEL NOT FOUND EXCEPTIONS
         // =========================================================================
-        $exceptions->render(function (\Illuminate\Database\Eloquent\ModelNotFoundException $e, $request) use ($expectsJson) {
+        $exceptions->render(function (ModelNotFoundException $e, $request) use ($expectsJson) {
             $reporter = app(PlatformErrorReporter::class);
             $errorData = $reporter->createErrorResponse($e, $request);
 
@@ -155,7 +164,7 @@ class ExceptionHandlerServiceProvider extends ServiceProvider
         // =========================================================================
         // HTTP NOT FOUND EXCEPTIONS
         // =========================================================================
-        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e, $request) use ($expectsJson) {
+        $exceptions->render(function (NotFoundHttpException $e, $request) use ($expectsJson) {
             $reporter = app(PlatformErrorReporter::class);
             $errorData = $reporter->createErrorResponse($e, $request);
 
@@ -174,7 +183,7 @@ class ExceptionHandlerServiceProvider extends ServiceProvider
         // =========================================================================
         // RATE LIMIT EXCEPTIONS
         // =========================================================================
-        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException $e, $request) use ($expectsJson) {
+        $exceptions->render(function (TooManyRequestsHttpException $e, $request) use ($expectsJson) {
             $reporter = app(PlatformErrorReporter::class);
             $errorData = $reporter->createErrorResponse($e, $request);
             $errorData['retryAfter'] = $e->getHeaders()['Retry-After'] ?? 60;
@@ -194,7 +203,7 @@ class ExceptionHandlerServiceProvider extends ServiceProvider
         // =========================================================================
         // DATABASE EXCEPTIONS
         // =========================================================================
-        $exceptions->render(function (\Illuminate\Database\QueryException $e, $request) use ($expectsJson) {
+        $exceptions->render(function (QueryException $e, $request) use ($expectsJson) {
             $reporter = app(PlatformErrorReporter::class);
             $errorData = $reporter->createErrorResponse($e, $request);
 
@@ -213,7 +222,7 @@ class ExceptionHandlerServiceProvider extends ServiceProvider
         // =========================================================================
         // GENERIC HTTP EXCEPTIONS
         // =========================================================================
-        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\HttpException $e, $request) use ($expectsJson) {
+        $exceptions->render(function (HttpException $e, $request) use ($expectsJson) {
             $statusCode = $e->getStatusCode();
             $reporter = app(PlatformErrorReporter::class);
             $errorData = $reporter->createErrorResponse($e, $request);

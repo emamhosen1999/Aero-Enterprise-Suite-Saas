@@ -5,6 +5,7 @@ namespace Aero\Core\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Models\Role;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -31,7 +32,7 @@ class RoleHierarchyMiddleware
         // For role management operations, check if user can manage the target role
         if ($request->route()->parameter('id') && str_contains($request->route()->getName(), 'roles')) {
             $targetRoleId = $request->route()->parameter('id');
-            $targetRole = \Spatie\Permission\Models\Role::find($targetRoleId);
+            $targetRole = Role::find($targetRoleId);
 
             if ($targetRole && $targetRole->hierarchy_level <= $userHierarchyLevel) {
                 \Log::warning('Hierarchy violation attempt', [

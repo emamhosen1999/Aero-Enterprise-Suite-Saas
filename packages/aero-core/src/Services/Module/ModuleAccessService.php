@@ -9,6 +9,7 @@ use Aero\Core\Models\SubModule;
 use Aero\Core\Models\User;
 use Aero\HRMAC\Models\Role;
 use Aero\HRMAC\Services\RoleModuleAccessService;
+use App\Models\Plan;
 
 /**
  * Module Access Service
@@ -455,7 +456,7 @@ class ModuleAccessService
 
             // Check 1: Get modules from subscription plan (if plan_id exists)
             if ($tenant->plan_id) {
-                $plan = \App\Models\Plan::find($tenant->plan_id);
+                $plan = Plan::find($tenant->plan_id);
                 if ($plan) {
                     $planModules = $plan->modules()
                         ->where('is_active', true)

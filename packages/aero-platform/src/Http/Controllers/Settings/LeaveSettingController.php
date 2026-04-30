@@ -6,10 +6,11 @@ use Aero\Platform\Http\Controllers\Controller;
 use Aero\Platform\Models\HRM\LeaveSetting;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class LeaveSettingController extends Controller
 {
-    public function index(): \Inertia\Response
+    public function index(): Response
     {
         $leaveSettings = LeaveSetting::all();
 

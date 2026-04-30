@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Invoice Service
@@ -281,7 +282,7 @@ class InvoiceService
     /**
      * Download invoice as PDF.
      *
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @return Response
      */
     public function downloadPdf(array $invoice, ?Tenant $tenant = null)
     {

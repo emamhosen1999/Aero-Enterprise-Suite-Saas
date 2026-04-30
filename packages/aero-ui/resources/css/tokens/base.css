@@ -1,0 +1,176 @@
+/* ── Fonts ─────────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* ── Design tokens ─────────────────────────────────────────────────────── */
+:root {
+  /* Brand */
+  --aeos-primary:       #00E5FF;
+  --aeos-primary-deep:  #00A3B8;
+  --aeos-secondary:     #FFB347;
+  --aeos-tertiary:      #6366F1;
+  --aeos-destructive:   #FF6B6B;
+
+  /* Status */
+  --aeos-success: #22C55E;
+  --aeos-warning: var(--aeos-secondary);
+  --aeos-danger:  var(--aeos-destructive);
+  --aeos-info:    var(--aeos-primary);
+
+  /* Surfaces */
+  --aeos-bg-page:     #03040A;
+  --aeos-bg-app:      #070B14;
+  --aeos-bg-card:     #0D1120;
+  --aeos-bg-elevated: #131829;
+  --aeos-bg-modal:    #1A1F33;
+
+  /* OLED surfaces */
+  --aeos-bg-oled:       #000000;
+  --aeos-bg-oled-card:  #0A0A0A;
+  --aeos-bg-oled-modal: #111111;
+
+  /* Text */
+  --aeos-text-primary:   #E8EDF5;
+  --aeos-text-secondary: #8892A4;
+  --aeos-text-tertiary:  #4A5468;
+
+  /* Legacy aliases */
+  --aeos-cyan:      var(--aeos-primary);
+  --aeos-cyan-deep: var(--aeos-primary-deep);
+  --aeos-amber:     var(--aeos-secondary);
+  --aeos-indigo:    var(--aeos-tertiary);
+  --aeos-coral:     var(--aeos-destructive);
+  --aeos-obsidian:  var(--aeos-bg-page);
+  --aeos-onyx:      var(--aeos-bg-app);
+  --aeos-slate:     var(--aeos-bg-card);
+  --aeos-graphite:  var(--aeos-bg-elevated);
+  --aeos-gunmetal:  var(--aeos-bg-modal);
+  --aeos-ink:       var(--aeos-text-primary);
+  --aeos-ink-muted: var(--aeos-text-secondary);
+  --aeos-ink-faint: var(--aeos-text-tertiary);
+
+  /* Light surfaces */
+  --aeos-bg-page-light:      #F8FAFC;
+  --aeos-bg-app-light:       #F1F5F9;
+  --aeos-bg-card-light:      #FFFFFF;
+  --aeos-bg-elevated-light:  #F8FAFC;
+  --aeos-bg-modal-light:     #FFFFFF;
+  --aeos-text-primary-light:   #0F172A;
+  --aeos-text-secondary-light: #64748B;
+  --aeos-text-tertiary-light:  #94A3B8;
+  --aeos-paper:      var(--aeos-bg-page-light);
+  --aeos-paper-2:    var(--aeos-bg-app-light);
+  --aeos-paper-3:    #E2E8F0;
+  --aeos-graphite-l: var(--aeos-text-secondary-light);
+  --aeos-onyx-l:     var(--aeos-text-primary-light);
+  --aeos-ink-l-muted:var(--aeos-text-secondary-light);
+
+  /* Glass */
+  --aeos-glass-bg:        rgba(13, 17, 32, 0.70);
+  --aeos-glass-bg-strong: rgba(7, 11, 20, 0.85);
+  --aeos-glass-border:    rgba(0, 229, 255, 0.12);
+  --aeos-glass-border-h:  rgba(0, 229, 255, 0.20);
+  --aeos-divider:         rgba(255, 255, 255, 0.06);
+  --aeos-divider-l:       rgba(15, 23, 42, 0.08);
+  --aeos-border:          rgba(255, 255, 255, 0.08);
+  --aeos-bg-input:        rgba(255, 255, 255, 0.05);
+
+  /* Gradients */
+  --aeos-grad-cyan:  linear-gradient(135deg, #00E5FF 0%, #6366F1 100%);
+  --aeos-grad-amber: linear-gradient(135deg, #FFB347 0%, #FF6B6B 100%);
+  --aeos-grad-full:  linear-gradient(135deg, #00E5FF 0%, #6366F1 50%, #FFB347 100%);
+  --aeos-grad-text:  linear-gradient(135deg, #ffffff 0%, #00E5FF 100%);
+  --aeos-grad-mesh:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,229,255,0.12), transparent 65%),
+    radial-gradient(ellipse 50% 50% at 85% 55%, rgba(255,179,71,0.08), transparent 55%),
+    radial-gradient(ellipse 40% 50% at 10% 70%, rgba(99,102,241,0.08), transparent 55%);
+
+  /* Glow / shadow */
+  --aeos-glow-cyan:     0 0 24px rgba(0, 229, 255, 0.30);
+  --aeos-glow-cyan-l:   0 0 40px rgba(0, 229, 255, 0.50);
+  --aeos-glow-amber:    0 0 24px rgba(255, 179, 71, 0.25);
+  --aeos-shadow-card:   0 8px 32px rgba(0, 0, 0, 0.40);
+  --aeos-shadow-lift:   0 16px 48px rgba(0, 0, 0, 0.55);
+  --aeos-shadow-sm:  0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --aeos-shadow-md:  0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --aeos-shadow-lg:  0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --aeos-shadow-xl:  0 20px 25px -5px rgba(0, 0, 0, 0.1);
+
+  /* Typography */
+  --aeos-font-display: 'Syne', system-ui, sans-serif;
+  --aeos-font-body:    'DM Sans', system-ui, sans-serif;
+  --aeos-font-mono:    'JetBrains Mono', ui-monospace, monospace;
+  --aeos-font-scale:   1;
+  --aeos-text-xs:   0.72rem;
+  --aeos-text-sm:   0.875rem;
+  --aeos-text-base: 1rem;
+  --aeos-text-lg:   1.125rem;
+  --aeos-text-xl:   1.25rem;
+  --aeos-text-2xl:  1.5rem;
+  --aeos-text-3xl:  1.875rem;
+  --aeos-text-4xl:  2.25rem;
+
+  /* Radii */
+  --aeos-r-sm:   6px;
+  --aeos-r-md:   8px;
+  --aeos-r-lg:   12px;
+  --aeos-r-xl:   16px;
+  --aeos-r-2xl:  24px;
+  --aeos-r-full: 9999px;
+  --aeos-card-radius: var(--aeos-r-xl);
+
+  /* Spacing */
+  --aeos-space-1:  4px;
+  --aeos-space-2:  8px;
+  --aeos-space-3:  12px;
+  --aeos-space-4:  16px;
+  --aeos-space-6:  24px;
+  --aeos-space-8:  32px;
+  --aeos-space-12: 48px;
+  --aeos-space-16: 64px;
+  --aeos-space-24: 96px;
+
+  /* Density */
+  --aeos-density-factor:  1;
+  --aeos-pad-card:        calc(1.5rem * var(--aeos-density-factor));
+  --aeos-stack-gap:       calc(20px * var(--aeos-density-factor));
+  --aeos-pad-section:     calc(24px * var(--aeos-density-factor));
+  --aeos-gap-section:     1.5rem;
+
+  /* Shell */
+  --aeos-shell-sidebar-w:     56px;
+  --aeos-shell-sidebar-w-exp: 240px;
+  --aeos-shell-topnav-h:      48px;
+
+  /* Motion */
+  --aeos-ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+  --aeos-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --aeos-dur-fast:    180ms;
+  --aeos-dur-base:    240ms;
+  --aeos-dur-slow:    400ms;
+
+  /* Status scale */
+  --aeos-success-50: #dcfce7; --aeos-success-100: #bbf7d0; --aeos-success-200: #86efac;
+  --aeos-success-300: #4ade80; --aeos-success-400: #22c55e; --aeos-success-500: #16a34a; --aeos-success-600: #15803d;
+  --aeos-warning-50: #fef9c3; --aeos-warning-100: #fef08a; --aeos-warning-200: #fde047;
+  --aeos-warning-300: #facc15; --aeos-warning-400: #eab308; --aeos-warning-500: #ca8a04; --aeos-warning-600: #a16207;
+  --aeos-danger-50: #fee2e2; --aeos-danger-100: #fecaca; --aeos-danger-200: #fca5a5;
+  --aeos-danger-300: #f87171; --aeos-danger-400: #ef4444; --aeos-danger-500: #dc2626; --aeos-danger-600: #b91c1c;
+  --aeos-cyan-50: #cffafe; --aeos-cyan-100: #a5f3fc; --aeos-cyan-200: #67e8f9;
+  --aeos-cyan-300: #22d3ee; --aeos-cyan-400: #06b6d4; --aeos-cyan-500: #0891b2; --aeos-cyan-600: #0e7490;
+  --aeos-amber-50: #fef3c7; --aeos-amber-100: #fde68a; --aeos-amber-200: #fcd34d;
+  --aeos-amber-300: #fbbf24; --aeos-amber-400: #f59e0b; --aeos-amber-500: #d97706; --aeos-amber-600: #b45309;
+}
+
+/* ── Motion keyframes ──────────────────────────────────────────────────── */
+@keyframes aeos-pulse      { 0%,100%{opacity:1} 50%{opacity:.4} }
+@keyframes aeos-float      { 0%,100%{transform:translateY(0) rotate(0deg)} 33%{transform:translateY(-12px) rotate(.5deg)} 66%{transform:translateY(-6px) rotate(-.5deg)} }
+@keyframes aeos-shimmer    { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+@keyframes aeos-spin       { to{transform:rotate(360deg)} }
+@keyframes aeos-anim-slide-in-right { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+@keyframes aeos-anim-slide-in-left  { from{transform:translateX(-100%);opacity:0} to{transform:translateX(0);opacity:1} }
+@keyframes aeos-anim-fade-in  { from{opacity:0} to{opacity:1} }
+@keyframes aeos-anim-pop-in   { from{transform:scale(.95);opacity:0} to{transform:scale(1);opacity:1} }
+
+/* ── Density data attributes ───────────────────────────────────────────── */
+body[data-density="compact"]  { --aeos-pad-card: 16px; }
+body[data-density="spacious"] { --aeos-pad-card: 32px; }

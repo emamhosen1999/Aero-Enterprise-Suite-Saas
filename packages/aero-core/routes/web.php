@@ -5,15 +5,6 @@ use Aero\Core\Http\Controllers\Admin\CoreUserController;
 use Aero\Core\Http\Controllers\Admin\ExtensionsController;
 use Aero\Core\Http\Controllers\Admin\ModuleController;
 use Aero\Core\Http\Controllers\Admin\RoleController;
-use Aero\Core\Http\Controllers\Auth\AdminSetupController;
-use Aero\Core\Http\Controllers\Auth\AuthenticatedSessionController;
-use Aero\Core\Http\Controllers\Auth\DeviceController;
-use Aero\Core\Http\Controllers\Auth\EmailVerificationController;
-use Aero\Core\Http\Controllers\Auth\InvitationController;
-use Aero\Core\Http\Controllers\Auth\NewPasswordController;
-use Aero\Core\Http\Controllers\Auth\PasswordResetLinkController;
-use Aero\Core\Http\Controllers\Auth\SessionController;
-use Aero\Core\Http\Controllers\Auth\TwoFactorController;
 use Aero\Core\Http\Controllers\DashboardController;
 use Aero\Core\Http\Controllers\Navigation\UserNavigationController;
 use Aero\Core\Http\Controllers\Notification\NotificationController;
@@ -194,42 +185,24 @@ Route::get('/home', function () {
     return redirect()->route('core.dashboard');
 })->middleware([EnsureTenantContext::class, 'auth:web'])->name('core.home');
 
-// ============================================================================
-// PLATFORM IMPERSONATION TOKEN ROUTES (No Auth - token IS the authentication)
-// ============================================================================
-// Only registered in SaaS mode when the platform ImpersonationController exists.
-// Flow: admin generates token → tenant receives /impersonate/{token} URL → logs in.
-if (class_exists('Aero\\Platform\\Http\\Controllers\\Auth\\ImpersonationController')) {
-    Route::get('impersonate/{token}', ['Aero\\Platform\\Http\\Controllers\\Auth\\ImpersonationController', 'handle'])
-        ->name('impersonate.handle')
-        ->withoutMiddleware(['auth:web', 'auth']);
-}
-
-// ============================================================================
-// ADMIN SETUP ROUTES (No Auth - for newly provisioned tenants)
-// Rate-limited to prevent brute-force admin creation on tenant domains
-// ============================================================================
-Route::middleware(['throttle:5,10'])->group(function () {
-    Route::get('admin-setup', [AdminSetupController::class, 'show'])->name('admin.setup.show');
-    Route::post('admin-setup', [AdminSetupController::class, 'store'])
-        ->name('admin.setup.store')
-        ->middleware('throttle:3,15');
-});
+// Auth routes (login, password reset, 2FA, devices, sessions, SAML, social, admin-setup,
+// impersonation) are registered by AeroAuthServiceProvider via packages/aero-auth/routes/tenant.php.
 
 // ============================================================================
 // TENANT ONBOARDING ROUTES (Auth required - after admin setup)
 // ============================================================================
 // Only register these routes if the platform package is installed (SaaS mode)
 if (class_exists('Aero\Platform\Http\Controllers\TenantOnboardingController')) {
-    Route::middleware(['auth:web'])->prefix('onboarding')->name('onboarding.')->group(function () {
-        Route::get('/', [TenantOnboardingController::class, 'index'])->name('index');
-        Route::post('/company', [TenantOnboardingController::class, 'saveCompany'])->name('company.save');
-        Route::post('/branding', [TenantOnboardingController::class, 'saveBranding'])->name('branding.save');
-        Route::post('/team', [TenantOnboardingController::class, 'saveTeam'])->name('team.save');
-        Route::post('/modules', [TenantOnboardingController::class, 'saveModules'])->name('modules.save');
-        Route::post('/complete', [TenantOnboardingController::class, 'complete'])->name('complete');
-        Route::post('/skip', [TenantOnboardingController::class, 'skip'])->name('skip');
-        Route::post('/update-step', [TenantOnboardingController::class, 'updateStep'])->name('update-step');
+    $tenantOnboardingController = 'Aero\Platform\Http\Controllers\TenantOnboardingController';
+    Route::middleware(['auth:web'])->prefix('onboarding')->name('onboarding.')->group(function () use ($tenantOnboardingController) {
+        Route::get('/', [$tenantOnboardingController, 'index'])->name('index');
+        Route::post('/company', [$tenantOnboardingController, 'saveCompany'])->name('company.save');
+        Route::post('/branding', [$tenantOnboardingController, 'saveBranding'])->name('branding.save');
+        Route::post('/team', [$tenantOnboardingController, 'saveTeam'])->name('team.save');
+        Route::post('/modules', [$tenantOnboardingController, 'saveModules'])->name('modules.save');
+        Route::post('/complete', [$tenantOnboardingController, 'complete'])->name('complete');
+        Route::post('/skip', [$tenantOnboardingController, 'skip'])->name('skip');
+        Route::post('/update-step', [$tenantOnboardingController, 'updateStep'])->name('update-step');
     });
 }
 
@@ -248,43 +221,11 @@ if (class_exists('Aero\Platform\Http\Controllers\Tenant\TenantSubscriptionContro
 }
 
 // ============================================================================
-// AUTHENTICATION ROUTES (Guest)
-// ============================================================================
-Route::middleware('guest:web')->group(function () {
-    Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
-    Route::post('login', [AuthenticatedSessionController::class, 'store']);
-
-    Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
-    Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
-
-    Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
-    Route::post('reset-password', [NewPasswordController::class, 'store'])->name('password.store');
-
-    // Invitation Acceptance Routes (Public - for invited users to create accounts)
-    Route::get('invitation/accept/{token}', [InvitationController::class, 'showAcceptForm'])->name('invitation.accept');
-    Route::post('invitation/accept/{token}', [InvitationController::class, 'accept'])->name('invitation.accept.store');
-});
-
-// ============================================================================
-// AUTHENTICATION ROUTES (Authenticated)
-// ============================================================================
-// ============================================================================
 // AUTHENTICATED ROUTES - Core Features
 // ============================================================================
+// Note: login, logout, password reset, email verification, invitation accept routes
+// are registered by AeroAuthServiceProvider (packages/aero-auth/routes/tenant.php).
 Route::middleware('auth:web')->group(function () {
-
-    // Logout
-    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
-
-    // Email Verification
-    Route::get('verify-email', [EmailVerificationController::class, 'prompt'])
-        ->name('core.verification.notice');
-    Route::get('verify-email/{id}/{hash}', [EmailVerificationController::class, 'verify'])
-        ->middleware(['signed', 'throttle:6,1'])
-        ->name('core.verification.verify');
-    Route::post('email/verification-notification', [EmailVerificationController::class, 'send'])
-        ->middleware(['throttle:6,1'])
-        ->name('core.verification.send');
 
     // Dashboard Routes
     // All dashboard routes use 'core.dashboard.*' prefix for consistency
@@ -305,10 +246,7 @@ Route::middleware('auth:web')->group(function () {
         Route::post('dashboard/announcements/{announcement}/dismiss', [DashboardController::class, 'dismissAnnouncement'])->name('core.dashboard.announcements.dismiss');
     });
 
-    // Session & Auth Check Routes
-    Route::get('/session-check', function () {
-        return response()->json(['authenticated' => auth()->check()]);
-    })->name('core.session-check');
+    // Session-check route is registered by AeroAuthServiceProvider.
 
     // Locale switching is now handled by aero-i18n package (route: i18n.locale.update)
 
@@ -371,20 +309,7 @@ Route::middleware('auth:web')->group(function () {
     // Impersonation Stop (separate from user management group - needs to work while impersonating)
     Route::post('/impersonation/stop', [CoreUserController::class, 'stopImpersonation'])->name('core.impersonation.stop');
 
-    // ========================================================================
-    // DEVICE MANAGEMENT ROUTES (Security)
-    // ========================================================================
-    // User's own devices
-    Route::get('/my-devices', [DeviceController::class, 'index'])->name('core.devices.index');
-    Route::delete('/my-devices/{deviceId}', [DeviceController::class, 'deactivateDevice'])->name('core.devices.deactivate');
-
-    // Admin device management
-    Route::prefix('users/{userId}/devices')->name('core.devices.admin.')->group(function () {
-        Route::get('/', [DeviceController::class, 'getUserDevices'])->name('list');
-        Route::post('/reset', [DeviceController::class, 'resetDevices'])->name('reset');
-        Route::post('/toggle', [DeviceController::class, 'toggleSingleDeviceLogin'])->name('toggle');
-        Route::delete('/{deviceId}', [DeviceController::class, 'adminDeactivateDevice'])->name('deactivate');
-    });
+    // Device management routes are registered by AeroAuthServiceProvider.
 
     // ========================================================================
     // ROLE & PERMISSIONS MANAGEMENT
@@ -536,30 +461,7 @@ Route::middleware('auth:web')->group(function () {
         });
     });
 
-    // ========================================================================
-    // SESSION MANAGEMENT ROUTES
-    // ========================================================================
-    Route::prefix('security/sessions')->name('core.security.sessions.')->middleware('hrmac:core.authentication.sessions.view')->group(function () {
-        Route::get('/', [SessionController::class, 'index'])->name('index');
-        Route::get('/paginate', [SessionController::class, 'paginate'])->name('paginate');
-        Route::delete('/{sessionId}', [SessionController::class, 'terminate'])->name('terminate')->middleware('hrmac:core.authentication.sessions.terminate');
-        Route::delete('/', [SessionController::class, 'terminateAll'])->name('terminate-all')->middleware('hrmac:core.authentication.sessions.terminate_all');
-    });
-
-    // ========================================================================
-    // TWO-FACTOR AUTHENTICATION ROUTES
-    // ========================================================================
-    Route::prefix('auth/two-factor')->name('auth.two-factor.')->group(function () {
-        Route::get('/', [TwoFactorController::class, 'index'])->name('index');
-        Route::post('/setup', [TwoFactorController::class, 'setup'])->name('setup');
-        Route::post('/confirm', [TwoFactorController::class, 'confirm'])->name('confirm');
-        Route::post('/disable', [TwoFactorController::class, 'disable'])->name('disable');
-        Route::post('/regenerate-codes', [TwoFactorController::class, 'regenerateRecoveryCodes'])->name('regenerate-codes');
-        Route::get('/challenge', [TwoFactorController::class, 'challenge'])->name('challenge');
-        Route::post('/verify', [TwoFactorController::class, 'verify'])
-            ->middleware('throttle:5,1') // 5 attempts per minute
-            ->name('verify');
-    });
+    // Session management and 2FA routes are registered by AeroAuthServiceProvider.
 
     // ========================================================================
     // PROFILE ROUTES

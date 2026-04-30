@@ -3,6 +3,7 @@
 namespace Aero\Platform\Http\Controllers\Admin;
 
 use Aero\Platform\Http\Controllers\Controller;
+use Aero\Platform\Jobs\ProvisionTenant;
 use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\PlatformSetting;
 use Aero\Platform\Models\Subscription;
@@ -13,7 +14,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Aero\Platform\Jobs\ProvisionTenant;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,8 +29,8 @@ use Inertia\Response;
  * - Automation rules
  * - Onboarding settings
  *
- * @see \Aero\Platform\Models\Tenant
- * @see \Aero\Platform\Models\Subscription
+ * @see Tenant
+ * @see Subscription
  */
 class AdminOnboardingController extends Controller
 {

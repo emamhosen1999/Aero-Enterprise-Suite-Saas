@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
+use Spatie\Permission\PermissionRegistrar;
 
 /**
  * Shared Admin Role Controller
@@ -437,7 +438,7 @@ class RoleController extends Controller
         try {
             TenantCache::forget('roles_list');
             TenantCache::forget('roles_with_users');
-            app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+            app()[PermissionRegistrar::class]->forgetCachedPermissions();
         } catch (\Exception $e) {
             Log::warning('Cache clear failed: '.$e->getMessage());
         }

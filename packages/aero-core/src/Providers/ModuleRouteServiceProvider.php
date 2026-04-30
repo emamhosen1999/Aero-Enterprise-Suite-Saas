@@ -2,6 +2,9 @@
 
 namespace Aero\Core\Providers;
 
+use Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral;
+use Composer\InstalledVersions;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
@@ -26,7 +29,7 @@ class ModuleRouteServiceProvider extends ServiceProvider
     /**
      * Create a new service provider instance.
      *
-     * @param  \Illuminate\Contracts\Foundation\Application  $app
+     * @param  Application  $app
      * @return void
      */
     public function __construct($app)
@@ -67,13 +70,13 @@ class ModuleRouteServiceProvider extends ServiceProvider
                 $moduleName = basename($directory);
 
                 // Check if module is installed via Composer
-                if (class_exists(\Composer\InstalledVersions::class)) {
+                if (class_exists(InstalledVersions::class)) {
                     // Convert folder name to package name (e.g. aero-hrm -> aero/hrm)
                     $packageName = 'aero/'.str_replace('aero-', '', $moduleName);
 
                     // Skip if package is not installed
-                    if (! \Composer\InstalledVersions::isInstalled($packageName) &&
-                        ! \Composer\InstalledVersions::isInstalled($moduleName)) {
+                    if (! InstalledVersions::isInstalled($packageName) &&
+                        ! InstalledVersions::isInstalled($moduleName)) {
                         continue;
                     }
                 }
@@ -146,7 +149,7 @@ class ModuleRouteServiceProvider extends ServiceProvider
     {
         // InitializeTenancyIfNotCentral initializes tenant context on tenant domains
         // 'tenant' middleware (EnsureTenantContext) ensures valid tenant context exists
-        $tenancyMiddleware = \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class;
+        $tenancyMiddleware = InitializeTenancyIfNotCentral::class;
         $platformDomain = env('PLATFORM_DOMAIN', env('APP_DOMAIN', 'localhost'));
 
         // Register tenant routes (subdomain-based, requires auth)

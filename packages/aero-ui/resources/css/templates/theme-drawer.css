@@ -1,0 +1,31 @@
+/* ── Trigger bubble ───────────────────────────────────────────── */
+.aeos-theme-drawer-trigger { position:fixed; bottom:1.5rem; right:1.5rem; width:48px; height:48px; border-radius:50%; background:var(--aeos-primary); border:none; color:var(--aeos-obsidian); cursor:pointer; z-index:1000; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(0,229,255,.4); transition:transform .2s,box-shadow .2s; }
+.aeos-theme-drawer-trigger:hover { transform:scale(1.05); box-shadow:0 6px 24px rgba(0,229,255,.5); }
+
+/* ── Drawer overlay ───────────────────────────────────────────── */
+.aeos-theme-drawer { position:fixed; inset:0; z-index:1001; }
+.aeos-theme-drawer-backdrop { position:absolute; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(4px); }
+.aeos-theme-drawer-panel { position:absolute; top:0; right:0; bottom:0; width:380px; background:var(--aeos-bg-elevated); border-left:1px solid var(--aeos-border); overflow-y:auto; animation:aeos-anim-slide-in-right .3s var(--aeos-ease-out); }
+@media (max-width:480px) { .aeos-theme-drawer-panel { width:100%; } }
+
+/* ── Panel header ─────────────────────────────────────────────── */
+.aeos-theme-drawer-header { display:flex; align-items:center; justify-content:space-between; padding:1.5rem; border-bottom:1px solid var(--aeos-border); position:sticky; top:0; background:var(--aeos-bg-elevated); z-index:1; }
+.aeos-theme-drawer-title  { font-size:1.1rem; font-weight:600; color:var(--aeos-text-primary); }
+.aeos-theme-drawer-content { padding:1.5rem; }
+
+/* ── Sections ─────────────────────────────────────────────────── */
+.aeos-theme-section       { margin-bottom:2rem; }
+.aeos-theme-section-title { font-size:0.75rem; text-transform:uppercase; letter-spacing:.15em; color:var(--aeos-text-secondary); font-weight:600; margin-bottom:0.75rem; }
+.aeos-theme-grid          { display:grid; grid-template-columns:repeat(2,1fr); gap:0.5rem; }
+.aeos-theme-chip { padding:0.5rem 0.75rem; border-radius:6px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); color:var(--aeos-text-primary); font-size:0.8rem; cursor:pointer; transition:all .15s; display:flex; align-items:center; justify-content:center; gap:0.5rem; }
+.aeos-theme-chip:hover { background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.12); }
+.aeos-theme-chip.is-active { background:rgba(0,229,255,.12); border-color:rgba(0,229,255,.3); color:var(--aeos-primary); }
+
+/* ── Color swatches ───────────────────────────────────────────── */
+.aeos-theme-color-grid    { display:grid; grid-template-columns:repeat(6,1fr); gap:0.5rem; }
+.aeos-theme-color-swatch  { width:32px; height:32px; border-radius:50%; cursor:pointer; border:2px solid transparent; transition:all .15s; background:var(--swatch-color,transparent); }
+.aeos-theme-color-swatch:hover { transform:scale(1.1); }
+.aeos-theme-color-swatch.is-active { border-color:var(--aeos-text-primary); box-shadow:0 0 0 2px var(--aeos-bg-elevated),0 0 0 4px var(--aeos-text-primary); }
+
+/* ── Font select ──────────────────────────────────────────────── */
+.aeos-theme-select select { width:100%; padding:0.6rem; border-radius:6px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); color:var(--aeos-text-primary); font-size:0.85rem; }

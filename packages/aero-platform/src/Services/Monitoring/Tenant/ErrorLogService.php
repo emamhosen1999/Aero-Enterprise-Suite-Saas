@@ -3,10 +3,22 @@
 namespace Aero\Platform\Services\Monitoring\Tenant;
 
 use Aero\Platform\Models\ErrorLog;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Stancl\Tenancy\Exceptions\TenantCouldNotBeIdentifiedById;
+use Stancl\Tenancy\Exceptions\TenantCouldNotBeIdentifiedByPathException;
+use Stancl\Tenancy\Exceptions\TenantCouldNotBeIdentifiedOnDomainException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 use Throwable;
 
 /**
@@ -183,14 +195,14 @@ class ErrorLogService
     private function getPublicContext(Throwable $exception): array
     {
         // For validation exceptions, include field errors
-        if ($exception instanceof \Illuminate\Validation\ValidationException) {
+        if ($exception instanceof ValidationException) {
             return [
                 'validation_errors' => $exception->errors(),
             ];
         }
 
         // For model not found
-        if ($exception instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
+        if ($exception instanceof ModelNotFoundException) {
             return [
                 'model' => class_basename($exception->getModel()),
             ];
@@ -206,17 +218,17 @@ class ErrorLogService
     {
         // Handle specific exception types
         return match (true) {
-            $exception instanceof \Illuminate\Validation\ValidationException => 422,
-            $exception instanceof \Illuminate\Auth\AuthenticationException => 401,
-            $exception instanceof \Illuminate\Auth\Access\AuthorizationException => 403,
-            $exception instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException => 404,
-            $exception instanceof \Illuminate\Database\Eloquent\ModelNotFoundException => 404,
-            $exception instanceof \Illuminate\Session\TokenMismatchException => 419,
-            $exception instanceof \Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException => 429,
-            $exception instanceof \Stancl\Tenancy\Exceptions\TenantCouldNotBeIdentifiedOnDomainException => 404,
-            $exception instanceof \Stancl\Tenancy\Exceptions\TenantCouldNotBeIdentifiedById => 404,
-            $exception instanceof \Stancl\Tenancy\Exceptions\TenantCouldNotBeIdentifiedByPathException => 404,
-            $exception instanceof \Symfony\Component\HttpKernel\Exception\HttpException => $exception->getStatusCode(),
+            $exception instanceof ValidationException => 422,
+            $exception instanceof AuthenticationException => 401,
+            $exception instanceof AuthorizationException => 403,
+            $exception instanceof NotFoundHttpException => 404,
+            $exception instanceof ModelNotFoundException => 404,
+            $exception instanceof TokenMismatchException => 419,
+            $exception instanceof TooManyRequestsHttpException => 429,
+            $exception instanceof TenantCouldNotBeIdentifiedOnDomainException => 404,
+            $exception instanceof TenantCouldNotBeIdentifiedById => 404,
+            $exception instanceof TenantCouldNotBeIdentifiedByPathException => 404,
+            $exception instanceof HttpException => $exception->getStatusCode(),
             default => 500,
         };
     }
@@ -227,18 +239,18 @@ class ErrorLogService
     private function getExceptionType(Throwable $exception): string
     {
         return match (true) {
-            $exception instanceof \Illuminate\Validation\ValidationException => 'ValidationException',
-            $exception instanceof \Illuminate\Auth\AuthenticationException => 'AuthenticationException',
-            $exception instanceof \Illuminate\Auth\Access\AuthorizationException => 'AuthorizationException',
-            $exception instanceof \Illuminate\Database\Eloquent\ModelNotFoundException => 'ModelNotFoundException',
-            $exception instanceof \Illuminate\Database\QueryException => 'DatabaseException',
-            $exception instanceof \Illuminate\Session\TokenMismatchException => 'TokenMismatchException',
-            $exception instanceof \Stancl\Tenancy\Exceptions\TenantCouldNotBeIdentifiedOnDomainException => 'TenantNotFoundException',
-            $exception instanceof \Stancl\Tenancy\Exceptions\TenantCouldNotBeIdentifiedById => 'TenantNotFoundException',
-            $exception instanceof \Stancl\Tenancy\Exceptions\TenantCouldNotBeIdentifiedByPathException => 'TenantNotFoundException',
-            $exception instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException => 'NotFoundException',
-            $exception instanceof \Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException => 'RateLimitException',
-            $exception instanceof \Symfony\Component\HttpKernel\Exception\HttpException => 'HttpException',
+            $exception instanceof ValidationException => 'ValidationException',
+            $exception instanceof AuthenticationException => 'AuthenticationException',
+            $exception instanceof AuthorizationException => 'AuthorizationException',
+            $exception instanceof ModelNotFoundException => 'ModelNotFoundException',
+            $exception instanceof QueryException => 'DatabaseException',
+            $exception instanceof TokenMismatchException => 'TokenMismatchException',
+            $exception instanceof TenantCouldNotBeIdentifiedOnDomainException => 'TenantNotFoundException',
+            $exception instanceof TenantCouldNotBeIdentifiedById => 'TenantNotFoundException',
+            $exception instanceof TenantCouldNotBeIdentifiedByPathException => 'TenantNotFoundException',
+            $exception instanceof NotFoundHttpException => 'NotFoundException',
+            $exception instanceof TooManyRequestsHttpException => 'RateLimitException',
+            $exception instanceof HttpException => 'HttpException',
             default => class_basename($exception),
         };
     }

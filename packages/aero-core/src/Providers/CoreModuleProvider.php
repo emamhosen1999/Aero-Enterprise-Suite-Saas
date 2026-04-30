@@ -2,7 +2,32 @@
 
 namespace Aero\Core\Providers;
 
+use Aero\Core\Console\Commands\InstallationCommand;
+use Aero\Core\Console\Commands\InstallCommand;
+use Aero\Core\Console\Commands\SeedCommand;
+use Aero\Core\Console\Commands\SyncModuleHierarchy;
+use Aero\Core\Console\Commands\SyncModuleMigrations;
+use Aero\Core\Console\Commands\SyncModuleRegistryCommand;
+use Aero\Core\Console\Commands\TagMigrationsCommand;
+use Aero\Core\Console\Commands\VerifyInstallationCommand;
+use Aero\Core\Console\Commands\VerifyModulesCommand;
+use Aero\Core\Http\Middleware\BootstrapGuard;
+use Aero\Core\Http\Middleware\DashboardRedirectMiddleware;
+use Aero\Core\Http\Middleware\EnsureUserHasRole;
+use Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral;
+use Aero\Core\Http\Middleware\ModuleAccessMiddleware;
+use Aero\Core\Http\Middleware\PermissionMiddleware;
+use Aero\Core\Http\Middleware\PreventInstalledAccess;
+use Aero\Core\Models\User;
+use Aero\Core\Observers\UserQuotaObserver;
+use Aero\Core\Policies\RolePolicy;
+use Aero\Core\Policies\UserPolicy;
+use Aero\Core\Services\DashboardRegistry;
+use Aero\HRMAC\Models\Role;
+use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\URL;
 
 /**
  * Core Module Provider
@@ -75,8 +100,8 @@ class CoreModuleProvider extends AbstractModuleProvider
         parent::register();
 
         // Register DashboardRegistry as singleton
-        $this->app->singleton(\Aero\Core\Services\DashboardRegistry::class, function ($app) {
-            return new \Aero\Core\Services\DashboardRegistry;
+        $this->app->singleton(DashboardRegistry::class, function ($app) {
+            return new DashboardRegistry;
         });
 
         // In standalone mode, push the global BootstrapGuard middleware
@@ -85,8 +110,8 @@ class CoreModuleProvider extends AbstractModuleProvider
         // 2. Forcing file-based sessions during installation
         // 3. Redirecting to /install if not installed
         if (config('aero.mode') === 'standalone') {
-            $kernel = $this->app->make(\Illuminate\Contracts\Http\Kernel::class);
-            $kernel->pushMiddleware(\Aero\Core\Http\Middleware\BootstrapGuard::class);
+            $kernel = $this->app->make(Kernel::class);
+            $kernel->pushMiddleware(BootstrapGuard::class);
         }
     }
 
@@ -103,15 +128,14 @@ class CoreModuleProvider extends AbstractModuleProvider
         if ($appUrl) {
             $scheme = parse_url($appUrl, PHP_URL_SCHEME);
             if ($scheme) {
-                \Illuminate\Support\Facades\URL::forceScheme($scheme);
+                URL::forceScheme($scheme);
             }
         }
 
         // In standalone mode, load installation routes if not installed
         if (config('aero.mode') === 'standalone' && ! file_exists(storage_path('app/aeos.installed'))) {
-            // Load installation routes WITHOUT module prefix
-            \Illuminate\Support\Facades\Route::middleware(['web'])
-                ->group(__DIR__.'/../../routes/installation.php');
+            // Installation routes are now handled by aero-installation package
+            // Skip loading installation routes here
         }
 
         // Call parent boot - it loads views, migrations, and web.php (with module prefix)
@@ -197,7 +221,7 @@ class CoreModuleProvider extends AbstractModuleProvider
             Route::domain('{tenant}.'.$platformDomain)
                 ->middleware([
                     'web',
-                    \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
+                    InitializeTenancyIfNotCentral::class,
                     'tenant',
                 ])->group($routesPath.'/web.php');
         } else {
@@ -214,7 +238,7 @@ class CoreModuleProvider extends AbstractModuleProvider
         $this->registerMiddleware();
 
         // Register model observers
-        \Aero\Core\Models\User::observe(\Aero\Core\Observers\UserQuotaObserver::class);
+        User::observe(UserQuotaObserver::class);
 
         // Register policies
         $this->registerPolicies();
@@ -234,11 +258,11 @@ class CoreModuleProvider extends AbstractModuleProvider
      */
     protected function registerDashboards(): void
     {
-        if (! $this->app->bound(\Aero\Core\Services\DashboardRegistry::class)) {
+        if (! $this->app->bound(DashboardRegistry::class)) {
             return;
         }
 
-        $registry = $this->app->make(\Aero\Core\Services\DashboardRegistry::class);
+        $registry = $this->app->make(DashboardRegistry::class);
 
         // Register Core Dashboard - route name is 'core.dashboard' (maps to /dashboard)
         $registry->registerMany([
@@ -259,18 +283,18 @@ class CoreModuleProvider extends AbstractModuleProvider
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
-                \Aero\Core\Console\Commands\SyncModuleHierarchy::class,
-                \Aero\Core\Console\Commands\SyncModuleMigrations::class,
-                \Aero\Core\Console\Commands\SeedCommand::class,
-                \Aero\Core\Console\Commands\InstallCommand::class,
+                SyncModuleHierarchy::class,
+                SyncModuleMigrations::class,
+                SeedCommand::class,
+                InstallCommand::class,
                 // Phase 1: Installation metadata & tagging
-                \Aero\Core\Console\Commands\TagMigrationsCommand::class,
-                \Aero\Core\Console\Commands\VerifyInstallationCommand::class,
+                TagMigrationsCommand::class,
+                VerifyInstallationCommand::class,
                 // Phase 2: Module verification & registry
-                \Aero\Core\Console\Commands\VerifyModulesCommand::class,
-                \Aero\Core\Console\Commands\SyncModuleRegistryCommand::class,
+                VerifyModulesCommand::class,
+                SyncModuleRegistryCommand::class,
                 // Phase 3: Installation orchestrator
-                \Aero\Core\Console\Commands\InstallationCommand::class,
+                InstallationCommand::class,
             ]);
         }
     }
@@ -284,11 +308,11 @@ class CoreModuleProvider extends AbstractModuleProvider
 
         // Register route middleware aliases
         // Note: 'auth' middleware is provided by Laravel by default
-        $router->aliasMiddleware('module.access', \Aero\Core\Http\Middleware\ModuleAccessMiddleware::class);
-        $router->aliasMiddleware('permission', \Aero\Core\Http\Middleware\PermissionMiddleware::class);
-        $router->aliasMiddleware('role', \Aero\Core\Http\Middleware\EnsureUserHasRole::class);
-        $router->aliasMiddleware('prevent.installed', \Aero\Core\Http\Middleware\PreventInstalledAccess::class);
-        $router->aliasMiddleware('dashboard.redirect', \Aero\Core\Http\Middleware\DashboardRedirectMiddleware::class);
+        $router->aliasMiddleware('module.access', ModuleAccessMiddleware::class);
+        $router->aliasMiddleware('permission', PermissionMiddleware::class);
+        $router->aliasMiddleware('role', EnsureUserHasRole::class);
+        $router->aliasMiddleware('prevent.installed', PreventInstalledAccess::class);
+        $router->aliasMiddleware('dashboard.redirect', DashboardRedirectMiddleware::class);
 
         // Note: BootstrapGuard is registered globally in register() method for standalone mode.
         // No additional installation middleware is needed in the web group.
@@ -301,14 +325,14 @@ class CoreModuleProvider extends AbstractModuleProvider
     {
         // Register policies if AuthServiceProvider exists
         if (class_exists('\Illuminate\Support\Facades\Gate')) {
-            \Illuminate\Support\Facades\Gate::policy(
-                \Aero\Core\Models\User::class,
-                \Aero\Core\Policies\UserPolicy::class
+            Gate::policy(
+                User::class,
+                UserPolicy::class
             );
 
-            \Illuminate\Support\Facades\Gate::policy(
-                \Aero\HRMAC\Models\Role::class,
-                \Aero\Core\Policies\RolePolicy::class
+            Gate::policy(
+                Role::class,
+                RolePolicy::class
             );
         }
     }

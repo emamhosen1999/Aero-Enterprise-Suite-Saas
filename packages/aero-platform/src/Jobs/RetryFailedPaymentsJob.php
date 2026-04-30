@@ -4,6 +4,7 @@ namespace Aero\Platform\Jobs;
 
 use Aero\Platform\Services\MailService;
 use Aero\Platform\Services\SmsService;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -221,7 +222,7 @@ class RetryFailedPaymentsJob implements ShouldQueue
                 'payment_method' => 'Card',
                 'last_four' => $subscription->payment_method_last_four ?? '****',
                 'attempt_date' => now()->format('M d, Y'),
-                'next_retry' => $subscription->next_retry_at ? \Carbon\Carbon::parse($subscription->next_retry_at)->format('M d, Y') : 'Soon',
+                'next_retry' => $subscription->next_retry_at ? Carbon::parse($subscription->next_retry_at)->format('M d, Y') : 'Soon',
                 'grace_period' => 10,
                 'billing_url' => config('app.url').'/billing',
                 'support_url' => config('app.url').'/support',

@@ -33,12 +33,12 @@ class VerifyModulesCommand extends Command
         $this->info('=== Module Verification Report ===');
         $this->newLine();
 
-        $verifier = new ModuleVerificationService();
+        $verifier = new ModuleVerificationService;
 
         // Get modules to verify
         $query = DB::table('module_installations');
-        
-        if (!empty($specificModules) && $specificModules !== ['*']) {
+
+        if (! empty($specificModules) && $specificModules !== ['*']) {
             $query->whereIn('module_code', $specificModules);
         } else {
             $query->where('status', '!=', 'disabled');
@@ -48,6 +48,7 @@ class VerifyModulesCommand extends Command
 
         if ($modules->isEmpty()) {
             $this->warn('No modules found to verify.');
+
             return 0;
         }
 
@@ -67,7 +68,7 @@ class VerifyModulesCommand extends Command
             $results[$module->module_code] = $result;
 
             $totalChecks += 6; // 6 check types per module
-            
+
             // Display checks
             foreach ($result['checks'] as $checkName => $checkStatus) {
                 $icon = match ($checkStatus) {
@@ -76,7 +77,7 @@ class VerifyModulesCommand extends Command
                     'failed' => '✗',
                     default => '?',
                 };
-                
+
                 $color = match ($checkStatus) {
                     'ok', 'exists' => 'green',
                     'missing', 'not-loaded', 'not-registered', 'not-synced', 'incomplete', 'unknown' => 'yellow',
@@ -112,14 +113,14 @@ class VerifyModulesCommand extends Command
             };
 
             $this->line("     <fg={$resultColor}>{$resultIcon} {$result['status']}</>");
-            
-            if (!empty($result['errors'])) {
+
+            if (! empty($result['errors'])) {
                 foreach ($result['errors'] as $error) {
                     $this->line("        <fg=red>ERROR:</> {$error}");
                 }
             }
-            
-            if ($verbose && !empty($result['warnings'])) {
+
+            if ($verbose && ! empty($result['warnings'])) {
                 foreach ($result['warnings'] as $warning) {
                     $this->line("        <fg=yellow>WARNING:</> {$warning}");
                 }
@@ -148,9 +149,11 @@ class VerifyModulesCommand extends Command
 
         if ($report['failed'] === 0) {
             $this->info('<fg=green>✓ All modules verified successfully!</>');
+
             return 0;
         } else {
             $this->error("<fg=red>✗ {$report['failed']} module(s) failed verification.</>");
+
             return 1;
         }
     }

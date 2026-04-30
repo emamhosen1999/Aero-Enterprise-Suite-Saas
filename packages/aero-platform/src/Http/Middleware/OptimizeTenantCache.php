@@ -3,6 +3,8 @@
 namespace Aero\Platform\Http\Middleware;
 
 use Aero\Core\Support\TenantCache;
+use Aero\HRMAC\Models\Role;
+use App\Models\SystemSetting;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -114,7 +116,7 @@ class OptimizeTenantCache
     protected function warmRolesCache(string $tenantId): void
     {
         try {
-            $roles = \Aero\HRMAC\Models\Role::get(['id', 'name', 'guard_name']);
+            $roles = Role::get(['id', 'name', 'guard_name']);
             $this->taggedCache($tenantId)->put(
                 'all_roles',
                 $roles->toArray(),
@@ -150,7 +152,7 @@ class OptimizeTenantCache
     protected function warmSettingsCache(string $tenantId): void
     {
         try {
-            $settings = \App\Models\SystemSetting::first();
+            $settings = SystemSetting::first();
             if ($settings) {
                 $this->taggedCache($tenantId)->put(
                     'system_settings',

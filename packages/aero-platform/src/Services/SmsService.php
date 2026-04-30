@@ -2,6 +2,7 @@
 
 namespace Aero\Platform\Services;
 
+use Aero\Platform\Jobs\SendSmsJob;
 use Aws\Exception\AwsException;
 use Aws\Sns\SnsClient;
 use Exception;
@@ -224,7 +225,7 @@ class SmsService
     protected function queueSms(string $to, string $message): array
     {
         try {
-            $job = new \Aero\Platform\Jobs\SendSmsJob([
+            $job = new SendSmsJob([
                 'to' => $to,
                 'message' => $message,
                 'maxRetries' => $this->maxRetries,

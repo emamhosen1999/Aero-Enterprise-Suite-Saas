@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aero\Platform\Auth;
 
 use Illuminate\Auth\EloquentUserProvider;
+use Illuminate\Contracts\Auth\Authenticatable;
 
 /**
  * Custom user provider for Twill CMS authentication.
@@ -22,7 +23,7 @@ class LandlordUserProvider extends EloquentUserProvider
      * Retrieve a user by the given credentials.
      * Translates Twill's 'published' field to our 'active' field.
      */
-    public function retrieveByCredentials(#[\SensitiveParameter] array $credentials): ?\Illuminate\Contracts\Auth\Authenticatable
+    public function retrieveByCredentials(#[\SensitiveParameter] array $credentials): ?Authenticatable
     {
         if (array_key_exists('published', $credentials)) {
             $credentials['active'] = $credentials['published'];

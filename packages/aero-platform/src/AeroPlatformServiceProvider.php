@@ -2,23 +2,92 @@
 
 namespace Aero\Platform;
 
+use Aero\Auth\Context\TenantAuthContext;
+use Aero\Auth\Contracts\AuthContext;
 use Aero\Core\Contracts\TenantScopeInterface;
 use Aero\Core\Services\NavigationRegistry;
+use Aero\Core\Traits\ParsesHostDomain;
 use Aero\HRMAC\Services\RoleModuleAccessService as HRMACRoleModuleAccessService;
+use Aero\I18n\Http\Middleware\SetLocale;
+use Aero\Platform\Auth\LandlordAuthContext;
+use Aero\Platform\Bootstrappers\CachePrefixTenancyBootstrapper;
+use Aero\Platform\Console\Commands\CleanupFailedInstallation;
+use Aero\Platform\Console\Commands\EnsureSuperAdmin;
+use Aero\Platform\Console\Commands\ExpireGracePeriods;
+use Aero\Platform\Console\Commands\ProcessPendingSubscriptionChanges;
+use Aero\Platform\Console\Commands\ProcessSubscriptionRenewals;
+use Aero\Platform\Console\Commands\PurgeExpiredTenants;
+use Aero\Platform\Console\Commands\SetupApplication;
+use Aero\Platform\Console\Commands\TenantCreate;
+use Aero\Platform\Console\Commands\TenantFlush;
+use Aero\Platform\Console\Commands\TenantHealth;
+use Aero\Platform\Console\Commands\TenantMigrate;
+use Aero\Platform\Http\Middleware\BootstrapGuard;
+use Aero\Platform\Http\Middleware\CheckMaintenanceMode;
+use Aero\Platform\Http\Middleware\CheckModuleAccess;
+use Aero\Platform\Http\Middleware\CheckModuleSubscription;
+use Aero\Platform\Http\Middleware\CheckRoleModuleAccess;
+use Aero\Platform\Http\Middleware\EnforceSubscription;
+use Aero\Platform\Http\Middleware\EnforceTenantQuotas;
+use Aero\Platform\Http\Middleware\EnsureAdminDomain;
+use Aero\Platform\Http\Middleware\EnsureLandlordGuard;
+use Aero\Platform\Http\Middleware\EnsurePlatformDomain;
+use Aero\Platform\Http\Middleware\EnsureTenantIsActive;
+use Aero\Platform\Http\Middleware\EnsureTenantIsSetup;
+use Aero\Platform\Http\Middleware\EnsureUserHasRole;
+use Aero\Platform\Http\Middleware\ForceFileSessionForInstallation;
+use Aero\Platform\Http\Middleware\HandleInertiaRequests;
+use Aero\Platform\Http\Middleware\IdentifyDomainContext;
+use Aero\Platform\Http\Middleware\ModuleAccessMiddleware;
+use Aero\Platform\Http\Middleware\PermissionMiddleware;
+use Aero\Platform\Http\Middleware\PlatformSuperAdmin;
+use Aero\Platform\Http\Middleware\RequireSaasMode;
+use Aero\Platform\Http\Middleware\RequireTenantOnboarding;
+use Aero\Platform\Http\Middleware\SetDatabaseConnectionFromDomain;
+use Aero\Platform\Http\Middleware\SmartLandingRedirect;
+use Aero\Platform\Http\Middleware\TenantSuperAdmin;
+use Aero\Platform\Http\Middleware\TrustHosts;
 use Aero\Platform\Listeners\TenantCreatedListener;
 use Aero\Platform\Models\LandlordUser;
+use Aero\Platform\Models\Plan;
+use Aero\Platform\Models\Tenant;
+use Aero\Platform\Observers\PlanAuditObserver;
+use Aero\Platform\Policies\PlanPolicy;
+use Aero\Platform\Policies\TenantPolicy;
+use Aero\Platform\Providers\TenancyBootstrapServiceProvider;
 use Aero\Platform\Services\Billing\SslCommerzService;
 use Aero\Platform\Services\Module\ModuleAccessService;
 use Aero\Platform\Services\Module\NullRoleModuleAccessService;
 use Aero\Platform\Services\Module\RoleModuleAccessService;
 use Aero\Platform\Services\Monitoring\Tenant\ErrorLogService;
 use Aero\Platform\Services\PlatformSettingService;
+use Aero\Platform\Services\PlatformWidgetRegistry;
 use Aero\Platform\Services\SaaSTenantScope;
+use Aero\Platform\Services\Tenant\TenantPurgeService;
+use Aero\Platform\Services\Tenant\TenantRetentionService;
+use Aero\Platform\Widgets\BillingOverviewWidget;
+use Aero\Platform\Widgets\ModuleUsageWidget;
+use Aero\Platform\Widgets\PlatformStatsWidget;
+use Aero\Platform\Widgets\QuickActionsWidget;
+use Aero\Platform\Widgets\RecentActivityWidget;
+use Aero\Platform\Widgets\RecentTenantsWidget;
+use Aero\Platform\Widgets\SubscriptionDistributionWidget;
+use Aero\Platform\Widgets\SystemAlertsWidget;
+use Aero\Platform\Widgets\SystemHealthWidget;
+use Illuminate\Auth\Middleware\Authenticate;
+use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
+use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Database\Migrations\Migrator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
-use Laravel\Fortify\Fortify;
+use Stancl\Tenancy\Bootstrappers\DatabaseTenancyBootstrapper;
+use Stancl\Tenancy\Bootstrappers\QueueTenancyBootstrapper;
 use Stancl\Tenancy\Events\TenantCreated;
 
 /**
@@ -37,17 +106,25 @@ class AeroPlatformServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Disable Fortify's default routes - we define auth routes with proper domain restrictions
-        // Admin subdomain uses Platform's AuthenticatedSessionController
-        // Tenant subdomains use Core's AuthenticatedSessionController
-        Fortify::ignoreRoutes();
+        // Override the AuthContext binding with a domain-aware closure.
+        // On admin subdomain requests → LandlordAuthContext (landlord guard).
+        // On tenant subdomain requests → TenantAuthContext (web guard).
+        $this->app->bind(AuthContext::class, function ($app) {
+            $request = $app->make('request');
+            $host = $request->getHost();
+            $adminHost = config('aero.admin_domain', 'admin.'.config('app.domain', parse_url(config('app.url', ''), PHP_URL_HOST)));
+
+            return str_starts_with($host, 'admin.') || $host === $adminHost
+                ? new LandlordAuthContext
+                : new TenantAuthContext;
+        });
 
         // Register global BootstrapGuard middleware FIRST
         // This runs before route matching and handles:
         // 1. Installation status check
         // 2. Cross-domain redirect to platform /install if not installed
-        $kernel = $this->app->make(\Illuminate\Contracts\Http\Kernel::class);
-        $kernel->pushMiddleware(\Aero\Platform\Http\Middleware\BootstrapGuard::class);
+        $kernel = $this->app->make(Kernel::class);
+        $kernel->pushMiddleware(BootstrapGuard::class);
 
         // CRITICAL: Only register tenancy if installed AND in SaaS mode
         // This prevents tenancy from being enabled during installation
@@ -56,7 +133,7 @@ class AeroPlatformServiceProvider extends ServiceProvider
             // Register the TenancyBootstrapServiceProvider
             // CRITICAL: This registers event listeners for TenancyInitialized which
             // runs the DatabaseTenancyBootstrapper to switch DB connections
-            $this->app->register(\Aero\Platform\Providers\TenancyBootstrapServiceProvider::class);
+            $this->app->register(TenancyBootstrapServiceProvider::class);
         }
 
         // Override Core's migrator to ONLY use platform migrations on landlord database
@@ -128,11 +205,11 @@ class AeroPlatformServiceProvider extends ServiceProvider
         $this->app->singleton(SslCommerzService::class);
 
         // Register tenant lifecycle services
-        $this->app->singleton(\Aero\Platform\Services\Tenant\TenantRetentionService::class);
-        $this->app->singleton(\Aero\Platform\Services\Tenant\TenantPurgeService::class);
+        $this->app->singleton(TenantRetentionService::class);
+        $this->app->singleton(TenantPurgeService::class);
 
         // Register Platform's own widget registry (independent from Core)
-        $this->app->singleton(\Aero\Platform\Services\PlatformWidgetRegistry::class);
+        $this->app->singleton(PlatformWidgetRegistry::class);
 
         // Configure auth guards and providers programmatically
         $this->configureAuth();
@@ -156,14 +233,14 @@ class AeroPlatformServiceProvider extends ServiceProvider
     protected function registerPolicies(): void
     {
         if (class_exists('\Illuminate\Support\Facades\Gate')) {
-            \Illuminate\Support\Facades\Gate::policy(
-                \Aero\Platform\Models\Plan::class,
-                \Aero\Platform\Policies\PlanPolicy::class
+            Gate::policy(
+                Plan::class,
+                PlanPolicy::class
             );
 
-            \Illuminate\Support\Facades\Gate::policy(
-                \Aero\Platform\Models\Tenant::class,
-                \Aero\Platform\Policies\TenantPolicy::class
+            Gate::policy(
+                Tenant::class,
+                TenantPolicy::class
             );
         }
     }
@@ -174,16 +251,16 @@ class AeroPlatformServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Register Plan audit observer
-        \Aero\Platform\Models\Plan::observe(\Aero\Platform\Observers\PlanAuditObserver::class);
+        Plan::observe(PlanAuditObserver::class);
 
         // Override tenancy bootstrappers after all providers registered
         // FilesystemTenancyBootstrapper disabled - causes "Undefined array key 'local'" error
         // Using custom CachePrefixTenancyBootstrapper instead of stancl's CacheTenancyBootstrapper
         // because file/database cache drivers don't support tagging
         Config::set('tenancy.bootstrappers', [
-            \Stancl\Tenancy\Bootstrappers\DatabaseTenancyBootstrapper::class,
-            \Aero\Platform\Bootstrappers\CachePrefixTenancyBootstrapper::class, // Works with all cache drivers
-            \Stancl\Tenancy\Bootstrappers\QueueTenancyBootstrapper::class,
+            DatabaseTenancyBootstrapper::class,
+            CachePrefixTenancyBootstrapper::class, // Works with all cache drivers
+            QueueTenancyBootstrapper::class,
         ]);
 
         // CRITICAL: Override central_domains to include the platform domain and admin subdomain
@@ -193,7 +270,7 @@ class AeroPlatformServiceProvider extends ServiceProvider
 
         // Force HTTPS for all generated URLs when APP_URL uses https
         if (str_starts_with(config('app.url', ''), 'https://')) {
-            \Illuminate\Support\Facades\URL::forceScheme('https');
+            URL::forceScheme('https');
         }
 
         // ONLY register platform routes, middleware, and features in SaaS mode
@@ -215,14 +292,14 @@ class AeroPlatformServiceProvider extends ServiceProvider
         // Always load installation wizard routes (needed during installation)
         $installationRoutes = __DIR__.'/../routes/installation.php';
         if (file_exists($installationRoutes)) {
-            \Illuminate\Support\Facades\Route::middleware(['web', \Aero\Platform\Http\Middleware\ForceFileSessionForInstallation::class])
+            Route::middleware(['web', ForceFileSessionForInstallation::class])
                 ->group($installationRoutes);
         }
 
         // Register commands
         if ($this->app->runningInConsole()) {
             $this->commands([
-                \Aero\Platform\Console\Commands\PurgeExpiredTenants::class,
+                PurgeExpiredTenants::class,
             ]);
         }
 
@@ -238,16 +315,16 @@ class AeroPlatformServiceProvider extends ServiceProvider
         // Register commands
         if ($this->app->runningInConsole()) {
             $this->commands([
-                \Aero\Platform\Console\Commands\TenantCreate::class,
-                \Aero\Platform\Console\Commands\TenantMigrate::class,
-                \Aero\Platform\Console\Commands\TenantFlush::class,
-                \Aero\Platform\Console\Commands\TenantHealth::class,
-                \Aero\Platform\Console\Commands\EnsureSuperAdmin::class,
-                \Aero\Platform\Console\Commands\SetupApplication::class,
-                \Aero\Platform\Console\Commands\CleanupFailedInstallation::class,
-                \Aero\Platform\Console\Commands\ProcessPendingSubscriptionChanges::class,
-                \Aero\Platform\Console\Commands\ProcessSubscriptionRenewals::class,
-                \Aero\Platform\Console\Commands\ExpireGracePeriods::class,
+                TenantCreate::class,
+                TenantMigrate::class,
+                TenantFlush::class,
+                TenantHealth::class,
+                EnsureSuperAdmin::class,
+                SetupApplication::class,
+                CleanupFailedInstallation::class,
+                ProcessPendingSubscriptionChanges::class,
+                ProcessSubscriptionRenewals::class,
+                ExpireGracePeriods::class,
             ]);
         }
 
@@ -278,26 +355,26 @@ class AeroPlatformServiceProvider extends ServiceProvider
     protected function registerPlatformDashboardWidgets(): void
     {
         // Use Platform's own registry, NOT Core's DashboardWidgetRegistry
-        $registry = $this->app->make(\Aero\Platform\Services\PlatformWidgetRegistry::class);
+        $registry = $this->app->make(PlatformWidgetRegistry::class);
 
         // Register Platform widgets (order matters for display)
         $registry->registerMany([
             // Stats row (full width grid)
-            new \Aero\Platform\Widgets\PlatformStatsWidget,
+            new PlatformStatsWidget,
 
             // Main content area (left 2/3)
-            new \Aero\Platform\Widgets\RecentTenantsWidget,
-            new \Aero\Platform\Widgets\ModuleUsageWidget,
-            new \Aero\Platform\Widgets\RecentActivityWidget,
-            new \Aero\Platform\Widgets\QuickActionsWidget,
+            new RecentTenantsWidget,
+            new ModuleUsageWidget,
+            new RecentActivityWidget,
+            new QuickActionsWidget,
 
             // Main content area (right 1/3)
-            new \Aero\Platform\Widgets\BillingOverviewWidget,
+            new BillingOverviewWidget,
 
             // Sidebar area
-            new \Aero\Platform\Widgets\SystemAlertsWidget,
-            new \Aero\Platform\Widgets\SubscriptionDistributionWidget,
-            new \Aero\Platform\Widgets\SystemHealthWidget,
+            new SystemAlertsWidget,
+            new SubscriptionDistributionWidget,
+            new SystemHealthWidget,
         ]);
     }
 
@@ -396,61 +473,61 @@ class AeroPlatformServiceProvider extends ServiceProvider
         // This is required because middleware groups are compiled during kernel bootstrap
         $this->app->booted(function () {
             $router = $this->app->make('router');
-            $kernel = $this->app->make(\Illuminate\Contracts\Http\Kernel::class);
+            $kernel = $this->app->make(Kernel::class);
 
             // Register TrustHosts middleware globally (prevents Host header spoofing)
             // This must run very early, before any domain-based logic
-            $kernel->prependMiddleware(\Aero\Platform\Http\Middleware\TrustHosts::class);
+            $kernel->prependMiddleware(TrustHosts::class);
 
             // CRITICAL: Register Database Firewall middleware FIRST (before sessions)
             // This ensures correct database connection for session storage on central domains
-            $router->prependMiddlewareToGroup('web', \Aero\Platform\Http\Middleware\SetDatabaseConnectionFromDomain::class);
+            $router->prependMiddlewareToGroup('web', SetDatabaseConnectionFromDomain::class);
 
             // Force file-based sessions/cache for installation routes BEFORE StartSession
             // so the installer can run without database-backed sessions/tables.
-            $router->prependMiddlewareToGroup('web', \Aero\Platform\Http\Middleware\ForceFileSessionForInstallation::class);
+            $router->prependMiddlewareToGroup('web', ForceFileSessionForInstallation::class);
 
             // Note: BootstrapGuard is registered globally in register() method.
             // It handles installation checks before any routing occurs.
 
             // Register IdentifyDomainContext to set context for the request
-            $router->prependMiddlewareToGroup('web', \Aero\Platform\Http\Middleware\IdentifyDomainContext::class);
+            $router->prependMiddlewareToGroup('web', IdentifyDomainContext::class);
 
             // Register HandleInertiaRequests middleware AFTER session starts
             // Using pushMiddlewareToGroup so it runs AFTER StartSession
             // This ensures auth is available when sharing props
-            $router->pushMiddlewareToGroup('web', \Aero\Platform\Http\Middleware\HandleInertiaRequests::class);
+            $router->pushMiddlewareToGroup('web', HandleInertiaRequests::class);
         });
 
         $router = $this->app->make('router');
 
         // Register domain middleware aliases for manual use in routes
-        $router->aliasMiddleware('identify.domain', \Aero\Platform\Http\Middleware\IdentifyDomainContext::class);
-        $router->aliasMiddleware('set.database.from.domain', \Aero\Platform\Http\Middleware\SetDatabaseConnectionFromDomain::class);
+        $router->aliasMiddleware('identify.domain', IdentifyDomainContext::class);
+        $router->aliasMiddleware('set.database.from.domain', SetDatabaseConnectionFromDomain::class);
 
         // Core platform middleware aliases
-        $router->aliasMiddleware('module', \Aero\Platform\Http\Middleware\ModuleAccessMiddleware::class);
-        $router->aliasMiddleware('check.module', \Aero\Platform\Http\Middleware\CheckModuleAccess::class);
-        $router->aliasMiddleware('platform.domain', \Aero\Platform\Http\Middleware\EnsurePlatformDomain::class);
-        $router->aliasMiddleware('admin.domain', \Aero\Platform\Http\Middleware\EnsureAdminDomain::class);
-        $router->aliasMiddleware('enforce.subscription', \Aero\Platform\Http\Middleware\EnforceSubscription::class);
-        $router->aliasMiddleware('maintenance', \Aero\Platform\Http\Middleware\CheckMaintenanceMode::class);
-        $router->aliasMiddleware('permission', \Aero\Platform\Http\Middleware\PermissionMiddleware::class);
-        $router->aliasMiddleware('role', \Aero\Platform\Http\Middleware\EnsureUserHasRole::class);
-        $router->aliasMiddleware('landlord', \Aero\Platform\Http\Middleware\EnsureLandlordGuard::class);
-        $router->aliasMiddleware('tenant.active', \Aero\Platform\Http\Middleware\EnsureTenantIsActive::class);
-        $router->aliasMiddleware('platform.super.admin', \Aero\Platform\Http\Middleware\PlatformSuperAdmin::class);
-        $router->aliasMiddleware('tenant.super.admin', \Aero\Platform\Http\Middleware\TenantSuperAdmin::class);
-        $router->aliasMiddleware('tenant.setup', \Aero\Platform\Http\Middleware\EnsureTenantIsSetup::class);
-        $router->aliasMiddleware('tenant.onboarding', \Aero\Platform\Http\Middleware\RequireTenantOnboarding::class);
-        $router->aliasMiddleware('set.locale', \Aero\I18n\Http\Middleware\SetLocale::class);
-        $router->aliasMiddleware('check.subscription', \Aero\Platform\Http\Middleware\CheckModuleSubscription::class);
-        $router->aliasMiddleware('require.saas', \Aero\Platform\Http\Middleware\RequireSaasMode::class);
+        $router->aliasMiddleware('module', ModuleAccessMiddleware::class);
+        $router->aliasMiddleware('check.module', CheckModuleAccess::class);
+        $router->aliasMiddleware('platform.domain', EnsurePlatformDomain::class);
+        $router->aliasMiddleware('admin.domain', EnsureAdminDomain::class);
+        $router->aliasMiddleware('enforce.subscription', EnforceSubscription::class);
+        $router->aliasMiddleware('maintenance', CheckMaintenanceMode::class);
+        $router->aliasMiddleware('permission', PermissionMiddleware::class);
+        $router->aliasMiddleware('role', EnsureUserHasRole::class);
+        $router->aliasMiddleware('landlord', EnsureLandlordGuard::class);
+        $router->aliasMiddleware('tenant.active', EnsureTenantIsActive::class);
+        $router->aliasMiddleware('platform.super.admin', PlatformSuperAdmin::class);
+        $router->aliasMiddleware('tenant.super.admin', TenantSuperAdmin::class);
+        $router->aliasMiddleware('tenant.setup', EnsureTenantIsSetup::class);
+        $router->aliasMiddleware('tenant.onboarding', RequireTenantOnboarding::class);
+        $router->aliasMiddleware('set.locale', SetLocale::class);
+        $router->aliasMiddleware('check.subscription', CheckModuleSubscription::class);
+        $router->aliasMiddleware('require.saas', RequireSaasMode::class);
 
         // Role-based module access middleware (checks role_module_access table)
-        $router->aliasMiddleware('role.access', \Aero\Platform\Http\Middleware\CheckRoleModuleAccess::class);
-        $router->aliasMiddleware('smart.landing', \Aero\Platform\Http\Middleware\SmartLandingRedirect::class);
-        $router->aliasMiddleware('quota', \Aero\Platform\Http\Middleware\EnforceTenantQuotas::class);
+        $router->aliasMiddleware('role.access', CheckRoleModuleAccess::class);
+        $router->aliasMiddleware('smart.landing', SmartLandingRedirect::class);
+        $router->aliasMiddleware('quota', EnforceTenantQuotas::class);
 
         // Optionally push CheckModuleSubscription to 'tenant' middleware group
         // This provides automatic route-based module gating for all tenant routes
@@ -667,7 +744,7 @@ class AeroPlatformServiceProvider extends ServiceProvider
             // Decrypt if encrypted
             if (! empty($config['db_password_encrypted']) && ! empty($password)) {
                 try {
-                    $password = \Illuminate\Support\Facades\Crypt::decryptString($password);
+                    $password = Crypt::decryptString($password);
                 } catch (\Throwable $e) {
                     // Use as-is if decryption fails
                 }
@@ -862,7 +939,7 @@ class AeroPlatformServiceProvider extends ServiceProvider
         $centralDatabase = config('tenancy.database.central_connection', config('database.default'));
 
         $this->app->extend('migrator', function ($migrator, $app) use ($platformMigrationsPath, $centralDatabase) {
-            return new class($app['migration.repository'], $app['db'], $app['files'], $app['events'], $platformMigrationsPath, $centralDatabase) extends \Illuminate\Database\Migrations\Migrator
+            return new class($app['migration.repository'], $app['db'], $app['files'], $app['events'], $platformMigrationsPath, $centralDatabase) extends Migrator
             {
                 protected string $platformMigrationsPath;
 
@@ -922,14 +999,14 @@ class AeroPlatformServiceProvider extends ServiceProvider
         // This was causing issues - admin routes already use auth:landlord explicitly
 
         // Configure the Authenticate middleware to redirect to appropriate login based on domain
-        $this->app->resolving(\Illuminate\Auth\Middleware\Authenticate::class, function ($middleware) {
+        $this->app->resolving(Authenticate::class, function ($middleware) {
             $middleware->redirectUsing(function ($request) {
                 $host = $request->getHost();
 
                 // Use the ParsesHostDomain trait for consistent domain detection
                 $trait = new class
                 {
-                    use \Aero\Core\Traits\ParsesHostDomain;
+                    use ParsesHostDomain;
 
                     public function isAdmin(string $host): bool
                     {
@@ -960,13 +1037,13 @@ class AeroPlatformServiceProvider extends ServiceProvider
 
         // Configure RedirectIfAuthenticated (guest middleware) to redirect authenticated users
         // This is called when an authenticated user tries to access login/register pages
-        \Illuminate\Auth\Middleware\RedirectIfAuthenticated::redirectUsing(function ($request) {
+        RedirectIfAuthenticated::redirectUsing(function ($request) {
             $host = $request->getHost();
 
             // Use the ParsesHostDomain trait for consistent domain detection
             $trait = new class
             {
-                use \Aero\Core\Traits\ParsesHostDomain;
+                use ParsesHostDomain;
 
                 public function isAdmin(string $host): bool
                 {
@@ -981,7 +1058,7 @@ class AeroPlatformServiceProvider extends ServiceProvider
 
             // Admin subdomain: Check landlord guard and redirect if authenticated
             if ($trait->isAdmin($host)) {
-                if (\Illuminate\Support\Facades\Auth::guard('landlord')->check()) {
+                if (Auth::guard('landlord')->check()) {
                     return route('admin.dashboard');
                 }
             }
@@ -993,9 +1070,9 @@ class AeroPlatformServiceProvider extends ServiceProvider
             }
 
             // Tenant subdomain: Check web guard and redirect if authenticated
-            if (\Illuminate\Support\Facades\Auth::guard('web')->check()) {
+            if (Auth::guard('web')->check()) {
                 // Redirect to dashboard route
-                if (\Illuminate\Support\Facades\Route::has('dashboard')) {
+                if (Route::has('dashboard')) {
                     return route('dashboard');
                 }
 

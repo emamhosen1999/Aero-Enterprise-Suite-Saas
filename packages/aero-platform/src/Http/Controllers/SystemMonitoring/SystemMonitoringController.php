@@ -4,6 +4,7 @@ namespace Aero\Platform\Http\Controllers\SystemMonitoring;
 
 use Aero\Core\Support\TenantCache;
 use Aero\Platform\Http\Controllers\Controller;
+use App\Services\Logging\ApplicationLogger;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +24,7 @@ class SystemMonitoringController extends Controller
     public function index()
     {
         try {
-            $logger = new \App\Services\Logging\ApplicationLogger;
+            $logger = new ApplicationLogger;
             $logger->logUserAction('System Monitoring Dashboard Accessed');
         } catch (\Exception $e) {
             Log::info('System Monitoring Dashboard Accessed');

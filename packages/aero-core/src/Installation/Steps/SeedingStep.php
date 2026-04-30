@@ -51,7 +51,7 @@ class SeedingStep extends BaseInstallationStep
             ];
 
         } catch (\Exception $e) {
-            $this->warn('Seeding partially completed: ' . $e->getMessage());
+            $this->warn('Seeding partially completed: '.$e->getMessage());
 
             return [
                 'seeding_status' => 'completed_with_warnings',

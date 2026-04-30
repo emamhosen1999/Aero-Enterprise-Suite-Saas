@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Http\Controllers\Admin;
 
+use Aero\Auth\Models\SocialAuthAccount;
 use Aero\Platform\Models\PlatformSetting;
-use Aero\Platform\Models\SocialAuthAccount;
 use Aero\Platform\Services\Marketing\SocialAuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

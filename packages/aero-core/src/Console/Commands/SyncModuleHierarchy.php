@@ -10,6 +10,7 @@ use Aero\Core\Services\Module\ModuleDiscoveryService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Stancl\Tenancy\Tenancy;
 
 /**
  * Sync Module Hierarchy Command
@@ -313,7 +314,7 @@ class SyncModuleHierarchy extends Command
 
         // Check if this is a standalone app (no tenancy package)
         // In standalone mode, we sync all modules
-        if (! class_exists(\Stancl\Tenancy\Tenancy::class)) {
+        if (! class_exists(Tenancy::class)) {
             // Return null to sync all modules in standalone mode
             return 'all';
         }

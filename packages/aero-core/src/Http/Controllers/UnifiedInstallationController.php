@@ -2,12 +2,25 @@
 
 namespace Aero\Core\Http\Controllers;
 
+use Aero\Core\Installation\InstallationOrchestrator;
+use Aero\Core\Installation\Steps\AdminUserStep;
+use Aero\Core\Installation\Steps\CacheStep;
+use Aero\Core\Installation\Steps\ConfigurationStep;
+use Aero\Core\Installation\Steps\DatabaseConnectionStep;
+use Aero\Core\Installation\Steps\FinalizeStep;
+use Aero\Core\Installation\Steps\LicenseStep;
+use Aero\Core\Installation\Steps\MigrationStep;
+use Aero\Core\Installation\Steps\ModuleDiscoveryStep;
+use Aero\Core\Installation\Steps\SeedingStep;
+use Aero\Core\Installation\Steps\SettingsStep;
 use Aero\Core\Models\Module;
 use Aero\Core\Models\ModuleComponent;
 use Aero\Core\Models\ModuleComponentAction;
 use Aero\Core\Models\SubModule;
 use Aero\Core\Services\LicenseValidationService;
 use Aero\Core\Services\Module\ModuleDiscoveryService;
+use Dotenv\Dotenv;
+use Illuminate\Encryption\Encrypter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
@@ -15,9 +28,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 
 /**
@@ -199,7 +214,7 @@ class UnifiedInstallationController extends Controller
 
         // Skip license for SaaS mode
         if ($this->getMode() === 'saas') {
-            return redirect()->route('install.requirements');
+            return redirect()->route('installation.requirements');
         }
 
         return Inertia::render('Installation/License', [
@@ -655,7 +670,7 @@ class UnifiedInstallationController extends Controller
                 'string',
                 'min:8',
                 'confirmed',
-                \Illuminate\Validation\Rules\Password::min(8)
+                Password::min(8)
                     ->mixedCase()
                     ->numbers()
                     ->symbols(),
@@ -731,7 +746,7 @@ class UnifiedInstallationController extends Controller
     public function processing()
     {
         if ($this->isInstalled()) {
-            return redirect()->route('install.complete');
+            return redirect()->route('installation.complete');
         }
 
         return Inertia::render('Installation/Processing', [
@@ -771,7 +786,7 @@ class UnifiedInstallationController extends Controller
             Config::set('mail.from.name', $request->mail_from_name ?? 'Aero Installation Test');
 
             // Send test email
-            \Illuminate\Support\Facades\Mail::raw(
+            Mail::raw(
                 'This is a test email from the Aero Enterprise Suite installation wizard. If you received this email, your SMTP configuration is working correctly.',
                 function ($message) use ($request) {
                     $message->to($request->test_email)
@@ -854,33 +869,33 @@ class UnifiedInstallationController extends Controller
 
         try {
             // Get or create orchestrator in session
-            $orchestratorKey = 'installation_orchestrator_' . session()->getId();
-            $orchestrator = Cache::remember($orchestratorKey, 
+            $orchestratorKey = 'installation_orchestrator_'.session()->getId();
+            $orchestrator = Cache::remember($orchestratorKey,
                 now()->addMinutes(30),
                 function () use ($mode) {
-                    $orch = new \Aero\Core\Installation\InstallationOrchestrator($mode);
-                    
+                    $orch = new InstallationOrchestrator($mode);
+
                     // Register all steps
                     $orch->registerSteps([
-                        new \Aero\Core\Installation\Steps\ConfigurationStep(),
-                        new \Aero\Core\Installation\Steps\DatabaseConnectionStep(),
-                        new \Aero\Core\Installation\Steps\MigrationStep(),
-                        new \Aero\Core\Installation\Steps\ModuleDiscoveryStep(),
-                        new \Aero\Core\Installation\Steps\AdminUserStep(),
-                        new \Aero\Core\Installation\Steps\SeedingStep(),
-                        new \Aero\Core\Installation\Steps\SettingsStep(),
-                        new \Aero\Core\Installation\Steps\CacheStep(),
-                        new \Aero\Core\Installation\Steps\LicenseStep(),
-                        new \Aero\Core\Installation\Steps\FinalizeStep(),
+                        new ConfigurationStep,
+                        new DatabaseConnectionStep,
+                        new MigrationStep,
+                        new ModuleDiscoveryStep,
+                        new AdminUserStep,
+                        new SeedingStep,
+                        new SettingsStep,
+                        new CacheStep,
+                        new LicenseStep,
+                        new FinalizeStep,
                     ]);
-                    
+
                     return $orch;
                 }
             );
 
             // Execute next step
             $progress = $orchestrator->executeNextStep();
-            
+
             // Update progress file for polling
             $this->updateProgress(
                 $progress['percentage'] ?? 0,
@@ -892,7 +907,7 @@ class UnifiedInstallationController extends Controller
             // If completed or failed, forget orchestrator
             if (in_array($progress['status'], ['completed', 'failed'])) {
                 Cache::forget($orchestratorKey);
-                
+
                 if ($progress['status'] === 'completed') {
                     $this->createLockFile();
                 }
@@ -911,7 +926,7 @@ class UnifiedInstallationController extends Controller
             ]);
 
         } catch (\Throwable $e) {
-            Log::error('Installation failed via orchestrator: ' . $e->getMessage(), [
+            Log::error('Installation failed via orchestrator: '.$e->getMessage(), [
                 'exception' => $e,
             ]);
 
@@ -1004,7 +1019,7 @@ class UnifiedInstallationController extends Controller
 
         // Force reload the APP_KEY from .env into the current process
         // This is critical because the installation process continues in the same request
-        $dotenv = \Dotenv\Dotenv::createImmutable(base_path());
+        $dotenv = Dotenv::createImmutable(base_path());
         $dotenv->load();
 
         // Update the running config with the new APP_KEY and rebind encrypter
@@ -1019,7 +1034,7 @@ class UnifiedInstallationController extends Controller
 
             app()->forgetInstance('encrypter');
             app()->singleton('encrypter', function ($app) use ($normalizedKey) {
-                return new \Illuminate\Encryption\Encrypter($normalizedKey, $app['config']['app.cipher']);
+                return new Encrypter($normalizedKey, $app['config']['app.cipher']);
             });
         }
     }
@@ -1535,7 +1550,7 @@ class UnifiedInstallationController extends Controller
 
             // Clear cache (including orchestrator)
             Cache::forget('installation_in_progress');
-            Cache::forget('installation_orchestrator_' . session()->getId());
+            Cache::forget('installation_orchestrator_'.session()->getId());
             $this->clearConfigCache();
 
             Log::info('Installation cleanup completed');
@@ -1568,7 +1583,7 @@ class UnifiedInstallationController extends Controller
         }
 
         // Clear cached orchestrator to start fresh
-        Cache::forget('installation_orchestrator_' . session()->getId());
+        Cache::forget('installation_orchestrator_'.session()->getId());
 
         return response()->json([
             'success' => true,

@@ -51,7 +51,7 @@ class SettingsStep extends BaseInstallationStep
                 $this->setSetting($key, $value);
                 $settings[$key] = $value;
             } catch (\Exception $e) {
-                $this->warn("Failed to set setting {$key}: " . $e->getMessage());
+                $this->warn("Failed to set setting {$key}: ".$e->getMessage());
             }
         }
 
@@ -67,6 +67,7 @@ class SettingsStep extends BaseInstallationStep
     {
         try {
             $appName = $this->getSetting('app.name');
+
             return $appName !== null;
         } catch (\Exception) {
             return false;
@@ -79,13 +80,13 @@ class SettingsStep extends BaseInstallationStep
     protected function setSetting(string $key, mixed $value): void
     {
         try {
-            if (!DB::table('settings')->exists()) {
+            if (! DB::table('settings')->exists()) {
                 return;
             }
 
             DB::table('settings')->updateOrInsert(
                 ['key' => $key],
-                ['value' => is_array($value) ? json_encode($value) : (string)$value]
+                ['value' => is_array($value) ? json_encode($value) : (string) $value]
             );
 
         } catch (\Exception) {
@@ -99,7 +100,7 @@ class SettingsStep extends BaseInstallationStep
     protected function getSetting(string $key): ?string
     {
         try {
-            if (!DB::table('settings')->exists()) {
+            if (! DB::table('settings')->exists()) {
                 return null;
             }
 

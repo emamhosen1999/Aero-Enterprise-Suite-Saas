@@ -2,6 +2,7 @@
 
 namespace Aero\Platform\Jobs;
 
+use Aero\Platform\Models\ReportExecution;
 use Aero\Platform\Models\ScheduledReport;
 use Aero\Platform\Services\ReportScheduler;
 use Exception;
@@ -88,7 +89,7 @@ class GenerateScheduledReportsJob implements ShouldQueue
             $cutoffDate = now()->subDays($retentionDays);
 
             // Get old executions
-            $oldExecutions = \Aero\Platform\Models\ReportExecution::where('created_at', '<', $cutoffDate)
+            $oldExecutions = ReportExecution::where('created_at', '<', $cutoffDate)
                 ->whereNotNull('file_path')
                 ->get();
 

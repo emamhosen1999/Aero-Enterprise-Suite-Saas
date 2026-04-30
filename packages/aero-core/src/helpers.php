@@ -189,7 +189,7 @@ if (! function_exists('getTenantId')) {
                 $tenant = tenant();
 
                 return $tenant?->getTenantKey();
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 // Ignore
             }
         }
@@ -238,7 +238,7 @@ if (! function_exists('moduleRoute')) {
                 if ($tenant) {
                     return route($name, $parameters, $absolute);
                 }
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 // Continue to standard route generation
             }
         }

@@ -42,7 +42,7 @@ class ModuleDiscoveryStep extends BaseInstallationStep
         ]);
 
         if ($exitCode !== 0) {
-            throw new \Exception('Module sync failed with exit code: ' . $exitCode);
+            throw new \Exception('Module sync failed with exit code: '.$exitCode);
         }
 
         // Verify modules

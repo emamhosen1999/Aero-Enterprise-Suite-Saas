@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aero\Core\Services;
 
+use Aero\Core\Models\User;
 use Illuminate\Support\Facades\Route;
 
 /**
@@ -160,7 +161,7 @@ class DashboardRegistry
      * - Super Administrator bypasses all checks
      * - requiredPermission in 'module.submodule' format is checked via RoleModuleAccessService
      *
-     * @param  \Aero\Core\Models\User|null  $user  Optional user to filter by permissions
+     * @param  User|null  $user  Optional user to filter by permissions
      * @return array<array{key: string, label: string, description: string, module: string}>
      */
     public function getDashboardOptions($user = null): array

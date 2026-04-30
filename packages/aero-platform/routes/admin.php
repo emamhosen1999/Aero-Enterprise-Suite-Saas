@@ -7,8 +7,6 @@ use Aero\Platform\Http\Controllers\Admin\AdminOnboardingController;
 use Aero\Platform\Http\Controllers\Admin\ModuleController;
 use Aero\Platform\Http\Controllers\Admin\RoleController;
 use Aero\Platform\Http\Controllers\Admin\UserController;
-use Aero\Platform\Http\Controllers\Auth\AuthenticatedSessionController;
-use Aero\Platform\Http\Controllers\Auth\ImpersonationController;
 use Aero\Platform\Http\Controllers\Billing\BillingController;
 use Aero\Platform\Http\Controllers\DomainController;
 use Aero\Platform\Http\Controllers\ErrorLogController;
@@ -71,38 +69,8 @@ use Inertia\Inertia;
 // and route middleware (or controllers) can check it then.
 
 Route::middleware('admin.domain')->group(function () {
-    // =========================================================================
-    // LANDLORD AUTHENTICATION ROUTES
-    // =========================================================================
-
-    Route::middleware('guest:landlord')->group(function () {
-        Route::get('/login', [AuthenticatedSessionController::class, 'create'])
-            ->name('admin.login');
-
-        Route::post('/login', [AuthenticatedSessionController::class, 'store'])
-            ->name('admin.login.store');
-    });
-
-    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
-        ->middleware('auth:landlord')
-        ->name('admin.logout');
-
-    // Root redirects based on landlord auth state
-    Route::get('/', function () {
-        if (Auth::guard('landlord')->check()) {
-            return redirect()->route('admin.dashboard');
-        }
-
-        return redirect()->route('admin.login');
-    })->name('admin.root');
-
-    // Session check route for admin domain (uses landlord guard)
-    Route::get('/session-check', function () {
-        return response()->json([
-            'authenticated' => \Illuminate\Support\Facades\Auth::guard('landlord')->check(),
-            'user_id' => \Illuminate\Support\Facades\Auth::guard('landlord')->id(),
-        ]);
-    })->name('admin.session-check');
+    // Landlord authentication routes (login, logout, root redirect, session-check, impersonation)
+    // are registered by AeroAuthServiceProvider via packages/aero-auth/routes/admin.php.
 
     // =========================================================================
     // PROTECTED ADMIN ROUTES (Require Landlord Authentication)
@@ -194,7 +162,7 @@ Route::middleware('admin.domain')->group(function () {
             })->middleware(['hrmac:tenants.tenant-list.tenant-management.update'])->name('edit');
 
             // Tenant Impersonation
-            Route::post('/{tenant}/impersonate', [ImpersonationController::class, 'impersonate'])
+            Route::post('/{tenant}/impersonate', [\Aero\Auth\Http\Controllers\Auth\ImpersonationController::class, 'impersonate'])
                 ->middleware(['hrmac:tenants.tenant-list.tenant-management.impersonate'])
                 ->name('impersonate');
         });

@@ -8,6 +8,7 @@ use Aero\Platform\Models\PlatformSetting;
 use Aero\Platform\Services\MailService;
 use Aero\Platform\Services\Notification\RuntimeSmsConfigService;
 use Aero\Platform\Services\PlatformSettingService;
+use Aero\Platform\TenantDatabaseManagers\CpanelDatabaseManager;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -107,7 +108,7 @@ class PlatformSettingController extends Controller
         }
 
         return Inertia::render('Platform/Admin/Settings/Infrastructure', [
-            'title'            => 'Infrastructure & Hosting',
+            'title' => 'Infrastructure & Hosting',
             'platformSettings' => PlatformSettingResource::make($setting)->resolve(),
         ]);
     }
@@ -123,18 +124,18 @@ class PlatformSettingController extends Controller
     public function testCpanelConnection(Request $request): JsonResponse
     {
         $request->validate([
-            'cpanel_host'      => ['nullable', 'string', 'max:255'],
-            'cpanel_port'      => ['nullable', 'integer', 'min:1', 'max:65535'],
-            'cpanel_username'  => ['nullable', 'string', 'max:64'],
+            'cpanel_host' => ['nullable', 'string', 'max:255'],
+            'cpanel_port' => ['nullable', 'integer', 'min:1', 'max:65535'],
+            'cpanel_username' => ['nullable', 'string', 'max:64'],
             'cpanel_api_token' => ['nullable', 'string', 'max:512'],
         ]);
 
         // Merge request credentials on top of stored (decrypted) credentials
-        $stored  = PlatformSetting::current()->getHostingSettingsDecrypted();
-        $host    = $request->input('cpanel_host',      $stored['cpanel_host']      ?? null);
-        $port    = $request->input('cpanel_port',      $stored['cpanel_port']      ?? 2083);
-        $user    = $request->input('cpanel_username',  $stored['cpanel_username']  ?? null);
-        $token   = $request->input('cpanel_api_token', $stored['cpanel_api_token'] ?? null);
+        $stored = PlatformSetting::current()->getHostingSettingsDecrypted();
+        $host = $request->input('cpanel_host', $stored['cpanel_host'] ?? null);
+        $port = $request->input('cpanel_port', $stored['cpanel_port'] ?? 2083);
+        $user = $request->input('cpanel_username', $stored['cpanel_username'] ?? null);
+        $token = $request->input('cpanel_api_token', $stored['cpanel_api_token'] ?? null);
 
         if (! $host || ! $user || ! $token) {
             return response()->json([
@@ -144,13 +145,13 @@ class PlatformSettingController extends Controller
         }
 
         try {
-            $manager = new \Aero\Platform\TenantDatabaseManagers\CpanelDatabaseManager();
-            $result  = $manager->testConnection($host, (int) $port, $user, $token);
+            $manager = new CpanelDatabaseManager;
+            $result = $manager->testConnection($host, (int) $port, $user, $token);
 
             if ($result['success']) {
                 return response()->json([
                     'success' => true,
-                    'message' => "Connected to cPanel on {$host}. Found " . ($result['database_count'] ?? 0) . ' database(s).',
+                    'message' => "Connected to cPanel on {$host}. Found ".($result['database_count'] ?? 0).' database(s).',
                 ]);
             }
 

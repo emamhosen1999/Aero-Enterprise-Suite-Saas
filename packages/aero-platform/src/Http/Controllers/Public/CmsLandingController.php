@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Aero\Platform\Http\Controllers\Public;
 
 use Aero\Platform\Twill\Models\Page;
-use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -65,14 +64,14 @@ class CmsLandingController extends Controller
     {
         return Inertia::render('Platform/Public/CmsPage', [
             'page' => [
-                'id'               => $page->id,
-                'title'            => $page->title,
-                'description'      => $page->description,
-                'meta_title'       => $page->meta_title ?? $page->title,
+                'id' => $page->id,
+                'title' => $page->title,
+                'description' => $page->description,
+                'meta_title' => $page->meta_title ?? $page->title,
                 'meta_description' => $page->meta_description ?? $page->description,
-                'is_homepage'      => $page->is_homepage,
-                'blocks'           => $this->transformBlocks($page),
-                'cover'            => $page->imageAsArray('cover'),
+                'is_homepage' => $page->is_homepage,
+                'blocks' => $this->transformBlocks($page),
+                'cover' => $page->imageAsArray('cover'),
             ],
         ]);
     }
@@ -83,12 +82,12 @@ class CmsLandingController extends Controller
     private function transformBlocks(Page $page): array
     {
         return $page->blocks->map(fn ($block) => [
-            'type'    => $block->type,
+            'type' => $block->type,
             'content' => $block->content,
-            'medias'  => $block->medias->map(fn ($m) => [
+            'medias' => $block->medias->map(fn ($m) => [
                 'uuid' => $m->uuid,
-                'url'  => $m->url ?? null,
-                'alt'  => $m->alt_text,
+                'url' => $m->url ?? null,
+                'alt' => $m->alt_text,
             ])->values()->toArray(),
         ])->values()->toArray();
     }

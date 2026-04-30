@@ -7,6 +7,7 @@ namespace Aero\Platform\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
@@ -198,7 +199,7 @@ class PlatformPage extends Model implements HasMedia
             self::TYPE_FEATURES => 'features',
             self::TYPE_ABOUT => 'about',
             self::TYPE_CONTACT => 'contact',
-            default => \Illuminate\Support\Str::slug($title),
+            default => Str::slug($title),
         };
 
         return static::firstOrCreate(

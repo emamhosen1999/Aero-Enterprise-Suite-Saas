@@ -10,6 +10,7 @@ use Aero\Platform\Models\Tenant;
 use Aero\Platform\Services\NotificationTemplateService;
 use Aero\Platform\Services\SmsService;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -279,7 +280,7 @@ class EnhancedQuotaEnforcementService extends QuotaEnforcementService
     /**
      * Get active warnings for a tenant.
      */
-    public function getActiveWarnings(Tenant $tenant): \Illuminate\Support\Collection
+    public function getActiveWarnings(Tenant $tenant): Collection
     {
         return QuotaWarning::where('tenant_id', $tenant->id)
             ->where('is_dismissed', false)

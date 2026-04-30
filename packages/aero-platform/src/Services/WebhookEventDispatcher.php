@@ -4,6 +4,7 @@ namespace Aero\Platform\Services;
 
 use Aero\Platform\Jobs\ProcessWebhookDeliveryJob;
 use Aero\Platform\Models\Webhook;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -64,7 +65,7 @@ class WebhookEventDispatcher
     /**
      * Get webhooks that are subscribed to a specific event
      *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection
      */
     protected function getWebhooksForEvent(string $event)
     {

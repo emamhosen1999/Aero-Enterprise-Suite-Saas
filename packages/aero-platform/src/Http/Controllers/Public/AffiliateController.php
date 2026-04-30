@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Aero\Platform\Http\Controllers\Public;
 
 use Aero\Platform\Models\Affiliate;
+use Aero\Platform\Models\PlatformSetting;
 use Aero\Platform\Services\Marketing\AffiliateService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
+use Inertia\Response;
 
 /**
  * Public Affiliate Controller
@@ -50,13 +52,13 @@ class AffiliateController extends Controller
     /**
      * Show affiliate program landing page.
      */
-    public function landing(): \Inertia\Response
+    public function landing(): Response
     {
         if (! $this->affiliateService->isEnabled()) {
             abort(404);
         }
 
-        $settings = \Aero\Platform\Models\PlatformSetting::current()->getAffiliateSettings();
+        $settings = PlatformSetting::current()->getAffiliateSettings();
 
         return Inertia::render('Platform/Public/Affiliate/Landing', [
             'title' => 'Affiliate Program',
@@ -69,7 +71,7 @@ class AffiliateController extends Controller
     /**
      * Show affiliate application form.
      */
-    public function showApplication(): \Inertia\Response
+    public function showApplication(): Response
     {
         if (! $this->affiliateService->isEnabled()) {
             abort(404);
@@ -118,7 +120,7 @@ class AffiliateController extends Controller
     /**
      * Affiliate login page.
      */
-    public function showLogin(): \Inertia\Response
+    public function showLogin(): Response
     {
         if (! $this->affiliateService->isEnabled()) {
             abort(404);
@@ -132,7 +134,7 @@ class AffiliateController extends Controller
     /**
      * Affiliate dashboard (for approved affiliates).
      */
-    public function dashboard(Request $request): \Inertia\Response
+    public function dashboard(Request $request): Response
     {
         // In real implementation, this would require affiliate authentication
         // For now, just return a placeholder

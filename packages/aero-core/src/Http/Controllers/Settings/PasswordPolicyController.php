@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\Core\Http\Controllers\Settings;
 
+use Aero\Auth\Services\PasswordPolicyService;
 use Aero\Core\Http\Controllers\Controller;
-use Aero\Core\Models\SystemSetting;
-use Aero\Core\Services\Auth\PasswordPolicyService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

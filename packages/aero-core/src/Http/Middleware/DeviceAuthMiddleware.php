@@ -22,7 +22,7 @@ class DeviceAuthMiddleware
      * Handle an incoming request.
      * Verifies that authenticated users are using their registered device.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {

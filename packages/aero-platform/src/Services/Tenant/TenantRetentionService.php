@@ -6,6 +6,7 @@ namespace Aero\Platform\Services\Tenant;
 
 use Aero\Platform\Models\Tenant;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 /**
  * Tenant Retention Service
@@ -86,7 +87,7 @@ class TenantRetentionService
     /**
      * Get tenants eligible for purge.
      *
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     public function getTenantsEligibleForPurge()
     {
@@ -101,7 +102,7 @@ class TenantRetentionService
     /**
      * Get tenants nearing purge (for notifications).
      *
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     public function getTenantsNearingPurge()
     {

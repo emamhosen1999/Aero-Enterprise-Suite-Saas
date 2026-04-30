@@ -2,6 +2,7 @@
 
 namespace Aero\Core\Services;
 
+use Composer\Autoload\ClassLoader;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 
@@ -32,7 +33,7 @@ class RuntimeLoader
     /**
      * Composer autoloader instance.
      *
-     * @var \Composer\Autoload\ClassLoader|null
+     * @var ClassLoader|null
      */
     protected $composerLoader = null;
 

@@ -4,6 +4,7 @@ namespace Aero\Core\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
@@ -177,7 +178,7 @@ class ValidateInertiaResponse
      */
     protected function isRedirectResponse($response): bool
     {
-        return $response instanceof \Illuminate\Http\RedirectResponse ||
+        return $response instanceof RedirectResponse ||
                (method_exists($response, 'isRedirection') && $response->isRedirection());
     }
 

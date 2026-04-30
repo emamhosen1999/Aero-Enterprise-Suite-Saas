@@ -4,6 +4,7 @@ namespace Aero\Core\Policies;
 
 use Aero\Core\Models\User;
 use Aero\HRMAC\Concerns\ChecksHRMAC;
+use Aero\HRMAC\Facades\HRMAC;
 
 class UserPolicy
 {
@@ -110,7 +111,7 @@ class UserPolicy
 
         // Users with HRM employees access and delete permission can delete
         try {
-            if (\Aero\HRMAC\Facades\HRMAC::userHasSubModuleAccess($user, 'hrm', 'employees', 'delete')) {
+            if (HRMAC::userHasSubModuleAccess($user, 'hrm', 'employees', 'delete')) {
                 return true;
             }
         } catch (\Exception $e) {

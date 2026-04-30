@@ -2,6 +2,7 @@
 
 namespace Aero\Core\Support;
 
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 
@@ -23,7 +24,7 @@ class SafeRedirect
      *
      * @param  string  $defaultRoute  Fallback route name
      * @param  bool  $validateDomain  Whether to validate domain matches
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      *
      * @example
      * // In a login controller
@@ -78,7 +79,7 @@ class SafeRedirect
      * @param  string  $routeName  Route name
      * @param  array  $parameters  Route parameters
      * @param  string  $fallbackRoute  Fallback route if primary doesn't exist
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      *
      * @example
      * return SafeRedirect::toRoute('employees.index', [], 'dashboard');
@@ -114,7 +115,7 @@ class SafeRedirect
      *
      * @param  string  $fallbackRoute  Fallback route name
      * @param  bool  $validateDomain  Whether to validate referer domain
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      *
      * @example
      * return SafeRedirect::back('dashboard');
@@ -152,7 +153,7 @@ class SafeRedirect
      * @param  string  $routeName  Route name
      * @param  string  $message  Success message
      * @param  array  $parameters  Route parameters
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public static function withSuccess(string $routeName, string $message, array $parameters = [])
     {
@@ -166,7 +167,7 @@ class SafeRedirect
      * @param  string  $routeName  Route name
      * @param  string  $message  Error message
      * @param  array  $parameters  Route parameters
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public static function withError(string $routeName, string $message, array $parameters = [])
     {
@@ -179,7 +180,7 @@ class SafeRedirect
      *
      * @param  string  $message  Success message
      * @param  string  $fallback  Fallback route
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public static function backWithSuccess(string $message, string $fallback = 'dashboard')
     {
@@ -191,7 +192,7 @@ class SafeRedirect
      *
      * @param  string  $message  Error message
      * @param  string  $fallback  Fallback route
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public static function backWithError(string $message, string $fallback = 'dashboard')
     {

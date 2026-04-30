@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\Core\Console\Commands;
 
-use Aero\Core\Services\Auth\SessionManagementService;
+use Aero\Auth\Services\SessionManagementService;
+use Aero\Core\Models\UserSession;
 use Illuminate\Console\Command;
 
 /**
@@ -41,7 +42,7 @@ class CleanupExpiredSessions extends Command
 
         if ($dryRun) {
             $this->warn('DRY RUN MODE - No sessions will be deleted');
-            $count = \Aero\Core\Models\UserSession::where('expires_at', '<', now())->count();
+            $count = UserSession::where('expires_at', '<', now())->count();
             $this->info("Would delete {$count} expired session(s)");
 
             return self::SUCCESS;

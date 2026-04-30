@@ -6,6 +6,7 @@ use Aero\Platform\Http\Controllers\Controller;
 use Aero\Platform\Services\Billing\InvoiceBrandingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -131,7 +132,7 @@ class InvoiceBrandingController extends Controller
     /**
      * Preview invoice with current branding.
      */
-    public function preview(): \Illuminate\Http\Response
+    public function preview(): Response
     {
         $branding = $this->brandingService->getTenantBranding();
 
@@ -188,7 +189,7 @@ class InvoiceBrandingController extends Controller
     /**
      * Download a branded invoice PDF.
      */
-    public function download(string $invoiceId): \Illuminate\Http\Response
+    public function download(string $invoiceId): Response
     {
         // This would typically fetch the invoice from database
         // For now, return a placeholder response

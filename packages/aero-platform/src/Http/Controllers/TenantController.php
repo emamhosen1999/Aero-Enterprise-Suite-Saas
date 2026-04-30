@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aero\Platform\Http\Controllers;
 
 use Aero\Platform\Jobs\ProvisionTenant;
+use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\Tenant;
 use Aero\Platform\Services\Tenant\TenantPurgeService;
 use Aero\Platform\Services\Tenant\TenantRetentionService;
@@ -12,7 +13,10 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Tenant Management Controller
@@ -226,7 +230,7 @@ class TenantController extends Controller
 
         // Plan change validation
         if (isset($validated['plan_id']) && $validated['plan_id'] !== $tenant->plan_id) {
-            $newPlan = \Aero\Platform\Models\Plan::find($validated['plan_id']);
+            $newPlan = Plan::find($validated['plan_id']);
             $oldPlan = $tenant->plan;
 
             if ($newPlan && $oldPlan) {
@@ -238,7 +242,7 @@ class TenantController extends Controller
 
                 if (! empty($removedModules)) {
                     // Log the plan change with removed modules for audit
-                    \Illuminate\Support\Facades\Log::warning('Tenant plan downgrade detected', [
+                    Log::warning('Tenant plan downgrade detected', [
                         'tenant_id' => $tenant->id,
                         'tenant_name' => $tenant->name,
                         'old_plan' => $oldPlan->name,
@@ -537,7 +541,7 @@ class TenantController extends Controller
             DB::table('sessions')->truncate();
 
             // Revoke all personal access tokens (if using Sanctum)
-            if (\Illuminate\Support\Facades\Schema::hasTable('personal_access_tokens')) {
+            if (Schema::hasTable('personal_access_tokens')) {
                 DB::table('personal_access_tokens')->delete();
             }
 
@@ -597,7 +601,7 @@ class TenantController extends Controller
     /**
      * Export tenants to CSV (server-side generation for large datasets).
      */
-    public function export(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    public function export(Request $request): StreamedResponse
     {
         $this->authorize('viewAny', Tenant::class);
 

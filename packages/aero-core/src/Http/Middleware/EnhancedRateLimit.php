@@ -2,6 +2,7 @@
 
 namespace Aero\Core\Http\Middleware;
 
+use Aero\Core\Models\User;
 use Aero\Core\Services\Logging\ApplicationLogger;
 use Aero\Core\Support\TenantCache;
 use Closure;
@@ -96,7 +97,7 @@ class EnhancedRateLimit
                 return ['requests_per_minute' => 150];
             }
 
-            $userWithDesignation = \Aero\Core\Models\User::with('designation')->find($user->id);
+            $userWithDesignation = User::with('designation')->find($user->id);
             $userDesignationTitle = $userWithDesignation->designation?->title;
 
             if ($userDesignationTitle === 'Supervision Engineer') {

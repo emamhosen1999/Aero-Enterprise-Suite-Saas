@@ -49,7 +49,7 @@ class VerifyInstallationCommand extends Command
 
         $missingTables = [];
         foreach ($requiredTables as $table) {
-            if (!Schema::hasTable($table)) {
+            if (! Schema::hasTable($table)) {
                 $missingTables[] = $table;
             }
         }
@@ -58,7 +58,7 @@ class VerifyInstallationCommand extends Command
             $checks['Database Tables'] = '✓ All present';
             $this->line("  2. Database Tables: {$checks['Database Tables']}");
         } else {
-            $checks['Database Tables'] = '✗ Missing: ' . implode(', ', $missingTables);
+            $checks['Database Tables'] = '✗ Missing: '.implode(', ', $missingTables);
             $this->line("  2. Database Tables: <fg=red>{$checks['Database Tables']}</>");
         }
 
@@ -69,7 +69,7 @@ class VerifyInstallationCommand extends Command
                 ->count();
             $totalCount = DB::table('migrations')->count();
             $checks['Migrations Tagged'] = "{$taggedCount}/{$totalCount}";
-            
+
             $color = $taggedCount === $totalCount ? 'green' : 'yellow';
             $this->line("  3. Migrations Tagged: <fg={$color}>{$checks['Migrations Tagged']}</>");
         } else {
@@ -81,7 +81,7 @@ class VerifyInstallationCommand extends Command
         if (Schema::hasTable('installation_history')) {
             $historyCount = DB::table('installation_history')->count();
             $checks['Installation History'] = $historyCount > 0 ? "✓ {$historyCount} records" : '⚠ No records';
-            
+
             $color = $historyCount > 0 ? 'green' : 'yellow';
             $this->line("  4. Installation History: <fg={$color}>{$checks['Installation History']}</>");
         } else {
@@ -96,7 +96,7 @@ class VerifyInstallationCommand extends Command
                 ->where('status', 'active')
                 ->count();
             $checks['Modules'] = $moduleCount > 0 ? "✓ {$moduleCount} total ({$activeModules} active)" : '⚠ No modules';
-            
+
             $color = $activeModules > 0 ? 'green' : 'yellow';
             $this->line("  5. Modules: <fg={$color}>{$checks['Modules']}</>");
         } else {
@@ -108,7 +108,7 @@ class VerifyInstallationCommand extends Command
         $adminUser = DB::table('users')
             ->whereRaw("email LIKE '%@%' OR role_id IN (SELECT id FROM roles WHERE name = 'admin')")
             ->first();
-        
+
         $checks['Admin User'] = $adminUser ? '✓ Exists' : '✗ Not found';
         $this->line("  6. Admin User: {$checks['Admin User']}");
 
@@ -118,8 +118,8 @@ class VerifyInstallationCommand extends Command
             $criticalMigrations = DB::table('migrations')
                 ->whereIn('installation_tag', $criticalTags)
                 ->count();
-            $checks['Critical Migrations'] = $criticalMigrations === count($criticalTags) ? '✓ All present' : "✗ {$criticalMigrations}/" . count($criticalTags);
-            
+            $checks['Critical Migrations'] = $criticalMigrations === count($criticalTags) ? '✓ All present' : "✗ {$criticalMigrations}/".count($criticalTags);
+
             $color = $criticalMigrations == count($criticalTags) ? 'green' : 'red';
             $this->line("  7. Critical Migrations: <fg={$color}>{$checks['Critical Migrations']}</>");
         }
@@ -154,9 +154,11 @@ class VerifyInstallationCommand extends Command
 
         if ($failed === 0) {
             $this->info('<fg=green>✓ Installation verification complete. Platform is ready.</> Use "php artisan aero:tag-migrations" to tag existing migrations.');
+
             return 0;
         } else {
             $this->error('✗ Installation verification failed. Please address the issues above.');
+
             return 1;
         }
     }

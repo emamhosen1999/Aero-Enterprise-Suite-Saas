@@ -2,6 +2,7 @@
 
 namespace Aero\Platform\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -98,7 +99,7 @@ class UsageRecord extends Model
     /**
      * Get the current billing period dates.
      *
-     * @return array{start: \Carbon\Carbon, end: \Carbon\Carbon}
+     * @return array{start: Carbon, end: Carbon}
      */
     public static function getCurrentBillingPeriod(): array
     {

@@ -29,7 +29,7 @@ class ModuleVerificationService
      * 5. All expected tables exist
      * 6. Permissions/roles are synced
      *
-     * @param string $moduleCode e.g., 'aero:hrm', 'hrm', 'core'
+     * @param  string  $moduleCode  e.g., 'aero:hrm', 'hrm', 'core'
      * @return array Verification result with status and details
      */
     public function verifyModule(string $moduleCode): array
@@ -49,11 +49,12 @@ class ModuleVerificationService
             ->where('module_code', $normalizedCode)
             ->first();
 
-        if (!$moduleInstallation) {
+        if (! $moduleInstallation) {
             $result['checks']['database_record'] = 'missing';
-            $result['errors'][] = "Module not registered in module_installations table";
+            $result['errors'][] = 'Module not registered in module_installations table';
             $result['status'] = 'failed';
             $this->isValid = false;
+
             return $result;
         }
 
@@ -96,10 +97,10 @@ class ModuleVerificationService
         }
 
         // Determine overall status
-        if (!empty($result['errors'])) {
+        if (! empty($result['errors'])) {
             $result['status'] = 'failed';
             $this->isValid = false;
-        } elseif (!empty($result['warnings'])) {
+        } elseif (! empty($result['warnings'])) {
             $result['status'] = 'warning';
         } else {
             $result['status'] = 'ok';
@@ -132,7 +133,7 @@ class ModuleVerificationService
      */
     protected function verifyMigrations(string $moduleCode): array
     {
-        if (!Schema::hasColumn('migrations', 'installation_tag')) {
+        if (! Schema::hasColumn('migrations', 'installation_tag')) {
             return ['status' => 'unknown', 'message' => 'Migration metadata not available'];
         }
 
@@ -141,7 +142,7 @@ class ModuleVerificationService
             ->value('migration_count');
 
         $actual = DB::table('migrations')
-            ->where('installation_tag', 'like', $moduleCode . ':%')
+            ->where('installation_tag', 'like', $moduleCode.':%')
             ->count();
 
         if ($actual === 0 && $expected > 0) {
@@ -172,11 +173,11 @@ class ModuleVerificationService
             ->where('module_code', $moduleCode)
             ->value('provider_loaded');
 
-        if (!$loaded) {
-            return ['status' => 'not-loaded', 'message' => "Service provider not marked as loaded"];
+        if (! $loaded) {
+            return ['status' => 'not-loaded', 'message' => 'Service provider not marked as loaded'];
         }
 
-        return ['status' => 'ok', 'message' => "Service provider loaded"];
+        return ['status' => 'ok', 'message' => 'Service provider loaded'];
     }
 
     /**
@@ -188,11 +189,11 @@ class ModuleVerificationService
             ->where('module_code', $moduleCode)
             ->value('routes_registered');
 
-        if (!$routesRegistered) {
-            return ['status' => 'not-registered', 'message' => "Routes not marked as registered"];
+        if (! $routesRegistered) {
+            return ['status' => 'not-registered', 'message' => 'Routes not marked as registered'];
         }
 
-        return ['status' => 'ok', 'message' => "Routes registered"];
+        return ['status' => 'ok', 'message' => 'Routes registered'];
     }
 
     /**
@@ -205,14 +206,14 @@ class ModuleVerificationService
             ->where('module_code', $moduleCode)
             ->value('metadata');
 
-        if (!$metadata) {
-            return ['status' => 'unknown', 'message' => "No table metadata found", 'count' => 0];
+        if (! $metadata) {
+            return ['status' => 'unknown', 'message' => 'No table metadata found', 'count' => 0];
         }
 
         $expected = json_decode($metadata, true)['expected_tables'] ?? [];
-        
+
         if (empty($expected)) {
-            return ['status' => 'ok', 'message' => "No tables expected", 'count' => 0];
+            return ['status' => 'ok', 'message' => 'No tables expected', 'count' => 0];
         }
 
         $found = 0;
@@ -229,7 +230,7 @@ class ModuleVerificationService
         if (count($missing) > 0) {
             return [
                 'status' => 'incomplete',
-                'message' => "Missing tables: " . implode(', ', $missing),
+                'message' => 'Missing tables: '.implode(', ', $missing),
                 'count' => $found,
             ];
         }
@@ -242,25 +243,25 @@ class ModuleVerificationService
      */
     protected function verifyPermissions(string $moduleCode): array
     {
-        if (!Schema::hasTable('permissions')) {
-            return ['status' => 'unknown', 'message' => "Permissions table not available"];
+        if (! Schema::hasTable('permissions')) {
+            return ['status' => 'unknown', 'message' => 'Permissions table not available'];
         }
 
         $synced = DB::table('module_installations')
             ->where('module_code', $moduleCode)
             ->value('permissions_synced');
 
-        if (!$synced) {
-            return ['status' => 'not-synced', 'message' => "Permissions not marked as synced"];
+        if (! $synced) {
+            return ['status' => 'not-synced', 'message' => 'Permissions not marked as synced'];
         }
 
         // Check that at least one permission exists for this module
         $permCount = DB::table('permissions')
-            ->where('module', 'like', $moduleCode . '%')
+            ->where('module', 'like', $moduleCode.'%')
             ->count();
 
         if ($permCount === 0) {
-            return ['status' => 'warning', 'message' => "No permissions found for module"];
+            return ['status' => 'warning', 'message' => 'No permissions found for module'];
         }
 
         return ['status' => 'ok', 'message' => "{$permCount} permissions synced"];
@@ -279,7 +280,7 @@ class ModuleVerificationService
 
         // Convert 'hrm', 'aero-hrm', 'core:hrm' formats to 'aero:hrm'
         $code = str_replace(['aero-', 'aero:'], '', $code);
-        
+
         return "aero:{$code}";
     }
 
@@ -309,8 +310,8 @@ class ModuleVerificationService
             ->update([
                 'status' => $status,
                 'verified_at' => now(),
-                'failed_reason' => !empty($verificationResult['errors']) 
-                    ? json_encode($verificationResult['errors']) 
+                'failed_reason' => ! empty($verificationResult['errors'])
+                    ? json_encode($verificationResult['errors'])
                     : null,
                 'metadata' => json_encode($verificationResult),
             ]);

@@ -5,6 +5,7 @@ namespace Aero\Platform\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
+use Laravel\Fortify\Features;
 
 class AuthSecurityAudit extends Command
 {
@@ -23,7 +24,7 @@ class AuthSecurityAudit extends Command
 
         // Check Fortify 2FA
         $fortifyFeatures = config('fortify.features', []);
-        $twoFA = in_array(\Laravel\Fortify\Features::twoFactorAuthentication(), $fortifyFeatures);
+        $twoFA = in_array(Features::twoFactorAuthentication(), $fortifyFeatures);
         $this->checkSetting('2FA Enabled', $twoFA, true);
 
         // Check password rules

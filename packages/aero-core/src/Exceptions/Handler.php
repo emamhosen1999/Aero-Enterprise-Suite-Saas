@@ -24,7 +24,7 @@ class Handler extends ExceptionHandler
     /**
      * A list of the exception types that are not reported.
      *
-     * @var array<int, class-string<\Throwable>>
+     * @var array<int, class-string<Throwable>>
      */
     protected $dontReport = [
         //
@@ -64,7 +64,7 @@ class Handler extends ExceptionHandler
                         ]);
                     }
                 }
-            } catch (\Throwable $reportError) {
+            } catch (Throwable $reportError) {
                 // Never let reporting break the application
                 // Just log the failure silently
                 Log::warning('Failed to report exception to platform', [

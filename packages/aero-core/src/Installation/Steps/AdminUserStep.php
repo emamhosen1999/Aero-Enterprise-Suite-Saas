@@ -46,6 +46,7 @@ class AdminUserStep extends BaseInstallationStep
         $existingAdmin = $this->getUserByEmail($adminEmail);
         if ($existingAdmin) {
             $this->log("Admin user already exists: {$adminEmail}");
+
             return [
                 'admin_created' => false,
                 'admin_exists' => true,
@@ -76,13 +77,14 @@ class AdminUserStep extends BaseInstallationStep
             ];
 
         } catch (\Exception $e) {
-            throw new \Exception('Failed to create admin user: ' . $e->getMessage());
+            throw new \Exception('Failed to create admin user: '.$e->getMessage());
         }
     }
 
     public function validate(): bool
     {
         $adminEmail = env('ADMIN_EMAIL', 'admin@aeros.test');
+
         return $this->getUserByEmail($adminEmail) !== null;
     }
 
@@ -96,7 +98,7 @@ class AdminUserStep extends BaseInstallationStep
                 ->where('email', $email)
                 ->first();
 
-            return $user ? (array)$user : null;
+            return $user ? (array) $user : null;
 
         } catch (\Exception) {
             return null;
@@ -110,7 +112,7 @@ class AdminUserStep extends BaseInstallationStep
     {
         try {
             // Check if roles table exists
-            if (!DB::table('roles')->exists()) {
+            if (! DB::table('roles')->exists()) {
                 return;
             }
 
@@ -118,7 +120,7 @@ class AdminUserStep extends BaseInstallationStep
                 ->where('name', 'admin')
                 ->first();
 
-            if (!$adminRole) {
+            if (! $adminRole) {
                 return;
             }
 

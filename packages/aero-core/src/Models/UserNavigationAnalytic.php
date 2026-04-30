@@ -2,6 +2,8 @@
 
 namespace Aero\Core\Models;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -17,10 +19,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $nav_name
  * @property string|null $module
  * @property int $visit_count
- * @property \Carbon\Carbon|null $last_visited_at
- * @property \Carbon\Carbon|null $first_visited_at
- * @property \Carbon\Carbon $created_at
- * @property \Carbon\Carbon $updated_at
+ * @property Carbon|null $last_visited_at
+ * @property Carbon|null $first_visited_at
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
  */
 class UserNavigationAnalytic extends Model
 {
@@ -79,10 +81,8 @@ class UserNavigationAnalytic extends Model
 
     /**
      * Get the top N most visited nav items for a user.
-     *
-     * @return \Illuminate\Database\Eloquent\Collection
      */
-    public static function getTopForUser(int $userId, int $limit = 10): \Illuminate\Database\Eloquent\Collection
+    public static function getTopForUser(int $userId, int $limit = 10): Collection
     {
         return static::where('user_id', $userId)
             ->orderByDesc('visit_count')
@@ -93,10 +93,8 @@ class UserNavigationAnalytic extends Model
 
     /**
      * Get recently visited items for a user.
-     *
-     * @return \Illuminate\Database\Eloquent\Collection
      */
-    public static function getRecentForUser(int $userId, int $limit = 10): \Illuminate\Database\Eloquent\Collection
+    public static function getRecentForUser(int $userId, int $limit = 10): Collection
     {
         return static::where('user_id', $userId)
             ->whereNotNull('last_visited_at')

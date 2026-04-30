@@ -2,6 +2,7 @@
 
 namespace Aero\Platform\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
@@ -17,7 +18,7 @@ use Illuminate\Support\Str;
  * @property string $user_id The tenant user to log in as
  * @property string $auth_guard The authentication guard to use
  * @property string $redirect_url Where to redirect after login
- * @property \Carbon\Carbon $created_at Token creation timestamp
+ * @property Carbon $created_at Token creation timestamp
  */
 class TenantImpersonationToken extends Model
 {

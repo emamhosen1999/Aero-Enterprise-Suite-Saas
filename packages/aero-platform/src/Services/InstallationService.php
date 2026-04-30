@@ -9,7 +9,7 @@ namespace Aero\Platform\Services;
  * more specialized checks. Controllers expect `Aero\Platform\Services\InstallationService`.
  * Extend the monitoring implementation so the DI container can resolve the class.
  */
-class InstallationService extends \Aero\Platform\Services\Monitoring\InstallationService
+class InstallationService extends Monitoring\InstallationService
 {
     // Inherits all behaviour from Monitoring\InstallationService
 }

@@ -1,0 +1,67 @@
+/* Maps --heroui-* variables → --aeos-* so HeroUI components theme automatically. */
+:root {
+  --heroui-primary: var(--aeos-primary);
+  --heroui-primary-50: var(--aeos-cyan-50); --heroui-primary-100: var(--aeos-cyan-100);
+  --heroui-primary-200: var(--aeos-cyan-200); --heroui-primary-300: var(--aeos-cyan-300);
+  --heroui-primary-400: var(--aeos-cyan-400); --heroui-primary-500: var(--aeos-cyan-500);
+  --heroui-primary-600: var(--aeos-cyan-600); --heroui-primary-foreground: var(--aeos-ink);
+  --heroui-secondary: var(--aeos-amber);
+  --heroui-secondary-50: var(--aeos-amber-50); --heroui-secondary-100: var(--aeos-amber-100);
+  --heroui-secondary-200: var(--aeos-amber-200); --heroui-secondary-300: var(--aeos-amber-300);
+  --heroui-secondary-400: var(--aeos-amber-400); --heroui-secondary-500: var(--aeos-amber-500);
+  --heroui-secondary-600: var(--aeos-amber-600);
+  --heroui-success: var(--aeos-success);
+  --heroui-success-50: var(--aeos-success-50); --heroui-success-100: var(--aeos-success-100);
+  --heroui-success-200: var(--aeos-success-200); --heroui-success-300: var(--aeos-success-300);
+  --heroui-success-400: var(--aeos-success-400); --heroui-success-500: var(--aeos-success-500);
+  --heroui-success-600: var(--aeos-success-600);
+  --heroui-warning: var(--aeos-warning);
+  --heroui-warning-50: var(--aeos-warning-50); --heroui-warning-100: var(--aeos-warning-100);
+  --heroui-warning-200: var(--aeos-warning-200); --heroui-warning-300: var(--aeos-warning-300);
+  --heroui-warning-400: var(--aeos-warning-400); --heroui-warning-500: var(--aeos-warning-500);
+  --heroui-warning-600: var(--aeos-warning-600);
+  --heroui-danger: var(--aeos-danger);
+  --heroui-danger-50: var(--aeos-danger-50); --heroui-danger-100: var(--aeos-danger-100);
+  --heroui-danger-200: var(--aeos-danger-200); --heroui-danger-300: var(--aeos-danger-300);
+  --heroui-danger-400: var(--aeos-danger-400); --heroui-danger-500: var(--aeos-danger-500);
+  --heroui-danger-600: var(--aeos-danger-600);
+  --heroui-background: var(--aeos-bg-card);
+  --heroui-background-contrast: var(--aeos-bg-elevated);
+  --heroui-background-default: var(--aeos-obsidian);
+  --heroui-foreground: var(--aeos-ink);
+  --heroui-foreground-50: var(--aeos-ink-faint); --heroui-foreground-100: var(--aeos-ink-muted);
+  --heroui-foreground-200: var(--aeos-ink-muted); --heroui-foreground-300: var(--aeos-ink-muted);
+  --heroui-foreground-400: var(--aeos-ink); --heroui-foreground-500: var(--aeos-ink);
+  --heroui-foreground-600: var(--aeos-ink);
+  --heroui-border: var(--aeos-border);
+  --heroui-divider: var(--aeos-divider);
+  --heroui-focus-ring: var(--aeos-primary);
+  --heroui-focus-ring-offset: 2px;
+  --heroui-spacing-1: var(--aeos-space-1); --heroui-spacing-2: var(--aeos-space-2);
+  --heroui-spacing-3: var(--aeos-space-3); --heroui-spacing-4: var(--aeos-space-4);
+  --heroui-spacing-6: var(--aeos-space-6); --heroui-spacing-8: var(--aeos-space-8);
+  --heroui-spacing-12: var(--aeos-space-12); --heroui-spacing-16: var(--aeos-space-16);
+  --heroui-radius-small: var(--aeos-r-sm); --heroui-radius-medium: var(--aeos-r-md);
+  --heroui-radius-large: var(--aeos-r-lg); --heroui-radius-xlarge: var(--aeos-r-xl);
+  --heroui-font-sans: var(--aeos-font-body); --heroui-font-mono: var(--aeos-font-mono);
+  --heroui-font-size-xs: var(--aeos-text-xs); --heroui-font-size-sm: var(--aeos-text-sm);
+  --heroui-font-size-base: var(--aeos-text-base); --heroui-font-size-lg: var(--aeos-text-lg);
+  --heroui-line-height: 1.5; --heroui-letter-spacing: 0;
+  --heroui-shadow-sm: var(--aeos-shadow-sm); --heroui-shadow-md: var(--aeos-shadow-md);
+  --heroui-shadow-lg: var(--aeos-shadow-lg); --heroui-shadow-xl: var(--aeos-shadow-xl);
+  --heroui-duration-fast: var(--aeos-dur-fast); --heroui-duration-base: var(--aeos-dur-base);
+  --heroui-duration-slow: var(--aeos-dur-slow); --heroui-ease: var(--aeos-ease-out);
+  --heroui-input-bg: var(--aeos-bg-input); --heroui-input-border: var(--aeos-border);
+  --heroui-input-fg: var(--aeos-ink); --heroui-input-placeholder: var(--aeos-ink-muted);
+  --heroui-card-bg: var(--aeos-bg-card); --heroui-card-border: var(--aeos-border);
+  --heroui-card-shadow: var(--aeos-shadow-card);
+  --heroui-modal-bg: var(--aeos-gunmetal); --heroui-modal-backdrop: rgba(0,0,0,.7);
+}
+.aeos--light {
+  --heroui-background: var(--aeos-paper-2); --heroui-background-contrast: var(--aeos-paper-3);
+  --heroui-foreground: var(--aeos-onyx-l);
+  --heroui-foreground-50: var(--aeos-ink-l-muted); --heroui-foreground-100: var(--aeos-graphite-l);
+  --heroui-foreground-200: var(--aeos-graphite-l); --heroui-foreground-300: var(--aeos-graphite-l);
+  --heroui-foreground-400: var(--aeos-onyx-l); --heroui-foreground-500: var(--aeos-onyx-l);
+  --heroui-foreground-600: var(--aeos-onyx-l);
+}

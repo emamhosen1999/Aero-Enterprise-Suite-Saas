@@ -56,11 +56,11 @@ class CpanelDatabaseManager implements TenantDatabaseManager
         $s = $this->hostingSettings;
 
         return [
-            'host'     => $s['cpanel_host']      ?? config('tenancy.cpanel.host'),
-            'username' => $s['cpanel_username']  ?? config('tenancy.cpanel.username'),
-            'token'    => $s['cpanel_api_token'] ?? config('tenancy.cpanel.api_token'),
-            'port'     => (int) ($s['cpanel_port'] ?? config('tenancy.cpanel.port', 2083)),
-            'db_user'  => $s['cpanel_db_user']   ?? config('tenancy.cpanel.db_user'),
+            'host' => $s['cpanel_host'] ?? config('tenancy.cpanel.host'),
+            'username' => $s['cpanel_username'] ?? config('tenancy.cpanel.username'),
+            'token' => $s['cpanel_api_token'] ?? config('tenancy.cpanel.api_token'),
+            'port' => (int) ($s['cpanel_port'] ?? config('tenancy.cpanel.port', 2083)),
+            'db_user' => $s['cpanel_db_user'] ?? config('tenancy.cpanel.db_user'),
         ];
     }
 
@@ -104,8 +104,8 @@ class CpanelDatabaseManager implements TenantDatabaseManager
             $dbUser = $this->getDatabaseUser();
 
             $response = $this->callCpanelApi('Mysql', 'set_privileges_on_database', [
-                'user'       => $dbUser,
-                'database'   => $fullDbName,
+                'user' => $dbUser,
+                'database' => $fullDbName,
                 'privileges' => 'ALL PRIVILEGES',
             ]);
 
@@ -116,8 +116,8 @@ class CpanelDatabaseManager implements TenantDatabaseManager
 
                 // Alternative: Try adding user to database with all privileges
                 $response = $this->callCpanelApi('Mysql', 'add_user_to_database', [
-                    'user'       => $dbUser,
-                    'database'   => $fullDbName,
+                    'user' => $dbUser,
+                    'database' => $fullDbName,
                     'privileges' => [
                         'ALTER', 'ALTER ROUTINE', 'CREATE', 'CREATE ROUTINE',
                         'CREATE TEMPORARY TABLES', 'CREATE VIEW', 'DELETE',
@@ -192,7 +192,7 @@ class CpanelDatabaseManager implements TenantDatabaseManager
     /**
      * Check if the database exists.
      *
-     * @param string $name Full database name (e.g. "cpaneluser_tn_subdomain")
+     * @param  string  $name  Full database name (e.g. "cpaneluser_tn_subdomain")
      */
     public function databaseExists(string $name): bool
     {
@@ -236,7 +236,7 @@ class CpanelDatabaseManager implements TenantDatabaseManager
             if (! $response->successful()) {
                 return [
                     'success' => false,
-                    'error'   => "HTTP {$response->status()}: cPanel did not accept the request. Check host and port.",
+                    'error' => "HTTP {$response->status()}: cPanel did not accept the request. Check host and port.",
                 ];
             }
 
@@ -244,7 +244,7 @@ class CpanelDatabaseManager implements TenantDatabaseManager
 
             if (($data['status'] ?? 0) == 1) {
                 return [
-                    'success'        => true,
+                    'success' => true,
                     'database_count' => count($data['data'] ?? []),
                 ];
             }
@@ -265,10 +265,10 @@ class CpanelDatabaseManager implements TenantDatabaseManager
     protected function callCpanelApi(string $module, string $function, array $params = []): array
     {
         $creds = $this->getCpanelCredentials();
-        $host     = $creds['host'];
+        $host = $creds['host'];
         $username = $creds['username'];
-        $token    = $creds['token'];
-        $port     = $creds['port'];
+        $token = $creds['token'];
+        $port = $creds['port'];
 
         if (! $host || ! $username || ! $token) {
             throw new \RuntimeException('cPanel API credentials not configured. Set them via Admin → Infrastructure → Hosting Settings.');
@@ -348,7 +348,7 @@ class CpanelDatabaseManager implements TenantDatabaseManager
      */
     protected function getFullDatabaseName(TenantWithDatabase $tenant): string
     {
-        $username  = $this->getCpanelCredentials()['username'];
+        $username = $this->getCpanelCredentials()['username'];
         $shortName = $this->getShortDatabaseName($tenant);
 
         return "{$username}_{$shortName}";
@@ -363,9 +363,9 @@ class CpanelDatabaseManager implements TenantDatabaseManager
      */
     protected function getDatabaseUser(): string
     {
-        $creds    = $this->getCpanelCredentials();
+        $creds = $this->getCpanelCredentials();
         $username = $creds['username'] ?? '';
-        $dbUser   = $creds['db_user'] ?? '';
+        $dbUser = $creds['db_user'] ?? '';
 
         // If no db_user is configured, fall back to DB_USERNAME env var (e.g. "aeos365_emamhosen")
         if (! $dbUser) {

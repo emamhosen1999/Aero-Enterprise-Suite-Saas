@@ -11,15 +11,17 @@ use Aero\HRM\Models\SafetyTraining;
 use Aero\HRM\Models\Skill;
 use Aero\Platform\Http\Controllers\Controller;
 use Aero\Platform\Models\Tenant\DMS\DocumentCategory;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class HrmSettingController extends Controller
 {
     /**
      * Display the HRM settings page.
      *
-     * @return \Inertia\Response
+     * @return Response
      */
     public function index(Request $request)
     {
@@ -65,7 +67,7 @@ class HrmSettingController extends Controller
     /**
      * Update onboarding settings.
      *
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function updateOnboardingSettings(Request $request)
     {
@@ -76,7 +78,7 @@ class HrmSettingController extends Controller
     /**
      * Update skills settings.
      *
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function updateSkillsSettings(Request $request)
     {
@@ -87,7 +89,7 @@ class HrmSettingController extends Controller
     /**
      * Update benefits settings.
      *
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function updateBenefitsSettings(Request $request)
     {
@@ -98,7 +100,7 @@ class HrmSettingController extends Controller
     /**
      * Update safety settings.
      *
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function updateSafetySettings(Request $request)
     {
@@ -109,7 +111,7 @@ class HrmSettingController extends Controller
     /**
      * Update document settings.
      *
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function updateDocumentSettings(Request $request)
     {

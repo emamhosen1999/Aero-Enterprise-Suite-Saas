@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Services\Marketing;
 
+use Aero\Auth\Models\SocialAuthAccount;
 use Aero\Platform\Models\PlatformSetting;
-use Aero\Platform\Models\SocialAuthAccount;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;

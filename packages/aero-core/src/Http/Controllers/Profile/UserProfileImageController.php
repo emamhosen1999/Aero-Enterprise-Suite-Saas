@@ -4,6 +4,7 @@ namespace Aero\Core\Http\Controllers\Profile;
 
 use Aero\Core\Http\Controllers\Controller;
 use Aero\Core\Models\User;
+use Aero\HRM\Http\Controllers\Employee\EmployeeImageController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,7 +24,7 @@ use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
  * - HR badges, org charts, ID cards, HR directory
  * - Managed by EmployeeImageController in HRM package
  *
- * @see \Aero\HRM\Http\Controllers\Employee\EmployeeImageController For employee HR images
+ * @see EmployeeImageController For employee HR images
  */
 class UserProfileImageController extends Controller
 {

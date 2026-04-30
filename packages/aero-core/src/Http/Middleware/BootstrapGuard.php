@@ -25,7 +25,7 @@ class BootstrapGuard
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -44,7 +44,8 @@ class BootstrapGuard
         }
 
         // Check if system is installed (file-based detection)
-        if (! $this->installed()) {
+        // Only redirect to /install in standalone mode (without platform package)
+        if (! $this->installed() && ! $this->hasPlatformPackage()) {
             // If it's an AJAX/API request, return JSON response
             if ($request->expectsJson()) {
                 return response()->json([
@@ -69,5 +70,16 @@ class BootstrapGuard
     protected function installed(): bool
     {
         return file_exists(storage_path(self::INSTALLED_FLAG));
+    }
+
+    /**
+     * Check if the platform package is installed.
+     *
+     * If platform is installed, we're in SaaS/tenant mode and should not
+     * redirect to /install. Instead, let normal auth flow handle it.
+     */
+    protected function hasPlatformPackage(): bool
+    {
+        return class_exists('Aero\Platform\AeroPlatformServiceProvider');
     }
 }

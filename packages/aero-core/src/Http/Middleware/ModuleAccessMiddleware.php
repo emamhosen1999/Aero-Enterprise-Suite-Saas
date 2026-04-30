@@ -2,6 +2,7 @@
 
 namespace Aero\Core\Http\Middleware;
 
+use Aero\Core\Services\ModuleAccessService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -32,7 +33,7 @@ class ModuleAccessMiddleware
         }
 
         $user = $request->user();
-        $service = app(\Aero\Core\Services\ModuleAccessService::class);
+        $service = app(ModuleAccessService::class);
 
         // Check module access
         if ($moduleCode) {

@@ -252,7 +252,7 @@ class SubscriptionLifecycleService
     protected function calculateNextBillingDate(Plan $plan, ?Carbon $from = null): Carbon
     {
         $months = $plan->duration_in_months ?? 1;
-        $base   = $from ?? now();
+        $base = $from ?? now();
 
         return $base->copy()->addMonths($months);
     }
@@ -379,7 +379,7 @@ class SubscriptionLifecycleService
 
                     Log::info('ProcessRenewals: subscription expired (cancelled)', [
                         'subscription_id' => $subscription->id,
-                        'tenant_id'       => $subscription->tenant_id,
+                        'tenant_id' => $subscription->tenant_id,
                     ]);
 
                     continue;
@@ -387,12 +387,12 @@ class SubscriptionLifecycleService
 
                 // Advance billing period.
                 $periodStart = $subscription->ends_at;
-                $periodEnd   = $this->calculateNextBillingDate($plan, $periodStart);
+                $periodEnd = $this->calculateNextBillingDate($plan, $periodStart);
 
                 $subscription->update([
-                    'status'               => Subscription::STATUS_ACTIVE,
+                    'status' => Subscription::STATUS_ACTIVE,
                     'current_period_start' => $periodStart,
-                    'ends_at'              => $periodEnd,
+                    'ends_at' => $periodEnd,
                     'grace_period_ends_at' => null,
                 ]);
 
@@ -400,13 +400,13 @@ class SubscriptionLifecycleService
 
                 Log::info('ProcessRenewals: subscription renewed', [
                     'subscription_id' => $subscription->id,
-                    'tenant_id'       => $subscription->tenant_id,
-                    'new_period_end'  => $periodEnd->toDateString(),
+                    'tenant_id' => $subscription->tenant_id,
+                    'new_period_end' => $periodEnd->toDateString(),
                 ]);
             } catch (\Exception $e) {
                 Log::error('ProcessRenewals: failed to process subscription', [
                     'subscription_id' => $subscription->id,
-                    'error'           => $e->getMessage(),
+                    'error' => $e->getMessage(),
                 ]);
                 $counts['skipped']++;
             }
@@ -439,14 +439,14 @@ class SubscriptionLifecycleService
                 $expired++;
 
                 Log::info('ExpireGracePeriods: subscription expired', [
-                    'subscription_id'     => $subscription->id,
-                    'tenant_id'           => $subscription->tenant_id,
-                    'grace_period_ended'  => $subscription->grace_period_ends_at,
+                    'subscription_id' => $subscription->id,
+                    'tenant_id' => $subscription->tenant_id,
+                    'grace_period_ended' => $subscription->grace_period_ends_at,
                 ]);
             } catch (\Exception $e) {
                 Log::error('ExpireGracePeriods: failed to expire subscription', [
                     'subscription_id' => $subscription->id,
-                    'error'           => $e->getMessage(),
+                    'error' => $e->getMessage(),
                 ]);
             }
         }

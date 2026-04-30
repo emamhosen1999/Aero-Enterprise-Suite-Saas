@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Http\Requests\Admin;
 
-use Aero\Platform\Models\SocialAuthAccount;
+use Aero\Auth\Models\SocialAuthAccount;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**

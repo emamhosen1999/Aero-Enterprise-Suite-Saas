@@ -41,7 +41,7 @@ class CacheStep extends BaseInstallationStep
             Artisan::call('cache:clear');
             $results['cache_cleared'] = true;
         } catch (\Exception $e) {
-            $this->warn('Cache clear failed: ' . $e->getMessage());
+            $this->warn('Cache clear failed: '.$e->getMessage());
             $results['cache_cleared'] = false;
         }
 
@@ -51,7 +51,7 @@ class CacheStep extends BaseInstallationStep
             Artisan::call('config:cache');
             $results['config_cached'] = true;
         } catch (\Exception $e) {
-            $this->warn('Config cache failed: ' . $e->getMessage());
+            $this->warn('Config cache failed: '.$e->getMessage());
             $results['config_cached'] = false;
         }
 
@@ -61,7 +61,7 @@ class CacheStep extends BaseInstallationStep
             Artisan::call('route:cache');
             $results['route_cached'] = true;
         } catch (\Exception $e) {
-            $this->warn('Route cache failed: ' . $e->getMessage());
+            $this->warn('Route cache failed: '.$e->getMessage());
             $results['route_cached'] = false;
         }
 
@@ -77,7 +77,7 @@ class CacheStep extends BaseInstallationStep
         ];
 
         foreach ($cachePaths as $path) {
-            if (!is_writable($path ?? '')) {
+            if (! is_writable($path ?? '')) {
                 return false;
             }
         }

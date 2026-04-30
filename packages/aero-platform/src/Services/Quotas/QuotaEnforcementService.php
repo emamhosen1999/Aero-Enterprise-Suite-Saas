@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Services\Quotas;
 
+use Aero\Core\Models\User;
 use Aero\Core\Support\TenantCache;
 use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\Tenant;
@@ -85,7 +86,7 @@ class QuotaEnforcementService
      * Mapping of quota types to their model classes for counting.
      */
     protected array $quotaModels = [
-        'users' => \Aero\Core\Models\User::class,
+        'users' => User::class,
         // These will be resolved dynamically if the module is available
         'employees' => 'Aero\\HRM\\Models\\Employee',
         'projects' => 'Aero\\Project\\Models\\Project',
@@ -216,7 +217,7 @@ class QuotaEnforcementService
 
         // 3. Plan dedicated columns (max_users, max_storage_gb)
         $columnMap = [
-            'users'      => 'max_users',
+            'users' => 'max_users',
             'storage_gb' => 'max_storage_gb',
         ];
         if (isset($columnMap[$quotaType]) && $plan->{$columnMap[$quotaType]} !== null) {
@@ -239,9 +240,9 @@ class QuotaEnforcementService
      * These are populated daily by the CollectTenantStats scheduled job.
      */
     protected array $statColumns = [
-        'users'      => 'total_users',
-        'employees'  => 'total_employees',
-        'projects'   => 'active_projects',
+        'users' => 'total_users',
+        'employees' => 'total_employees',
+        'projects' => 'active_projects',
         'storage_gb' => null, // derived from storage_used_mb
     ];
 

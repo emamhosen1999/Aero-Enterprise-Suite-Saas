@@ -2,6 +2,7 @@
 
 namespace Aero\Core\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -22,7 +23,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property array|null $old_values
  * @property array|null $new_values
  * @property array|null $metadata
- * @property \Carbon\Carbon $created_at
+ * @property Carbon $created_at
  */
 class AuditLog extends Model
 {

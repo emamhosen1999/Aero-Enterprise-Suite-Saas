@@ -6,6 +6,7 @@ use Aero\Core\Support\TenantCache;
 use Aero\Platform\Models\Tenant;
 use Aero\Platform\Models\UsageRecord;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -356,7 +357,7 @@ class MeteredBillingService
     /**
      * Get all limits for a tenant.
      *
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     protected function getTenantLimits(Tenant $tenant)
     {

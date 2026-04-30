@@ -5,6 +5,7 @@ namespace Aero\Platform\Http\Controllers\Webhooks;
 use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\Subscription;
 use Aero\Platform\Models\Tenant;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Laravel\Cashier\Http\Controllers\WebhookController as CashierWebhookController;
 use Symfony\Component\HttpFoundation\Response;
@@ -275,7 +276,7 @@ class StripeWebhookController extends CashierWebhookController
             'status' => $newStatus,
             'stripe_status' => $stripeStatus,
             'ends_at' => isset($stripeData['current_period_end'])
-                ? \Carbon\Carbon::createFromTimestamp($stripeData['current_period_end'])
+                ? Carbon::createFromTimestamp($stripeData['current_period_end'])
                 : $subscription->ends_at,
         ]);
     }

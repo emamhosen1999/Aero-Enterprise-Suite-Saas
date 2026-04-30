@@ -1,0 +1,14 @@
+.aeos--oled {
+  --aeos-bg-page:      #000000;
+  --aeos-bg-app:       #050505;
+  --aeos-bg-card:      #0A0A0A;
+  --aeos-bg-elevated:  #111111;
+  --aeos-bg-modal:     #161616;
+  --aeos-glass-bg:        rgba(10,10,10,.80);
+  --aeos-glass-bg-strong: rgba(5,5,5,.92);
+  --aeos-glass-border:    rgba(0,229,255,.18);
+  --aeos-glass-border-h:  rgba(0,229,255,.30);
+  --aeos-divider:         rgba(255,255,255,.05);
+  --aeos-glow-cyan:   0 0 28px rgba(0,229,255,.40);
+  --aeos-glow-cyan-l: 0 0 48px rgba(0,229,255,.65);
+}

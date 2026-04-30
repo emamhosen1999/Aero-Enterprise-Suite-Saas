@@ -2,8 +2,8 @@
 
 namespace Aero\Core\Installation\Steps;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Migration Step
@@ -65,7 +65,7 @@ class MigrationStep extends BaseInstallationStep
             $isCritical = $stepData['is_critical'] ?? false;
 
             foreach ($tags as $tag) {
-                if (!isset($migrationsByTag[$tag])) {
+                if (! isset($migrationsByTag[$tag])) {
                     continue;
                 }
 
@@ -73,11 +73,12 @@ class MigrationStep extends BaseInstallationStep
 
                 if (empty($tagMigrations)) {
                     $this->log("No pending migrations for tag: {$tag}");
+
                     continue;
                 }
 
                 try {
-                    $this->log("Running migrations for tag: {$tag} (" . count($tagMigrations) . " files)");
+                    $this->log("Running migrations for tag: {$tag} (".count($tagMigrations).' files)');
 
                     // Run migrations
                     $exitCode = Artisan::call('migrate', [
@@ -96,9 +97,9 @@ class MigrationStep extends BaseInstallationStep
                     $output[$tag] = 'failed';
 
                     if ($isCritical) {
-                        throw new \Exception("Critical migration tag '{$tag}' failed: " . $e->getMessage());
+                        throw new \Exception("Critical migration tag '{$tag}' failed: ".$e->getMessage());
                     } else {
-                        $this->warn("Non-critical migration tag '{$tag}' failed: " . $e->getMessage());
+                        $this->warn("Non-critical migration tag '{$tag}' failed: ".$e->getMessage());
                     }
                 }
             }
@@ -117,6 +118,7 @@ class MigrationStep extends BaseInstallationStep
         // Check that all pending migrations have been executed
         try {
             $pending = DB::table('migrations')->count();
+
             return $pending > 0; // At least some migrations should exist
         } catch (\Exception) {
             return false;
@@ -165,7 +167,7 @@ class MigrationStep extends BaseInstallationStep
                 '--force' => true,
             ]);
         } catch (\Exception $e) {
-            $this->warn('Rollback failed: ' . $e->getMessage());
+            $this->warn('Rollback failed: '.$e->getMessage());
         }
     }
 }

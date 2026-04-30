@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aero\Core\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -22,10 +23,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $platform
  * @property string|null $location
  * @property bool $is_current
- * @property \Carbon\Carbon $last_active_at
- * @property \Carbon\Carbon $expires_at
- * @property \Carbon\Carbon $created_at
- * @property \Carbon\Carbon $updated_at
+ * @property Carbon $last_active_at
+ * @property Carbon $expires_at
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
  */
 class UserSession extends Model
 {

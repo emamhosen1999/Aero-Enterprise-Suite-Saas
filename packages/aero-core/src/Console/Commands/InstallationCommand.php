@@ -14,7 +14,6 @@ use Aero\Core\Installation\Steps\ModuleDiscoveryStep;
 use Aero\Core\Installation\Steps\SeedingStep;
 use Aero\Core\Installation\Steps\SettingsStep;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Installation Command
@@ -43,8 +42,9 @@ class InstallationCommand extends Command
 
         // Get mode
         $mode = $this->option('mode') ?? 'standalone';
-        if (!in_array($mode, ['standalone', 'saas'])) {
+        if (! in_array($mode, ['standalone', 'saas'])) {
             $this->error("Invalid mode: {$mode}. Must be 'standalone' or 'saas'");
+
             return 1;
         }
 
@@ -73,16 +73,16 @@ class InstallationCommand extends Command
     protected function registerSteps(): void
     {
         $this->orchestrator->registerSteps([
-            new ConfigurationStep(),
-            new DatabaseConnectionStep(),
-            new MigrationStep(),
-            new ModuleDiscoveryStep(),
-            new AdminUserStep(),
-            new SeedingStep(),
-            new SettingsStep(),
-            new CacheStep(),
-            new LicenseStep(),
-            new FinalizeStep(),
+            new ConfigurationStep,
+            new DatabaseConnectionStep,
+            new MigrationStep,
+            new ModuleDiscoveryStep,
+            new AdminUserStep,
+            new SeedingStep,
+            new SettingsStep,
+            new CacheStep,
+            new LicenseStep,
+            new FinalizeStep,
         ]);
     }
 
@@ -97,12 +97,13 @@ class InstallationCommand extends Command
         // Show step overview
         $this->info('Steps to execute:');
         foreach ($this->orchestrator->getOrderedSteps() as $idx => $step) {
-            $this->line("  " . str_pad(($idx + 1), 2, ' ', STR_PAD_LEFT) . ". {$step->description()}");
+            $this->line('  '.str_pad(($idx + 1), 2, ' ', STR_PAD_LEFT).". {$step->description()}");
         }
         $this->line('');
 
-        if (!$this->confirm('Proceed with installation?', true)) {
+        if (! $this->confirm('Proceed with installation?', true)) {
             $this->info('Installation cancelled');
+
             return 1;
         }
 
@@ -121,8 +122,9 @@ class InstallationCommand extends Command
     protected function executeSingleStep(string $stepName): int
     {
         $step = $this->orchestrator->getStep($stepName);
-        if (!$step) {
+        if (! $step) {
             $this->error("Step '{$stepName}' not found");
+
             return 1;
         }
 
@@ -132,7 +134,7 @@ class InstallationCommand extends Command
         try {
             $result = $step->execute();
 
-            if (!$step->validate()) {
+            if (! $step->validate()) {
                 throw new \Exception('Step validation failed');
             }
 
@@ -142,7 +144,8 @@ class InstallationCommand extends Command
             return 0;
 
         } catch (\Exception $e) {
-            $this->error("✗ Step '{$stepName}' failed: " . $e->getMessage());
+            $this->error("✗ Step '{$stepName}' failed: ".$e->getMessage());
+
             return 1;
         }
     }
@@ -159,8 +162,8 @@ class InstallationCommand extends Command
         $this->line('');
 
         // Status
-        $statusLabel = $result['status'] === 'success' 
-            ? '<fg=green>✓ SUCCESS</>' 
+        $statusLabel = $result['status'] === 'success'
+            ? '<fg=green>✓ SUCCESS</>'
             : '<fg=red>✗ FAILED</>';
         $this->line("Status:             {$statusLabel}");
         $this->line("Mode:               <fg=yellow>{$result['mode']}</>");
@@ -180,13 +183,13 @@ class InstallationCommand extends Command
             $statusIcon = $status === 'success' ? '✓' : '✗';
             $statusColor = $status === 'success' ? 'green' : 'red';
 
-            $duration = isset($stepResult['duration_ms']) 
+            $duration = isset($stepResult['duration_ms'])
                 ? " ({$stepResult['duration_ms']}ms)"
                 : '';
 
             $this->line("  <fg={$statusColor}>{$statusIcon}</> {$stepName}{$duration}");
 
-            if (!empty($stepResult['error'])) {
+            if (! empty($stepResult['error'])) {
                 $this->line("     Error: {$stepResult['error']}");
             }
         }
@@ -194,7 +197,7 @@ class InstallationCommand extends Command
         $this->line('');
 
         // Errors
-        if (!empty($result['errors'])) {
+        if (! empty($result['errors'])) {
             $this->error('Errors:');
             foreach ($result['errors'] as $error) {
                 $this->line("  • {$error}");
@@ -203,7 +206,7 @@ class InstallationCommand extends Command
         }
 
         // Warnings
-        if (!empty($result['warnings'])) {
+        if (! empty($result['warnings'])) {
             $this->warn('Warnings:');
             foreach ($result['warnings'] as $warning) {
                 $this->line("  • {$warning}");
@@ -224,12 +227,13 @@ class InstallationCommand extends Command
             $this->line('Next Steps:');
             $this->line("  1. Access your application: <fg=cyan>{$appUrl}</>");
             $this->line("  2. Login with email:        <fg=cyan>{$adminEmail}</>");
-            $this->line("  3. Complete admin setup:    Configure organization & settings");
+            $this->line('  3. Complete admin setup:    Configure organization & settings');
             $this->line('');
 
             return 0;
         } else {
             $this->error('Installation failed. Please check errors above.');
+
             return 1;
         }
     }

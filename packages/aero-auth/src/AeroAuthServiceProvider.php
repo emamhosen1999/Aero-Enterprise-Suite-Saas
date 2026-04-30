@@ -1,0 +1,105 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Aero\Auth;
+
+use Aero\Auth\Console\Commands\AuthSecurityAudit;
+use Illuminate\Support\Facades\Route;
+use Aero\Auth\Context\TenantAuthContext;
+use Aero\Auth\Contracts\AuthContext;
+use Aero\Auth\Listeners\AuthEventSubscriber;
+use Aero\Auth\Services\DeviceAuthService;
+use Aero\Auth\Services\DeviceSessionService;
+use Aero\Auth\Services\EncryptedSessionHandler;
+use Aero\Auth\Services\IpGeolocationService;
+use Aero\Auth\Services\IPWhitelistService;
+use Aero\Auth\Services\ModernAuthenticationService;
+use Aero\Auth\Services\PasswordPolicyService;
+use Aero\Auth\Services\SamlService;
+use Aero\Auth\Services\SessionEncryptionService;
+use Aero\Auth\Services\SessionManagementService;
+use Aero\Auth\Services\ThreatDetectionService;
+use Aero\Auth\Services\TwoFactorAuthService;
+use Aero\Auth\Services\UserImpersonationService;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\ServiceProvider;
+use Laravel\Fortify\Fortify;
+
+class AeroAuthServiceProvider extends ServiceProvider
+{
+    public function register(): void
+    {
+        // Disable Fortify's auto-routes — aero-core and aero-platform define their own
+        // domain-partitioned auth routes that point at Aero\Auth controllers.
+        Fortify::ignoreRoutes();
+
+        // Default context: tenant (web guard). aero-platform overrides this binding
+        // with a domain-aware closure when running in SaaS mode.
+        $this->app->bind(AuthContext::class, TenantAuthContext::class);
+
+        // Auth services — singletons so they are instantiated once per request
+        $this->app->singleton(ModernAuthenticationService::class);
+        $this->app->singleton(DeviceAuthService::class);
+        $this->app->singleton(DeviceSessionService::class);
+        $this->app->singleton(TwoFactorAuthService::class);
+        $this->app->singleton(UserImpersonationService::class);
+        $this->app->singleton(PasswordPolicyService::class);
+        $this->app->singleton(IPWhitelistService::class);
+        $this->app->singleton(IpGeolocationService::class);
+        $this->app->singleton(ThreatDetectionService::class);
+        $this->app->singleton(SamlService::class);
+        $this->app->singleton(SessionEncryptionService::class);
+        $this->app->singleton(SessionManagementService::class);
+
+        // Register encrypted session handler when session encryption is enabled
+        if (config('session.encrypt', false)) {
+            $this->app->extend('session', function ($manager) {
+                $manager->extend('encrypted_database', function ($app) {
+                    $connection = $app['db']->connection($app['config']['session.connection']);
+                    $encryptionService = $app[SessionEncryptionService::class];
+
+                    return new EncryptedSessionHandler(
+                        $connection,
+                        $app['config']['session.table'],
+                        $app['config']['session.lifetime'],
+                        $encryptionService
+                    );
+                });
+
+                return $manager;
+            });
+        }
+    }
+
+    public function boot(): void
+    {
+        // Auth event subscriber
+        Event::subscribe(AuthEventSubscriber::class);
+
+        // Artisan commands
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                AuthSecurityAudit::class,
+            ]);
+        }
+
+        // Auth-specific migrations (devices, sessions, impersonations, social auth, password reset tokens)
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+
+        // Tenant auth routes — wrapped in the 'web' middleware group so that
+        // HandleInertiaRequests, session, CSRF, and all web-group middleware run.
+        Route::middleware(['web'])
+            ->group(__DIR__.'/../routes/tenant.php');
+
+        // Admin/landlord auth routes — only in standalone mode.
+        // In SaaS mode, AeroPlatformServiceProvider loads admin.php with a proper
+        // domain constraint (domain: $adminDomain), so we must NOT load it here
+        // again without a constraint — doing so creates an unconstrained duplicate
+        // /login route that EnsureAdminDomain blocks on all tenant subdomains.
+        if (! class_exists('Aero\\Platform\\AeroPlatformServiceProvider')) {
+            Route::middleware(['web'])
+                ->group(__DIR__.'/../routes/admin.php');
+        }
+    }
+}

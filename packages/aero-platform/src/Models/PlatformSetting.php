@@ -56,7 +56,8 @@ class PlatformSetting extends Model implements HasMedia
      * shared    = cPanel API (Namecheap / shared hosting)
      * dedicated = standard CREATE DATABASE SQL (VPS / cloud)
      */
-    public const HOSTING_MODE_SHARED    = 'shared';
+    public const HOSTING_MODE_SHARED = 'shared';
+
     public const HOSTING_MODE_DEDICATED = 'dedicated';
 
     /** Cache key for hosting settings. */
@@ -380,13 +381,13 @@ class PlatformSetting extends Model implements HasMedia
 
         if (! empty($settings['cpanel_api_token'])) {
             $settings['cpanel_api_token_set'] = true;
-            $settings['cpanel_api_token']     = null;
+            $settings['cpanel_api_token'] = null;
         }
 
         // Expose resolved active mode so the UI always knows what is in effect
-        $settings['mode']          = $settings['mode'] ?? self::HOSTING_MODE_DEDICATED;
+        $settings['mode'] = $settings['mode'] ?? self::HOSTING_MODE_DEDICATED;
         $settings['resolved_mode'] = $this->getHostingMode();
-        $settings['env_override']  = env('TENANCY_DATABASE_MANAGER') !== null;
+        $settings['env_override'] = env('TENANCY_DATABASE_MANAGER') !== null;
 
         return $settings;
     }

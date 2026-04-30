@@ -1,0 +1,19 @@
+.aeos--light.aeos--light-warm,
+.aeos--light-warm {
+  --aeos-primary:       #D97706;
+  --aeos-primary-deep:  #B45309;
+  --aeos-secondary:     #EA580C;
+  --aeos-tertiary:      #DC2626;
+  --aeos-destructive:   #B91C1C;
+  --aeos-bg-page-light:      #FEF7ED;
+  --aeos-bg-app-light:       #FEF3C7;
+  --aeos-bg-card-light:      #FFFFFF;
+  --aeos-bg-elevated-light:  #FEF7ED;
+  --aeos-bg-modal-light:     #FFFFFF;
+  --aeos-text-primary-light:   #9A3412;
+  --aeos-text-secondary-light: #C2410C;
+  --aeos-text-tertiary-light:  #EA580C;
+  --aeos-grad-cyan:  linear-gradient(135deg,#D97706 0%,#DC2626 100%);
+  --aeos-grad-amber: linear-gradient(135deg,#EA580C 0%,#B91C1C 100%);
+  --aeos-grad-full:  linear-gradient(135deg,#D97706 0%,#DC2626 50%,#EA580C 100%);
+}

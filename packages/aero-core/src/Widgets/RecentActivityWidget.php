@@ -6,6 +6,7 @@ namespace Aero\Core\Widgets;
 
 use Aero\Core\Contracts\AbstractDashboardWidget;
 use Aero\Core\Contracts\CoreWidgetCategory;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -174,7 +175,7 @@ class RecentActivityWidget extends AbstractDashboardWidget
                     : $this->formatSimpleAuditMessage($event),
                 'user' => $event->user_name,
                 'timestamp' => $event->created_at,
-                'timeAgo' => \Carbon\Carbon::parse($event->created_at)->diffForHumans(),
+                'timeAgo' => Carbon::parse($event->created_at)->diffForHumans(),
             ];
         }, $results);
     }
@@ -206,7 +207,7 @@ class RecentActivityWidget extends AbstractDashboardWidget
                 'message' => $this->formatEventMessage($event),
                 'user' => $event->user_name,
                 'timestamp' => $event->created_at,
-                'timeAgo' => \Carbon\Carbon::parse($event->created_at)->diffForHumans(),
+                'timeAgo' => Carbon::parse($event->created_at)->diffForHumans(),
             ];
         })->toArray();
     }
@@ -238,7 +239,7 @@ class RecentActivityWidget extends AbstractDashboardWidget
                 'message' => $this->formatAuditMessage($event),
                 'user' => $event->user_name ?? 'System',
                 'timestamp' => $event->created_at,
-                'timeAgo' => \Carbon\Carbon::parse($event->created_at)->diffForHumans(),
+                'timeAgo' => Carbon::parse($event->created_at)->diffForHumans(),
             ];
         })->toArray();
     }

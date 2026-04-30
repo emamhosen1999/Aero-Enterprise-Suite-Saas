@@ -3,6 +3,7 @@
 namespace Aero\Platform\Services;
 
 use Aero\Platform\Models\RateLimitConfig;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -88,7 +89,7 @@ class RateLimitConfigService
     /**
      * Get all configurations for a tenant
      *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection
      */
     public function getTenantConfigs(?string $tenantId)
     {

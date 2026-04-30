@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\Core\Http\Controllers\Settings;
 
+use Aero\Auth\Services\IPWhitelistService;
 use Aero\Core\Http\Controllers\Controller;
-use Aero\Core\Services\Auth\IPWhitelistService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

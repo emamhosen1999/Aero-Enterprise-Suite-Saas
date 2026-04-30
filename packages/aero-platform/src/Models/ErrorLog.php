@@ -2,6 +2,7 @@
 
 namespace Aero\Platform\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -34,10 +35,10 @@ use Illuminate\Support\Str;
  * @property string|null $ip_address
  * @property bool $is_resolved
  * @property int|null $resolved_by
- * @property \Carbon\Carbon|null $resolved_at
+ * @property Carbon|null $resolved_at
  * @property string|null $resolution_notes
- * @property \Carbon\Carbon $created_at
- * @property \Carbon\Carbon $updated_at
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
  */
 class ErrorLog extends Model
 {

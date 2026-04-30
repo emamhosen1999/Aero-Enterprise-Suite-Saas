@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Aero\Core\Http\Middleware;
 
-use Aero\Core\Services\Auth\TwoFactorAuthService;
+use Aero\Auth\Services\TwoFactorAuthService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;

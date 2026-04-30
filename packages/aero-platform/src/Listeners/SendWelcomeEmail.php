@@ -2,6 +2,7 @@
 
 namespace Aero\Platform\Listeners;
 
+use Aero\HRMAC\Facades\HRMAC;
 use Aero\Platform\Events\EmployeeCreated;
 use Aero\Platform\Notifications\WelcomeEmployeeNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -41,7 +42,7 @@ class SendWelcomeEmail implements ShouldQueue
 
         // Notify HR team about new employee using HRMAC
         try {
-            $hrUsers = \Aero\HRMAC\Facades\HRMAC::getUsersWithSubModuleAccess('hrm', 'employees');
+            $hrUsers = HRMAC::getUsersWithSubModuleAccess('hrm', 'employees');
             Notification::send($hrUsers, new WelcomeEmployeeNotification($employee));
         } catch (\Exception $e) {
             Log::warning('HRMAC not available for welcome email notification', [

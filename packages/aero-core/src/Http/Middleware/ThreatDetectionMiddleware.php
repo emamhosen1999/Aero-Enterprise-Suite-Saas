@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Aero\Core\Http\Middleware;
 
-use Aero\Core\Services\Auth\ThreatDetectionService;
+use Aero\Auth\Services\ThreatDetectionService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

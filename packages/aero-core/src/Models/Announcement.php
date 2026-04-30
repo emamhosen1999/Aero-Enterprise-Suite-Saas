@@ -2,6 +2,7 @@
 
 namespace Aero\Core\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,15 +21,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $body
  * @property string $type
  * @property string $priority
- * @property \Carbon\Carbon|null $starts_at
- * @property \Carbon\Carbon|null $expires_at
+ * @property Carbon|null $starts_at
+ * @property Carbon|null $expires_at
  * @property bool $is_pinned
  * @property bool $is_dismissible
  * @property array|null $target_roles
  * @property array|null $target_departments
  * @property array $dismissed_by
- * @property \Carbon\Carbon $created_at
- * @property \Carbon\Carbon $updated_at
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
  */
 class Announcement extends Model
 {

@@ -4,6 +4,7 @@ namespace Aero\Core\Policies\Concerns;
 
 use Aero\Core\Models\User;
 use Aero\Core\Services\ModuleAccessService;
+use App\Models\ModuleComponentAction;
 
 /**
  * Trait ChecksModuleAccess
@@ -224,7 +225,7 @@ trait ChecksModuleAccess
 
         // Get user's access scope for this action
         $service = $this->getModuleAccessService();
-        $actionRecord = \App\Models\ModuleComponentAction::whereHas('component', function ($q) use ($componentCode, $subModuleCode, $moduleCode) {
+        $actionRecord = ModuleComponentAction::whereHas('component', function ($q) use ($componentCode, $subModuleCode, $moduleCode) {
             $q->where('code', $componentCode)
                 ->whereHas('subModule', function ($q2) use ($subModuleCode, $moduleCode) {
                     $q2->where('code', $subModuleCode)

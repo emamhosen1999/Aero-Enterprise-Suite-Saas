@@ -2,6 +2,7 @@
 
 namespace Aero\Platform\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -21,7 +22,7 @@ class UpdatePlatformSettingRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -73,13 +74,13 @@ class UpdatePlatformSettingRequest extends FormRequest
             'admin_preferences.enable_impersonation' => ['nullable', 'boolean'],
 
             // Infrastructure / Hosting mode
-            'hosting_settings'                       => ['sometimes', 'array'],
-            'hosting_settings.mode'                  => ['sometimes', 'string', 'in:shared,dedicated'],
-            'hosting_settings.cpanel_host'           => ['nullable', 'string', 'max:255'],
-            'hosting_settings.cpanel_port'           => ['nullable', 'integer', 'min:1', 'max:65535'],
-            'hosting_settings.cpanel_username'       => ['nullable', 'string', 'max:64'],
-            'hosting_settings.cpanel_api_token'      => ['nullable', 'string', 'max:512'],
-            'hosting_settings.cpanel_db_user'        => ['nullable', 'string', 'max:64'],
+            'hosting_settings' => ['sometimes', 'array'],
+            'hosting_settings.mode' => ['sometimes', 'string', 'in:shared,dedicated'],
+            'hosting_settings.cpanel_host' => ['nullable', 'string', 'max:255'],
+            'hosting_settings.cpanel_port' => ['nullable', 'integer', 'min:1', 'max:65535'],
+            'hosting_settings.cpanel_username' => ['nullable', 'string', 'max:64'],
+            'hosting_settings.cpanel_api_token' => ['nullable', 'string', 'max:512'],
+            'hosting_settings.cpanel_db_user' => ['nullable', 'string', 'max:64'],
 
             'logo' => ['nullable', 'file', 'mimetypes:image/jpeg,image/png,image/svg+xml,image/webp', 'max:4096'],
             'square_logo' => ['nullable', 'file', 'mimetypes:image/jpeg,image/png,image/svg+xml,image/webp', 'max:4096'],

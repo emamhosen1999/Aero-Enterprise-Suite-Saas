@@ -122,6 +122,7 @@ class TagMigrationsCommand extends Command
 
         if ($migrations->isEmpty()) {
             $this->warn('No migrations found in database.');
+
             return 0;
         }
 
@@ -137,13 +138,13 @@ class TagMigrationsCommand extends Command
             $step = $tag ? ($this->stepMapping[$tag] ?? null) : null;
             $isCritical = $tag && in_array($tag, $this->criticalTags);
 
-            if (!$tag) {
+            if (! $tag) {
                 $untagged++;
                 $this->line("  <fg=yellow>⚠</> {$migration->migration} -> <fg=yellow>UNTAGGED</>");
             } else {
                 $tagged++;
-                $this->line("  <fg=green>✓</> {$migration->migration} -> <fg=green>{$tag}</> (step: {$step}, critical: " . ($isCritical ? 'yes' : 'no') . ")");
-                
+                $this->line("  <fg=green>✓</> {$migration->migration} -> <fg=green>{$tag}</> (step: {$step}, critical: ".($isCritical ? 'yes' : 'no').')');
+
                 $updates[] = [
                     'batch' => $migration->batch,
                     'migration' => $migration->migration,
@@ -155,13 +156,14 @@ class TagMigrationsCommand extends Command
         }
 
         $this->newLine();
-        $this->info("Results:");
+        $this->info('Results:');
         $this->line("  <fg=green>Tagged:</> {$tagged}");
         $this->line("  <fg=yellow>Untagged:</> {$untagged}");
 
         if ($dryRun) {
             $this->newLine();
             $this->warn('[DRY RUN] No database changes made. Run without --dry-run to apply tags.');
+
             return 0;
         }
 

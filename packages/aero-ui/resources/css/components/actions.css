@@ -1,0 +1,14 @@
+/* ── Spinner ──────────────────────────────────────────────────── */
+.aeos-spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.2); border-top-color:currentColor; border-radius:50%; animation:aeos-spin .7s linear infinite; flex-shrink:0; }
+
+/* ── Icon button ─────────────────────────────────────────────── */
+.aeos-icon-btn { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:var(--aeos-r-md); background:transparent; border:none; color:var(--aeos-text-secondary); cursor:pointer; transition:background var(--aeos-dur-fast) var(--aeos-ease-out),color var(--aeos-dur-fast) var(--aeos-ease-out); flex-shrink:0; }
+.aeos-icon-btn:hover { background:rgba(255,255,255,.06); color:var(--aeos-text-primary); }
+
+/* ── Button extras ───────────────────────────────────────────── */
+.aeos-btn-full { width:100%; justify-content:center; }
+.aeos-btn-group { display:inline-flex; gap:var(--aeos-space-2); }
+.aeos-btn-group-attached { gap:0; }
+.aeos-btn-group-attached > .aeos-btn { border-radius:0; }
+.aeos-btn-group-attached > .aeos-btn:first-child { border-radius:var(--aeos-r-md) 0 0 var(--aeos-r-md); }
+.aeos-btn-group-attached > .aeos-btn:last-child  { border-radius:0 var(--aeos-r-md) var(--aeos-r-md) 0; }

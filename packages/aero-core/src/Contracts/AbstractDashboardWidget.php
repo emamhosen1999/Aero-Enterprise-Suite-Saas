@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace Aero\Core\Contracts;
 
+use Aero\HRMAC\Contracts\RoleModuleAccessInterface;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
+
 /**
  * Abstract Dashboard Widget
  *
@@ -172,8 +177,8 @@ abstract class AbstractDashboardWidget implements DashboardWidgetInterface
 
         // Check module status from database or config
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('modules')) {
-                return \Illuminate\Support\Facades\DB::table('modules')
+            if (Schema::hasTable('modules')) {
+                return DB::table('modules')
                     ->where('code', $moduleCode)
                     ->where('is_active', true)
                     ->exists();
@@ -232,8 +237,8 @@ abstract class AbstractDashboardWidget implements DashboardWidgetInterface
     {
         try {
             // Try to resolve RoleModuleAccessInterface
-            if (app()->bound(\Aero\HRMAC\Contracts\RoleModuleAccessInterface::class)) {
-                return app(\Aero\HRMAC\Contracts\RoleModuleAccessInterface::class);
+            if (app()->bound(RoleModuleAccessInterface::class)) {
+                return app(RoleModuleAccessInterface::class);
             }
         } catch (\Exception $e) {
             // HRMAC not available
@@ -304,7 +309,7 @@ abstract class AbstractDashboardWidget implements DashboardWidgetInterface
         try {
             return $callback();
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::warning('Widget data error: '.$e->getMessage(), [
+            Log::warning('Widget data error: '.$e->getMessage(), [
                 'widget' => $this->getKey(),
             ]);
 

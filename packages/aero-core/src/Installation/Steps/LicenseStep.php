@@ -39,6 +39,7 @@ class LicenseStep extends BaseInstallationStep
         // Skip in SaaS mode
         if ($mode === 'saas') {
             $this->log('License validation skipped (SaaS mode)');
+
             return [
                 'license_status' => 'skipped',
                 'reason' => 'SaaS mode detected',
@@ -49,6 +50,7 @@ class LicenseStep extends BaseInstallationStep
 
         if (empty($licenseKey)) {
             $this->log('No license key provided - continuing without validation');
+
             return [
                 'license_status' => 'not_provided',
                 'reason' => 'LICENSE_KEY environment variable not set',
@@ -56,7 +58,7 @@ class LicenseStep extends BaseInstallationStep
         }
 
         // Validate license format
-        if (!$this->validateLicenseFormat($licenseKey)) {
+        if (! $this->validateLicenseFormat($licenseKey)) {
             throw new \Exception('Invalid license key format');
         }
 
@@ -66,11 +68,11 @@ class LicenseStep extends BaseInstallationStep
 
             return [
                 'license_status' => 'validated',
-                'license_key' => substr($licenseKey, 0, 10) . '...',
+                'license_key' => substr($licenseKey, 0, 10).'...',
             ];
 
         } catch (\Exception $e) {
-            throw new \Exception('Failed to store license information: ' . $e->getMessage());
+            throw new \Exception('Failed to store license information: '.$e->getMessage());
         }
     }
 
@@ -113,7 +115,7 @@ class LicenseStep extends BaseInstallationStep
     protected function storeLicenseInfo(string $licenseKey): void
     {
         try {
-            if (!DB::table('settings')->exists()) {
+            if (! DB::table('settings')->exists()) {
                 return;
             }
 

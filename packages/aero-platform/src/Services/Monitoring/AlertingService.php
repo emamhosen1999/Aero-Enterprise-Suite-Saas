@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aero\Platform\Services\Monitoring;
 
 use Aero\Core\Support\TenantCache;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -314,7 +315,7 @@ class AlertingService
         };
 
         $periodAlerts = array_filter($alerts, function ($alert) use ($cutoff) {
-            return \Carbon\Carbon::parse($alert['created_at'])->gte($cutoff);
+            return Carbon::parse($alert['created_at'])->gte($cutoff);
         });
 
         return [
@@ -800,8 +801,8 @@ class AlertingService
         $totalMinutes = 0;
 
         foreach ($resolvedAlerts as $alert) {
-            $created = \Carbon\Carbon::parse($alert['created_at']);
-            $resolved = \Carbon\Carbon::parse($alert['resolved_at']);
+            $created = Carbon::parse($alert['created_at']);
+            $resolved = Carbon::parse($alert['resolved_at']);
             $totalMinutes += $created->diffInMinutes($resolved);
         }
 

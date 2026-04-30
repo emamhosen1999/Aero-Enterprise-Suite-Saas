@@ -2,6 +2,7 @@
 
 namespace Aero\Platform\Http\Middleware;
 
+use Aero\Core\Services\ModuleAccessService;
 use Aero\Core\Traits\ParsesHostDomain;
 use Closure;
 use Illuminate\Http\Request;
@@ -40,7 +41,7 @@ class ModuleAccessMiddleware
         if (! $user) {
             return redirect()->route('login');
         }
-        $service = app(\Aero\Core\Services\ModuleAccessService::class);
+        $service = app(ModuleAccessService::class);
 
         // Check module access
         if ($moduleCode) {

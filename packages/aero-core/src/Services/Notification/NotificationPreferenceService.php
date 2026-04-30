@@ -6,6 +6,7 @@ namespace Aero\Core\Services\Notification;
 
 use Aero\Core\Models\User;
 use Aero\Core\Support\TenantCache;
+use Carbon\Carbon;
 
 /**
  * Notification Preference Service
@@ -304,8 +305,8 @@ class NotificationPreferenceService
 
         $timezone = $prefs['quiet_hours']['timezone'] ?? 'UTC';
         $now = now()->setTimezone($timezone);
-        $start = \Carbon\Carbon::parse($prefs['quiet_hours']['start'], $timezone);
-        $end = \Carbon\Carbon::parse($prefs['quiet_hours']['end'], $timezone);
+        $start = Carbon::parse($prefs['quiet_hours']['start'], $timezone);
+        $end = Carbon::parse($prefs['quiet_hours']['end'], $timezone);
 
         // Handle overnight quiet hours (e.g., 22:00 to 08:00)
         if ($start > $end) {

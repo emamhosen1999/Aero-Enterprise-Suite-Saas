@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\View;
 use Inertia\Middleware;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 /**
@@ -48,7 +49,7 @@ class HandleInertiaRequests extends Middleware
      *
      * In standalone mode or on tenant domains, this middleware handles Inertia requests.
      *
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @return Response
      */
     public function handle(Request $request, \Closure $next)
     {
@@ -217,7 +218,7 @@ class HandleInertiaRequests extends Middleware
             if (method_exists($user, 'getAllPermissions')) {
                 $permissions = $user->getAllPermissions()->pluck('name')->toArray();
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Permissions table may not exist - using module access instead
             $permissions = [];
         }

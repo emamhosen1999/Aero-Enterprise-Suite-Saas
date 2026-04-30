@@ -5,6 +5,8 @@ namespace Aero\Core\Services\Profile;
 use Aero\Core\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class ProfileMediaService
 {
@@ -25,8 +27,8 @@ class ProfileMediaService
         try {
             $this->validateImageSecurity($newProfileImage);
         } catch (\Exception $e) {
-            throw new \Illuminate\Validation\ValidationException(
-                \Illuminate\Support\Facades\Validator::make([], []),
+            throw new ValidationException(
+                Validator::make([], []),
                 ['profile_image' => [$e->getMessage()]]
             );
         }
@@ -56,8 +58,8 @@ class ProfileMediaService
 
             $messages[] = 'Profile image uploaded successfully';
         } catch (\Exception $e) {
-            throw new \Illuminate\Validation\ValidationException(
-                \Illuminate\Support\Facades\Validator::make([], []),
+            throw new ValidationException(
+                Validator::make([], []),
                 ['profile_image' => ['Failed to upload profile image: '.$e->getMessage()]]
             );
         }
@@ -86,8 +88,8 @@ class ProfileMediaService
             $user->save();
 
         } catch (\Exception $e) {
-            throw new \Illuminate\Validation\ValidationException(
-                \Illuminate\Support\Facades\Validator::make([], []),
+            throw new ValidationException(
+                Validator::make([], []),
                 ['profile_image' => ['Failed to remove profile image: '.$e->getMessage()]]
             );
         }

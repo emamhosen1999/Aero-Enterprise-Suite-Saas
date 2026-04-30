@@ -1,0 +1,64 @@
+{
+    "name": "aero/auth",
+    "description": "Aero Auth Package - Unified authentication for tenant and platform contexts",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "aero",
+        "auth",
+        "laravel",
+        "authentication",
+        "multi-tenancy",
+        "fortify",
+        "sanctum"
+    ],
+    "authors": [
+        {
+            "name": "Aero Team",
+            "email": "support@aerosuite.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "aero/core": "*",
+        "laravel/framework": "^11.0|^12.0",
+        "laravel/fortify": "^1.24",
+        "laravel/sanctum": "^4.0",
+        "jenssegers/agent": "^2.6|^3.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0",
+        "laravel/boost": "*",
+        "orchestra/testbench": "^9.0|^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Aero\\Auth\\": "src/",
+            "Aero\\Auth\\Database\\Factories\\": "database/factories/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Aero\\Auth\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Aero\\Auth\\AeroAuthServiceProvider"
+            ]
+        },
+        "aero": {
+            "package": "auth",
+            "version": "1.0.0",
+            "category": "foundation",
+            "description": "Unified authentication package for tenant and platform/landlord contexts"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true
+    }
+}

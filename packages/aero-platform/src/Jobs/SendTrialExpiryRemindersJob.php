@@ -4,6 +4,7 @@ namespace Aero\Platform\Jobs;
 
 use Aero\Platform\Services\MailService;
 use Aero\Platform\Services\SmsService;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -70,7 +71,7 @@ class SendTrialExpiryRemindersJob implements ShouldQueue
      */
     protected function sendReminderToTenant($tenant, int $days): void
     {
-        $trialEnds = \Carbon\Carbon::parse($tenant->trial_ends_at);
+        $trialEnds = Carbon::parse($tenant->trial_ends_at);
 
         // Get tenant admin email and phone
         $adminUser = DB::table('users')

@@ -2,6 +2,8 @@
 
 namespace Aero\Platform\Console;
 
+use App\Console\Commands\SendAttendanceReminders;
+use App\Models\NotificationLog;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Illuminate\Support\Facades\Log;
@@ -14,7 +16,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        \App\Console\Commands\SendAttendanceReminders::class,
+        SendAttendanceReminders::class,
     ];
 
     /**
@@ -68,7 +70,7 @@ class Kernel extends ConsoleKernel
         // Clean up old notification logs (keep 30 days)
         $schedule->command('model:prune', [
             '--model' => [
-                \App\Models\NotificationLog::class,
+                NotificationLog::class,
             ],
         ])->daily();
 

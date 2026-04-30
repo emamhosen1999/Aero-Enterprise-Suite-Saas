@@ -23,7 +23,6 @@ class AINavigationSuggestionService
     /**
      * Get personalised navigation suggestions for a user.
      *
-     * @param  int  $userId
      * @param  string|null  $currentPath  The path the user is currently on
      * @param  array  $allNavItems  Flat list of all available nav items for the user
      * @return array{pinned: array, frequent: array, recent: array, contextual: array}
@@ -87,7 +86,6 @@ class AINavigationSuggestionService
     /**
      * Get the metadata payload that should be passed to the frontend with every page load.
      *
-     * @param  int  $userId
      * @return array{topPaths: array, recentPaths: array, quickActions: array}
      */
     public function getUserMetadata(int $userId): array
@@ -110,7 +108,6 @@ class AINavigationSuggestionService
     /**
      * Build a path-keyed lookup from a nested nav tree.
      *
-     * @param  array  $navItems
      * @return array<string, array>
      */
     protected function buildNavLookup(array $navItems): array

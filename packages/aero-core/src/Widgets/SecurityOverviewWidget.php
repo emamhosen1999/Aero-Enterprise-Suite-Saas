@@ -6,6 +6,7 @@ namespace Aero\Core\Widgets;
 
 use Aero\Core\Contracts\AbstractDashboardWidget;
 use Aero\Core\Contracts\CoreWidgetCategory;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -139,7 +140,7 @@ class SecurityOverviewWidget extends AbstractDashboardWidget
                 ],
                 [
                     'label' => 'Last Login',
-                    'value' => $lastLogin ? \Carbon\Carbon::parse($lastLogin)->diffForHumans() : 'First login',
+                    'value' => $lastLogin ? Carbon::parse($lastLogin)->diffForHumans() : 'First login',
                     'icon' => 'ClockIcon',
                     'status' => 'default',
                 ],

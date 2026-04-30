@@ -2,12 +2,16 @@
 
 namespace Aero\Core\Http\Controllers\Admin;
 
+use Aero\Auth\Services\SessionManagementService;
+use Aero\Auth\Services\UserImpersonationService;
 use Aero\Core\Http\Controllers\Controller;
 use Aero\Core\Models\User;
+use Aero\Core\Models\UserInvitation;
 use Aero\Core\Services\AuditService;
-use Aero\Core\Services\Auth\SessionManagementService;
 use Aero\Core\Services\UserInvitationService;
+use Aero\Core\Services\UserRelationshipRegistry;
 use Aero\HRMAC\Models\Role;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -284,7 +288,7 @@ class CoreUserController extends Controller
                 'message' => 'User created successfully.',
                 'user' => $user->fresh(['roles']),
             ], 201);
-        } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+        } catch (UniqueConstraintViolationException $e) {
             DB::rollBack();
 
             // Determine which field caused the constraint violation
@@ -639,7 +643,7 @@ class CoreUserController extends Controller
     public function cancelInvitation($invitationId)
     {
         try {
-            $invitation = \Aero\Core\Models\UserInvitation::findOrFail($invitationId);
+            $invitation = UserInvitation::findOrFail($invitationId);
             $this->invitationService->cancelInvitation($invitationId);
 
             // Log the action
@@ -818,7 +822,7 @@ class CoreUserController extends Controller
 
             if (isset($validated['department_id'])) {
                 // Check if department relationship exists dynamically
-                $registry = app(\Aero\Core\Services\UserRelationshipRegistry::class);
+                $registry = app(UserRelationshipRegistry::class);
                 if ($registry->hasRelationship('employee')) {
                     $query->whereHas('employee', function ($q) use ($validated) {
                         $q->where('department_id', $validated['department_id']);
@@ -1114,7 +1118,7 @@ class CoreUserController extends Controller
         $this->authorize('impersonate', $user);
 
         try {
-            $impersonationService = app(\Aero\Core\Services\Auth\UserImpersonationService::class);
+            $impersonationService = app(UserImpersonationService::class);
 
             $reason = $request->input('reason', 'Administrative support');
             $duration = $request->input('duration', 60);
@@ -1149,7 +1153,7 @@ class CoreUserController extends Controller
     public function stopImpersonation(Request $request)
     {
         try {
-            $impersonationService = app(\Aero\Core\Services\Auth\UserImpersonationService::class);
+            $impersonationService = app(UserImpersonationService::class);
 
             if (! $impersonationService->isImpersonating()) {
                 return response()->json([

@@ -3,8 +3,11 @@
 namespace Aero\Core\Models;
 
 use Aero\Core\Contracts\UserContract;
+use Aero\Core\Database\Factories\UserFactory;
 use Aero\Core\Services\UserRelationshipRegistry;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -60,11 +64,11 @@ class User extends Authenticatable implements MustVerifyEmail, UserContract
     /**
      * Create a new factory instance for the model.
      *
-     * @return \Illuminate\Database\Eloquent\Factories\Factory
+     * @return Factory
      */
     protected static function newFactory()
     {
-        return \Aero\Core\Database\Factories\UserFactory::new();
+        return UserFactory::new();
     }
 
     /**
@@ -194,9 +198,9 @@ class User extends Authenticatable implements MustVerifyEmail, UserContract
      *
      * Usage: User::dynamic('withEmployeeRelations')->get()
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  Builder  $query
      * @param  mixed  ...$parameters
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeDynamic($query, string $scopeName, ...$parameters)
     {
@@ -327,10 +331,10 @@ class User extends Authenticatable implements MustVerifyEmail, UserContract
      * Scope a query to only include users with a specific role.
      * Enables: User::role('Employee')->get()
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  Builder  $query
      * @param  string|array  $roles
      */
-    public function scopeRole($query, $roles): \Illuminate\Database\Eloquent\Builder
+    public function scopeRole($query, $roles): Builder
     {
         $roles = is_array($roles) ? $roles : [$roles];
 
@@ -519,7 +523,7 @@ class User extends Authenticatable implements MustVerifyEmail, UserContract
     /**
      * Get all permissions - returns empty as we use module access.
      */
-    public function getAllPermissions(): \Illuminate\Support\Collection
+    public function getAllPermissions(): Collection
     {
         // We don't use Spatie permissions - module access handles authorization
         return collect([]);

@@ -1,0 +1,74 @@
+/* ── Card chrome ─────────────────────────────────────────────── */
+.aeos-card-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:16px; }
+.aeos-card-header-text { flex:1; min-width:0; }
+.aeos-card-header-action { flex-shrink:0; }
+.aeos-card-title    { font-family:var(--aeos-font-body); font-size:1.05rem; font-weight:600; color:var(--aeos-text-primary); margin:0; }
+.aeos-card-subtitle { font-size:0.85rem; color:var(--aeos-text-secondary); margin:4px 0 0; line-height:1.5; }
+.aeos-card-body     { color:var(--aeos-text-primary); }
+.aeos-card-footer   { margin-top:16px; padding-top:16px; border-top:1px solid var(--aeos-divider); display:flex; gap:8px; }
+.aeos-card-footer-right   { justify-content:flex-end; }
+.aeos-card-footer-left    { justify-content:flex-start; }
+.aeos-card-footer-between { justify-content:space-between; }
+.aeos-card-interactive { cursor:pointer; transition:box-shadow var(--aeos-dur-fast) var(--aeos-ease-out); }
+.aeos-card-interactive:hover { box-shadow:var(--aeos-shadow-lift); }
+
+/* ── Avatar ──────────────────────────────────────────────────── */
+.aeos-avatar {
+  display:inline-flex; align-items:center; justify-content:center;
+  border-radius:50%; overflow:hidden; flex-shrink:0;
+  font-family:var(--aeos-font-mono); font-weight:600; letter-spacing:0.02em;
+  background:rgba(0,229,255,.14); border:1px solid rgba(0,229,255,.28); color:var(--aeos-primary);
+}
+.aeos-avatar img { width:100%; height:100%; object-fit:cover; }
+.aeos-avatar-amber  { background:rgba(255,179,71,.14); border-color:rgba(255,179,71,.28); color:var(--aeos-secondary); }
+.aeos-avatar-indigo { background:rgba(99,102,241,.14); border-color:rgba(99,102,241,.28); color:var(--aeos-tertiary); }
+.aeos-avatar-rose   { background:rgba(255,107,107,.14); border-color:rgba(255,107,107,.28); color:var(--aeos-destructive); }
+.aeos-avatar-success{ background:rgba(34,197,94,.14); border-color:rgba(34,197,94,.28); color:var(--aeos-success); }
+.aeos-avatar-extra  { background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.10); color:var(--aeos-text-secondary); }
+.aeos-avatar-stack  { display:inline-flex; }
+.aeos-avatar-stack > .aeos-avatar { margin-left:-8px; box-shadow:0 0 0 2px var(--aeos-bg-page); }
+.aeos-avatar-stack > .aeos-avatar:first-child { margin-left:0; }
+
+/* ── Alert ───────────────────────────────────────────────────── */
+.aeos-alert { display:flex; align-items:flex-start; gap:12px; padding:12px 16px; border-radius:8px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); }
+.aeos-alert-info    { border-color:rgba(0,229,255,.2);   background:rgba(0,229,255,.04); }
+.aeos-alert-success { border-color:rgba(34,197,94,.2);   background:rgba(34,197,94,.04); }
+.aeos-alert-warning { border-color:rgba(255,179,71,.2);  background:rgba(255,179,71,.04); }
+.aeos-alert-danger  { border-color:rgba(255,107,107,.2); background:rgba(255,107,107,.04); }
+.aeos-alert-icon { flex-shrink:0; }
+.aeos-alert-body { flex:1; min-width:0; }
+.aeos-alert-title { font-weight:600; font-size:0.9rem; margin-bottom:2px; display:block; }
+.aeos-alert-text { font-size:0.85rem; color:var(--aeos-text-secondary); line-height:1.4; }
+
+/* ── Skeleton ─────────────────────────────────────────────────── */
+.aeos-skeleton {
+  display:block; border-radius:var(--aeos-r-md);
+  background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.08) 50%,rgba(255,255,255,.04) 75%);
+  background-size:200% 100%;
+  animation:aeos-shimmer 1.6s infinite linear;
+}
+
+/* ── Empty state ─────────────────────────────────────────────── */
+.aeos-empty-state { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:var(--aeos-space-12) var(--aeos-space-6); gap:var(--aeos-space-3); }
+.aeos-empty-icon { width:56px; height:56px; border-radius:var(--aeos-r-xl); background:rgba(255,255,255,.04); border:1px solid var(--aeos-divider); display:flex; align-items:center; justify-content:center; color:var(--aeos-text-tertiary); margin-bottom:var(--aeos-space-2); }
+.aeos-empty-title { font-size:1rem; font-weight:600; color:var(--aeos-text-primary); margin:0; }
+.aeos-empty-desc  { font-size:0.875rem; color:var(--aeos-text-secondary); margin:0; line-height:1.5; max-width:320px; }
+.aeos-empty-action { margin-top:var(--aeos-space-2); }
+
+/* ── Tag ─────────────────────────────────────────────────────── */
+.aeos-tag { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:var(--aeos-r-full); font-size:0.75rem; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10); color:var(--aeos-text-primary); }
+.aeos-tag-cyan    { background:rgba(0,229,255,.10); border-color:rgba(0,229,255,.20); color:var(--aeos-primary); }
+.aeos-tag-amber   { background:rgba(255,179,71,.10); border-color:rgba(255,179,71,.20); color:var(--aeos-secondary); }
+.aeos-tag-neutral { background:rgba(255,255,255,.05); border-color:rgba(255,255,255,.08); color:var(--aeos-text-secondary); }
+.aeos-tag-x { display:inline-flex; align-items:center; justify-content:center; background:none; border:none; padding:0; color:inherit; cursor:pointer; opacity:0.6; }
+.aeos-tag-x:hover { opacity:1; }
+
+/* ── Kbd ─────────────────────────────────────────────────────── */
+.aeos-kbd { display:inline-flex; align-items:center; gap:2px; font-family:var(--aeos-font-mono); font-size:0.7rem; padding:2px 6px; border-radius:4px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08); color:var(--aeos-text-primary); }
+
+/* ── Logo text ───────────────────────────────────────────────── */
+.aeos-logo-text { font-family:var(--aeos-font-display); font-weight:700; font-size:1.1rem; letter-spacing:-.02em; background:var(--aeos-grad-cyan); -webkit-background-clip:text; background-clip:text; color:transparent; }
+
+/* ── Progress bar (display/progress) ────────────────────────── */
+.aeos-progress-track { height:6px; width:100%; background:rgba(255,255,255,.06); border-radius:var(--aeos-r-full); overflow:hidden; }
+.aeos-progress-fill  { height:100%; border-radius:var(--aeos-r-full); background:var(--aeos-grad-cyan); transition:width var(--aeos-dur-slow) var(--aeos-ease-out); }

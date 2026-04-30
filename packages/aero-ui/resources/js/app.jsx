@@ -1,0 +1,45 @@
+/**
+ * AEOS UI Engine — Inertia entry point
+ *
+ * Wraps every Inertia page with:
+ *   1. ThemeProvider  — global theme state + DOM attribute writes
+ *   2. ThemeDrawer    — persistent floating customizer bubble
+ *
+ * Product packages only need to:
+ *   - Write Pages/*.jsx that import from '@aero/ui'
+ *   - Optionally use `.layout` on the page component for a custom shell
+ *
+ * CSS is loaded once here via Vite. All token/theme/component styles
+ * live in resources/css/app.css — no external design-system folder dependency.
+ */
+import { createInertiaApp } from '@inertiajs/react';
+import { createRoot } from 'react-dom/client';
+
+import { ThemeProvider } from './theme/ThemeProvider.jsx';
+import ThemeDrawer       from './theme/ThemeDrawer.jsx';
+import '../css/app.css';
+
+function AeosEngine({ App, props }) {
+  return (
+    <ThemeProvider>
+      <App {...props} />
+      <ThemeDrawer />
+    </ThemeProvider>
+  );
+}
+
+createInertiaApp({
+  resolve: name => {
+    const pages = import.meta.glob('./Pages/**/*.jsx', { eager: true });
+    const page  = pages[`./Pages/${name}.jsx`];
+    if (!page) throw new Error(`[AeroUI] Page not found: ${name}`);
+    return page;
+  },
+  setup({ el, App, props }) {
+    createRoot(el).render(<AeosEngine App={App} props={props} />);
+  },
+  progress: {
+    color: 'var(--aeos-primary, #00E5FF)',
+    showSpinner: false,
+  },
+});

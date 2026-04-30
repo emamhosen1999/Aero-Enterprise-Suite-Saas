@@ -6,6 +6,7 @@ use Aero\Core\Services\Module\ModuleDiscoveryService;
 use Aero\Core\Services\ModuleRegistry;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Stancl\Tenancy\Events\TenantCreated;
@@ -108,7 +109,7 @@ class TenantCreatedListener implements ShouldQueue
                 return false;
             }
 
-            $result = \Illuminate\Support\Facades\DB::select(
+            $result = DB::select(
                 'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?',
                 [$databaseName]
             );

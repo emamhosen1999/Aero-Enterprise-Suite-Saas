@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aero\Core\Contracts;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 /**
@@ -71,7 +72,7 @@ interface UserRepositoryContract
      * Create a new query builder for users.
      * Returns an Eloquent builder that can be further customized.
      *
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function query(): mixed;
 }

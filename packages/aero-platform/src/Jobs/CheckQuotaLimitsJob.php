@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Jobs;
 
+use Aero\Platform\Models\QuotaWarning;
 use Aero\Platform\Models\Tenant;
 use Aero\Platform\Services\Quotas\EnhancedQuotaEnforcementService;
 use Illuminate\Bus\Queueable;
@@ -119,7 +120,7 @@ class CheckQuotaLimitsJob implements ShouldQueue
      */
     protected function sentAlertToday(Tenant $tenant, string $quotaType): bool
     {
-        return \Aero\Platform\Models\QuotaWarning::where('tenant_id', $tenant->id)
+        return QuotaWarning::where('tenant_id', $tenant->id)
             ->where('quota_type', $quotaType)
             ->where('created_at', '>=', now()->startOfDay())
             ->exists();

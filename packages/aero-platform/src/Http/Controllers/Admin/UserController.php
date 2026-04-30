@@ -9,10 +9,13 @@ use Aero\HRMAC\Models\Role;
 use Aero\Platform\Http\Controllers\Controller;
 use Aero\Platform\Http\Resources\UserCollection;
 use Aero\Platform\Models\LandlordUser;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
+use Inertia\Response;
 
 /**
  * Shared User Controller
@@ -44,7 +47,7 @@ class UserController extends Controller
     /**
      * Display the platform admin users list (admin context)
      */
-    public function adminIndex(): \Inertia\Response
+    public function adminIndex(): Response
     {
         return Inertia::render('Shared/UsersList', [
             'title' => 'Platform Administrators',
@@ -58,7 +61,7 @@ class UserController extends Controller
     /**
      * Display the tenant users list (tenant context)
      */
-    public function tenantIndex(): \Inertia\Response
+    public function tenantIndex(): Response
     {
         return Inertia::render('Shared/UsersList', [
             'title' => 'User Management',
@@ -72,7 +75,7 @@ class UserController extends Controller
     /**
      * Paginate users with filters
      */
-    public function paginate(Request $request, string $context = 'tenant'): \Illuminate\Http\JsonResponse
+    public function paginate(Request $request, string $context = 'tenant'): JsonResponse
     {
         try {
             $perPage = $request->input('perPage', 10);
@@ -143,7 +146,7 @@ class UserController extends Controller
     /**
      * Get user statistics
      */
-    public function stats(Request $request, string $context = 'tenant'): \Illuminate\Http\JsonResponse
+    public function stats(Request $request, string $context = 'tenant'): JsonResponse
     {
         try {
             $modelClass = $this->getUserModel($context);
@@ -322,7 +325,7 @@ class UserController extends Controller
                 'message' => 'User created successfully.',
                 'user' => $user->fresh(['roles']),
             ], 201);
-        } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+        } catch (UniqueConstraintViolationException $e) {
             DB::rollBack();
 
             return response()->json([

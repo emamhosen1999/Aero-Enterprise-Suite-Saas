@@ -5,6 +5,7 @@ namespace Aero\Core\Http\Controllers\Public;
 use Aero\Core\Http\Controllers\Controller;
 use Aero\Core\Models\Tenant\HRM\Job;
 use Aero\Core\Models\Tenant\HRM\JobApplication;
+use App\Events\CandidateApplied;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -145,7 +146,7 @@ class CareersController extends Controller
         ]);
 
         // Dispatch event for notifications
-        event(new \App\Events\CandidateApplied($application));
+        event(new CandidateApplied($application));
 
         return redirect()->route('careers.index')
             ->with('success', 'Your application has been submitted successfully! We will review it and get back to you soon.');

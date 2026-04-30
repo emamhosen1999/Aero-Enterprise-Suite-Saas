@@ -4,6 +4,7 @@ namespace Aero\Platform\Services\Monitoring\Billing;
 
 use Aero\Platform\Models\Tenant;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 class InvoiceBrandingService
@@ -143,7 +144,7 @@ class InvoiceBrandingService
     /**
      * Upload and save invoice logo for a tenant.
      */
-    public function uploadInvoiceLogo(Tenant $tenant, \Illuminate\Http\UploadedFile $logo): string
+    public function uploadInvoiceLogo(Tenant $tenant, UploadedFile $logo): string
     {
         // Delete old logo if exists
         $oldLogo = $tenant->data['invoice_branding']['logo_path'] ?? null;

@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
+use Inertia\Response;
 
 /**
  * Public Newsletter Controller
@@ -56,7 +57,7 @@ class NewsletterController extends Controller
     /**
      * Confirm newsletter subscription.
      */
-    public function confirm(string $token): \Illuminate\Http\Response|\Inertia\Response
+    public function confirm(string $token): \Illuminate\Http\Response|Response
     {
         $subscriber = $this->newsletterService->confirmByToken($token);
 
@@ -77,7 +78,7 @@ class NewsletterController extends Controller
     /**
      * Show unsubscribe page.
      */
-    public function showUnsubscribe(string $token): \Inertia\Response
+    public function showUnsubscribe(string $token): Response
     {
         $subscriber = NewsletterSubscriber::findByToken($token);
 

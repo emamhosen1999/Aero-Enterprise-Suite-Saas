@@ -3,6 +3,7 @@
 namespace Aero\Platform\Http\Requests;
 
 use Aero\Platform\Models\Tenant;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -23,7 +24,7 @@ class RegistrationDetailsRequest extends FormRequest
      * This allows users to resume incomplete registrations with the same credentials.
      * Pending/failed tenants can be "taken over" by the new registration attempt.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {

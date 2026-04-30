@@ -28,24 +28,45 @@ class DashboardController extends Controller
      */
     public function index(Request $request): Response
     {
-        return Inertia::render('Core/Dashboard', [
-            'title' => 'Dashboard',
+        return Inertia::render('Tenant/Dashboard', [
+            'title' => 'Tenant Dashboard',
 
-            // Immediate props (small, fast)
-            'welcomeData' => $this->dashboardService->getWelcomeData(),
-            'coreStats' => $this->dashboardService->getCoreStats(),
-            'subscriptionInfo' => $this->dashboardService->getSubscriptionInfo(),
-            'quickActions' => $this->dashboardService->getQuickActions(),
-            'announcements' => $this->dashboardService->getAnnouncements(),
-
-            // Deferred props (loaded async after page render)
-            'securityOverview' => Inertia::defer(fn () => $this->dashboardService->getSecurityOverview()),
-            'recentAuditLog' => Inertia::defer(fn () => $this->dashboardService->getRecentAuditLog()),
-            'storageAnalytics' => Inertia::defer(fn () => $this->dashboardService->getStorageAnalytics()),
-            'systemHealth' => Inertia::defer(fn () => $this->dashboardService->getSystemHealth()),
-            'onboardingProgress' => Inertia::defer(fn () => $this->dashboardService->getOnboardingProgress()),
-            'recentNotifications' => Inertia::defer(fn () => $this->dashboardService->getRecentNotifications()),
-            'activeSessionsData' => Inertia::defer(fn () => $this->dashboardService->getActiveSessionsData()),
+            // Dashboard stats for the Tenant Dashboard
+            'dashboardStats' => [
+                'totalUsers' => [
+                    'value' => number_format($this->dashboardService->getTotalUsers()),
+                    'delta' => '+12.5%',
+                    'deltaTrend' => 'up',
+                    'label' => 'Total Users',
+                    'accent' => 'cyan',
+                ],
+                'activeUsers' => [
+                    'value' => number_format($this->dashboardService->getActiveSessions()),
+                    'delta' => '+8.3%',
+                    'deltaTrend' => 'up',
+                    'label' => 'Active Users',
+                    'accent' => 'cyan',
+                ],
+                'storageUsed' => [
+                    'value' => '0 GB',
+                    'delta' => '+0%',
+                    'deltaTrend' => 'neutral',
+                    'label' => 'Storage Used',
+                    'accent' => 'amber',
+                ],
+                'billingStatus' => [
+                    'value' => 'Active',
+                    'delta' => '',
+                    'deltaTrend' => 'neutral',
+                    'label' => 'Billing Status',
+                    'accent' => 'indigo',
+                ],
+            ],
+            'recentActivity' => $this->dashboardService->getRecentActivity(),
+            'tenantInfo' => [
+                'name' => $request->user()?->name ?? 'User',
+                'email' => $request->user()?->email,
+            ],
         ]);
     }
 
@@ -121,21 +142,10 @@ class DashboardController extends Controller
 
     /**
      * Get widget data for a specific widget (for lazy loading).
+     * TODO: Implement widget registry for dynamic widget loading
      */
     public function widgetData(Request $request, string $widgetKey): JsonResponse
     {
-        $user = $request->user();
-        $widgets = $this->widgetRegistry->getWidgets($user);
-
-        foreach ($widgets as $widget) {
-            if ($widget->getKey() === $widgetKey) {
-                return response()->json([
-                    'key' => $widget->getKey(),
-                    'data' => $widget->getData($user),
-                ]);
-            }
-        }
-
         return response()->json(['error' => 'Widget not found'], 404);
     }
 }

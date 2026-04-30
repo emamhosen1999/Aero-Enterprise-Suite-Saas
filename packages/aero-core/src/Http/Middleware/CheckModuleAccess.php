@@ -8,6 +8,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -38,7 +39,7 @@ class CheckModuleAccess
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      * @param  string  $moduleCode  The module code (e.g., 'hrm')
      * @param  string|null  $subModuleCode  The sub-module code (optional, e.g., 'employees')
      * @param  string|null  $componentCode  The component code (optional, e.g., 'employee-list')
@@ -375,7 +376,7 @@ class CheckModuleAccess
                         'type' => $reason === 'plan_restriction' ? 'SubscriptionRequired' : 'AccessDenied',
                         'title' => $reason === 'plan_restriction' ? 'Upgrade Required' : 'Access Denied',
                         'message' => $message,
-                        'trace_id' => \Illuminate\Support\Str::uuid()->toString(),
+                        'trace_id' => Str::uuid()->toString(),
                         'showHomeButton' => true,
                         'showRetryButton' => false,
                         'details' => $meta,

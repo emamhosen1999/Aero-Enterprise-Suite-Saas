@@ -41,6 +41,7 @@ class SyncModuleRegistryCommand extends Command
 
         if (empty($discovered)) {
             $this->warn('No modules discovered.');
+
             return 1;
         }
 
@@ -56,8 +57,9 @@ class SyncModuleRegistryCommand extends Command
 
         foreach ($discovered as $module) {
             $moduleCode = $module['code'] ?? null;
-            if (!$moduleCode) {
-                $errors[] = "Module missing code: " . json_encode($module);
+            if (! $moduleCode) {
+                $errors[] = 'Module missing code: '.json_encode($module);
+
                 continue;
             }
 
@@ -69,9 +71,10 @@ class SyncModuleRegistryCommand extends Command
                 ->where('module_code', $normalizedCode)
                 ->first();
 
-            if ($existing && !$force) {
+            if ($existing && ! $force) {
                 $status = $existing->status;
                 $this->line("  ⊙ {$normalizedCode} already registered (status: {$status})");
+
                 continue;
             }
 
@@ -113,8 +116,8 @@ class SyncModuleRegistryCommand extends Command
                     $created++;
                 }
             } catch (\Exception $e) {
-                $errors[] = "Failed to sync {$normalizedCode}: " . $e->getMessage();
-                $this->line("  ✗ <fg=red>{$normalizedCode}</> error: " . $e->getMessage());
+                $errors[] = "Failed to sync {$normalizedCode}: ".$e->getMessage();
+                $this->line("  ✗ <fg=red>{$normalizedCode}</> error: ".$e->getMessage());
             }
         }
 
@@ -122,9 +125,9 @@ class SyncModuleRegistryCommand extends Command
         $this->info('=== Summary ===');
         $this->line("  Created: {$created}");
         $this->line("  Updated: {$updated}");
-        
-        if (!empty($errors)) {
-            $this->line("  <fg=red>Errors:</> " . count($errors));
+
+        if (! empty($errors)) {
+            $this->line('  <fg=red>Errors:</> '.count($errors));
             foreach ($errors as $error) {
                 $this->line("    • {$error}");
             }
@@ -135,9 +138,11 @@ class SyncModuleRegistryCommand extends Command
         if (empty($errors)) {
             $this->info('<fg=green>✓ Module registry synced successfully!</>');
             $this->line('Next step: Run "php artisan aero:verify-modules" to verify all modules.');
+
             return 0;
         } else {
-            $this->warn("Module registry sync completed with " . count($errors) . " error(s).");
+            $this->warn('Module registry sync completed with '.count($errors).' error(s).');
+
             return 1;
         }
     }
@@ -152,7 +157,7 @@ class SyncModuleRegistryCommand extends Command
         }
 
         $code = str_replace(['aero-', 'aero:'], '', $code);
-        
+
         return "aero:{$code}";
     }
 }

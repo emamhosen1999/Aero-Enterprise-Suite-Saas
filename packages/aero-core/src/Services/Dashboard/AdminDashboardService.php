@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aero\Core\Services\Dashboard;
 
 use Aero\Core\Contracts\ModuleSummaryProvider;
+use Aero\Core\Models\Announcement;
 use Aero\Core\Models\AuditLog;
 use Aero\Core\Models\CompanySetting;
 use Aero\Core\Models\NotificationLog;
@@ -12,8 +13,16 @@ use Aero\Core\Models\User;
 use Aero\Core\Models\UserDevice;
 use Aero\Core\Models\UserSession;
 use Aero\Core\Services\ModuleRegistry;
+use Aero\DMS\Models\Document;
+use Aero\Finance\Models\Invoice;
+use Aero\HRM\Models\Department;
+use Aero\HRM\Models\Holiday;
+use Aero\HRM\Models\LeaveRequest;
 use Aero\HRMAC\Facades\HRMAC;
 use Aero\HRMAC\Models\Role;
+use Aero\Platform\Models\ErrorLog;
+use Aero\Project\Models\Task;
+use Aero\Quality\Models\NonConformanceReport;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -56,6 +65,81 @@ class AdminDashboardService
             'date' => $now->format('l, F j, Y'),
             'time' => $now->format('g:i A'),
         ];
+    }
+
+    /**
+     * Get total users count.
+     */
+    public function getTotalUsers(): int
+    {
+        return $this->getCoreStats()['totalUsers'] ?? 0;
+    }
+
+    /**
+     * Get active sessions count.
+     */
+    public function getActiveSessions(): int
+    {
+        return $this->getCoreStats()['onlineUsers'] ?? 0;
+    }
+
+    /**
+     * Get monthly revenue (placeholder - would integrate with billing module).
+     */
+    public function getMonthlyRevenue(): float
+    {
+        // TODO: Integrate with billing module when available
+        return 0.0;
+    }
+
+    /**
+     * Get recent activity formatted for dashboard.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getRecentActivity(): array
+    {
+        return collect($this->getRecentAuditLog(10))
+            ->map(function ($log) {
+                return [
+                    'id' => $log['id'],
+                    'user' => $log['user'],
+                    'action' => $log['description'] ?? $log['action'],
+                    'time' => $log['timeAgo'],
+                    'status' => $this->mapAuditStatus($log['action']),
+                ];
+            })
+            ->toArray();
+    }
+
+    /**
+     * Get top modules by usage (placeholder).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getTopModules(): array
+    {
+        // TODO: Integrate with module registry to get actual usage stats
+        return [
+            ['id' => 1, 'name' => 'aero-hrm', 'users' => 0, 'active' => 0, 'growth' => '+0%'],
+            ['id' => 2, 'name' => 'aero-finance', 'users' => 0, 'active' => 0, 'growth' => '+0%'],
+            ['id' => 3, 'name' => 'aero-crm', 'users' => 0, 'active' => 0, 'growth' => '+0%'],
+            ['id' => 4, 'name' => 'aero-project', 'users' => 0, 'active' => 0, 'growth' => '+0%'],
+        ];
+    }
+
+    /**
+     * Map audit log action to status badge.
+     */
+    private function mapAuditStatus(string $action): string
+    {
+        return match (true) {
+            str_contains($action, 'failed'), str_contains($action, 'error') => 'danger',
+            str_contains($action, 'deleted'), str_contains($action, 'removed') => 'danger',
+            str_contains($action, 'created'), str_contains($action, 'added') => 'success',
+            str_contains($action, 'updated'), str_contains($action, 'modified') => 'info',
+            default => 'info',
+        };
     }
 
     public function getCoreStats(): array
@@ -345,8 +429,8 @@ class AdminDashboardService
                 'hrm' => function () {
                     $pending = [];
                     try {
-                        if (class_exists(\Aero\HRM\Models\LeaveRequest::class)) {
-                            $pending['pendingLeaves'] = \Aero\HRM\Models\LeaveRequest::where('status', 'pending')->count();
+                        if (class_exists(LeaveRequest::class)) {
+                            $pending['pendingLeaves'] = LeaveRequest::where('status', 'pending')->count();
                         }
                     } catch (\Throwable) {
                     }
@@ -356,8 +440,8 @@ class AdminDashboardService
                 'finance' => function () {
                     $pending = [];
                     try {
-                        if (class_exists(\Aero\Finance\Models\Invoice::class)) {
-                            $pending['pendingInvoices'] = \Aero\Finance\Models\Invoice::where('status', 'pending')->count();
+                        if (class_exists(Invoice::class)) {
+                            $pending['pendingInvoices'] = Invoice::where('status', 'pending')->count();
                         }
                     } catch (\Throwable) {
                     }
@@ -367,8 +451,8 @@ class AdminDashboardService
                 'dms' => function () {
                     $pending = [];
                     try {
-                        if (class_exists(\Aero\DMS\Models\Document::class)) {
-                            $pending['pendingDocumentApprovals'] = \Aero\DMS\Models\Document::where('status', 'pending_approval')->count();
+                        if (class_exists(Document::class)) {
+                            $pending['pendingDocumentApprovals'] = Document::where('status', 'pending_approval')->count();
                         }
                     } catch (\Throwable) {
                     }
@@ -378,8 +462,8 @@ class AdminDashboardService
                 'project' => function () {
                     $pending = [];
                     try {
-                        if (class_exists(\Aero\Project\Models\Task::class)) {
-                            $pending['overdueTasks'] = \Aero\Project\Models\Task::where('due_date', '<', now())
+                        if (class_exists(Task::class)) {
+                            $pending['overdueTasks'] = Task::where('due_date', '<', now())
                                 ->whereNotIn('status', ['completed', 'cancelled'])
                                 ->count();
                         }
@@ -391,8 +475,8 @@ class AdminDashboardService
                 'quality' => function () {
                     $pending = [];
                     try {
-                        if (class_exists(\Aero\Quality\Models\NonConformanceReport::class)) {
-                            $pending['pendingNCRs'] = \Aero\Quality\Models\NonConformanceReport::where('status', 'pending')->count();
+                        if (class_exists(NonConformanceReport::class)) {
+                            $pending['pendingNCRs'] = NonConformanceReport::where('status', 'pending')->count();
                         }
                     } catch (\Throwable) {
                     }
@@ -539,8 +623,8 @@ class AdminDashboardService
 
                 // Error count today
                 try {
-                    if (class_exists(\Aero\Platform\Models\ErrorLog::class)) {
-                        $health['errorCountToday'] = \Aero\Platform\Models\ErrorLog::whereDate('created_at', today())->count();
+                    if (class_exists(ErrorLog::class)) {
+                        $health['errorCountToday'] = ErrorLog::whereDate('created_at', today())->count();
                     }
                 } catch (\Throwable) {
                     // Platform not installed
@@ -564,7 +648,7 @@ class AdminDashboardService
                 ];
 
                 if ($health['failedJobs'] > 0) {
-                    $health['services'][] = ['name' => 'Failed Jobs (' . $health['failedJobs'] . ')', 'status' => 'degraded'];
+                    $health['services'][] = ['name' => 'Failed Jobs ('.$health['failedJobs'].')', 'status' => 'degraded'];
                 }
 
                 return $health;
@@ -592,13 +676,13 @@ class AdminDashboardService
     {
         return Cache::remember('admin_dashboard.announcements', 300, function () {
             try {
-                if (! class_exists(\Aero\Core\Models\Announcement::class)) {
+                if (! class_exists(Announcement::class)) {
                     return [];
                 }
 
                 $user = auth()->user();
 
-                return \Aero\Core\Models\Announcement::query()
+                return Announcement::query()
                     ->active()
                     ->forUser($user)
                     ->orderByDesc('is_pinned')
@@ -736,8 +820,8 @@ class AdminDashboardService
 
             // Holidays from HRM
             try {
-                if (class_exists(\Aero\HRM\Models\Holiday::class)) {
-                    $holidays = \Aero\HRM\Models\Holiday::whereBetween('date', [now(), now()->addDays($days)])
+                if (class_exists(Holiday::class)) {
+                    $holidays = Holiday::whereBetween('date', [now(), now()->addDays($days)])
                         ->get(['name', 'date'])
                         ->map(fn ($h) => [
                             'title' => $h->name,
@@ -752,8 +836,8 @@ class AdminDashboardService
 
             // Task deadlines from Project
             try {
-                if (class_exists(\Aero\Project\Models\Task::class)) {
-                    $tasks = \Aero\Project\Models\Task::whereBetween('due_date', [now(), now()->addDays($days)])
+                if (class_exists(Task::class)) {
+                    $tasks = Task::whereBetween('due_date', [now(), now()->addDays($days)])
                         ->whereNotIn('status', ['completed', 'cancelled'])
                         ->limit(10)
                         ->get(['title', 'due_date'])
@@ -946,8 +1030,8 @@ class AdminDashboardService
     protected function hasDepartments(): bool
     {
         try {
-            if (class_exists(\Aero\HRM\Models\Department::class)) {
-                return \Aero\HRM\Models\Department::count() > 0;
+            if (class_exists(Department::class)) {
+                return Department::count() > 0;
             }
         } catch (\Throwable) {
         }

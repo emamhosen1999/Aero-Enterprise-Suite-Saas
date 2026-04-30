@@ -2,6 +2,7 @@
 
 namespace Aero\Platform\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
  * Pre-computed rollup of tenant_stats for fast dashboard queries.
  *
  * @property int $id
- * @property \Carbon\Carbon $date
+ * @property Carbon $date
  * @property int $total_tenants
  * @property int $active_tenants
  * @property int $total_users
@@ -24,8 +25,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $churned_tenants
  * @property int $trials_started
  * @property int $trials_converted
- * @property \Carbon\Carbon $created_at
- * @property \Carbon\Carbon|null $updated_at
+ * @property Carbon $created_at
+ * @property Carbon|null $updated_at
  */
 class PlatformStatDaily extends Model
 {

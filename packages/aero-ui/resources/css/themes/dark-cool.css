@@ -1,0 +1,14 @@
+.aeos--dark-cool {
+  --aeos-primary:       #00E5FF;
+  --aeos-primary-deep:  #00A3B8;
+  --aeos-secondary:     #6366F1;
+  --aeos-tertiary:      #8B5CF6;
+  --aeos-destructive:   #FF6B6B;
+  --aeos-grad-cyan:  linear-gradient(135deg,#00E5FF 0%,#6366F1 100%);
+  --aeos-grad-amber: linear-gradient(135deg,#6366F1 0%,#8B5CF6 100%);
+  --aeos-grad-full:  linear-gradient(135deg,#00E5FF 0%,#6366F1 50%,#8B5CF6 100%);
+  --aeos-glass-border:   rgba(99,102,241,.15);
+  --aeos-glass-border-h: rgba(99,102,241,.28);
+  --aeos-glow-cyan:      0 0 24px rgba(99,102,241,.30);
+  --aeos-glow-cyan-l:    0 0 40px rgba(99,102,241,.50);
+}

@@ -13,21 +13,21 @@ class IdentifyTenant
 
     public function handle(Request $request, Closure $next)
     {
-        $host      = $request->getHost();
-        $base      = config('app.base_domain');
-        $subdomain = str_replace('.' . $base, '', $host);
+        $host = $request->getHost();
+        $base = config('app.base_domain');
+        $subdomain = str_replace('.'.$base, '', $host);
 
-        if (!$subdomain || $subdomain === $host) {
-            throw new NotFoundHttpException();
+        if (! $subdomain || $subdomain === $host) {
+            throw new NotFoundHttpException;
         }
 
         if (in_array($subdomain, $this->reserved)) {
-            throw new NotFoundHttpException();
+            throw new NotFoundHttpException;
         }
 
         $tenant = Tenant::where('subdomain', $subdomain)->first();
 
-        if (!$tenant) {
+        if (! $tenant) {
             abort(404, 'Tenant not found.');
         }
 
